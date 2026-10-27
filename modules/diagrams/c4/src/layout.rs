@@ -241,7 +241,8 @@ pub fn type_line_of(element: &C4Element) -> String {
     }
 }
 
-fn measure_of(workspace: &C4Workspace, element: &C4Element, metrics: &C4Metrics) -> Rect {
+/// The box an element is drawn in, before it is placed: its displayed name, type line and description measured.
+pub fn measure_of(workspace: &C4Workspace, element: &C4Element, metrics: &C4Metrics) -> Rect {
     let shown = displayed(workspace, element);
     metrics.measure(&shown.name, &type_line_of(&shown), &shown.description)
 }
@@ -447,7 +448,8 @@ fn boundary_kind_of(element: &C4Element) -> String {
     }
 }
 
-fn boundary_label_of(element: &C4Element) -> String {
+/// What a deployment node's boundary is labelled with: its name and, in brackets, its kind.
+pub fn boundary_label_of(element: &C4Element) -> String {
     format!("{} [{}]", element.name, boundary_kind_of(element))
 }
 

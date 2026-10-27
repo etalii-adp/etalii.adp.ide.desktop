@@ -6,10 +6,12 @@
 //! standalone host's golden bytes, so the bytes are the standalone host's; readings, findings and drawings are the
 //! desktop host's. Each part names who produced it.
 
+mod c4;
 pub mod capability;
 pub mod check;
 mod editor;
 mod hierarchy;
+mod w3c;
 
 use std::cell::RefCell;
 use std::collections::BTreeMap;

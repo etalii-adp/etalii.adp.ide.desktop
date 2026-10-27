@@ -1,0 +1,99 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/rdf/simple.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "<http://example.org/alice> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person> .\n<http://example.org/alice> <http://xmlns.com/foaf/0.1/name> \"Alice\" .\n<http://example.org/alice> <http://xmlns.com/foaf/0.1/knows> _:b0 .\n_:b0 <http://xmlns.com/foaf/0.1/name> \"Bob\" .\n",
+    "files": {
+      "simple.adp": "w3c/rdf\nbody: simple.nt\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "triple:http://example.org/alice|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://xmlns.com/foaf/0.1/Person",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/alice",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "<http://example.org/alice>",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://xmlns.com/foaf/0.1/Person",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 1
+        }
+      },
+      {
+        "id": "triple:http://example.org/alice|http://xmlns.com/foaf/0.1/name|Alice",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/alice",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "<http://example.org/alice>",
+          "p": "http://xmlns.com/foaf/0.1/name",
+          "o": "Alice",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 2
+        }
+      },
+      {
+        "id": "triple:http://example.org/alice|http://xmlns.com/foaf/0.1/knows|0",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/alice",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "<http://example.org/alice>",
+          "p": "http://xmlns.com/foaf/0.1/knows",
+          "o": "0",
+          "oKind": "blank",
+          "oLabel": "b0",
+          "language": "",
+          "datatype": "",
+          "line": 3
+        }
+      },
+      {
+        "id": "triple:0|http://xmlns.com/foaf/0.1/name|Bob",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "0",
+          "sKind": "blank",
+          "sLabel": "b0",
+          "sWritten": "",
+          "p": "http://xmlns.com/foaf/0.1/name",
+          "o": "Bob",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 4
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

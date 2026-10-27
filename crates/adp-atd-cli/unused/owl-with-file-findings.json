@@ -1,0 +1,258 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/rdf/owl-with-file-findings.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "# B15: an ontology whose file raises the rdf.* findings beside the OWL ones.\r\n@prefix ex: <http://example.org/onto#> .\r\n@prefix ex: <http://example.org/again#> .\r\n@prefix owl: <http://www.w3.org/2002/07/owl#> .\r\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\r\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\r\n\r\nex:Thing a owl:Class ; rdfs:label \"Thing\"@en- .\r\nex:Old a owl:Class ; owl:deprecated true .\r\nex:New a owl:Class ; rdfs:subClassOf ex:Old .\r\nex:size a owl:DatatypeProperty ; rdfs:range xsd:notAType .\r\nex:Thing ex:undeclared <relative> .\r\n",
+    "files": {
+      "owl-with-file-findings.adp": "w3c/rdf\nbody: owl-with-file-findings.ttl\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "prefix:ex",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "ex",
+          "iri": "http://example.org/onto#",
+          "line": 2
+        }
+      },
+      {
+        "id": "prefix:ex|1",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "ex",
+          "iri": "http://example.org/again#",
+          "line": 3
+        }
+      },
+      {
+        "id": "prefix:owl",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "owl",
+          "iri": "http://www.w3.org/2002/07/owl#",
+          "line": 4
+        }
+      },
+      {
+        "id": "prefix:rdfs",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "rdfs",
+          "iri": "http://www.w3.org/2000/01/rdf-schema#",
+          "line": 5
+        }
+      },
+      {
+        "id": "prefix:xsd",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "xsd",
+          "iri": "http://www.w3.org/2001/XMLSchema#",
+          "line": 6
+        }
+      },
+      {
+        "id": "triple:http://example.org/again#Thing|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/again#Thing",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:Thing",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 8
+        }
+      },
+      {
+        "id": "triple:http://example.org/again#Thing|http://www.w3.org/2000/01/rdf-schema#label|Thing",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/again#Thing",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:Thing",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Thing",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "en-",
+          "datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+          "line": 8
+        }
+      },
+      {
+        "id": "triple:http://example.org/again#Old|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/again#Old",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:Old",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 9
+        }
+      },
+      {
+        "id": "triple:http://example.org/again#Old|http://www.w3.org/2002/07/owl#deprecated|true",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/again#Old",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:Old",
+          "p": "http://www.w3.org/2002/07/owl#deprecated",
+          "o": "true",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
+          "line": 9
+        }
+      },
+      {
+        "id": "triple:http://example.org/again#New|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/again#New",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:New",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 10
+        }
+      },
+      {
+        "id": "triple:http://example.org/again#New|http://www.w3.org/2000/01/rdf-schema#subClassOf|http://example.org/again#Old",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/again#New",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:New",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "http://example.org/again#Old",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 10
+        }
+      },
+      {
+        "id": "triple:http://example.org/again#size|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#DatatypeProperty",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/again#size",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:size",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#DatatypeProperty",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 11
+        }
+      },
+      {
+        "id": "triple:http://example.org/again#size|http://www.w3.org/2000/01/rdf-schema#range|http://www.w3.org/2001/XMLSchema#notAType",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/again#size",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:size",
+          "p": "http://www.w3.org/2000/01/rdf-schema#range",
+          "o": "http://www.w3.org/2001/XMLSchema#notAType",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 11
+        }
+      },
+      {
+        "id": "triple:http://example.org/again#Thing|http://example.org/again#undeclared|relative",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/again#Thing",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:Thing",
+          "p": "http://example.org/again#undeclared",
+          "o": "relative",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 12
+        }
+      }
+    ],
+    "relations": [],
+    "findings": [
+      {
+        "rule": "rdf.duplicate-prefix",
+        "severity": "warning",
+        "line": 3,
+        "message": "The prefix 'ex:' is declared more than once; from here on it means http://example.org/again#, which changes what every earlier-styled use would say."
+      },
+      {
+        "rule": "rdf.relative-iri",
+        "severity": "warning",
+        "line": 12,
+        "message": "This document uses relative IRIs but declares no base, so their meaning depends on where the file happens to sit. Declare an @base."
+      },
+      {
+        "rule": "rdf.language-tag",
+        "severity": "warning",
+        "line": 8,
+        "message": "'@en-' is not a well-formed language tag (letters, then optional '-' groups of letters and digits)."
+      }
+    ]
+  }
+}

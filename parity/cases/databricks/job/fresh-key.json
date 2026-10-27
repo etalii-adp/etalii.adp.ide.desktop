@@ -1,0 +1,25 @@
+{
+  "tool": "databricks/job",
+  "fixture": "databricks/job/fresh-key/fresh-key.yml",
+  "registration": "databricks/job/fresh-key/fresh-key.job.adp",
+  "steps": [
+    {
+      "action": "databricks.add-task:notebook",
+      "args": {
+        "target": "new:600,400"
+      }
+    },
+    {
+      "action": "databricks.add-task:python",
+      "args": {
+        "target": "new:860,400"
+      }
+    },
+    {
+      "action": "databricks.add-task:condition",
+      "args": {
+        "target": "new:860,520"
+      }
+    }
+  ]
+}

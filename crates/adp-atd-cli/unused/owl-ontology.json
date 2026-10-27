@@ -1,0 +1,1211 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/rdf/owl-ontology.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "@prefix : <http://example.org/pizza#> .\n@prefix owl: <http://www.w3.org/2002/07/owl#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n@prefix ext: <http://example.org/external#> .\n\n<http://example.org/pizza> a owl:Ontology ;\n    owl:imports <http://example.org/base> ;\n    rdfs:label \"Pizza ontology\" ;\n    owl:versionInfo \"1.0\" .\n\n:Pizza a owl:Class ;\n    rdfs:label \"Pizza\" .\n\n:Topping a owl:Class .\n\n:VegetarianTopping a owl:Class ;\n    rdfs:subClassOf :Topping ;\n    owl:disjointWith :MeatTopping .\n\n:MeatTopping a owl:Class ;\n    rdfs:subClassOf :Topping ;\n    owl:deprecated true .\n\n:Vegetarian a owl:Class ;\n    rdfs:subClassOf :Pizza ;\n    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty :hasTopping ; owl:allValuesFrom :VegetarianTopping ] ;\n    owl:equivalentClass :VeggiePizza .\n\n:VeggiePizza a owl:Class .\n\n:Special a owl:Class ;\n    owl:equivalentClass [ a owl:Class ; owl:unionOf ( :Vegetarian [ a owl:Restriction ; owl:onProperty :hasTopping ; owl:someValuesFrom [ a owl:Class ; owl:intersectionOf ( :MeatTopping ext:Smoked ) ] ] ) ] .\n\n:hasTopping a owl:ObjectProperty , owl:InverseFunctionalProperty ;\n    rdfs:domain :Pizza ;\n    rdfs:range :Topping ;\n    owl:inverseOf :toppingOf .\n\n:toppingOf a owl:ObjectProperty .\n\n:hasCalories a owl:DatatypeProperty , owl:FunctionalProperty ;\n    rdfs:domain :Pizza ;\n    rdfs:range xsd:integer .\n\n:hasNote a owl:DatatypeProperty .\n\n:Margherita a owl:NamedIndividual , :Pizza ;\n    rdfs:label \"Margherita\" ;\n    :hasCalories 850 ;\n    :hasTopping :Mozzarella .\n\n:Mozzarella a :VegetarianTopping .\n\n:Pizza a owl:NamedIndividual .\n\n[ a owl:AllDisjointClasses ; owl:members ( :Pizza :Topping ) ] .\n\n:HomemadeBase rdfs:subClassOf ext:Base .\n",
+    "files": {
+      "owl-ontology.adp": "w3c/rdf\nbody: owl-ontology.ttl\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "prefix:",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "",
+          "iri": "http://example.org/pizza#",
+          "line": 1
+        }
+      },
+      {
+        "id": "prefix:owl",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "owl",
+          "iri": "http://www.w3.org/2002/07/owl#",
+          "line": 2
+        }
+      },
+      {
+        "id": "prefix:rdfs",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "rdfs",
+          "iri": "http://www.w3.org/2000/01/rdf-schema#",
+          "line": 3
+        }
+      },
+      {
+        "id": "prefix:xsd",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "xsd",
+          "iri": "http://www.w3.org/2001/XMLSchema#",
+          "line": 4
+        }
+      },
+      {
+        "id": "prefix:ext",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "ext",
+          "iri": "http://example.org/external#",
+          "line": 5
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Ontology",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "<http://example.org/pizza>",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Ontology",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 7
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza|http://www.w3.org/2002/07/owl#imports|http://example.org/base",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "<http://example.org/pizza>",
+          "p": "http://www.w3.org/2002/07/owl#imports",
+          "o": "http://example.org/base",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 8
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza|http://www.w3.org/2000/01/rdf-schema#label|Pizza ontology",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "<http://example.org/pizza>",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Pizza ontology",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 9
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza|http://www.w3.org/2002/07/owl#versionInfo|1.0",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "<http://example.org/pizza>",
+          "p": "http://www.w3.org/2002/07/owl#versionInfo",
+          "o": "1.0",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 10
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#Pizza|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#Pizza",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Pizza",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 12
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#Pizza|http://www.w3.org/2000/01/rdf-schema#label|Pizza",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#Pizza",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Pizza",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Pizza",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 13
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#Topping|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#Topping",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Topping",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 15
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#VegetarianTopping|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#VegetarianTopping",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":VegetarianTopping",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 17
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#VegetarianTopping|http://www.w3.org/2000/01/rdf-schema#subClassOf|http://example.org/pizza#Topping",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#VegetarianTopping",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":VegetarianTopping",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "http://example.org/pizza#Topping",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 18
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#VegetarianTopping|http://www.w3.org/2002/07/owl#disjointWith|http://example.org/pizza#MeatTopping",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#VegetarianTopping",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":VegetarianTopping",
+          "p": "http://www.w3.org/2002/07/owl#disjointWith",
+          "o": "http://example.org/pizza#MeatTopping",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 19
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#MeatTopping|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#MeatTopping",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":MeatTopping",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 21
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#MeatTopping|http://www.w3.org/2000/01/rdf-schema#subClassOf|http://example.org/pizza#Topping",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#MeatTopping",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":MeatTopping",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "http://example.org/pizza#Topping",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 22
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#MeatTopping|http://www.w3.org/2002/07/owl#deprecated|true",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#MeatTopping",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":MeatTopping",
+          "p": "http://www.w3.org/2002/07/owl#deprecated",
+          "o": "true",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
+          "line": 23
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#Vegetarian|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#Vegetarian",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Vegetarian",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 25
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|http://example.org/pizza#Pizza",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#Vegetarian",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Vegetarian",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "http://example.org/pizza#Pizza",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 26
+        }
+      },
+      {
+        "id": "triple:0|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Restriction",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "0",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Restriction",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 27
+        }
+      },
+      {
+        "id": "triple:0|http://www.w3.org/2002/07/owl#onProperty|http://example.org/pizza#hasTopping",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "0",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#onProperty",
+          "o": "http://example.org/pizza#hasTopping",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 27
+        }
+      },
+      {
+        "id": "triple:0|http://www.w3.org/2002/07/owl#allValuesFrom|http://example.org/pizza#VegetarianTopping",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "0",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#allValuesFrom",
+          "o": "http://example.org/pizza#VegetarianTopping",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 27
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#Vegetarian|http://www.w3.org/2000/01/rdf-schema#subClassOf|0",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#Vegetarian",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Vegetarian",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "0",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 27
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#Vegetarian|http://www.w3.org/2002/07/owl#equivalentClass|http://example.org/pizza#VeggiePizza",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#Vegetarian",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Vegetarian",
+          "p": "http://www.w3.org/2002/07/owl#equivalentClass",
+          "o": "http://example.org/pizza#VeggiePizza",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 28
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#VeggiePizza|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#VeggiePizza",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":VeggiePizza",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 30
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#Special|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#Special",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Special",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 32
+        }
+      },
+      {
+        "id": "triple:1|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "1",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:2|http://www.w3.org/1999/02/22-rdf-syntax-ns#first|http://example.org/pizza#Vegetarian",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "2",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/pizza#Vegetarian",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:4|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Restriction",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "4",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Restriction",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:4|http://www.w3.org/2002/07/owl#onProperty|http://example.org/pizza#hasTopping",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "4",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#onProperty",
+          "o": "http://example.org/pizza#hasTopping",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:5|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#Class",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "5",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#Class",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:6|http://www.w3.org/1999/02/22-rdf-syntax-ns#first|http://example.org/pizza#MeatTopping",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "6",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/pizza#MeatTopping",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:6|http://www.w3.org/1999/02/22-rdf-syntax-ns#rest|7",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "6",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "7",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:7|http://www.w3.org/1999/02/22-rdf-syntax-ns#first|http://example.org/external#Smoked",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "7",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/external#Smoked",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:7|http://www.w3.org/1999/02/22-rdf-syntax-ns#rest|http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "7",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:5|http://www.w3.org/2002/07/owl#intersectionOf|6",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "5",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#intersectionOf",
+          "o": "6",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:4|http://www.w3.org/2002/07/owl#someValuesFrom|5",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "4",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#someValuesFrom",
+          "o": "5",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:2|http://www.w3.org/1999/02/22-rdf-syntax-ns#rest|3",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "2",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "3",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:3|http://www.w3.org/1999/02/22-rdf-syntax-ns#first|4",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "3",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "4",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:3|http://www.w3.org/1999/02/22-rdf-syntax-ns#rest|http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "3",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:1|http://www.w3.org/2002/07/owl#unionOf|2",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "1",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#unionOf",
+          "o": "2",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#Special|http://www.w3.org/2002/07/owl#equivalentClass|1",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#Special",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Special",
+          "p": "http://www.w3.org/2002/07/owl#equivalentClass",
+          "o": "1",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 33
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#hasTopping|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#ObjectProperty",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#hasTopping",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":hasTopping",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#ObjectProperty",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 35
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#hasTopping|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#InverseFunctionalProperty",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#hasTopping",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":hasTopping",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#InverseFunctionalProperty",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 35
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#hasTopping|http://www.w3.org/2000/01/rdf-schema#domain|http://example.org/pizza#Pizza",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#hasTopping",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":hasTopping",
+          "p": "http://www.w3.org/2000/01/rdf-schema#domain",
+          "o": "http://example.org/pizza#Pizza",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 36
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#hasTopping|http://www.w3.org/2000/01/rdf-schema#range|http://example.org/pizza#Topping",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#hasTopping",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":hasTopping",
+          "p": "http://www.w3.org/2000/01/rdf-schema#range",
+          "o": "http://example.org/pizza#Topping",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 37
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#hasTopping|http://www.w3.org/2002/07/owl#inverseOf|http://example.org/pizza#toppingOf",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#hasTopping",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":hasTopping",
+          "p": "http://www.w3.org/2002/07/owl#inverseOf",
+          "o": "http://example.org/pizza#toppingOf",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 38
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#toppingOf|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#ObjectProperty",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#toppingOf",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":toppingOf",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#ObjectProperty",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 40
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#hasCalories|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#DatatypeProperty",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#hasCalories",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":hasCalories",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#DatatypeProperty",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 42
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#hasCalories|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#FunctionalProperty",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#hasCalories",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":hasCalories",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#FunctionalProperty",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 42
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#hasCalories|http://www.w3.org/2000/01/rdf-schema#domain|http://example.org/pizza#Pizza",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#hasCalories",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":hasCalories",
+          "p": "http://www.w3.org/2000/01/rdf-schema#domain",
+          "o": "http://example.org/pizza#Pizza",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 43
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#hasCalories|http://www.w3.org/2000/01/rdf-schema#range|http://www.w3.org/2001/XMLSchema#integer",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#hasCalories",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":hasCalories",
+          "p": "http://www.w3.org/2000/01/rdf-schema#range",
+          "o": "http://www.w3.org/2001/XMLSchema#integer",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 44
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#hasNote|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#DatatypeProperty",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#hasNote",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":hasNote",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#DatatypeProperty",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 46
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#Margherita|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#NamedIndividual",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#Margherita",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Margherita",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#NamedIndividual",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 48
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#Margherita|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://example.org/pizza#Pizza",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#Margherita",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Margherita",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://example.org/pizza#Pizza",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 48
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#Margherita|http://www.w3.org/2000/01/rdf-schema#label|Margherita",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#Margherita",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Margherita",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "Margherita",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 49
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#Margherita|http://example.org/pizza#hasCalories|850",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#Margherita",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Margherita",
+          "p": "http://example.org/pizza#hasCalories",
+          "o": "850",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+          "line": 50
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#Margherita|http://example.org/pizza#hasTopping|http://example.org/pizza#Mozzarella",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#Margherita",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Margherita",
+          "p": "http://example.org/pizza#hasTopping",
+          "o": "http://example.org/pizza#Mozzarella",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 51
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#Mozzarella|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://example.org/pizza#VegetarianTopping",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#Mozzarella",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Mozzarella",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://example.org/pizza#VegetarianTopping",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 53
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#Pizza|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#NamedIndividual",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#Pizza",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Pizza",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#NamedIndividual",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 55
+        }
+      },
+      {
+        "id": "triple:8|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2002/07/owl#AllDisjointClasses",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "8",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2002/07/owl#AllDisjointClasses",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 57
+        }
+      },
+      {
+        "id": "triple:9|http://www.w3.org/1999/02/22-rdf-syntax-ns#first|http://example.org/pizza#Pizza",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "9",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/pizza#Pizza",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 57
+        }
+      },
+      {
+        "id": "triple:9|http://www.w3.org/1999/02/22-rdf-syntax-ns#rest|10",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "9",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "10",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 57
+        }
+      },
+      {
+        "id": "triple:10|http://www.w3.org/1999/02/22-rdf-syntax-ns#first|http://example.org/pizza#Topping",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "10",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/pizza#Topping",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 57
+        }
+      },
+      {
+        "id": "triple:10|http://www.w3.org/1999/02/22-rdf-syntax-ns#rest|http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "10",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 57
+        }
+      },
+      {
+        "id": "triple:8|http://www.w3.org/2002/07/owl#members|9",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "8",
+          "sKind": "blank",
+          "sLabel": "",
+          "sWritten": "",
+          "p": "http://www.w3.org/2002/07/owl#members",
+          "o": "9",
+          "oKind": "blank",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 57
+        }
+      },
+      {
+        "id": "triple:http://example.org/pizza#HomemadeBase|http://www.w3.org/2000/01/rdf-schema#subClassOf|http://example.org/external#Base",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/pizza#HomemadeBase",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":HomemadeBase",
+          "p": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "o": "http://example.org/external#Base",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 59
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

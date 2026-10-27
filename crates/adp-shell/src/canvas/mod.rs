@@ -574,7 +574,12 @@ pub struct DiagramTab {
 }
 
 impl DiagramTab {
-    fn new(root: &Path, path: &Path, opened: OpenedDiagram, session: DiagramSession) -> Result<Self, String> {
+    pub(crate) fn new(
+        root: &Path,
+        path: &Path,
+        opened: OpenedDiagram,
+        session: DiagramSession,
+    ) -> Result<Self, String> {
         Ok(DiagramTab {
             root: root.to_path_buf(),
             path: path.to_path_buf(),

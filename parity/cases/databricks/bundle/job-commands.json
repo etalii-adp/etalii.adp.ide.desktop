@@ -1,0 +1,35 @@
+{
+  "tool": "databricks/bundle",
+  "fixture": "databricks/bundle/job-commands/databricks.yml",
+  "registration": "databricks/bundle/job-commands/databricks.adp",
+  "steps": [
+    {
+      "action": "databricks.add-task:notebook",
+      "args": {
+        "target": "new:600,400"
+      },
+      "expect": "refused"
+    },
+    {
+      "action": "databricks.add-task:python",
+      "args": {
+        "target": "new:860,400"
+      },
+      "expect": "refused"
+    },
+    {
+      "action": "databricks.add-task:condition",
+      "args": {
+        "target": "new:1120,400"
+      },
+      "expect": "refused"
+    },
+    {
+      "action": "databricks.connect",
+      "args": {
+        "target": "rel:task:ingest->task:shape"
+      },
+      "expect": "refused"
+    }
+  ]
+}

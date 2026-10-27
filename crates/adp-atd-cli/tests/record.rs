@@ -225,7 +225,7 @@ fn recording_a_capability_writes_valid_fixtures_from_the_code_that_does_it() {
     );
 
     let output = Command::new(env!("CARGO_BIN_EXE_atd"))
-        .args(["record", "--capability", "reader.turtle", "--cases", "unused"])
+        .args(["record", "--capability", "layout.unknown", "--cases", "unused"])
         .output()
         .unwrap();
     assert_eq!(
@@ -233,6 +233,264 @@ fn recording_a_capability_writes_valid_fixtures_from_the_code_that_does_it() {
         Some(1),
         "a capability without named code is refused"
     );
+}
+
+/// Records capability `name`'s fixtures into a new folder; the folder.
+fn record_capability(name: &str) -> tempfile::TempDir {
+    let folder = tempfile::tempdir().unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_atd"))
+        .args(["record", "--capability", name, "--cases"])
+        .arg(folder.path())
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{name}: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    folder
+}
+
+/// The fixtures of capability `name`, recorded twice and found the same both times and valid against
+/// `$defs/CapabilityFixture`, by file name.
+fn fixtures_of(name: &str) -> BTreeMap<String, Value> {
+    let written = files(record_capability(name).path());
+    assert_eq!(
+        files(record_capability(name).path()),
+        written,
+        "{name}: recording again gives the same fixtures"
+    );
+    let validator = validator("CapabilityFixture");
+    written
+        .into_iter()
+        .map(|(file, bytes)| {
+            let fixture: Value = serde_json::from_slice(&bytes).unwrap();
+            let errors: Vec<String> = validator.iter_errors(&fixture).map(|e| e.to_string()).collect();
+            assert!(errors.is_empty(), "{name} {file}: {errors:?}");
+            (file, fixture)
+        })
+        .collect()
+}
+
+fn number(value: &Value) -> f64 {
+    value.as_f64().unwrap()
+}
+
+#[test]
+fn recording_row_packing_puts_no_two_items_closer_than_the_gap_on_a_row() {
+    let fixtures = fixtures_of("layout.rowPacking");
+    for tool in ["timeline-roadmap", "timeline-add", "hypecycle-graph-coal-technologies"] {
+        assert!(fixtures.contains_key(&format!("{tool}-read.json")), "{tool}");
+    }
+    for (file, fixture) in &fixtures {
+        let gap = number(&fixture["args"]["gap"]);
+        let positions = &fixture["output"]["positions"];
+        let nodes = fixture["input"]["nodes"].as_array().unwrap();
+        assert_eq!(
+            positions.as_object().unwrap().len(),
+            nodes.len(),
+            "{file}: every item gets a row"
+        );
+        // Each item's rows, and where it runs across.
+        let placed: Vec<(i64, i64, f64, f64)> = nodes
+            .iter()
+            .map(|node| {
+                let at = &positions[node["id"].as_str().unwrap()];
+                let left = number(&node["attributes"]["left"]);
+                assert_eq!(number(&at["x"]), left, "{file}: only rows change");
+                let top = at["y"].as_i64().unwrap();
+                (
+                    top,
+                    top + node["height"].as_i64().unwrap(),
+                    left,
+                    left + number(&node["width"]),
+                )
+            })
+            .collect();
+        for (index, first) in placed.iter().enumerate() {
+            for second in &placed[index + 1..] {
+                let share_a_row = first.0 < second.1 && second.0 < first.1;
+                let clear = first.3 + gap <= second.2 + 0.02 || second.3 + gap <= first.2 + 0.02;
+                assert!(!share_a_row || clear, "{file}: {first:?} and {second:?} crowd one row");
+            }
+        }
+        // A pair kept apart never shares a row.
+        for edge in fixture["input"]["edges"].as_array().unwrap() {
+            if edge["attributes"]["apart"] == true {
+                let row = |end: &str| positions[edge[end].as_str().unwrap()]["y"].clone();
+                assert_ne!(row("source"), row("target"), "{file}: {edge}");
+            }
+        }
+    }
+}
+
+#[test]
+fn recording_row_packed_keeps_every_row_and_packs_it_left_to_right() {
+    let fixtures = fixtures_of("layout.rowPacked");
+    assert!(fixtures.contains_key("hypecycle-graph-coal-technologies-read.json"));
+    for (file, fixture) in &fixtures {
+        let gap = number(&fixture["args"]["gap"]);
+        let step = number(&fixture["args"]["rowStep"]);
+        let output = &fixture["output"];
+        let mut rows: BTreeMap<i64, Vec<(f64, f64, f64)>> = BTreeMap::new();
+        for node in fixture["input"]["nodes"].as_array().unwrap() {
+            let id = node["id"].as_str().unwrap();
+            let at = &output["positions"][id];
+            assert_eq!(at["y"], node["position"]["y"], "{file}: {id} keeps its row");
+            let width = output["sizes"][id]["width"]
+                .as_f64()
+                .unwrap_or_else(|| number(&node["width"]));
+            if let Some(packed) = node["attributes"]["packedWidth"].as_f64() {
+                assert_eq!(width, packed, "{file}: {id} is drawn at its packed width");
+            }
+            let (top, height) = (number(&node["position"]["y"]), number(&node["height"]));
+            let leading = node["attributes"]["leading"].as_f64().unwrap_or(0.0);
+            let (first, last) = (
+                (top / step).floor() as i64,
+                ((top + height - 1.0) / step).floor() as i64,
+            );
+            for row in first..=last.max(first) {
+                rows.entry(row)
+                    .or_default()
+                    .push((number(&at["x"]), number(&at["x"]) + width, leading));
+            }
+        }
+        for (row, mut placed) in rows {
+            placed.sort_by(|a, b| a.0.total_cmp(&b.0));
+            for pair in placed.windows(2) {
+                assert!(
+                    pair[0].1 + gap + pair[1].2 <= pair[1].0 + 0.02,
+                    "{file}: row {row} crowds {pair:?}"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn recording_the_tidy_tree_hangs_every_row_one_layer_below_its_parent() {
+    let fixtures = fixtures_of("layout.tidyTree");
+    assert!(fixtures.contains_key("agent-behavior-modelling-research-assistant-read.json"));
+    for (file, fixture) in &fixtures {
+        let layer = number(&fixture["args"]["layerGap"]);
+        let gap = number(&fixture["args"]["nodeGap"]);
+        let positions = &fixture["output"]["positions"];
+        let nodes = fixture["input"]["nodes"].as_array().unwrap();
+        assert_eq!(positions.as_object().unwrap().len(), nodes.len(), "{file}");
+        let minimum = nodes
+            .iter()
+            .map(|n| number(&positions[n["id"].as_str().unwrap()]["x"]))
+            .fold(f64::INFINITY, f64::min);
+        assert_eq!(minimum, 0.0, "{file}: the leftmost node is at zero");
+        for node in nodes {
+            let at = &positions[node["id"].as_str().unwrap()];
+            let Some(parent) = node["parent"].as_str() else {
+                assert_eq!(number(&at["y"]), 0.0, "{file}: a root is on the first row");
+                continue;
+            };
+            let above = &positions[parent];
+            assert_eq!(
+                number(&at["y"]),
+                number(&above["y"]) + number(&node["height"]) + layer,
+                "{file}"
+            );
+        }
+        // Siblings in their order, left to right, at least the gap apart.
+        for node in nodes {
+            for other in nodes {
+                if node["parent"] == other["parent"] && node["order"].as_i64() < other["order"].as_i64() {
+                    let (left, right) = (
+                        &positions[node["id"].as_str().unwrap()],
+                        &positions[other["id"].as_str().unwrap()],
+                    );
+                    assert!(
+                        number(&left["x"]) + number(&node["width"]) + gap <= number(&right["x"]) + 0.02,
+                        "{file}"
+                    );
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn recording_the_self_organising_arrangement_moves_every_element_clear_of_the_others_or_refuses() {
+    let fixtures = fixtures_of("arrange.selfOrganising");
+    let mut refused = 0;
+    for (file, fixture) in &fixtures {
+        let elements = fixture["input"]["elements"].as_array().unwrap();
+        let separation = number(&fixture["args"]["separation"]);
+        if let Some(findings) = fixture["output"]["findings"].as_array() {
+            assert!(
+                elements.len() > fixture["args"]["budget"].as_u64().unwrap() as usize,
+                "{file}"
+            );
+            assert!(findings[0]["message"].as_str().unwrap().contains("more than"), "{file}");
+            refused += 1;
+            continue;
+        }
+        let actions = fixture["output"]["actions"].as_array().unwrap();
+        assert_eq!(actions.len(), elements.len(), "{file}: every element is moved");
+        let boxes: Vec<(f64, f64, f64, f64)> = elements
+            .iter()
+            .zip(actions)
+            .map(|(element, action)| {
+                assert_eq!(action["kind"], "move");
+                assert_eq!(action["target"], element["id"], "{file}: in the elements' order");
+                (
+                    number(&action["x"]),
+                    number(&action["y"]),
+                    number(&element["width"]),
+                    number(&element["height"]),
+                )
+            })
+            .collect();
+        for (index, a) in boxes.iter().enumerate() {
+            for b in &boxes[index + 1..] {
+                let apart_x = (a.0 - b.0).abs() >= (a.2 + b.2) / 2.0 + separation - 0.05;
+                let apart_y = (a.1 - b.1).abs() >= (a.3 + b.3) / 2.0 + separation - 0.05;
+                assert!(apart_x || apart_y, "{file}: {a:?} and {b:?} overlap");
+            }
+        }
+    }
+    assert_eq!(refused, 1, "one fixture records the refusal past the budget");
+}
+
+#[test]
+fn recording_the_forward_bezier_leaves_each_dependent_rightward_and_enters_each_dependency_from_its_left() {
+    let fixtures = fixtures_of("routing.forwardBezier");
+    let mut loops = 0;
+    for (file, fixture) in &fixtures {
+        let routes = &fixture["output"]["routes"];
+        for edge in fixture["input"]["edges"].as_array().unwrap() {
+            let (source, target) = (&edge["source"], &edge["target"]);
+            let route = routes[edge["id"].as_str().unwrap()].as_array().unwrap();
+            assert_eq!(route.len(), 2, "{file}: a move and one curve");
+            let (start, curve) = (&route[0]["points"][0], route[1]["points"].as_array().unwrap());
+            assert_eq!(route[1]["op"], "cubic");
+            let middle = |b: &Value| number(&b["y"]) + number(&b["height"]) / 2.0;
+            let near = |a: f64, b: f64| (a - b).abs() < 0.011;
+            assert!(
+                near(number(&start["x"]), number(&source["x"]) + number(&source["width"])),
+                "{file}"
+            );
+            assert!(near(number(&start["y"]), middle(source)), "{file}");
+            assert!(near(number(&curve[2]["x"]), number(&target["x"])), "{file}");
+            assert!(near(number(&curve[2]["y"]), middle(target)), "{file}");
+            if number(&target["x"]) < number(&source["x"]) + number(&source["width"]) {
+                assert!(
+                    number(&curve[0]["x"]) > number(&start["x"]),
+                    "{file}: it leaves rightward"
+                );
+                assert!(
+                    number(&curve[1]["x"]) < number(&curve[2]["x"]),
+                    "{file}: it arrives from the left"
+                );
+                loops += 1;
+            }
+        }
+    }
+    assert!(loops > 0, "a dependency sitting behind its dependent loops round");
 }
 
 /// Records the Hierarchical Requirement Designer's cases into a new folder (etalii.adp spec 035, T167); the folder.
@@ -424,4 +682,219 @@ fn recording_the_markdown_capabilities_writes_valid_fixtures() {
             assert_eq!(guide["output"]["elements"].as_array().unwrap().len(), 5);
         }
     }
+}
+
+#[test]
+fn recording_a_reader_writes_what_each_document_of_its_cases_reads_to() {
+    let fixtures = record_capability("reader.databricksBundle");
+    let validator = validator("CapabilityFixture");
+    let written = files(fixtures.path());
+    for expected in [
+        "job-nightly-ingest.json",
+        "bundle-lakehouse.json",
+        "pipeline-settings.json",
+    ] {
+        assert!(written.contains_key(expected), "{expected} in {:?}", written.keys());
+    }
+    for (name, bytes) in &written {
+        let fixture: Value = serde_json::from_slice(bytes).unwrap();
+        let errors: Vec<String> = validator.iter_errors(&fixture).map(|e| e.to_string()).collect();
+        assert!(errors.is_empty(), "{name}: {errors:?}");
+        assert!(
+            !fixture["input"]["body"].as_str().unwrap().is_empty() || name.starts_with("bundle-empty"),
+            "{name}"
+        );
+        assert!(
+            fixture["output"]["elements"].is_array() && fixture["output"]["findings"].is_array(),
+            "{name}"
+        );
+    }
+    let job: Value = serde_json::from_slice(&written["job-nightly-ingest.json"]).unwrap();
+    assert_eq!(job["args"]["reading"], "job");
+    assert!(
+        job["output"]["elements"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|e| e["id"] == "task:land_raw")
+    );
+    assert_eq!(files(record_capability("reader.databricksBundle").path()), written);
+}
+
+#[test]
+fn recording_a_layout_places_every_node_of_each_reading_and_keeps_the_pinned_ones() {
+    let validator = validator("CapabilityFixture");
+    for (name, expected) in [
+        ("layout.layeredColumns", "job-nightly-ingest.json"),
+        ("layout.bands", "bundle-lakehouse.json"),
+    ] {
+        let written = files(record_capability(name).path());
+        assert!(written.contains_key(expected), "{name}: {:?}", written.keys());
+        for (file, bytes) in &written {
+            let fixture: Value = serde_json::from_slice(bytes).unwrap();
+            let errors: Vec<String> = validator.iter_errors(&fixture).map(|e| e.to_string()).collect();
+            assert!(errors.is_empty(), "{file}: {errors:?}");
+            let positions = fixture["output"]["positions"].as_object().unwrap();
+            for node in fixture["input"]["nodes"].as_array().unwrap() {
+                let id = node["id"].as_str().unwrap();
+                assert!(positions.contains_key(id), "{name} {file}: {id} is placed");
+                if let Some(pinned) = node.get("pinned") {
+                    assert_eq!(&positions[id], pinned, "{name} {file}: {id} stays where it is pinned");
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn recording_the_structurizr_reader_names_the_kind_of_view_each_case_reads() {
+    let written = files(record_capability("reader.structurizr").path());
+    let validator = validator("CapabilityFixture");
+    for (name, view) in [
+        ("container-courier.json", "container"),
+        ("context-operations.json", "systemContext"),
+        ("system-landscape-operations.json", "systemLandscape"),
+    ] {
+        let fixture: Value = serde_json::from_slice(&written[name]).unwrap();
+        let errors: Vec<String> = validator.iter_errors(&fixture).map(|e| e.to_string()).collect();
+        assert!(errors.is_empty(), "{name}: {errors:?}");
+        assert_eq!(fixture["args"]["view"], view, "{name}");
+        assert!(
+            fixture["output"]["elements"].as_array().is_some_and(|e| !e.is_empty()),
+            "{name}"
+        );
+    }
+}
+
+#[test]
+fn recording_ranked_boundaries_keeps_the_pins_a_view_does_not_ignore_and_encloses_each_boundary_s_nodes() {
+    let written = files(record_capability("layout.rankedBoundaries").path());
+    let validator = validator("CapabilityFixture");
+    assert!(
+        written.contains_key("deployment-operations.json"),
+        "{:?}",
+        written.keys()
+    );
+    let mut pins_kept = 0;
+    for (file, bytes) in &written {
+        let fixture: Value = serde_json::from_slice(bytes).unwrap();
+        let errors: Vec<String> = validator.iter_errors(&fixture).map(|e| e.to_string()).collect();
+        assert!(errors.is_empty(), "{file}: {errors:?}");
+        let positions = fixture["output"]["positions"].as_object().unwrap();
+        let ignored = fixture["args"]["pinsIgnored"] == "true";
+        let padding = fixture["args"]["padding"].as_f64().unwrap();
+        let nodes = fixture["input"]["nodes"].as_array().unwrap();
+        for node in nodes {
+            let id = node["id"].as_str().unwrap();
+            assert!(positions.contains_key(id), "{file}: {id} is placed");
+            let encloses = nodes.iter().any(|n| n["parent"] == node["id"]);
+            if let Some(pinned) = node.get("pinned")
+                && !ignored
+                && node.get("parent").is_none()
+                && !encloses
+            {
+                assert_eq!(&positions[id], pinned, "{file}: {id} stays where it is pinned");
+                pins_kept += 1;
+            }
+            if let Some(parent) = node["parent"].as_str() {
+                let (inner, outer) = (&positions[id], &positions[parent]);
+                for axis in ["x", "y"] {
+                    assert!(
+                        inner[axis].as_f64().unwrap() >= outer[axis].as_f64().unwrap() + padding - 0.005,
+                        "{file}: {id} is inside {parent}"
+                    );
+                }
+            }
+        }
+    }
+    assert!(pins_kept > 0, "some view keeps its stored positions");
+}
+
+#[test]
+fn recording_the_turtle_reader_opens_each_document_with_its_headers_and_keeps_every_triple() {
+    let written = files(record_capability("reader.turtle").path());
+    let validator = validator("CapabilityFixture");
+    for expected in [
+        "class-expressions.json",
+        "broken.json",
+        "skos-language-header-forms.json",
+    ] {
+        assert!(written.contains_key(expected), "{expected}: {:?}", written.keys());
+    }
+    for (file, bytes) in &written {
+        let fixture: Value = serde_json::from_slice(bytes).unwrap();
+        let errors: Vec<String> = validator.iter_errors(&fixture).map(|e| e.to_string()).collect();
+        assert!(errors.is_empty(), "{file}: {errors:?}");
+        let elements = fixture["output"]["elements"].as_array().unwrap();
+        assert_eq!(elements[0]["id"], "document", "{file}: the document comes first");
+        for element in &elements[1..] {
+            let id = element["id"].as_str().unwrap();
+            assert!(
+                ["base", "prefix:", "triple:"].iter().any(|p| id.starts_with(p)),
+                "{file}: {id} is a stored statement"
+            );
+        }
+    }
+    let class_expressions: Value = serde_json::from_slice(&written["class-expressions.json"]).unwrap();
+    let triples = class_expressions["output"]["elements"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|e| e["id"].as_str().unwrap().starts_with("triple:"))
+        .count();
+    assert!(triples > 50, "every statement of the ontology is kept: {triples}");
+    let broken: Value = serde_json::from_slice(&written["broken.json"]).unwrap();
+    assert!(
+        !broken["output"]["findings"].as_array().unwrap().is_empty(),
+        "a broken document reports what is wrong"
+    );
+}
+
+#[test]
+fn recording_depth_columns_keeps_the_pins_of_resources_and_moves_those_of_expressions() {
+    let written = files(record_capability("layout.depthColumns").path());
+    let fixture: Value = serde_json::from_slice(&written["class-expressions.json"]).unwrap();
+    let positions = fixture["output"]["positions"].as_object().unwrap();
+    let (mut kept, mut moved) = (0, 0);
+    for node in fixture["input"]["nodes"].as_array().unwrap() {
+        let id = node["id"].as_str().unwrap();
+        assert!(positions.contains_key(id), "{id} is placed");
+        let Some(pinned) = node.get("pinned") else { continue };
+        if id.starts_with("expr:") {
+            assert_ne!(&positions[id], pinned, "{id} is placed where its column puts it");
+            moved += 1;
+        } else {
+            assert_eq!(&positions[id], pinned, "{id} stays where it is pinned");
+            kept += 1;
+        }
+    }
+    assert!(kept > 0 && moved > 0, "kept {kept}, moved {moved}");
+}
+
+#[test]
+fn recording_description_logic_elides_deep_expressions_on_the_canvas_and_marks_a_cycle() {
+    let written = files(record_capability("render.descriptionLogic").path());
+    let validator = validator("CapabilityFixture");
+    let styled = |file: &str, style: &str| {
+        let fixture: Value = serde_json::from_slice(&written[file]).unwrap();
+        fixture["output"]["runs"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|run| run["style"][style] == true)
+    };
+    for (file, bytes) in &written {
+        let fixture: Value = serde_json::from_slice(bytes).unwrap();
+        let errors: Vec<String> = validator.iter_errors(&fixture).map(|e| e.to_string()).collect();
+        assert!(errors.is_empty(), "{file}: {errors:?}");
+        if file.ends_with("-full.json") {
+            assert!(!styled(file, "elided"), "{file}: the full rendering elides nothing");
+        }
+    }
+    assert!(
+        written
+            .keys()
+            .any(|f| f.ends_with("-canvas.json") && styled(f, "elided"))
+    );
+    assert!(written.keys().any(|f| styled(f, "cyclic")), "a blank cycle is marked");
 }

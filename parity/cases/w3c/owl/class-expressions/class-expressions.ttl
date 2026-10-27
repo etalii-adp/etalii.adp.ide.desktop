@@ -1,0 +1,52 @@
+@prefix : <http://example.org/shapes#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+: a owl:Ontology .
+
+:Shape a owl:Class .
+:Polygon a owl:Class ; rdfs:label "Polygon" .
+:Circle a owl:Class .
+:Colour a owl:Class .
+:Red a owl:NamedIndividual , :Colour .
+:Green a owl:NamedIndividual , :Colour .
+:hasSide a owl:ObjectProperty .
+:hasColour a owl:ObjectProperty .
+:hasArea a owl:DatatypeProperty .
+
+:Unround a owl:Class ;
+    owl:equivalentClass [ a owl:Class ; owl:complementOf :Circle ] .
+
+:Primary a owl:Class ;
+    owl:equivalentClass [ a owl:Class ; owl:oneOf ( :Red :Green ) ] .
+
+:Triangle a owl:Class ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty :hasSide ; owl:cardinality "3"^^xsd:nonNegativeInteger ] ,
+        [ a owl:Restriction ; owl:onProperty :hasColour ; owl:hasValue :Red ] .
+
+:Square a owl:Class ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty :hasSide ; owl:minQualifiedCardinality "4"^^xsd:nonNegativeInteger ; owl:onClass :Polygon ] ,
+        [ a owl:Restriction ; owl:onProperty :hasArea ; owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onDataRange xsd:decimal ] ,
+        [ a owl:Restriction ; owl:onProperty :hasSide ; owl:qualifiedCardinality "4"^^xsd:nonNegativeInteger ; owl:onClass :Shape ] ,
+        [ a owl:Restriction ; owl:onProperty :hasSide ; owl:minCardinality "1"^^xsd:nonNegativeInteger ] .
+
+:Nested a owl:Class ;
+    owl:equivalentClass [ a owl:Class ; owl:intersectionOf ( :Shape [ a owl:Restriction ; owl:onProperty :hasSide ; owl:someValuesFrom [ a owl:Class ; owl:unionOf ( :Polygon [ a owl:Class ; owl:complementOf [ a owl:Restriction ; owl:onProperty :hasColour ; owl:allValuesFrom :Colour ] ] ) ] ] ) ] .
+
+:Unfinished a owl:Class ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty :hasSide ] ,
+        [ a owl:Restriction ; owl:someValuesFrom :Shape ] ,
+        [ a owl:Class ; owl:unionOf () ] .
+
+:Loop a owl:Class ;
+    owl:disjointWith _:loop .
+_:loop a owl:Class ; owl:complementOf _:loop .
+
+:Polygon rdfs:subClassOf :Shape .
+:Triangle rdfs:subClassOf :Polygon .
+:Square rdfs:subClassOf :Polygon , :Shape .
+:Round a owl:Class ; rdfs:subClassOf :Curved .
+:Curved a owl:Class ; rdfs:subClassOf :Round .
+:Circle rdfs:subClassOf :Round .

@@ -1,0 +1,28 @@
+resources:
+  jobs:
+    circular:
+      name: Circular with a tail
+      tasks:
+        - task_key: left
+          depends_on:
+            - task_key: right
+          notebook_task:
+            notebook_path: notebooks/left
+        - task_key: right
+          depends_on:
+            - task_key: left
+          notebook_task:
+            notebook_path: notebooks/right
+        - task_key: after_circle
+          depends_on:
+            - task_key: right
+          notebook_task:
+            notebook_path: notebooks/after
+        - task_key: further_after
+          depends_on:
+            - task_key: after_circle
+          notebook_task:
+            notebook_path: notebooks/further
+        - task_key: independent
+          notebook_task:
+            notebook_path: notebooks/independent
