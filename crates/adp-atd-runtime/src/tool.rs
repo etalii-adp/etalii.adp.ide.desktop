@@ -176,8 +176,9 @@ impl RuntimeModule {
 }
 
 impl DiagramModule for RuntimeModule {
+    /// The host's plugin `plugin_id`, else its reader capability of that name (ATD §11.7).
     fn persistence(&self, plugin_id: &str) -> Option<Rc<dyn PersistencePlugin>> {
-        (self.plugins)(plugin_id)
+        (self.plugins)(plugin_id).or_else(|| self.capabilities.reader(plugin_id))
     }
 
     /// Keeps this viewer's view of `element`, as a `view` action sets it.

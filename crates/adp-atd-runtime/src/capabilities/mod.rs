@@ -3,11 +3,15 @@
 //! conformance fixtures pass (`tests/capabilities.rs`). A capability is named by its contract, never by a tool type;
 //! one this host does not provide is absent, and the gestures that need it are refused.
 
+pub mod forward_bezier;
 pub mod two_sided_tree;
 
 use std::collections::BTreeMap;
 use std::rc::Rc;
 
+use adp_fbl::plugins::PersistencePlugin;
+use adp_scene::scene::{RouteEnds, RoutePlugins};
+use adp_scene::{Path, Point};
 use serde_json::{Map, Value as Json, json};
 
 /// A capability at the `layout` extension point: nodes with their sizes and pins (`$defs/LayoutInput`) to positions
@@ -34,10 +38,23 @@ pub trait LayoutCapability {
     }
 }
 
-/// The capabilities this host provides, by name.
+/// A capability at the `routing` extension point: an edge's two end boxes to its route (`$defs/RoutingInput` to
+/// `$defs/RoutingResult`).
+pub trait RoutingCapability {
+    /// The route from `from` to `to` between the end boxes, none where the capability does not route the edge.
+    fn route(&self, from: Point, to: Point, ends: &RouteEnds) -> Option<Path>;
+
+    /// `$defs/RoutingResult` for `input` and the capability's `args`, the points rounded to 0.01.
+    fn routing(&self, input: &Json, args: &Json) -> Result<Json, String>;
+}
+
+/// The capabilities this host provides, by name: layouts, routings, and readers (a reader is a persistence plugin, FBL
+/// §11, named by its capability as a binding's family).
 #[derive(Clone, Default)]
 pub struct Capabilities {
     layouts: BTreeMap<&'static str, Rc<dyn LayoutCapability>>,
+    routings: BTreeMap<&'static str, Rc<dyn RoutingCapability>>,
+    readers: BTreeMap<&'static str, Rc<dyn PersistencePlugin>>,
 }
 
 impl Capabilities {
@@ -48,25 +65,60 @@ impl Capabilities {
             .layouts
             .insert("layout.twoSidedTree", Rc::new(TwoSidedTree));
         capabilities
+            .routings
+            .insert("routing.forwardBezier", Rc::new(forward_bezier::ForwardBezier));
+        capabilities
+    }
+
+    /// These capabilities with `reader` as the reader capability `name`.
+    pub fn with_reader(mut self, name: &'static str, reader: Rc<dyn PersistencePlugin>) -> Self {
+        self.readers.insert(name, reader);
+        self
     }
 
     pub fn layout(&self, name: &str) -> Option<Rc<dyn LayoutCapability>> {
         self.layouts.get(name).cloned()
     }
 
+    pub fn routing(&self, name: &str) -> Option<Rc<dyn RoutingCapability>> {
+        self.routings.get(name).cloned()
+    }
+
+    pub fn reader(&self, name: &str) -> Option<Rc<dyn PersistencePlugin>> {
+        self.readers.get(name).cloned()
+    }
+
     /// The names of every capability, in order.
     pub fn names(&self) -> Vec<&'static str> {
-        self.layouts.keys().copied().collect()
+        let mut names: Vec<&'static str> = self
+            .layouts
+            .keys()
+            .chain(self.routings.keys())
+            .chain(self.readers.keys())
+            .copied()
+            .collect();
+        names.sort_unstable();
+        names
     }
 
     /// The output of capability `name` for a fixture's `input` and `args` (`$defs/CapabilityFixture`).
     pub fn run(&self, name: &str, fixture: &Json) -> Result<Json, String> {
         let empty = json!({});
         let args = fixture.get("args").unwrap_or(&empty);
-        match self.layout(name) {
-            Some(layout) => layout.layout(&fixture["input"], args),
+        if let Some(layout) = self.layout(name) {
+            return layout.layout(&fixture["input"], args);
+        }
+        match self.routing(name) {
+            Some(routing) => routing.routing(&fixture["input"], args),
             None => Err(format!("This host provides no capability `{name}`.")),
         }
+    }
+}
+
+/// The routings of these capabilities, as a scene draws a `routing: { plugin }` (DISL §6.10) by its capability's name.
+impl RoutePlugins for Capabilities {
+    fn route(&self, name: &str, from: Point, to: Point, ends: &RouteEnds) -> Option<Path> {
+        self.routings.get(name)?.route(from, to, ends)
     }
 }
 
