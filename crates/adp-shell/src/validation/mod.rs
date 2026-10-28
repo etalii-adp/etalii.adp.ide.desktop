@@ -16,6 +16,7 @@ use eframe::egui::{self, Frame, Margin, RichText, accesskit::Role};
 
 use crate::a11y;
 use crate::canvas::DiagramTab;
+use crate::debugger::{self, DebuggerPanel};
 use crate::theme::{self, Palette};
 
 /// Where the working copy's documents are named: never read or written.
@@ -63,6 +64,9 @@ pub struct ValidationTab {
     working: Option<Working>,
     pane: Pane,
     pub notice: Option<String>,
+    /// Whether the debugger shows in place of the working copy (T141).
+    pub debugging: bool,
+    pub debugger: DebuggerPanel,
 }
 
 impl ValidationTab {
@@ -84,9 +88,10 @@ impl ValidationTab {
                 root.file_name().unwrap_or_default().to_string_lossy()
             ));
         }
+        let id = egui::Id::unique(("validation", root.to_path_buf()));
         let mut tab = ValidationTab {
             path: root.to_path_buf(),
-            id: egui::Id::unique(("validation", root.to_path_buf())),
+            id,
             cases,
             case: 0,
             files: vec![root.to_path_buf()],
@@ -97,6 +102,8 @@ impl ValidationTab {
             working: None,
             pane: Pane::Toolbox,
             notice: None,
+            debugging: false,
+            debugger: DebuggerPanel::new(id.with("debugger")),
         };
         tab.run();
         Ok(tab)
@@ -262,10 +269,29 @@ pub fn show(ui: &mut egui::Ui, tab: &mut ValidationTab, theme: &Theme, palette: 
             {
                 tab.run();
             }
+            let label = if tab.debugging { "Hide Debugger" } else { "Debugger" };
+            let response = ui
+                .selectable_label(tab.debugging, label)
+                .on_hover_text("Run the case under the debugger, with breakpoints in the description");
+            a11y::describe(&response, Role::Button, "Debugger");
+            response
+                .ctx
+                .accesskit_node_builder(response.id, |node| node.set_toggled(tab.debugging.into()));
+            if response.clicked() {
+                tab.debugging = !tab.debugging;
+            }
         });
     });
     if let Some(index) = chosen {
         tab.choose(index);
+    }
+    if tab.debugging {
+        let case = tab.cases[tab.case].1.clone();
+        let root = tab.path.clone();
+        egui::CentralPanel::default().frame(Frame::NONE).show(ui, |ui| {
+            debugger::show(ui, &mut tab.debugger, &root, &case, theme, palette)
+        });
+        return go_to;
     }
 
     // The differences, right.

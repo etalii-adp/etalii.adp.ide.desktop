@@ -60,6 +60,9 @@ pub(crate) struct Inner {
     environment: Environment,
     programs: RefCell<HashMap<String, Program>>,
     pub(crate) options: Options,
+    /// The debugger of every call of the script that has none of its own: each gesture's, and those of functions
+    /// called where the model is only read.
+    pub(crate) debugger: RefCell<Option<Hook>>,
 }
 
 /// The debugger's hook (research R21).
@@ -109,6 +112,7 @@ impl Script {
                 environment,
                 programs: RefCell::new(HashMap::new()),
                 options,
+                debugger: RefCell::new(None),
             }
         });
         Script { inner }
@@ -120,6 +124,13 @@ impl Script {
             inner: Rc::clone(&self.inner),
             run: Run::new(host),
         }
+    }
+
+    /// Calls `hook` before each statement of every call of the script whose gesture has no hook of its own
+    /// ([`Gesture::on_statement`]), functions called from a label or a constraint included; a [`Control::Stop`] stops
+    /// the call. A hook already running is not called again from within itself.
+    pub fn on_statement(&self, hook: impl FnMut(&Event<'_>) -> Control + 'static) {
+        *self.inner.debugger.borrow_mut() = Some(Box::new(hook));
     }
 
     /// The environment the description's expressions compile in: the one given, with `range` and the description's

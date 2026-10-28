@@ -8,6 +8,7 @@ mod a11y;
 mod add_dialog;
 mod atd_client;
 mod canvas;
+mod debugger;
 mod documents;
 mod editor;
 mod explorer;

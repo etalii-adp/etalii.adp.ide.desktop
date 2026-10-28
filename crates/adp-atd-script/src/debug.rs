@@ -19,7 +19,7 @@ use serde_json::Value as Json;
 
 use crate::host::{Control, Event};
 use crate::stop::{Kind, Stop};
-use crate::{FRAMES, Gesture};
+use crate::{FRAMES, Gesture, Script};
 
 /// The most items of a list or entries of a map a variable expands to.
 const CHILDREN: usize = 1_000;
@@ -282,6 +282,7 @@ impl Debugger {
             entry: stop_on_entry,
             stack: Vec::new(),
             inspector: Box::new(()),
+            stopped: false,
         };
         Debugger {
             events,
@@ -309,8 +310,29 @@ impl Debugger {
             state.allowed = gesture.inner.options.steps;
             state.inspector = Box::new(inspector);
         }
+        gesture.on_statement(self.hook());
+    }
+
+    /// Debugs every call of `script`: each of its gestures and each function a label or a constraint calls, as a case
+    /// run on the description's own tool makes them. `inspector` shows the model.
+    pub fn attach_script(&self, script: &Script, inspector: impl Inspect + 'static) {
+        {
+            let mut state = self.state.borrow_mut();
+            state.environment = script.inner.environment.clone();
+            state.allowed = script.inner.options.steps;
+            state.inspector = Box::new(inspector);
+        }
+        script.on_statement(self.hook());
+    }
+
+    /// The hook that asks the debugger at each statement; a statement reached while the debugger itself is busy (a
+    /// condition calling a function) runs on.
+    fn hook(&self) -> impl FnMut(&Event<'_>) -> Control + 'static {
         let state = Rc::clone(&self.state);
-        gesture.on_statement(move |event| state.borrow_mut().statement(event));
+        move |event| match state.try_borrow_mut() {
+            Ok(mut state) => state.statement(event),
+            Err(_) => Control::Continue,
+        }
     }
 }
 
@@ -364,6 +386,7 @@ struct State {
     entry: bool,
     stack: Vec<Level>,
     inspector: Box<dyn Inspect>,
+    stopped: bool,
 }
 
 impl State {
@@ -393,11 +416,15 @@ impl State {
         self.stack.push(level);
 
         match self.controls.try_recv() {
-            Ok(DebugControl::Stop) | Err(TryRecvError::Disconnected) => return Control::Stop,
+            Ok(DebugControl::Stop) | Err(TryRecvError::Disconnected) => self.stopped = true,
             Ok(DebugControl::Pause) => self.mode = Mode::Pause,
             Ok(_) | Err(TryRecvError::Empty) => {}
         }
 
+        // Once stopped, every call that follows in the gesture, or in the gestures after it, stops at once.
+        if self.stopped {
+            return Control::Stop;
+        }
         let reason = match self.mode {
             Mode::Into if self.entry => Some(PauseReason::Entry),
             Mode::Pause => Some(PauseReason::Pause),
@@ -463,7 +490,10 @@ impl State {
                 Ok(DebugControl::StepInto) => Mode::Into,
                 Ok(DebugControl::StepOut) => Mode::Out(event.depth),
                 Ok(DebugControl::Pause) => continue,
-                Ok(DebugControl::Stop) | Err(_) => return Control::Stop,
+                Ok(DebugControl::Stop) | Err(_) => {
+                    self.stopped = true;
+                    return Control::Stop;
+                }
             };
             let _ = self.events.send(DebugEvent::Continued);
             return Control::Continue;
@@ -542,7 +572,7 @@ fn holds(environment: &Environment, condition: &str, locals: &[(&str, &Value)]) 
 /// A gesture under the debugger, from the shell's side.
 pub struct Session {
     events: Receiver<DebugEvent>,
-    controls: Sender<DebugControl>,
+    controls: Option<Sender<DebugControl>>,
     worker: Option<JoinHandle<()>>,
 }
 
@@ -598,13 +628,15 @@ impl Session {
         });
         Session {
             events: events_in,
-            controls: controls_out,
+            controls: Some(controls_out),
             worker: Some(worker),
         }
     }
 
     pub fn control(&self, control: DebugControl) {
-        let _ = self.controls.send(control);
+        if let Some(controls) = &self.controls {
+            let _ = controls.send(control);
+        }
     }
 
     /// The next event, waiting at most `timeout`.
@@ -621,7 +653,8 @@ impl Session {
 /// A session dropped stops its gesture, which discards its transaction, and waits for the worker to end.
 impl Drop for Session {
     fn drop(&mut self) {
-        let _ = self.controls.send(DebugControl::Stop);
+        // With no one left to answer, a pause the worker reaches while it ends is a stop too.
+        self.controls.take();
         if let Some(worker) = self.worker.take() {
             let _ = worker.join();
         }

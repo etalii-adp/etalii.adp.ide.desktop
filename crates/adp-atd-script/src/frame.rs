@@ -340,9 +340,20 @@ impl<'a, 'h> Frame<'a, 'h> {
     }
 
     fn debug(&self, statement: &Json) -> Done<()> {
-        let mut hook = self.run.hook.borrow_mut();
-        let Some(hook) = hook.as_mut() else {
-            return Ok(());
+        let mut own = self.run.hook.borrow_mut();
+        let mut script = None;
+        let hook = match own.as_mut() {
+            Some(hook) => hook,
+            None => {
+                // The script's debugger, unless it is the one running (a breakpoint's condition calling a function).
+                let Ok(debugger) = self.inner.debugger.try_borrow_mut() else {
+                    return Ok(());
+                };
+                match script.insert(debugger).as_mut() {
+                    Some(hook) => hook,
+                    None => return Ok(()),
+                }
+            }
         };
         let event = Event {
             function: &self.function,
