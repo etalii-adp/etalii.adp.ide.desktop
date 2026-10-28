@@ -2526,6 +2526,65 @@ mod tests {
         );
     }
 
+    /// Story 4, scenario 4 (spec 035, T122): a mind map a person opens keeps the tool it has today, beside a
+    /// description of its type and the validation view of that description, and validating writes none of its files.
+    #[test]
+    fn a_document_keeps_its_tool_beside_a_description_of_its_type_and_validation_writes_none_of_its_files() {
+        let diagrams = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../vendor/etalii.adp/definitions/diagrams");
+        let folder = tempfile::tempdir().unwrap();
+        for name in ["mindmap.atd", "mindmap.notation.atd", "mindmap.freeplane.atd"] {
+            std::fs::copy(diagrams.join(name), folder.path().join(name)).unwrap();
+        }
+        let case = diagrams.join("conformance/mindmap/example-1");
+        let cases = folder.path().join("conformance/mindmap/example-1");
+        std::fs::create_dir_all(&cases).unwrap();
+        for entry in std::fs::read_dir(&case).unwrap().flatten() {
+            std::fs::copy(entry.path(), cases.join(entry.file_name())).unwrap();
+        }
+        // The person's own map, the case's input, beside the description.
+        for name in ["mindmap.mm", "mindmap.adp"] {
+            std::fs::copy(case.join(name), folder.path().join(name)).unwrap();
+        }
+        let snapshot = |root: &Path| -> Vec<(PathBuf, Vec<u8>)> {
+            let mut files = Vec::new();
+            let mut folders = vec![root.to_path_buf()];
+            while let Some(f) = folders.pop() {
+                for entry in std::fs::read_dir(&f).unwrap().flatten() {
+                    if entry.path().is_dir() {
+                        folders.push(entry.path());
+                    } else {
+                        files.push((entry.path(), std::fs::read(entry.path()).unwrap()));
+                    }
+                }
+            }
+            files.sort();
+            files
+        };
+        let before = snapshot(folder.path());
+        let mut shell = Shell::default();
+        shell.open_path(folder.path());
+
+        shell.handle(Request::Open("mindmap.mm".into()));
+        shell.handle(Request::ValidateDescription("mindmap.atd".into()));
+        let ctx = egui::Context::default();
+        theme::install(&ctx);
+        frame(&ctx, &mut shell);
+        shell.active = 0;
+        frame(&ctx, &mut shell);
+
+        assert_eq!(shell.tabs.len(), 2);
+        let diagram = shell.tabs[0]
+            .diagram()
+            .expect("the map opens on its canvas, as it does today");
+        assert_eq!(diagram.opened.origin, "freeplane/mindmap");
+        assert!(diagram.opened.body_path.ends_with("mindmap.mm"));
+        let view = shell.tabs[1]
+            .validation()
+            .expect("and the description in its validation view");
+        assert!(view.result.is_some(), "the case ran");
+        assert_eq!(snapshot(folder.path()), before, "nothing in the project was written");
+    }
+
     #[test]
     fn a_diagram_opens_on_its_canvas_its_text_a_choice_away_and_ctrl_z_undoes_its_edits() {
         let fixtures =
