@@ -10,6 +10,7 @@ use std::path::PathBuf;
 use std::rc::Rc;
 
 use adp_atd_check::{Description, Symbols};
+use adp_atd_script::debug::Debugger;
 use adp_cel::{Map, Value};
 use adp_diagram::disl_definition::DislDiagramDefinition;
 use adp_diagram::{DiagramDocument, DiagramModule, DiagramTool};
@@ -23,12 +24,14 @@ use crate::lowering::{self, LoadedDiagram};
 /// The persistence plugins of a host, by id.
 pub type Plugins = Rc<dyn Fn(&str) -> Option<Rc<dyn PersistencePlugin>>>;
 
-/// What the host gives a description's tool: its plugins' persistence and CEL functions, and its capabilities.
+/// What the host gives a description's tool: its plugins' persistence and CEL functions, its capabilities, and the
+/// debugger its script runs under, if any (research R21).
 #[derive(Clone)]
 pub struct RuntimeHost {
     pub plugins: Plugins,
     pub functions: DislPluginFunctions,
     pub capabilities: Capabilities,
+    pub debugger: Option<Rc<Debugger>>,
 }
 
 impl Default for RuntimeHost {
@@ -37,6 +40,7 @@ impl Default for RuntimeHost {
             plugins: Rc::new(|_| None),
             functions: DislPluginFunctions::none(),
             capabilities: Capabilities::desktop(),
+            debugger: None,
         }
     }
 }
@@ -53,6 +57,9 @@ pub fn diagram_tool(description: &Description, symbols: &Symbols, host: &Runtime
         let lines: Vec<String> = diagnostics.iter().map(ToString::to_string).collect();
         format!("The description does not lower to DISL: {}", lines.join("; "))
     })?;
+    if let Some(debugger) = &host.debugger {
+        debugger.attach_script(&loaded.script, ());
+    }
     let members: Vec<&Json> = description.members().collect();
     let document = lowering::fbl::lower(&members).ok_or("The description has no binding.")?;
     let bytes = serde_json::to_vec(&document).expect("JSON writes");
