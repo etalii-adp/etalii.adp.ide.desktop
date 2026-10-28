@@ -15,6 +15,7 @@ use adp_cel::{Map, Value};
 use adp_diagram::disl_definition::DislDiagramDefinition;
 use adp_diagram::{DiagramDocument, DiagramModule, DiagramTool};
 use adp_disl::{DislElement, DislPluginFunctions, DislSpecification};
+use adp_fbl::model::{RuleEvent, RuleObserver};
 use adp_fbl::plugins::PersistencePlugin;
 use serde_json::{Value as Json, json};
 
@@ -84,7 +85,10 @@ pub fn diagram_tool(description: &Description, symbols: &Symbols, host: &Runtime
         .pointer("/language/label")
         .and_then(Json::as_str)
         .unwrap_or(&origin);
-    let module = RuntimeModule::of(&loaded.json, host);
+    let mut module = RuntimeModule::of(&loaded.json, host);
+    if let Some(debugger) = &host.debugger {
+        module.rule_observer = Some(rule_observer(description, Rc::clone(debugger)));
+    }
     let tool = DiagramTool {
         origin: origin.clone(),
         display_name: label.to_owned(),
@@ -99,6 +103,42 @@ pub fn diagram_tool(description: &Description, symbols: &Symbols, host: &Runtime
     })
 }
 
+/// What tells the debugger of each binding rule as it reads an entry: it pauses at the rule's line in the
+/// description, with the entry's line and the attributes read so far as its locals.
+fn rule_observer(description: &Description, debugger: Rc<Debugger>) -> RuleObserver {
+    let mut rules: HashMap<String, Json> = HashMap::new();
+    for binding in description.members().filter(|m| m["kind"] == "binding") {
+        for rule in binding["members"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter(|m| m["kind"] == "rule")
+        {
+            let name = rule
+                .get("as")
+                .map_or_else(|| lowering::values::text(&rule["type"]["name"]), lowering::values::text);
+            rules.entry(name).or_insert_with(|| rule.clone());
+        }
+    }
+    Rc::new(move |event: &RuleEvent<'_>| {
+        let Some(rule) = rules.get(event.rule) else {
+            return;
+        };
+        let mut locals = vec![
+            ("type".to_owned(), Value::from(event.type_name)),
+            ("line".to_owned(), Value::Int(event.line as i64)),
+        ];
+        locals.extend(
+            event
+                .attributes
+                .iter()
+                .map(|(name, value)| (name.clone(), value.clone())),
+        );
+        // A rule reading an entry cannot be stopped part way; a stop takes effect at the next statement of the script.
+        let _ = debugger.observe(rule, &format!("{} (binding rule)", event.rule), &locals, event.first);
+    })
+}
+
 /// The layout a description names by a capability (ATD §8.8): the capability and its arguments.
 #[derive(Debug, Clone)]
 struct CapabilityLayout {
@@ -109,6 +149,8 @@ struct CapabilityLayout {
 /// What a hand-written module gives the engines, taken from a description.
 pub struct RuntimeModule {
     plugins: Plugins,
+    /// Told of each binding rule as it reads an entry, when the script runs under the debugger.
+    rule_observer: Option<RuleObserver>,
     capabilities: Capabilities,
     layout: Option<CapabilityLayout>,
     /// Each viewer's initial view state, by key: `collapsed` from `persistence.view.initial`.
@@ -141,6 +183,7 @@ impl RuntimeModule {
             .unwrap_or_default();
         RuntimeModule {
             plugins: Rc::clone(&host.plugins),
+            rule_observer: None,
             capabilities: host.capabilities.clone(),
             layout,
             initial_view,
@@ -183,6 +226,10 @@ impl RuntimeModule {
 }
 
 impl DiagramModule for RuntimeModule {
+    fn rule_observer(&self) -> Option<RuleObserver> {
+        self.rule_observer.clone()
+    }
+
     /// The host's plugin `plugin_id`, else its reader capability of that name (ATD §11.7).
     fn persistence(&self, plugin_id: &str) -> Option<Rc<dyn PersistencePlugin>> {
         (self.plugins)(plugin_id).or_else(|| self.capabilities.reader(plugin_id))

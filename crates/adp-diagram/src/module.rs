@@ -33,6 +33,7 @@ use adp_disl::derivation::finding::DislReaderFinding;
 use adp_disl::{
     DislChange, DislConstraintOptions, DislDiagram, DislElement, DislPluginFunctions, DislSpecification, IdSource,
 };
+use adp_fbl::model::RuleObserver;
 use adp_fbl::plugins::PersistencePlugin;
 
 use crate::definition::ToolboxItem;
@@ -234,6 +235,11 @@ pub trait DiagramModule {
     /// placement), in place of the registration's own (FBL section 8.3): none for the registration's own. The
     /// standalone host wrote a new `layout:` block with CRLF on every platform (`AdpFileWriter.NewLine`).
     fn created_block_ending(&self) -> Option<String> {
+        None
+    }
+
+    /// Told of each rule of the binding as it reads an entry, as a debugger is: none by default.
+    fn rule_observer(&self) -> Option<RuleObserver> {
         None
     }
 
