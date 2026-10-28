@@ -94,12 +94,16 @@ impl RoutePlugins for () {
 /// The routing plugins the standalone host ships: `net.etalii.adp.generic.dependencyCurve`, the dependency graph's
 /// curve (the standalone's `dependencyRoute`), a horizontal bezier between the facing sides while the dependency sits
 /// clear to the right, and a forward loop out of the dependent's right into the dependency's left when it sits behind.
+/// A tool description names the same curve by its capability, `routing.forwardBezier` (ATD §13.3).
 #[derive(Debug, Clone, Copy, Default)]
 pub struct StandardRoutePlugins;
 
+/// The names `StandardRoutePlugins` draws the dependency graph's curve for: the plugin's, and the capability's.
+const FORWARD_BEZIER: [&str; 2] = ["net.etalii.adp.generic.dependencyCurve", "routing.forwardBezier"];
+
 impl RoutePlugins for StandardRoutePlugins {
     fn route(&self, name: &str, _from: Point, _to: Point, ends: &RouteEnds) -> Option<Path> {
-        if name != "net.etalii.adp.generic.dependencyCurve" {
+        if !FORWARD_BEZIER.contains(&name) {
             return None;
         }
         let from = ConnectorBox::of(ends.source);

@@ -31,9 +31,15 @@ fn lower_binding(binding: &Json) -> Map<String, Json> {
     let mut relations = Vec::new();
     let mut body = Map::new();
     body.insert("kind".into(), json!("file"));
-    if let Some(family) = binding["family"].as_str() {
-        body.insert("family".into(), json!(family));
-    }
+    // A capability as the family is FBL's persistence plugin, named by the capability (ATD §11.7).
+    let reader = match binding["family"].as_str() {
+        Some("capability") => json!({ "plugin": text(&binding["capability"]) }),
+        Some(family) => {
+            body.insert("family".into(), json!(family));
+            json!("declared")
+        }
+        None => json!("declared"),
+    };
     for member in binding["members"].as_array().into_iter().flatten() {
         match member["kind"].as_str().unwrap_or_default() {
             "label" => {
@@ -92,7 +98,7 @@ fn lower_binding(binding: &Json) -> Map<String, Json> {
         ordered.insert("claims".into(), claims);
     }
     ordered.insert("body".into(), Json::Object(body));
-    ordered.insert("reader".into(), json!("declared"));
+    ordered.insert("reader".into(), reader);
     ordered.extend(lowered);
     if !elements.is_empty() {
         ordered.insert("elements".into(), Json::Array(elements));
