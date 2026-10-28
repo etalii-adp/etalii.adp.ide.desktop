@@ -101,6 +101,9 @@ struct Plan {
     types: BTreeSet<usize>,
     /// The `:` and `?` of a conditional, which have spaces.
     conditional: BTreeSet<usize>,
+    /// The first and last token of each grammar a binding carries (`grammar { … }`, ATD §11.9), which is ATD grammar
+    /// notation, not ATD, and keeps its own layout: only its indentation follows the block it stands in.
+    verbatim: BTreeMap<usize, usize>,
 }
 
 impl Plan {
@@ -150,6 +153,12 @@ impl Plan {
             }
             "name" | "word" | "cel_ident" => self.names.extend(all_tokens(node)),
             "type_ref" => self.types.extend(all_tokens(node)),
+            "grammar_text" => {
+                if let (Some(first), Some(last)) = (first_token(node), all_tokens(node).last().copied()) {
+                    self.verbatim.insert(first, last);
+                }
+                return;
+            }
             "cel_conditional" => {
                 for t in node.tokens() {
                     if matches!(parsed.token_text(t), ":" | "?") {
@@ -260,7 +269,21 @@ impl<'a> Printer<'a> {
         let count = self.parsed.tokens.len();
         let mut newlines_before = 0usize;
         let mut after_comment = false;
+        let mut skip_until = None;
         for index in 0..count {
+            if let Some(last) = skip_until {
+                if index <= last {
+                    continue;
+                }
+                skip_until = None;
+            }
+            if let Some(&last) = self.plan.verbatim.get(&index) {
+                self.verbatim(index, last);
+                self.previous = Some(last);
+                skip_until = Some(last);
+                newlines_before = 0;
+                continue;
+            }
             let token = self.parsed.tokens[index];
             if token.kind == TokenKind::Trivia {
                 let text = self.text(index);
@@ -284,6 +307,32 @@ impl<'a> Printer<'a> {
         let mut out = self.lines.join(self.newline);
         out.push_str(self.newline);
         out
+    }
+
+    /// A binding's grammar from token `first` to `last`, line by line as written, its lines without the indentation
+    /// they share and with the block's own.
+    fn verbatim(&mut self, first: usize, last: usize) {
+        let text = &self.parsed.text;
+        let start = self.parsed.tokens[first].start;
+        let end = self.parsed.tokens[last].end;
+        let line_start = text[..start].rfind('\n').map_or(0, |n| n + 1);
+        let written = &text[line_start..end];
+        let lines: Vec<&str> = written.lines().map(|l| l.trim_end_matches('\r')).collect();
+        let shared = lines
+            .iter()
+            .filter(|l| !l.trim().is_empty())
+            .map(|l| l.len() - l.trim_start().len())
+            .min()
+            .unwrap_or(0);
+        self.break_line();
+        for line in lines {
+            if line.trim().is_empty() {
+                self.lines.push(String::new());
+            } else {
+                self.lines
+                    .push(format!("{}{}", "  ".repeat(self.indent), &line[shared..]));
+            }
+        }
     }
 
     fn comment(&mut self, index: usize, newlines_before: usize) {

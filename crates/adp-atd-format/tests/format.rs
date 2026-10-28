@@ -103,3 +103,23 @@ fn a_splice_leaves_every_byte_outside_it_unchanged() {
         })
     );
 }
+
+/// A binding's grammar is ATD grammar notation, not ATD: its lines are kept as written, and only their indentation
+/// follows the block they stand in (ATD §11.9, §16).
+#[test]
+fn a_bindings_grammar_keeps_its_lines() {
+    let written = std::fs::read_to_string(spec_dir().join("binding-grammar.atd")).unwrap();
+    let grammar = |text: &str| -> Vec<String> {
+        let open = text.find("grammar {\n").expect("an inline grammar") + "grammar {\n".len();
+        let close = open + text[open..].find("\n    }\n").expect("its closing brace");
+        text[open..close].lines().map(str::to_owned).collect()
+    };
+
+    let formatted = format(&written).unwrap();
+
+    assert_eq!(grammar(&formatted), grammar(&written));
+    // Indented one level deeper, the grammar is written one level deeper.
+    let deeper = written.replace("\n      ", "\n        ");
+    let reformatted = format(&deeper).unwrap();
+    assert_eq!(grammar(&reformatted), grammar(&written));
+}
