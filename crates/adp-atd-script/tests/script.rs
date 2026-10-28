@@ -670,3 +670,19 @@ fn an_expression_outside_a_script_calls_the_functions_and_may_not_change_the_mod
     let message = refused.unwrap_err();
     assert!(message.contains("cannot `create`"), "{message}");
 }
+
+#[test]
+fn a_global_function_with_a_dotted_name_is_called_in_a_script() {
+    let (script, _) = describe(
+        r#"
+  fn indexes(n: int) -> list<int> {
+    return lists.range(n)
+  }
+"#,
+        Options::default(),
+    );
+    assert_eq!(
+        call(&script, "indexes", &[Value::Int(3)]).unwrap().to_string(),
+        "[0, 1, 2]"
+    );
+}

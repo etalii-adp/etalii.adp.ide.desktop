@@ -353,6 +353,7 @@ impl<'a, 'h> Frame<'a, 'h> {
                 .flatten()
                 .map(|l| (l.name.as_str(), &l.value))
                 .collect(),
+            arguments: self.scopes.first().map_or(0, Vec::len),
             depth: self.run.frames.borrow().len(),
             steps: self.run.steps.get(),
         };

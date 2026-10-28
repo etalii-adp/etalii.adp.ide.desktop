@@ -9,6 +9,7 @@
 //! Steps are counted as ATD §12.6 states: one per statement executed, per loop iteration, per expression evaluated
 //! and per call of a function of the description.
 
+pub mod debug;
 mod frame;
 mod host;
 mod stop;
@@ -247,7 +248,7 @@ impl Inner {
         }
         let mut identifiers = Vec::new();
         match expression.get("ast") {
-            Some(ast) => identifiers_of(ast, &mut identifiers),
+            Some(ast) => identifiers_of(ast, &self.environment, &mut identifiers),
             None => identifiers = names(),
         }
         let mut environment = self.environment.clone();
@@ -281,7 +282,9 @@ pub(crate) fn text(node: &Json) -> String {
     node["text"].as_str().unwrap_or_default().to_owned()
 }
 
-fn identifiers_of(ast: &Json, out: &mut Vec<String>) {
+/// The names an expression reads. The head of a global function with a dotted name (`lists` in `lists.range(n)`) is
+/// not one: declared, it would make the call a method of a variable.
+fn identifiers_of(ast: &Json, environment: &Environment, out: &mut Vec<String>) {
     match ast {
         Json::Object(object) => {
             if let Some(name) = object.get("ident").and_then(Json::as_str)
@@ -289,11 +292,19 @@ fn identifiers_of(ast: &Json, out: &mut Vec<String>) {
             {
                 out.push(name.to_owned());
             }
-            for value in object.values() {
-                identifiers_of(value, out);
+            let qualified = match (object.get("call"), object.get("target").and_then(|t| t.get("ident"))) {
+                (Some(Json::String(call)), Some(Json::String(head))) => {
+                    environment.function(&format!("{head}.{call}"), Style::Global).is_some()
+                }
+                _ => false,
+            };
+            for (key, value) in object {
+                if !(qualified && key == "target") {
+                    identifiers_of(value, environment, out);
+                }
             }
         }
-        Json::Array(items) => items.iter().for_each(|i| identifiers_of(i, out)),
+        Json::Array(items) => items.iter().for_each(|i| identifiers_of(i, environment, out)),
         _ => {}
     }
 }
