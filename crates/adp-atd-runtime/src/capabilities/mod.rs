@@ -38,6 +38,75 @@ pub trait LayoutCapability {
     }
 }
 
+/// A capability's version: major, minor and patch.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Version(pub u64, pub u64, pub u64);
+
+impl Version {
+    /// Whether this version is in `range`, read as npm's semver ranges are (ATD §13.2): comparators separated by
+    /// spaces, all of which hold (`>=1.0 <2`), each `^`, `~`, `>=`, `>`, `<=`, `<`, `=` or none before a version whose
+    /// minor and patch may be left out.
+    pub fn satisfies(self, range: &str) -> bool {
+        let comparators: Vec<&str> = range.split_whitespace().collect();
+        !comparators.is_empty() && comparators.into_iter().all(|c| self.holds(c))
+    }
+
+    fn holds(self, comparator: &str) -> bool {
+        let (operator, rest) = ["^", "~", ">=", "<=", ">", "<", "="]
+            .iter()
+            .find_map(|op| comparator.strip_prefix(op).map(|rest| (*op, rest)))
+            .unwrap_or(("", comparator));
+        let parts: Vec<Option<u64>> = rest
+            .trim_start_matches('v')
+            .split('.')
+            .map(|p| p.parse().ok())
+            .collect();
+        if parts.is_empty() || parts.len() > 3 || parts.iter().any(Option::is_none) {
+            return false;
+        }
+        let given = parts.len();
+        let part = |i: usize| parts.get(i).copied().flatten().unwrap_or(0);
+        let low = Version(part(0), part(1), part(2));
+        // The first version past what a partial version names: 1 → 2.0.0, 1.2 → 1.3.0.
+        let next = match given {
+            1 => Version(low.0 + 1, 0, 0),
+            2 => Version(low.0, low.1 + 1, 0),
+            _ => Version(low.0, low.1, low.2 + 1),
+        };
+        match operator {
+            "^" => {
+                let high = if low.0 > 0 || given == 1 {
+                    Version(low.0 + 1, 0, 0)
+                } else if low.1 > 0 || given == 2 {
+                    Version(0, low.1 + 1, 0)
+                } else {
+                    Version(0, 0, low.2 + 1)
+                };
+                low <= self && self < high
+            }
+            "~" => {
+                let high = if given == 1 {
+                    Version(low.0 + 1, 0, 0)
+                } else {
+                    Version(low.0, low.1 + 1, 0)
+                };
+                low <= self && self < high
+            }
+            ">=" => self >= low,
+            ">" => self >= next,
+            "<=" => self < next,
+            "<" => self < low,
+            _ => low <= self && self < next,
+        }
+    }
+}
+
+impl std::fmt::Display for Version {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}.{}.{}", self.0, self.1, self.2)
+    }
+}
+
 /// A capability at the `routing` extension point: an edge's two end boxes to its route (`$defs/RoutingInput` to
 /// `$defs/RoutingResult`).
 pub trait RoutingCapability {
@@ -86,6 +155,26 @@ impl Capabilities {
 
     pub fn reader(&self, name: &str) -> Option<Rc<dyn PersistencePlugin>> {
         self.readers.get(name).cloned()
+    }
+
+    /// The version of capability `name` this host provides, none when it provides none. Every capability is at the
+    /// version its contract in the catalogue states, 1.0.0 for all of them today.
+    pub fn version(&self, name: &str) -> Option<Version> {
+        let provided =
+            self.layouts.contains_key(name) || self.routings.contains_key(name) || self.readers.contains_key(name);
+        provided.then_some(Version(1, 0, 0))
+    }
+
+    /// Why this host cannot run a description that requires capability `name` in `range` (ATD §13.2, §13.4): it
+    /// provides no such capability, or none of the versions the range allows; none when it can.
+    pub fn lacks(&self, name: &str, range: &str) -> Option<String> {
+        match self.version(name) {
+            None => Some(format!("This host does not provide the capability `{name}`.")),
+            Some(version) if !version.satisfies(range) => Some(format!(
+                "This host provides the capability `{name}` at {version}, which `{range}` does not allow."
+            )),
+            Some(_) => None,
+        }
     }
 
     /// The names of every capability, in order.
