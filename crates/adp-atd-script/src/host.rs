@@ -44,8 +44,9 @@ pub struct Event<'a> {
     /// The function, operation or hook the statement is in.
     pub function: &'a str,
     pub statement: &'a Json,
-    /// The locals in scope, innermost last.
+    /// The locals in scope, innermost last: the first `arguments` are the frame's parameters (or `self` and `p`).
     pub locals: Vec<(&'a str, &'a Value)>,
+    pub arguments: usize,
     /// The frames on the stack, this one included.
     pub depth: usize,
     /// The steps the gesture has taken.
