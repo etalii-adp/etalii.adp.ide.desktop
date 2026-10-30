@@ -1,0 +1,73 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "Both slots present (databricks.fbl#configuration; FBL 0.10, section 5.2; spec 066, edge case 16): the own slot is read, schema gold, and target is removed at the next write of the schema. Its body is written here.",
+  "binding": "../../../databricks.fbl#configuration",
+  "input": "both.adp",
+  "read": {
+    "elements": [
+      {
+        "id": "pipeline",
+        "type": "Pipeline",
+        "attributes": {
+          "name": "Both written",
+          "schema": "gold"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Setting the schema replaces schema's value and removes target in the same edit.",
+      "edit": {
+        "set": {
+          "element": "pipeline",
+          "attributes": {
+            "schema": "platinum"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "file": "../pipelines.yml",
+          "start": 152,
+          "end": 156,
+          "text": "platinum"
+        },
+        {
+          "operation": "remove-key",
+          "file": "../pipelines.yml",
+          "start": 157,
+          "end": 178,
+          "text": ""
+        }
+      ],
+      "expectFiles": {
+        "../pipelines.yml": "resources:\n  pipelines:\n    legacy:\n      name: Legacy target\n      catalog: main\n      target: silver\n    both:\n      name: Both written\n      schema: platinum\n"
+      }
+    },
+    {
+      "doc": "Undo puts gold and target back.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "file": "../pipelines.yml",
+          "start": 152,
+          "end": 160,
+          "text": "gold"
+        },
+        {
+          "operation": "remove-key",
+          "file": "../pipelines.yml",
+          "start": 161,
+          "end": 161,
+          "text": "      target: silver\n"
+        }
+      ],
+      "expectFiles": {
+        "../pipelines.yml": "resources:\n  pipelines:\n    legacy:\n      name: Legacy target\n      catalog: main\n      target: silver\n    both:\n      name: Both written\n      schema: gold\n      target: silver\n"
+      }
+    }
+  ]
+}

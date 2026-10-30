@@ -1,0 +1,30 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.10",
+  "doc": "Refused by FBL 0.10, section 14.1, step 6: the registration's resource.byOrigin gives a capture to the reading databricks/jobs, which is not one of the binding's claims.origins (section 8.2), so no registration would ever select by it. Every rule lists only claimed origins, so this document is refused for the one reason this sentence names.",
+  "bindings": {
+    "configuration": {
+      "title": "A resource capture for an origin the binding does not claim",
+      "claims": { "extensions": [".yml"], "shared": true, "registrationOnly": true, "origins": ["databricks/bundle", "databricks/job"] },
+      "body": { "kind": "file", "family": "yaml" },
+      "reader": "declared",
+      "registration": { "resource": { "byOrigin": { "databricks/jobs": { "capture": "job" }, "databricks/bundle": null } } },
+      "elements": [
+        {
+          "name": "resource",
+          "type": "Resource",
+          "at": "/resources/jobs/{job}",
+          "origins": ["databricks/bundle"],
+          "attributes": { "key": { "capture": "job", "readOnly": true } }
+        },
+        {
+          "name": "task",
+          "type": "Task",
+          "at": "/resources/jobs/{job}/tasks/*",
+          "origins": ["databricks/job"],
+          "attributes": { "key": { "key": "task_key", "empty": "refuse" } }
+        }
+      ]
+    }
+  }
+}

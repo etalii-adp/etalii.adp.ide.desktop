@@ -1,0 +1,29 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A flow mapping takes no insert (FBL 0.10, sections 4.3 and 6.2; spec 066, edge case 15): the job mapping writes its tasks as tasks: {}, and adding a task to it is refused and writes nothing. Its body is written here.",
+  "binding": "../../../../databricks.fbl#configuration",
+  "input": "mapping.adp",
+  "read": {
+    "document": {
+      "attributes": {
+        "jobKey": "mapping"
+      }
+    },
+    "elements": []
+  },
+  "steps": [
+    {
+      "doc": "The add is refused: the container is a flow mapping.",
+      "edit": {
+        "add": {
+          "type": "Task",
+          "attributes": {
+            "key": "first"
+          }
+        }
+      },
+      "refused": "The tasks are written as a flow mapping, which takes no insert.",
+      "splices": []
+    }
+  ]
+}

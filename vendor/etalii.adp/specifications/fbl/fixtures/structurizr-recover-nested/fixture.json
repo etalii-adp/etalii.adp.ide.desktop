@@ -1,0 +1,102 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.11, section 4.9 (Reading in part, rules 4 to 9), FR-002: etalii.adp.ide.standalone/src/diagrams/c4/backend/EtAlii.Adp.Diagram.C4.Tests/Fixtures/findings/unbalanced.dsl at ad1a4680a, with one statement added in the model that does not parse, 'broken = person' on line 4, a person without a name. It is skipped from the model's last boundary to the end of its line and reported at line 4, and the statements after it are read. The software system's block is never closed before 'u -> web', so the '}' after it closes s, and views, read in the model as a statement the binding does not bind, the model and the workspace stay open to the end of the body: three blocks are reported fbl.unclosed-block, at lines 9, 2 and 1. An add into the model, a block that is not closed, is refused; a set is planned.",
+  "binding": "../../structurizr.fbl#workspace",
+  "input": "unbalanced.dsl",
+  "read": {
+    "elements": [
+      {
+        "id": "u",
+        "type": "Person",
+        "attributes": {
+          "name": "User"
+        }
+      },
+      {
+        "id": "s",
+        "type": "SoftwareSystem",
+        "attributes": {
+          "name": "System"
+        }
+      },
+      {
+        "id": "web",
+        "type": "Container",
+        "parent": "s",
+        "attributes": {
+          "name": "Web",
+          "technology": "React"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "fbl.unparsed-text",
+        "line": 4
+      },
+      {
+        "rule": "fbl.unclosed-block",
+        "line": 9
+      },
+      {
+        "rule": "fbl.unclosed-block",
+        "line": 2
+      },
+      {
+        "rule": "fbl.unclosed-block",
+        "line": 1
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "An add into a block that is not closed is refused, and nothing is written (rule 9).",
+      "edit": {
+        "add": {
+          "type": "Person",
+          "id": "p",
+          "attributes": {
+            "name": "Partner",
+            "description": "Another person."
+          }
+        }
+      },
+      "refused": "The block is not closed, so nothing can be added to it.",
+      "splices": [],
+      "expect": "workspace \"Unbalanced\" {\n    model {\n        u = person \"User\" \"A user.\"\n        broken = person\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web\" \"Serves.\" \"React\"\n        u -> web \"Visits\" \"HTTPS\"\n    }\n    views {\n        container s \"containers\" {\n            include *\n        }\n"
+    },
+    {
+      "doc": "Every other edit is planned as usual.",
+      "edit": {
+        "set": {
+          "element": "u",
+          "attributes": {
+            "description": "A person."
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 64,
+          "end": 71,
+          "text": "A person."
+        }
+      ],
+      "expect": "workspace \"Unbalanced\" {\n    model {\n        u = person \"User\" \"A person.\"\n        broken = person\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web\" \"Serves.\" \"React\"\n        u -> web \"Visits\" \"HTTPS\"\n    }\n    views {\n        container s \"containers\" {\n            include *\n        }\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 64,
+          "end": 73,
+          "text": "A user."
+        }
+      ],
+      "expect": "workspace \"Unbalanced\" {\n    model {\n        u = person \"User\" \"A user.\"\n        broken = person\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web\" \"Serves.\" \"React\"\n        u -> web \"Visits\" \"HTTPS\"\n    }\n    views {\n        container s \"containers\" {\n            include *\n        }\n"
+    }
+  ]
+}

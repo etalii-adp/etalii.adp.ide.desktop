@@ -12,81 +12,83 @@ The definition raises `language.limits.celCost` to 10 000 000 from DISL's defaul
 
 ## The gaps
 
-Fifteen, each a candidate change for this repository: the twelve the conversion's requirements list (C1 to C12, in their order) and three found while writing the definitions. None is worked around in the `.dis` by stating something the tool does not do.
+Sixteen, each a candidate change for this repository: the twelve the conversion's requirements list (C1 to C12, in their order), three found while writing the definitions and one found while binding the format. None is worked around in the `.dis` by stating something the tool does not do. FBL 0.11 (etalii.adp's feature `066-fbl-conversion-gaps`) answers gaps 1 to 8, each below with the section that answers it and the fixture under `specifications/fbl/fixtures/` that shows it: the format is bound in the `grammar` family by [`structurizr.fbl`](../../specifications/fbl/structurizr.fbl), whose grammar is [`structurizr.lark`](../../specifications/fbl/structurizr.lark), written from the conversion's appendix draft in FBL 0.11's constructs. Gap 12 stays unsupported on purpose; gaps 9 to 11 and 13 to 15 are DISL's and stay open; gap 16 is FBL's and open.
 
-| # | Language | Construct | Finding |
-| --- | --- | --- | --- |
-| 1 | FBL | The statements of the selected view | B13 |
-| 2 | FBL | A comment after a brace or a statement | B3, B4 |
-| 3 | FBL | A comment that spans lines | B5 |
-| 4 | FBL | An escape inside a quoted group | B7 |
-| 5 | FBL | Positional optional arguments | B18 |
-| 6 | FBL | A body whose braces do not balance | B22 |
-| 7 | FBL | The legacy layout and the view header | B14, B16 |
-| 8 | FBL | Adding a block, and a value gathered from two places | B24, B9 |
-| 9 | DISL | A layout's direction and spacing from a diagram attribute | A12 |
-| 10 | DISL | Findings ordered by element | A11 |
-| 11 | DISL | The identifier of a new element made from its name | A9 |
-| 12 | Both | An id that depends on a directive of the body | B12 |
-| 13 | DISL | What a view exposes to a rule about the model | found while writing |
-| 14 | DISL | The text an unset end was written with | found while writing |
-| 15 | DISL | The order of a view's members and of its legend entries | found while writing |
+| # | Language | Construct | Finding | Status |
+| --- | --- | --- | --- | --- |
+| 1 | FBL | The statements of the selected view | B13 | Answered by FBL 0.11 (`structurizr-view-statements`, `structurizr-view-without-key`) |
+| 2 | FBL | A comment after a brace or a statement | B3, B4 | Answered by FBL 0.11 (`structurizr-comments`, `structurizr-trailing-comments`, `structurizr-rename`) |
+| 3 | FBL | A comment that spans lines | B5 | Answered by FBL 0.11 (`structurizr-block-comments`, `structurizr-recover-edges`) |
+| 4 | FBL | An escape inside a quoted group | B7 | Answered by FBL 0.11 (`structurizr-escapes`); the Structurizr CLI reads escapes otherwise (below) |
+| 5 | FBL | Positional optional arguments | B18 | Answered by FBL 0.11 (`structurizr-absent-arguments`) |
+| 6 | FBL | A body whose braces do not balance | B22 | Answered by FBL 0.11 (`structurizr-recover-nested`, `structurizr-recover-edges`) |
+| 7 | FBL | The legacy layout and the view header | B14, B16 | Answered by FBL 0.11 (`structurizr-legacy-layout`, `structurizr-view-without-key`) |
+| 8 | FBL | Adding a block, and a value gathered from two places | B24, B9 | Answered by FBL 0.11 (`structurizr-add-view`, `structurizr-gathered-tags`) |
+| 9 | DISL | A layout's direction and spacing from a diagram attribute | A12 | Open; DISL's, since the binding now reads a view's `autoLayout` into the diagram's attributes (gap 1), but a layout's direction and spacing are literals of the specification's layout, which only DISL can make bindable |
+| 10 | DISL | Findings ordered by element | A11 | Open; DISL's, since the order of findings comes from how a specification is evaluated, not from how a body is read |
+| 11 | DISL | The identifier of a new element made from its name | A9 | Open; DISL's, since a new element's identifier is made by the specification's id strategy (DISL 11.5.1), which no binding changes |
+| 12 | Both | An id that depends on a directive of the body | B12 | Unsupported on purpose, as today |
+| 13 | DISL | What a view exposes to a rule about the model | found while writing | Open; DISL's, since what a rule reads of a view is DISL's `View` (12.2), which a binding does not shape |
+| 14 | DISL | The text an unset end was written with | found while writing | Open; DISL's, since the binding reads an end as it is written, and no CEL function of DISL returns that text for an end that names nothing |
+| 15 | DISL | The order of a view's members and of its legend entries | found while writing | Open; DISL's, since a view's members and its legend are ordered by DISL's evaluation of the model (3.5, 6.13), not by the reading |
+| 16 | FBL | Several items written in one argument | found while binding the format | Open; FBL's, since a `{node}` slot reads one token as one item |
 
-### 1. FBL: the statements of the selected view (B13)
+### 1. FBL 5.1 and 9.3: the statements of the selected view (B13)
 
 - **Construct.** FBL names a view by its block (4.7) and leaves its content to the reading's viewpoint (9.3). Nothing reads the statements of the view a registration selects (`include`, `exclude`, `title`, `autoLayout` and its separations, the scope, a deployment view's environment, a dynamic view's interactions) into the diagram's attributes; a rule `within` a view block reads every view's.
 - **Shown by.** `findings/view-statements.dsl`.
-- **Would resolve it.** Rules `within` a view block read for the registration's view only, and a `typeMap` entry that maps them `as: "diagram"`; or a view block as an element rule that a registration header selects.
+- **Answered.** FBL 0.11: a `block` rule names a view kind's views, their key and the origins whose readings show them (5.1), and the registration's view header selects one of the reading's views by its key, matched ignoring case, a view written without a key having the key its block rule gives (9.3); a rule with `selectedView` reads a statement of the selected view only (4.9, *Views*). The view's `include`, `exclude`, `title` and `autoLayout` statements, its scope, a deployment view's environment and a dynamic view's interactions are so read: the statements, the scope and the environment as the diagram's attributes, through the existing `typeMap` entry `ViewInclude` (`as: "diagram"`), and the interactions as the dynamic view's own, with no `typeMap` changed. `structurizr-view-statements` reads the view `titled` of `findings/view-statements.dsl`, and `structurizr-view-without-key` the component view of `findings/view-without-key.dsl` written without a key.
 - **Meanwhile.** The module reads the body itself and builds the model this definition describes from its reading (`C4Disl` in the conversion's design, standing in for gaps 1, 2 and 6). The `typeMap` entry `ViewInclude` is the shape the binding will give it.
 
-### 2. FBL 4.7 and 4.6: a comment after a brace or a statement (B3, B4)
+### 2. FBL 4.9: a comment after a brace or a statement (B3, B4)
 
 - **Construct.** FBL 4.7 opens a block only when a statement's last non-whitespace character is the brace, so `model { // …` opens none and the braces no longer balance. FBL's `comment` is a whole line (4.6), so every rule's expression would have to admit a comment tail. Structurizr accepts both and the tool reads them.
-- **Shown by.** `comments-everywhere.dsl` (one `unreadable` entry under the example binding), `findings/trailing-comments.dsl`.
-- **Would resolve it.** The binding's `comment`, or a second expression, stripped from the end of a statement outside quoted strings before the block test and before any rule.
+- **Shown by.** `comments-everywhere.dsl` (one `unreadable` entry under the example binding of FBL 0.7), `findings/trailing-comments.dsl`.
+- **Answered.** FBL 0.11, 4.9 (*The tree*): in the `grammar` family a brace is a token of its own and a comment is an ignored token, so `model { // …` opens the model's block, and a comment is owned by rule: one that starts its line leads the entry below it, one after a token trails the innermost entry holding that token, and every splice keeps a comment it does not remove (rules 1, 2 and 5). A `#` or `//` inside quotes is part of the string. `structurizr-comments` reads `comments-everywhere.dsl` and removes an element with its leading comments, `structurizr-trailing-comments` sets values beside trailing comments, and `structurizr-rename` renames an element and every relationship naming it with their comments kept.
 - **Meanwhile.** As gap 1.
 
-### 3. FBL: a comment that spans lines (B5)
+### 3. FBL 4.9: a comment that spans lines (B5)
 
 - **Construct.** The tool skips `/* … */`, within a line and across lines. FBL has no comment that spans lines: the lines inside one are statements, a declaration inside one becomes an element, and a brace inside one counts toward the balance.
 - **Shown by.** `findings/block-comments.dsl`.
-- **Would resolve it.** `blockComment: {open, close}` on a binding.
+- **Answered.** FBL 0.11, 4.9 (*The tree*, rule 3): a block comment is one ignored token, so nothing inside it is a statement, an element or a brace, and its owner's line span runs to the end of its last line; one that is never closed is trivia to the end of the body, reported as `fbl.unclosed-comment` under `recover.unclosed` (*Reading in part*). `structurizr-block-comments` reads `findings/block-comments.dsl` and removes the element a block comment leads, and `structurizr-recover-edges` shows a comment never closed.
 - **Meanwhile.** As gap 1.
 
-### 4. FBL: an escape inside a quoted group (B7)
+### 4. FBL 5.2 and 6.3: an escape inside a quoted group (B7)
 
 - **Construct.** The tool reads `\"` inside a quoted argument as a quote and writes a quote back escaped. FBL has escaping rules for XML, YAML and JSON, and none for a quoted group of the `lines` or `blocks` family.
 - **Shown by.** `findings/escaped-quote.dsl`; the transcript's renames to `Parity "name"`.
-- **Would resolve it.** An escape for a quoted group, read and written.
+- **Answered.** FBL 0.11: a `{node}` slot's `escape`, `{"with": "\\", "quote": "\""}`, reads `\"` as a quote and `\\` as one backslash and leaves a backslash before any other character as it is (5.2, 4.9 *Escapes*), and a set writes every quote and backslash of the value escaped; a value that would not read back, such as one holding a line break, is refused and nothing is written (6.3). `structurizr-escapes` reads `findings/escaped-quote.dsl` and writes `Parity "name"`.
+- **The Structurizr CLI reads escapes otherwise.** Its tokenizer (`Tokenizer.java` of `structurizr/java`) keeps the backslash: `\"` is read as the two characters `\"`, a quote after a backslash never ends the argument, and `\\` is read as two backslashes. The module reads `\"` as a quote, as FBL 0.11 does, and keeps `\\` as two characters, which FBL 0.11 reads as one; no document of the corpus holds `\\`, and no CLI run of `findings/escaped-quote.dsl` is recorded at `ad1a4680a`. Whether `escape` changes for the CLI's reading is the maintainer's to settle; the construct is unchanged until then.
 - **Meanwhile.** The module's commands write every edit.
 
-### 5. FBL: positional optional arguments (B18)
+### 5. FBL 4.9: positional optional arguments (B18)
 
 - **Construct.** Where an argument is absent the tool appends it and writes `""` for each absent argument before it, so a technology set on `container "Web"` gives `container "Web" "" "…"`. FBL's `insert-key` writes the one segment, which puts the technology in the description's place, and what `re-emit-line` does to a statement that opens a block is not stated.
 - **Shown by.** `findings/dangling-both-ends.dsl`: the transcript sets a technology on `ghost -> phantom`, which has no label, and the line becomes `ghost -> phantom "" "Parity protocol"`. `findings/trailing-comments.dsl` shows the module defect B19 beside it: the technology set on `u -> s "Uses" // no technology yet` is appended after the comment, inside it.
-- **Would resolve it.** Writing argument n writes an empty value for each absent argument before it, and never re-emits a statement that opens a block.
+- **Answered.** FBL 0.11, 4.9 (*Writing*, an absent part): an attribute's `create` with `after` and `pad` writes an absent argument right after the last present argument before it, so before a block and a trailing comment, with an empty value for each absent argument between them, in one `insert-key`; a set or a written part on a statement that opens a block changes neither the block's opening nor its bytes. That also repairs B19, since the technology is written before the comment. `structurizr-absent-arguments` shows `container "Web" // c` becoming `container "Web" "" "Java" // c`, and a part written on `softwareSystem "S" {`.
 - **Meanwhile.** As gap 4.
 
-### 6. FBL 4.7 and 7.5: a body whose braces do not balance (B22)
+### 6. FBL 4.9 and 7.4: a body whose braces do not balance (B22)
 
 - **Construct.** The tool opens a document whose braces do not balance with what can be read; FBL 4.7 makes such a body unreadable, empty and read-only. A document being typed in the text editor is unbalanced between two keystrokes.
 - **Shown by.** `findings/unbalanced.dsl`.
-- **Would resolve it.** A binding that asks to read what balances.
+- **Answered.** FBL 0.11, 4.9 (*Reading in part*, rules 4 to 9): `recover.nested` names a block's opening and closing tokens, so that a statement that does not parse is skipped to the next one in its block, a block never closed is read to the end of the body and reported as `fbl.unclosed-block` at its line, a closing brace that closes nothing is skipped alone as `fbl.unmatched-close`, and an add into a block that is not closed is refused (7.4). `structurizr-recover-nested` reads `findings/unbalanced.dsl`, and `structurizr-recover-edges` the edges of a body.
 - **Meanwhile.** As gap 1.
 
 ### 7. FBL 8.7 and 9.3: the legacy layout and the view header (B14, B16)
 
 - **Construct.** The tool's positions live in `<base>.layout.json`, keyed by view and element, the element keys compared without case, each number as .NET writes a double. FBL 8.7 reads and writes such a file while it exists but states neither its number form, nor how its element keys compare, nor whether stale entries are pruned; and FBL 9.3 does not say what a registration whose `view:` names no view opens.
 - **Shown by.** `findings/sidecar-keys.dsl` with its `.layout.json`, `findings/first-drag-undo.dsl`, `findings/view-without-key.dsl`.
-- **Would resolve it.** The number form, the comparison of element keys and the pruning of a legacy file, and what a `view` that names nothing opens.
+- **Answered.** FBL 0.11: a legacy layout's view and element keys are matched ignoring the case of ASCII letters, a second key for one id is reported as `fbl.duplicate-key` and neither applied nor written, a number is written in its shortest form, and an entry of the view being written whose key names no element is stale, reported and removed in the same edit (8.7); a view header that names none of the reading's views opens the reading with no view's content, and a placement is refused (9.3). `structurizr-legacy-layout` shows the matching, the duplicate, the number form and the pruning on `findings/sidecar-keys.dsl` and its `.layout.json`, and `structurizr-view-without-key` a header naming no view on `findings/view-without-key.dsl`.
 - **Meanwhile.** The module's `C4LayoutSidecar` stores positions as today, and a move on a view that names nothing is refused with "This diagram has no view to arrange."
 
-### 8. FBL: adding a block, and a value gathered from two places (B24, B9)
+### 8. FBL 5.1 and 5.2: adding a block, and a value gathered from two places (B24, B9)
 
 - **Construct.** A block rule has no `insert`, so a view block cannot be added; and a `tags "A" "B"` line inside an element's block adds to the tags of its declaration, while FBL binds a value to one place (3.3).
 - **Shown by.** `findings/tags-in-block.dsl` for the tags; for the view block, the transcript's `add view` steps, which every document of the corpus runs (`minimal.dsl` among them), each adding a view block and a registration and undoing both.
-- **Would resolve it.** An `insert` for a block rule; a slot that gathers its values from several statements.
-- **Meanwhile.** `AddC4ViewCommand` stays code. Tags are read-only in the tool, so nothing writes them.
+- **Answered.** FBL 0.11: a `block` rule's `insert` adds a view block at the end of the views from its `emit` and its undo removes it (5.1, 4.9 *Views*), the registration that opens the new view staying the host's; and a read-only attribute's `gather` reads its items from further nodes of the same entry, the declaration's tags and every `tags` statement of its block in document order (5.2). `structurizr-add-view` adds a container view, and `structurizr-gathered-tags` reads the tags of `findings/tags-in-block.dsl`'s shape and refuses a set of them.
+- **Meanwhile.** `AddC4ViewCommand` stays code until the body is written by splices. Tags are read-only in the tool, so nothing writes them.
 
 ### 9. DISL 10: a layout's direction and spacing from a diagram attribute (A12)
 
@@ -137,6 +139,13 @@ Fifteen, each a candidate change for this repository: the twelve the conversion'
 - **Would resolve it.** An order of a viewpoint's members by an expression, such as the position of the first statement that selects each; and a legend `order` that is the least of an expression over the group's elements.
 - **Meanwhile.** The module orders the members it reads from the model by the view's statements, and keys the legend by them, each entry painted from its first member (`C4Definitions.Drawing` in the conversion, task 10).
 
+### 16. FBL 5.2: several items written in one argument
+
+- **Construct.** The tool splits a tags argument at its commas, so `tags "Extra, More"` gives the two tags `Extra` and `More`, as Structurizr does. A `{node}` slot of a `many` attribute reads each node it reaches as one item (5.2), and a quoted argument is one token of the grammar, so the binding reads `Extra, More` as one tag.
+- **Shown by.** `findings/tags-in-block.dsl` (`tags "Extra, More"`); `structurizr-gathered-tags` reads `"Last, Least"` as one item.
+- **Would resolve it.** A slot that splits a value read from one node into items at a separator, and writes them joined by it.
+- **Meanwhile.** Tags are read-only, and the module's parser splits them (`C4Parser`, read by `C4Disl`).
+
 ## Stand-ins
 
 Code that stands in for a gap while it stands, named so that nobody reads it as the design:
@@ -148,7 +157,8 @@ Code that stands in for a gap while it stands, named so that nobody reads it as 
 | `c4.unknown-view-scope` and the empty view's line, from the reading | Gap 13: what a view exposes to a rule about the model | The module (`C4Definitions.Problems`) |
 | The statement order of `C4Definitions.Drawing` | Gap 15: a view's members and legend entries in the order of its statements | The module |
 | `C4Placement.IdentifierFor` | Gap 11: a new element's identifier | The module, handed to the operation |
-| `AddC4ViewCommand` and its inverse `RemoveC4ViewCommand` | Gap 8: adding a view block, and the registration that opens it | The module |
+| `AddC4ViewCommand` and its inverse `RemoveC4ViewCommand` | Gap 8: adding a view block, and the registration that opens it. It can go with etalii.adp's spec 066, FR-012 (a block rule's `insert`), once the body is written by splices; the registration stays the host's | The module |
+| The tags read by `C4Disl` | Gaps 8 and 16: the tags of a declaration and of its block's `tags` statements. It can go with spec 066, FR-013 (`gather`), once the body is read through the binding, except for an argument holding commas (gap 16) | The module |
 | `C4LayoutSidecar` | Gap 7: positions in the legacy sidecar | The module |
 | `net.etalii.adp.c4.writtenEnds` | Gap 14: `writtenEnd`, supplied from the module's reading | A plugin of the definition, with a fallback |
 
@@ -177,9 +187,9 @@ Every class of the standalone module's backend project, [`src/diagrams/c4/backen
 | `C4Line`, `C4Lines` | Gaps 4 and 5: the lines the commands edit. **Waits**: out of the product code where nothing but `AddC4ViewCommand` needs them (task 15). |
 | `SetElementNameCommand`, `SetElementDescriptionCommand`, `SetElementTechnologyCommand`, `SetRelationshipDescriptionCommand`, `SetRelationshipTechnologyCommand`, `C4EditHandler` and their handlers | Host: the command records the history stack and the wire carry. Gaps 4 and 5: their line surgery. **Waits**: written by splices (task 15), which repairs B19. |
 | `AddC4ElementCommand`, `RemoveC4ElementCommand` and their handlers, `C4Placement` | Host: the command records. Gaps 4 and 5 and finding B20: where a new element goes and its text, and the placement refusals. **Waits**: `C4Placement` leaves the product code (task 15); `C4Placement.IdentifierFor` is gap 11 until then. |
-| `AddC4ViewCommand`, `RemoveC4ViewCommand` and their handlers, `C4ViewBlock` | Gap 8: a view block and its registration added, and both undone. Stays code. |
+| `AddC4ViewCommand`, `RemoveC4ViewCommand` and their handlers, `C4ViewBlock` | Gap 8: a view block and its registration added, and both undone. **Waits**: the view block is written by the binding's `insert` (FBL 0.11) when edits are written by splices (task 15); the registration it opens stays the host's. |
 | `MoveC4ElementCommand`, `RestoreC4ElementPositionCommand` and their handlers, `C4LayoutSidecar`, `C4SidecarPosition` | Host: a move as one undo step. Gap 7: positions in the legacy sidecar. **Waits**: positions as FBL 8.7 says (task 16), which repairs B17; `C4LayoutSidecar` then leaves the product code. |
-| `structurizr.fbl` | The module's binding, in the state FBL 0.2 can express, embedded and loaded by a test, on no reading path. **Waits**: widened with what FBL gains for gaps 1 to 7 (task 13), then read (task 14). |
+| `structurizr.fbl` | The module's binding, in the state FBL 0.2 can express, embedded and loaded by a test, on no reading path. **Waits**: replaced by etalii.adp's `structurizr.fbl` at FBL 0.11, in the `grammar` family with `structurizr.lark` (task 13), then read (task 14). |
 
 Beside the backend, the client's `C4Canvas.tsx` compiles the canvas from the definition of the view's kind, and `c4Bindings.ts` states what the canvas library cannot read from it, each entry with its reason.
 
@@ -199,5 +209,5 @@ Behaviour the definition does not state because it is the host's, not because DI
 - The standalone module: [`src/diagrams/c4/backend/EtAlii.Adp.Diagram.C4/`](https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/c4/backend/EtAlii.Adp.Diagram.C4), in particular `C4RuleSet.cs`, `C4ElementMapper.cs`, `C4ContextActionProvider.cs`, `C4ContextPropertyProvider.cs`, `C4ToolboxProvider.cs`, `C4Theme.cs` and `Commands/C4Placement.cs`.
 - Its parity transcript and fixtures: [`src/diagrams/c4/backend/EtAlii.Adp.Diagram.C4.Tests/`](https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/c4/backend/EtAlii.Adp.Diagram.C4.Tests).
 - The conversion's requirements and design: [`.spec-workflow/specs/c4-disl-fbl/`](https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/.spec-workflow/specs/c4-disl-fbl).
-- [DISL](../../specifications/disl/DISL-specification.md), sections 3.5, 4.11.3, 6.13, 8.2, 8.6, 8.7, 10, 11.2, 11.5 and 12; [FBL](../../specifications/fbl/FBL-specification.md), sections 3, 4.6, 4.7, 5.4, 7.5, 8.7 and 9.3.
+- [DISL](../../specifications/disl/DISL-specification.md), sections 3.5, 4.11.3, 6.13, 8.2, 8.6, 8.7, 10, 11.2, 11.5 and 12; [FBL](../../specifications/fbl/FBL-specification.md), sections 3, 4.6, 4.7, 4.9, 5.1, 5.2, 5.4, 6.3, 7.4, 7.5, 8.7 and 9.3.
 - [The C4 model](https://c4model.com) and the [Structurizr DSL](https://docs.structurizr.com/dsl).

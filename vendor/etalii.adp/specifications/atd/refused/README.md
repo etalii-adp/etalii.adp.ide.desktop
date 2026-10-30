@@ -8,6 +8,7 @@ The tool descriptions in this folder **must be refused** when they are checked: 
 |---|---|
 | `action-in-label.atd` | `ATD7002` at action-in-label.atd:11:27: `bump` changes the model (`set` at line 14), so it cannot be called from a label, which only reads. |
 | `binding-undeclared-attribute.atd` | `ATD6001` at binding-undeclared-attribute.atd:18:17: The binding reads `owner`, which element type `Task` does not declare. |
+| `binding-grammar-conflict.atd` | `ATD8001` at binding-grammar-conflict.atd:29:7: The grammar is not LALR(1): a Reduce/Reduce conflict on $END between `item : NAME ";"` and `other : NAME ";"`, at the head of `item`, the rule in conflict defined first (§11.9). |
 | `cel-type.atd` | `ATD4001` at cel-type.atd:11:10: A constraint's rule is a `bool`; this expression is an `int`. |
 | `counter-mark-not-string.atd` | `ATD6003` at counter-mark-not-string.atd:20:76: The counter of `Item` keeps its mark in `lastItem`, which is an `int`; a mark is a `string` attribute of the document. |
 | `designer-relation.atd` | `ATD3001` at designer-relation.atd:10:5: A designer has no relation types; `relation Broader` is admitted in diagrams only. |

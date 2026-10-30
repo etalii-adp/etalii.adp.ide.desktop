@@ -1862,7 +1862,9 @@
   "steps": [
     {
       "move": {
-        "element": "values:values.yaml"
+        "element": "values:values.yaml",
+        "x": 100,
+        "y": 700
       },
       "doc": "The parity script's gesture: {\"refs\":[\"values:values.yaml\"],\"to\":{\"x\":100,\"y\":700}}",
       "expectFile": "after-1.adp",
@@ -1911,7 +1913,9 @@
     },
     {
       "move": {
-        "element": "dep:common"
+        "element": "dep:common",
+        "x": 1700.5,
+        "y": 600.25
       },
       "doc": "The parity script's gesture: {\"refs\":[\"dep:common\"],\"to\":{\"x\":1700.5,\"y\":600.25}}",
       "select": [
@@ -1955,7 +1959,9 @@
     },
     {
       "move": {
-        "element": "edge:values:values-dev.yaml|Overrides|values:values.yaml|"
+        "element": "edge:values:values-dev.yaml|Overrides|values:values.yaml|",
+        "x": 10,
+        "y": 10
       },
       "doc": "The parity script's gesture: {\"refs\":[\"edge:values:values-dev.yaml|Overrides|values:values.yaml|\"],\"to\":{\"x\":10,\"y\":10}}",
       "refused": {
@@ -1999,7 +2005,9 @@
     },
     {
       "move": {
-        "element": "lock:Chart.lock"
+        "element": "lock:Chart.lock",
+        "x": 0.0001,
+        "y": 3.33333
       },
       "doc": "The parity script's gesture: {\"refs\":[\"lock:Chart.lock\"],\"to\":{\"x\":0.0001,\"y\":3.33333}}",
       "expectFile": "after-6.adp",
@@ -2010,7 +2018,9 @@
     },
     {
       "move": {
-        "element": "tpl:templates/NOTES.txt"
+        "element": "tpl:templates/NOTES.txt",
+        "x": -120.5,
+        "y": -60.0625
       },
       "doc": "The parity script's gesture: {\"refs\":[\"tpl:templates/NOTES.txt\"],\"to\":{\"x\":-120.5,\"y\":-60.0625}}",
       "expectFile": "after-7.adp",
@@ -2040,7 +2050,9 @@
     },
     {
       "move": {
-        "element": "values:values-dev.yaml"
+        "element": "values:values-dev.yaml",
+        "x": 0,
+        "y": 0
       },
       "doc": "The parity script's gesture: {\"refs\":[\"values:values-dev.yaml\"],\"to\":{\"x\":0,\"y\":0}}",
       "expectFile": "after-9.adp",
@@ -2119,21 +2131,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "8a37f0f",
+      "recordedWith": "e728fc8",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "8a37f0f",
+      "recordedWith": "e728fc8",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "8a37f0f",
+      "recordedWith": "e728fc8",
       "source": "atd record (drawing)"
     }
   }

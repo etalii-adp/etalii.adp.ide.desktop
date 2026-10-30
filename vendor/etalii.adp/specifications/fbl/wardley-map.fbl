@@ -1,0 +1,840 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.12",
+  "doc": "The Wardley map's .owm, the text of Online Wardley Maps, bound in the grammar family (FBL 0.12): a pipeline whose { stands on the line below it, a component's segments in any order, an annotation's positions as structured items, and ids by kind and natural key with an ordinal for each later holder of one key, read from the legacy identities file the standalone tool writes. Built from etalii.adp.ide.standalone's WardleyMapParser and WardleyIdentityKeys at ad1a4680a; definitions/diagrams/wardley-map.md records what it does not read.",
+  "bindings": {
+    "map": {
+      "title": "Online Wardley Maps text",
+      "doc": "The .owm text of the Wardley map, read by the grammar family with wardley-map.lark beside this document (FBL 0.12). Ids are never written in the body: each element is known by its kind and natural key, as the tool keys it (WardleyIdentityKeys), and its id is kept beside the body, in the registration's identities: block or in the legacy {base}.identities.json the tool writes. The statements the tool keeps without modelling them, and a line no statement reads, are text no rule maps, kept byte for byte.",
+      "claims": {
+        "extensions": [
+          ".owm",
+          ".wm"
+        ],
+        "origins": [
+          "wardley/map"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "grammar",
+        "grammar": {
+          "file": "wardley-map.lark"
+        },
+        "recover": {
+          "unit": "unit",
+          "sync": [
+            "_NL"
+          ],
+          "nested": {
+            "open": "OPEN",
+            "close": "CLOSE"
+          }
+        }
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "lf",
+        "indent": 2,
+        "finalNewline": true
+      },
+      "elements": [
+        {
+          "name": "title",
+          "type": "Title",
+          "doc": "The map's title; of two, each is read, and the tool shows the second.",
+          "at": "/title",
+          "attributes": {
+            "title": {
+              "node": "text",
+              "empty": "keep"
+            }
+          }
+        },
+        {
+          "name": "style",
+          "type": "Style",
+          "at": "/style",
+          "readOnly": true,
+          "attributes": {
+            "style": {
+              "node": "text"
+            }
+          }
+        },
+        {
+          "name": "size",
+          "type": "Size",
+          "at": "/size",
+          "readOnly": true,
+          "attributes": {
+            "width": {
+              "node": "width",
+              "number": "shortest"
+            },
+            "height": {
+              "node": "height",
+              "number": "shortest"
+            }
+          }
+        },
+        {
+          "name": "component",
+          "type": "Component",
+          "doc": "A component; its segments after the coordinates stand in any order (section 4.9).",
+          "at": "/component",
+          "id": {
+            "sidecar": {
+              "key": "entry.children[0].text",
+              "kind": "component",
+              "ordinal": "\u001f{n}\t"
+            }
+          },
+          "attributes": {
+            "name": {
+              "node": "name",
+              "empty": "refuse"
+            },
+            "visibility": {
+              "node": "coords/visibility",
+              "number": {
+                "decimals": 4
+              }
+            },
+            "maturity": {
+              "node": "coords/maturity",
+              "number": {
+                "decimals": 4
+              }
+            },
+            "coordinates": {
+              "node": "coords",
+              "readOnly": true
+            },
+            "labelOffset": {
+              "node": "label",
+              "match": "[Ll][Aa][Bb][Ee][Ll][ \\t]*\\[[ \\t]*(?<value>[^\\]]*[^ \\t\\]])[ \\t]*\\]",
+              "empty": "remove",
+              "create": {
+                "emit": " label [{value}]",
+                "after": [
+                  "coordinates"
+                ]
+              }
+            },
+            "decorators": {
+              "node": "decorator",
+              "match": "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)",
+              "empty": "remove",
+              "create": {
+                "emit": " ({value})",
+                "after": [
+                  "coordinates"
+                ]
+              }
+            },
+            "inertia": {
+              "node": "inertia",
+              "map": {
+                "inertia": "true",
+                "": "false"
+              },
+              "default": "false",
+              "empty": "remove",
+              "create": {
+                "emit": " {value}",
+                "after": [
+                  "coordinates"
+                ]
+              }
+            },
+            "url": {
+              "node": "url_ref",
+              "match": "[Uu][Rr][Ll][ \\t]*\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)",
+              "readOnly": true
+            }
+          },
+          "insert": {
+            "place": "end-of-document",
+            "emit": "component {name} [{visibility}, {maturity}]"
+          },
+          "remove": {
+            "cascade": [
+              "dependency",
+              "flow",
+              "evolve"
+            ]
+          }
+        },
+        {
+          "name": "anchor",
+          "type": "Anchor",
+          "doc": "An anchor, keyed in the components' key space, as the tool keys it.",
+          "at": "/anchor",
+          "id": {
+            "sidecar": {
+              "key": "entry.children[0].text",
+              "kind": "component",
+              "ordinal": "\u001f{n}\t"
+            }
+          },
+          "attributes": {
+            "name": {
+              "node": "name",
+              "empty": "refuse"
+            },
+            "visibility": {
+              "node": "coords/visibility",
+              "number": {
+                "decimals": 4
+              }
+            },
+            "maturity": {
+              "node": "coords/maturity",
+              "number": {
+                "decimals": 4
+              }
+            },
+            "coordinates": {
+              "node": "coords",
+              "readOnly": true
+            },
+            "labelOffset": {
+              "node": "label",
+              "match": "[Ll][Aa][Bb][Ee][Ll][ \\t]*\\[[ \\t]*(?<value>[^\\]]*[^ \\t\\]])[ \\t]*\\]",
+              "empty": "remove",
+              "create": {
+                "emit": " label [{value}]",
+                "after": [
+                  "coordinates"
+                ]
+              }
+            },
+            "decorators": {
+              "node": "decorator",
+              "match": "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)",
+              "empty": "remove",
+              "create": {
+                "emit": " ({value})",
+                "after": [
+                  "coordinates"
+                ]
+              }
+            },
+            "inertia": {
+              "node": "inertia",
+              "map": {
+                "inertia": "true",
+                "": "false"
+              },
+              "default": "false",
+              "empty": "remove",
+              "create": {
+                "emit": " {value}",
+                "after": [
+                  "coordinates"
+                ]
+              }
+            },
+            "url": {
+              "node": "url_ref",
+              "match": "[Uu][Rr][Ll][ \\t]*\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)",
+              "readOnly": true
+            }
+          },
+          "insert": {
+            "place": "end-of-document",
+            "emit": "anchor {name} [{visibility}, {maturity}]"
+          },
+          "remove": {
+            "cascade": [
+              "dependency",
+              "flow",
+              "evolve"
+            ]
+          }
+        },
+        {
+          "name": "submap",
+          "type": "Submap",
+          "doc": "A submap, keyed in the components' key space, as the tool keys it.",
+          "at": "/submap",
+          "id": {
+            "sidecar": {
+              "key": "entry.children[0].text",
+              "kind": "component",
+              "ordinal": "\u001f{n}\t"
+            }
+          },
+          "attributes": {
+            "name": {
+              "node": "name",
+              "empty": "refuse"
+            },
+            "visibility": {
+              "node": "coords/visibility",
+              "number": {
+                "decimals": 4
+              }
+            },
+            "maturity": {
+              "node": "coords/maturity",
+              "number": {
+                "decimals": 4
+              }
+            },
+            "coordinates": {
+              "node": "coords",
+              "readOnly": true
+            },
+            "labelOffset": {
+              "node": "label",
+              "match": "[Ll][Aa][Bb][Ee][Ll][ \\t]*\\[[ \\t]*(?<value>[^\\]]*[^ \\t\\]])[ \\t]*\\]",
+              "empty": "remove",
+              "create": {
+                "emit": " label [{value}]",
+                "after": [
+                  "coordinates"
+                ]
+              }
+            },
+            "decorators": {
+              "node": "decorator",
+              "match": "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)",
+              "empty": "remove",
+              "create": {
+                "emit": " ({value})",
+                "after": [
+                  "coordinates"
+                ]
+              }
+            },
+            "inertia": {
+              "node": "inertia",
+              "map": {
+                "inertia": "true",
+                "": "false"
+              },
+              "default": "false",
+              "empty": "remove",
+              "create": {
+                "emit": " {value}",
+                "after": [
+                  "coordinates"
+                ]
+              }
+            },
+            "url": {
+              "node": "url_ref",
+              "match": "[Uu][Rr][Ll][ \\t]*\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)",
+              "readOnly": true
+            }
+          },
+          "insert": {
+            "place": "end-of-document",
+            "emit": "submap {name} [{visibility}, {maturity}]"
+          },
+          "remove": {
+            "cascade": [
+              "dependency",
+              "flow",
+              "evolve"
+            ]
+          }
+        },
+        {
+          "name": "url",
+          "type": "Url",
+          "at": "/url",
+          "readOnly": true,
+          "attributes": {
+            "name": {
+              "node": "url_name"
+            },
+            "address": {
+              "node": "address"
+            }
+          }
+        },
+        {
+          "name": "evolve",
+          "type": "Evolve",
+          "doc": "An evolution has no identity kind in the tool, so it has no stored id and takes the one DISL derives.",
+          "at": "/evolve",
+          "attributes": {
+            "component": {
+              "node": "evolved",
+              "reference": {
+                "to": [
+                  "component",
+                  "anchor",
+                  "submap"
+                ],
+                "by": "name"
+              },
+              "empty": "refuse"
+            },
+            "becomes": {
+              "node": "becomes",
+              "match": "->[ \\t]*(?<value>.*)",
+              "empty": "remove",
+              "create": {
+                "emit": "->{value}",
+                "after": [
+                  "component"
+                ]
+              }
+            },
+            "maturity": {
+              "node": "maturity",
+              "number": {
+                "decimals": 4
+              }
+            }
+          },
+          "insert": {
+            "place": "end-of-document",
+            "emit": "evolve {component}[->{becomes}] {maturity}"
+          },
+          "remove": {}
+        },
+        {
+          "name": "pipeline",
+          "type": "Pipeline",
+          "doc": "The nested form, whose { may stand on the line below it; a first component added to a pipeline without a block writes its block with the brace on its own line, as the tool does.",
+          "at": "/pipeline",
+          "opens": {
+            "open": "\n{",
+            "close": "}"
+          },
+          "id": {
+            "sidecar": {
+              "key": "entry.children[0].text",
+              "kind": "pipeline",
+              "ordinal": "\u001f{n}\t"
+            }
+          },
+          "attributes": {
+            "component": {
+              "node": "name",
+              "reference": {
+                "to": [
+                  "component",
+                  "anchor",
+                  "submap"
+                ],
+                "by": "name"
+              },
+              "empty": "refuse"
+            }
+          },
+          "insert": {
+            "place": "end-of-document",
+            "emit": "pipeline {component}\n{\n}"
+          },
+          "remove": {}
+        },
+        {
+          "name": "legacyPipeline",
+          "type": "LegacyPipeline",
+          "doc": "The older form, two numbers on the statement's line; read, never written.",
+          "at": "/legacy_pipeline",
+          "readOnly": true,
+          "id": {
+            "sidecar": {
+              "key": "entry.children[0].text",
+              "kind": "pipeline",
+              "ordinal": "\u001f{n}\t"
+            }
+          },
+          "attributes": {
+            "component": {
+              "node": "name",
+              "reference": {
+                "to": [
+                  "component",
+                  "anchor",
+                  "submap"
+                ],
+                "by": "name"
+              }
+            }
+          }
+        },
+        {
+          "name": "pipelineComponent",
+          "type": "PipelineComponent",
+          "at": "/pipeline/pipeline_component",
+          "parent": {
+            "rules": [
+              "pipeline"
+            ],
+            "slot": "components"
+          },
+          "id": {
+            "sidecar": {
+              "key": "parent.children[0].text + '\\u001f' + entry.children[0].text",
+              "kind": "pipeline-child",
+              "ordinal": "\u001f{n}\t"
+            }
+          },
+          "attributes": {
+            "name": {
+              "node": "name",
+              "empty": "refuse"
+            },
+            "maturity": {
+              "node": "maturity",
+              "number": {
+                "decimals": 4
+              }
+            }
+          },
+          "insert": {
+            "place": "last-child",
+            "emit": "component {name} [{maturity}]"
+          },
+          "remove": {}
+        },
+        {
+          "name": "note",
+          "type": "Note",
+          "at": "/note",
+          "id": {
+            "sidecar": {
+              "key": "entry.children[0].text",
+              "kind": "note",
+              "ordinal": "\u001f{n}\t"
+            }
+          },
+          "attributes": {
+            "text": {
+              "node": "note_text",
+              "empty": "refuse"
+            },
+            "visibility": {
+              "node": "coords/visibility",
+              "number": {
+                "decimals": 4
+              }
+            },
+            "maturity": {
+              "node": "coords/maturity",
+              "number": {
+                "decimals": 4
+              }
+            }
+          },
+          "insert": {
+            "place": "end-of-document",
+            "emit": "note {text} [{visibility}, {maturity}]"
+          },
+          "remove": {}
+        },
+        {
+          "name": "annotation",
+          "type": "Annotation",
+          "doc": "A numbered annotation pinned at one position or more; the positions are one list of structured values (section 5.2).",
+          "at": "/annotation",
+          "id": {
+            "sidecar": {
+              "key": "entry.children[0].text",
+              "kind": "annotation",
+              "ordinal": "\u001f{n}\t"
+            }
+          },
+          "attributes": {
+            "number": {
+              "node": "number",
+              "readOnly": true
+            },
+            "positions": {
+              "node": "positions/position",
+              "items": {
+                "visibility": {
+                  "node": "visibility"
+                },
+                "maturity": {
+                  "node": "maturity"
+                }
+              },
+              "separator": ",",
+              "create": {
+                "emit": "[{visibility},{maturity}]"
+              }
+            },
+            "text": {
+              "node": "text",
+              "empty": "remove",
+              "create": {
+                "emit": " {value}",
+                "after": [
+                  "positions"
+                ]
+              }
+            }
+          },
+          "insert": {
+            "place": "end-of-document",
+            "emit": "annotation {number} [{positions}][ {text}]"
+          },
+          "remove": {}
+        },
+        {
+          "name": "annotations",
+          "type": "AnnotationsPosition",
+          "at": "/annotations",
+          "readOnly": true,
+          "attributes": {
+            "visibility": {
+              "node": "coords/visibility",
+              "number": {
+                "decimals": 4
+              }
+            },
+            "maturity": {
+              "node": "coords/maturity",
+              "number": {
+                "decimals": 4
+              }
+            }
+          }
+        },
+        {
+          "name": "accelerator",
+          "type": "Accelerator",
+          "at": "/accelerator",
+          "id": {
+            "sidecar": {
+              "key": "entry.children[0].text + '\\u001fac'",
+              "kind": "accelerator",
+              "ordinal": "\u001f{n}\t"
+            }
+          },
+          "attributes": {
+            "name": {
+              "node": "name",
+              "empty": "refuse"
+            },
+            "visibility": {
+              "node": "coords/visibility",
+              "number": {
+                "decimals": 4
+              }
+            },
+            "maturity": {
+              "node": "coords/maturity",
+              "number": {
+                "decimals": 4
+              }
+            },
+            "deaccelerator": {
+              "value": "false"
+            }
+          },
+          "insert": {
+            "place": "end-of-document",
+            "emit": "accelerator {name} [{visibility}, {maturity}]"
+          },
+          "remove": {}
+        },
+        {
+          "name": "deaccelerator",
+          "type": "Accelerator",
+          "at": "/deaccelerator",
+          "id": {
+            "sidecar": {
+              "key": "entry.children[0].text + '\\u001fde'",
+              "kind": "accelerator",
+              "ordinal": "\u001f{n}\t"
+            }
+          },
+          "attributes": {
+            "name": {
+              "node": "name",
+              "empty": "refuse"
+            },
+            "visibility": {
+              "node": "coords/visibility",
+              "number": {
+                "decimals": 4
+              }
+            },
+            "maturity": {
+              "node": "coords/maturity",
+              "number": {
+                "decimals": 4
+              }
+            },
+            "deaccelerator": {
+              "value": "true"
+            }
+          },
+          "insert": {
+            "place": "end-of-document",
+            "emit": "deaccelerator {name} [{visibility}, {maturity}]"
+          },
+          "remove": {}
+        },
+        {
+          "name": "attitude",
+          "type": "Attitude",
+          "at": "/attitude",
+          "id": {
+            "sidecar": {
+              "key": "(entry.children[0].text.lowerAscii() == 'pioneers' ? 'Pioneers' : entry.children[0].text.lowerAscii() == 'settlers' ? 'Settlers' : 'TownPlanners') + '\\u001f' + string(double(entry.children[1].text)) + '\\u001f' + string(double(entry.children[2].text))",
+              "kind": "attitude",
+              "ordinal": "\u001f{n}\t"
+            }
+          },
+          "attributes": {
+            "attitude": {
+              "node": "ATTITUDE",
+              "readOnly": true
+            },
+            "visibility1": {
+              "node": "visibility",
+              "number": {
+                "decimals": 4
+              }
+            },
+            "maturity1": {
+              "node": "maturity",
+              "number": {
+                "decimals": 4
+              }
+            },
+            "visibility2": {
+              "node": "visibility2",
+              "number": {
+                "decimals": 4
+              }
+            },
+            "maturity2": {
+              "node": "maturity2",
+              "number": {
+                "decimals": 4
+              }
+            }
+          },
+          "remove": {}
+        },
+        {
+          "name": "dependency",
+          "type": "Dependency",
+          "at": "/dependency",
+          "id": {
+            "sidecar": {
+              "key": "entry.children[0].text + '\\u001f' + entry.children[1].text + '\\u001fDependency'",
+              "kind": "link",
+              "ordinal": "\u001f{n}\t"
+            }
+          },
+          "attributes": {
+            "from": {
+              "node": "source",
+              "reference": {
+                "to": [
+                  "component",
+                  "anchor",
+                  "submap"
+                ],
+                "by": "name"
+              },
+              "empty": "refuse"
+            },
+            "to": {
+              "node": "target",
+              "reference": {
+                "to": [
+                  "component",
+                  "anchor",
+                  "submap"
+                ],
+                "by": "name"
+              },
+              "empty": "refuse"
+            },
+            "context": {
+              "node": "context",
+              "match": ";[ \\t]*(?<value>.*)",
+              "empty": "remove",
+              "create": {
+                "emit": "; {value}",
+                "after": [
+                  "to"
+                ]
+              }
+            }
+          },
+          "insert": {
+            "place": "end-of-document",
+            "emit": "{from}->{to}[; {context}]"
+          },
+          "remove": {}
+        },
+        {
+          "name": "flow",
+          "type": "Flow",
+          "at": "/flow",
+          "id": {
+            "sidecar": {
+              "key": "entry.children[0].text + '\\u001f' + entry.children[1].text + '\\u001fFlow'",
+              "kind": "link",
+              "ordinal": "\u001f{n}\t"
+            }
+          },
+          "attributes": {
+            "from": {
+              "node": "source",
+              "reference": {
+                "to": [
+                  "component",
+                  "anchor",
+                  "submap"
+                ],
+                "by": "name"
+              },
+              "empty": "refuse"
+            },
+            "to": {
+              "node": "target",
+              "reference": {
+                "to": [
+                  "component",
+                  "anchor",
+                  "submap"
+                ],
+                "by": "name"
+              },
+              "empty": "refuse"
+            },
+            "context": {
+              "node": "context",
+              "match": ";[ \\t]*(?<value>.*)",
+              "empty": "remove",
+              "create": {
+                "emit": "; {value}",
+                "after": [
+                  "to"
+                ]
+              }
+            }
+          },
+          "insert": {
+            "place": "end-of-document",
+            "emit": "{from}+>{to}[; {context}]"
+          },
+          "remove": {}
+        }
+      ],
+      "registration": {
+        "createOnFirstPlacement": false,
+        "legacyIdentities": "{base}.identities.json"
+      },
+      "template": {
+        "text": "title {base}\n"
+      }
+    }
+  }
+}

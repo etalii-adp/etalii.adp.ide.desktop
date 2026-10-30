@@ -1,0 +1,14 @@
+resources:
+  jobs:
+    flow_dependencies:
+      name: Dependencies written on one line
+      tasks:
+        - task_key: b
+          depends_on: [{task_key: a}]
+          notebook_task:
+            notebook_path: notebooks/b
+        - task_key: a
+          notebook_task: {notebook_path: notebooks/a}
+        - task_key: c
+          notebook_task:
+            notebook_path: notebooks/c

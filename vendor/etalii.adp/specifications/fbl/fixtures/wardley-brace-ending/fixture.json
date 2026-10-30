@@ -1,0 +1,176 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.12, section 4.9, FR-003: etalii.adp.ide.standalone/src/diagrams/wardley-map/backend/EtAlii.Adp.Diagram.WardleyMap.Tests/Fixtures/brace-ending-statements.owm at ad1a4680a, unchanged. Only what the grammar reads as a block opens one, and only a pipeline does: the { that ends the title, a trailing comment and a link's context is a byte of one token and opens nothing, a note's text holds one, and the { alone on line 6 stands where a statement may start and opens nothing either, so no block is open and the braces balance in the reading's terms. The } alone on line 8 closes nothing and is reported as fbl.unmatched-close, the one line the tool reports too; its lines and the { are kept byte for byte. The tool's six identities are the six elements with an identity kind.",
+  "binding": "../../wardley-map.fbl#map",
+  "input": "brace-ending-statements.owm",
+  "read": {
+    "elements": [
+      {
+        "id": "title",
+        "type": "Title",
+        "attributes": {
+          "title": "Brace ending {"
+        }
+      },
+      {
+        "id": "user",
+        "type": "Anchor",
+        "attributes": {
+          "name": "User"
+        }
+      },
+      {
+        "id": "kettle",
+        "type": "Component",
+        "attributes": {
+          "name": "Kettle",
+          "visibility": 0.5,
+          "maturity": 0.4
+        }
+      },
+      {
+        "id": "user-kettle",
+        "type": "Dependency",
+        "attributes": {
+          "from": "User",
+          "to": "Kettle",
+          "context": "heats the water {"
+        }
+      },
+      {
+        "id": "power",
+        "type": "Component",
+        "attributes": {
+          "name": "Power"
+        }
+      },
+      {
+        "id": "kettle-power",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Kettle",
+          "to": "Power"
+        }
+      },
+      {
+        "id": "lid",
+        "type": "Note",
+        "attributes": {
+          "text": "Lid { on",
+          "visibility": 0.3,
+          "maturity": 0.3
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "fbl.unmatched-close",
+        "line": 8
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "The title's { is part of its value: a set replaces the whole text and nothing else.",
+      "edit": {
+        "set": {
+          "element": "title",
+          "attributes": {
+            "title": "Brace ending"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 6,
+          "end": 20,
+          "text": "Brace ending"
+        }
+      ],
+      "expect": "title Brace ending\nanchor User [0.9, 0.5]\ncomponent Kettle [0.5, 0.4] // opens nothing {\nUser->Kettle; heats the water {\ncomponent Power [0.1, 0.7]\n{\nKettle->Power\n}\nnote Lid { on [0.3, 0.3]\n"
+    },
+    {
+      "doc": "The undo puts the { back.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 6,
+          "end": 18,
+          "text": "Brace ending {"
+        }
+      ],
+      "expect": "title Brace ending {\nanchor User [0.9, 0.5]\ncomponent Kettle [0.5, 0.4] // opens nothing {\nUser->Kettle; heats the water {\ncomponent Power [0.1, 0.7]\n{\nKettle->Power\n}\nnote Lid { on [0.3, 0.3]\n"
+    },
+    {
+      "doc": "Kettle's maturity changes its number alone; the trailing comment that ends in { stays.",
+      "edit": {
+        "set": {
+          "element": "kettle",
+          "attributes": {
+            "maturity": 0.45
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 67,
+          "end": 70,
+          "text": "0.45"
+        }
+      ],
+      "expect": "title Brace ending {\nanchor User [0.9, 0.5]\ncomponent Kettle [0.5, 0.45] // opens nothing {\nUser->Kettle; heats the water {\ncomponent Power [0.1, 0.7]\n{\nKettle->Power\n}\nnote Lid { on [0.3, 0.3]\n"
+    },
+    {
+      "doc": "A component added goes at the end of the document, at the top level: no block is open after the note.",
+      "edit": {
+        "add": {
+          "type": "Component",
+          "id": "water",
+          "attributes": {
+            "name": "Water",
+            "visibility": 0.4,
+            "maturity": 0.8
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 194,
+          "end": 194,
+          "text": "component Water [0.4, 0.8]\n"
+        }
+      ],
+      "expect": "title Brace ending {\nanchor User [0.9, 0.5]\ncomponent Kettle [0.5, 0.45] // opens nothing {\nUser->Kettle; heats the water {\ncomponent Power [0.1, 0.7]\n{\nKettle->Power\n}\nnote Lid { on [0.3, 0.3]\ncomponent Water [0.4, 0.8]\n"
+    },
+    {
+      "doc": "The undo removes the component's line.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 194,
+          "end": 221,
+          "text": ""
+        }
+      ],
+      "expect": "title Brace ending {\nanchor User [0.9, 0.5]\ncomponent Kettle [0.5, 0.45] // opens nothing {\nUser->Kettle; heats the water {\ncomponent Power [0.1, 0.7]\n{\nKettle->Power\n}\nnote Lid { on [0.3, 0.3]\n"
+    },
+    {
+      "doc": "The undo of the maturity puts 0.4 back.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 67,
+          "end": 71,
+          "text": "0.4"
+        }
+      ],
+      "expect": "title Brace ending {\nanchor User [0.9, 0.5]\ncomponent Kettle [0.5, 0.4] // opens nothing {\nUser->Kettle; heats the water {\ncomponent Power [0.1, 0.7]\n{\nKettle->Power\n}\nnote Lid { on [0.3, 0.3]\n"
+    }
+  ]
+}

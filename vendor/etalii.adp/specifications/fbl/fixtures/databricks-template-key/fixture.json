@@ -1,0 +1,63 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A new job document created from the binding's template (databricks.fbl#configuration, template.byOrigin for databricks/job; FBL 0.10, sections 13 and 15.3; spec 066, User Story 2, scenario 8). The input is what the template writes for a file named My_Job.yml: {key:lower} gives the key my_job, where {key} would give My_Job, and {base} the name My_Job. The validator writes the template and compares it with the input; read and steps are those of the job reading.",
+  "binding": "../../databricks.fbl#configuration",
+  "input": "My_Job.yml",
+  "template": {
+    "name": "My_Job.yml",
+    "origin": "databricks/job"
+  },
+  "read": {
+    "document": {
+      "attributes": {
+        "jobKey": "my_job",
+        "name": "My_Job"
+      }
+    },
+    "elements": [
+      {
+        "id": "task:main",
+        "type": "Task",
+        "attributes": {
+          "key": "main",
+          "taskType": "notebook"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "The user's first edit is a splice into the template's bytes like any other (section 13): main's run_if, after its task_key.",
+      "edit": {
+        "set": {
+          "element": "task:main",
+          "attributes": {
+            "runIf": "ALL_DONE"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 94,
+          "end": 94,
+          "text": "          run_if: ALL_DONE\r\n"
+        }
+      ],
+      "expect": "resources:\r\n  jobs:\r\n    my_job:\r\n      name: My_Job\r\n      tasks:\r\n        - task_key: main\r\n          run_if: ALL_DONE\r\n          notebook_task:\r\n            notebook_path: notebooks/my_job\r\n"
+    },
+    {
+      "doc": "Undo removes the key.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 94,
+          "end": 122,
+          "text": ""
+        }
+      ],
+      "expect": "resources:\r\n  jobs:\r\n    my_job:\r\n      name: My_Job\r\n      tasks:\r\n        - task_key: main\r\n          notebook_task:\r\n            notebook_path: notebooks/my_job\r\n"
+    }
+  ]
+}

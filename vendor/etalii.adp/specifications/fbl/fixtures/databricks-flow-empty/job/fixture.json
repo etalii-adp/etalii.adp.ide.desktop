@@ -1,0 +1,70 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "An insert into an empty YAML flow sequence (databricks.fbl#configuration; FBL 0.10, sections 4.3 and 6.2; spec 066, User Story 2, scenario 4). The job empty_flow writes its tasks as tasks: []. The body after the add is ../added.yml, which read-back/ reads with one task. Its body, flow-collections.yml, is etalii.adp.ide.standalone's src/diagrams/databricks/backend/EtAlii.Adp.Diagram.Databricks.Tests/Fixtures/flow-collections.yml at ad1a4680a, byte for byte (CRLF).",
+  "binding": "../../../databricks.fbl#configuration",
+  "input": "empty_flow.adp",
+  "read": {
+    "document": {
+      "attributes": {
+        "jobKey": "empty_flow",
+        "name": "Tasks written as an empty flow sequence"
+      }
+    },
+    "elements": []
+  },
+  "steps": [
+    {
+      "doc": "A task added to tasks: [] opens the empty flow sequence into a block sequence: the value and the space before it go, and the entry is a block sequence item under the key, written with the body's CRLF, the sequence indented one step under tasks as the body's other tasks are, its skeleton after its keys (FBL 0.10, sections 4.3 and 6.2, Flow sequences).",
+      "edit": {
+        "add": {
+          "type": "Task",
+          "attributes": {
+            "key": "first"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "file": "../flow-collections.yml",
+          "start": 103,
+          "end": 106,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "file": "../flow-collections.yml",
+          "start": 108,
+          "end": 108,
+          "text": "        - task_key: first\r\n          notebook_task:\r\n            notebook_path: notebooks/first\r\n"
+        }
+      ],
+      "expectFiles": {
+        "../flow-collections.yml": "resources:\r\n  jobs:\r\n    empty_flow:\r\n      name: Tasks written as an empty flow sequence\r\n      tasks:\r\n        - task_key: first\r\n          notebook_task:\r\n            notebook_path: notebooks/first\r\n    flow_dependencies:\r\n      name: Dependencies written on one line\r\n      tasks:\r\n        - task_key: a\r\n          notebook_task: {notebook_path: notebooks/a}\r\n        - task_key: b\r\n          depends_on: [{task_key: a}]\r\n          notebook_task:\r\n            notebook_path: notebooks/b\r\n        - task_key: c\r\n          notebook_task:\r\n            notebook_path: notebooks/c\r\n  pipelines:\r\n    flow_pipeline:\r\n      name: Flow pipeline\r\n      libraries: [{notebook: {path: transformations/one}}, {file: {path: transformations/two.py}}]\r\n"
+      }
+    },
+    {
+      "doc": "Undo puts tasks: [] back byte for byte: the value and its space, and no entry.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "file": "../flow-collections.yml",
+          "start": 103,
+          "end": 103,
+          "text": " []"
+        },
+        {
+          "operation": "insert-entry",
+          "file": "../flow-collections.yml",
+          "start": 105,
+          "end": 202,
+          "text": ""
+        }
+      ],
+      "expectFiles": {
+        "../flow-collections.yml": "resources:\r\n  jobs:\r\n    empty_flow:\r\n      name: Tasks written as an empty flow sequence\r\n      tasks: []\r\n    flow_dependencies:\r\n      name: Dependencies written on one line\r\n      tasks:\r\n        - task_key: a\r\n          notebook_task: {notebook_path: notebooks/a}\r\n        - task_key: b\r\n          depends_on: [{task_key: a}]\r\n          notebook_task:\r\n            notebook_path: notebooks/b\r\n        - task_key: c\r\n          notebook_task:\r\n            notebook_path: notebooks/c\r\n  pipelines:\r\n    flow_pipeline:\r\n      name: Flow pipeline\r\n      libraries: [{notebook: {path: transformations/one}}, {file: {path: transformations/two.py}}]\r\n"
+      }
+    }
+  ]
+}

@@ -1,0 +1,247 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.12, sections 8.6 and 8.7, FR-026, FR-027: etalii.adp.ide.standalone/src/diagrams/wardley-map/examples/example 2/strategy-vocabulary.owm at ad1a4680a with its .adp and .identities.json, unchanged, the second identities file of example 2. Every element of a kind the tool keys has its stored id: the components by name, the links by their ends and kind (the flow's key ends in Flow), the accelerator and the deaccelerator by name and ac or de, and the three attitudes by their kind, capitalised as the tool writes it, and their first corner, each number written as the tool writes it, 0.30 as 0.3. An evolution has no identity kind and no stored id. Clearing the new name of Datacentre's evolution removes '->Cloud Hosting', arrow and all.",
+  "binding": "../../wardley-map.fbl#map",
+  "input": "strategy-vocabulary.adp",
+  "read": {
+    "elements": [
+      {
+        "id": "title",
+        "type": "Title",
+        "attributes": {
+          "title": "Strategy vocabulary"
+        }
+      },
+      {
+        "id": "size",
+        "type": "Size",
+        "attributes": {
+          "width": 900,
+          "height": 700
+        }
+      },
+      {
+        "id": "esqtv1tg6r31atziq717uebs2",
+        "type": "Anchor",
+        "attributes": {
+          "name": "Customer"
+        }
+      },
+      {
+        "id": "28aq8skvp5n22fbrkdpr7w6eu",
+        "type": "Component",
+        "attributes": {
+          "name": "Order Portal"
+        }
+      },
+      {
+        "id": "et0fqurcgd3ri1az051jupyvf",
+        "type": "Component",
+        "attributes": {
+          "decorators": [
+            "buy"
+          ]
+        }
+      },
+      {
+        "id": "5mohg9hrrnhjw5t5bvksobqlo",
+        "type": "Component",
+        "attributes": {
+          "visibility": 0.6626,
+          "maturity": 0.2824,
+          "decorators": [
+            "build"
+          ]
+        }
+      },
+      {
+        "id": "b474cr9m9t3eczg1gdv5gcjhk",
+        "type": "Component",
+        "attributes": {
+          "decorators": [
+            "outsource"
+          ]
+        }
+      },
+      {
+        "id": "804r9rdikiiftb5uxc4dmz1sb",
+        "type": "Component",
+        "attributes": {
+          "inertia": true,
+          "decorators": []
+        }
+      },
+      {
+        "id": "b7ak4vpps5jzv5z6e35bwkdk0",
+        "type": "Component",
+        "attributes": {
+          "decorators": [
+            "market"
+          ]
+        }
+      },
+      {
+        "id": "2m9av9ipvmp6w45ql55bgcsjf",
+        "type": "Component",
+        "attributes": {
+          "decorators": [
+            "ecosystem"
+          ]
+        }
+      },
+      {
+        "id": "5mlj9gwvz7f6tq8jk44j2fvc2",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Customer",
+          "to": "Order Portal"
+        }
+      },
+      {
+        "id": "59zcjnkv6fawrmuwv3ocn580b",
+        "type": "Dependency"
+      },
+      {
+        "id": "8ohahd9dc1hkootitayqkw5vx",
+        "type": "Dependency"
+      },
+      {
+        "id": "20i7it0yv1wkh363kojh2c0t9",
+        "type": "Dependency"
+      },
+      {
+        "id": "dtxqdj8ob3q7wi7am98ynxrzx",
+        "type": "Dependency"
+      },
+      {
+        "id": "bzedjszz6agvrcjw2hnrcdbq4",
+        "type": "Flow",
+        "attributes": {
+          "from": "Fraud Scoring",
+          "to": "Ledger"
+        }
+      },
+      {
+        "id": "563p17c7wugo1otauzp5lv4fp",
+        "type": "Dependency"
+      },
+      {
+        "id": "14d8vq4v94823dsi6wpf5w4oi",
+        "type": "Dependency",
+        "attributes": {
+          "context": "via the plugin SDK"
+        }
+      },
+      {
+        "id": "fraud-evolve",
+        "type": "Evolve",
+        "attributes": {
+          "component": "Fraud Scoring",
+          "becomes": null,
+          "maturity": 0.72
+        }
+      },
+      {
+        "id": "datacentre-evolve",
+        "type": "Evolve",
+        "attributes": {
+          "component": "Datacentre",
+          "becomes": "Cloud Hosting",
+          "maturity": 0.83
+        }
+      },
+      {
+        "id": "989s6q7b31jycrxe4h277ugm2",
+        "type": "Attitude",
+        "attributes": {
+          "attitude": "pioneers",
+          "visibility1": 0.3,
+          "maturity1": 0.2,
+          "visibility2": 0.55,
+          "maturity2": 0.45
+        }
+      },
+      {
+        "id": "3k0oofp1wgg8jsv15zfe20vor",
+        "type": "Attitude",
+        "attributes": {
+          "attitude": "settlers"
+        }
+      },
+      {
+        "id": "32oixhad7eqijevz7j5ame2i0",
+        "type": "Attitude",
+        "attributes": {
+          "attitude": "townplanners"
+        }
+      },
+      {
+        "id": "8p9jej5y93i5ysya0b7j65iip",
+        "type": "Accelerator",
+        "attributes": {
+          "name": "Regulatory pressure",
+          "deaccelerator": false
+        }
+      },
+      {
+        "id": "9l1b0bvffz7ito2thcgdf8r38",
+        "type": "Accelerator",
+        "attributes": {
+          "name": "Legacy contracts",
+          "deaccelerator": true
+        }
+      },
+      {
+        "id": "bykfr9hcxfpps1l49klzuluob",
+        "type": "Note",
+        "attributes": {
+          "text": "Renewal is due in March"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Clearing the evolution's new name removes it with its arrow, and nothing else.",
+      "edit": {
+        "set": {
+          "element": "datacentre-evolve",
+          "attributes": {
+            "becomes": ""
+          }
+        }
+      },
+      "splices": [
+        {
+          "file": "strategy-vocabulary.owm",
+          "operation": "remove-key",
+          "start": 623,
+          "end": 638,
+          "text": ""
+        }
+      ],
+      "expect": "wardley/map\n",
+      "expectFiles": {
+        "strategy-vocabulary.owm": "title Strategy vocabulary\nsize [900,700]\n\nanchor Customer [0.95, 0.63]\n\ncomponent Order Portal [0.85, 0.42]\ncomponent Payment [0.70, 0.72] (buy)\ncomponent Fraud Scoring [0.6626, 0.2824] (build)\ncomponent Ledger [0.48, 0.55] (outsource)\ncomponent Datacentre [0.15, 0.55] inertia\ncomponent Card Networks [0.66, 0.88] (market)\ncomponent Partner Plugins [0.40, 0.47] (ecosystem)\n\nCustomer->Order Portal\nOrder Portal->Payment\nOrder Portal->Fraud Scoring\nPayment->Card Networks\nPayment->Ledger\nFraud Scoring+>Ledger\nLedger->Datacentre\nOrder Portal->Partner Plugins; via the plugin SDK\n\nevolve Fraud Scoring 0.72\nevolve Datacentre 0.83\n\npioneers [0.30, 0.20, 0.55, 0.45]\nsettlers [0.55, 0.45, 0.80, 0.70]\ntownplanners [0.15, 0.70, 0.45, 0.95]\n\naccelerator Regulatory pressure [0.70, 0.60]\ndeaccelerator Legacy contracts [0.45, 0.30]\n\nnote Renewal is due in March [0.22, 0.30]\n"
+      }
+    },
+    {
+      "doc": "The undo writes it back.",
+      "undo": true,
+      "splices": [
+        {
+          "file": "strategy-vocabulary.owm",
+          "operation": "remove-key",
+          "start": 623,
+          "end": 623,
+          "text": "->Cloud Hosting"
+        }
+      ],
+      "expect": "wardley/map\n",
+      "expectFiles": {
+        "strategy-vocabulary.owm": "title Strategy vocabulary\nsize [900,700]\n\nanchor Customer [0.95, 0.63]\n\ncomponent Order Portal [0.85, 0.42]\ncomponent Payment [0.70, 0.72] (buy)\ncomponent Fraud Scoring [0.6626, 0.2824] (build)\ncomponent Ledger [0.48, 0.55] (outsource)\ncomponent Datacentre [0.15, 0.55] inertia\ncomponent Card Networks [0.66, 0.88] (market)\ncomponent Partner Plugins [0.40, 0.47] (ecosystem)\n\nCustomer->Order Portal\nOrder Portal->Payment\nOrder Portal->Fraud Scoring\nPayment->Card Networks\nPayment->Ledger\nFraud Scoring+>Ledger\nLedger->Datacentre\nOrder Portal->Partner Plugins; via the plugin SDK\n\nevolve Fraud Scoring 0.72\nevolve Datacentre->Cloud Hosting 0.83\n\npioneers [0.30, 0.20, 0.55, 0.45]\nsettlers [0.55, 0.45, 0.80, 0.70]\ntownplanners [0.15, 0.70, 0.45, 0.95]\n\naccelerator Regulatory pressure [0.70, 0.60]\ndeaccelerator Legacy contracts [0.45, 0.30]\n\nnote Renewal is due in March [0.22, 0.30]\n"
+      }
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.11, section 4.9 (The tree): where a comment can start is the grammar's terminals' to say, under ATD section 3.6's lexing. On line 1 the URL token is the longest match at its first byte and runs over both //, so neither is a comment; the // after it is a trailing comment of the link. Line 2 is a leading comment of the link below it. A set of the URL replaces the token's bytes only and keeps the trailing comment. Written here for spec 066 (contracts/fixtures.md, A).",
+  "binding": "links.fbl#links",
+  "input": "links.txt",
+  "read": {
+    "elements": [
+      {
+        "id": "docs",
+        "type": "Link",
+        "attributes": {
+          "url": "https://example.com//path"
+        }
+      },
+      {
+        "id": "home",
+        "type": "Link",
+        "attributes": {
+          "url": "http://example.org"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "docs https://example.com//path // the docs\n// a leading comment\nhome http://example.org\n"
+    },
+    {
+      "doc": "A set of the URL is a replace-value of the URL token; the // inside the new value is part of it, and the trailing comment stays.",
+      "edit": {
+        "set": {
+          "element": "docs",
+          "attributes": {
+            "url": "https://example.net/a//b"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 5,
+          "end": 30,
+          "text": "https://example.net/a//b"
+        }
+      ],
+      "expect": "docs https://example.net/a//b // the docs\n// a leading comment\nhome http://example.org\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 5,
+          "end": 29,
+          "text": "https://example.com//path"
+        }
+      ],
+      "expect": "docs https://example.com//path // the docs\n// a leading comment\nhome http://example.org\n"
+    }
+  ]
+}

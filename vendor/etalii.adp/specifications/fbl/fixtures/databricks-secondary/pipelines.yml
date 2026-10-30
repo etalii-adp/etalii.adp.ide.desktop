@@ -1,0 +1,10 @@
+resources:
+  pipelines:
+    legacy:
+      name: Legacy target
+      catalog: main
+      target: silver
+    both:
+      name: Both written
+      schema: gold
+      target: silver

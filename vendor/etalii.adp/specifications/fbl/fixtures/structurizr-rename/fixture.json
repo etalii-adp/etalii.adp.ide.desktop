@@ -1,0 +1,88 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.11 (section 5.7 in the grammar family), FR-001 and FR-032: renaming the container web of etalii.adp.ide.standalone/src/diagrams/c4/backend/EtAlii.Adp.Diagram.C4.Tests/Fixtures/comments-everywhere.dsl at ad1a4680a rewrites its identifier and every relationship that names it, one rewrite-reference each, in one edit; the comments on and around those lines are kept, and the undo puts every byte back.",
+  "binding": "../../structurizr.fbl#workspace",
+  "input": "comments-everywhere.dsl",
+  "read": {
+    "elements": [
+      {
+        "id": "u",
+        "type": "Person"
+      },
+      {
+        "id": "s",
+        "type": "SoftwareSystem"
+      },
+      {
+        "id": "web",
+        "type": "Container",
+        "parent": "s"
+      },
+      {
+        "id": "db",
+        "type": "Container",
+        "parent": "s"
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "The identifier is replaced and both relationships that name web are rewritten.",
+      "edit": {
+        "set": {
+          "element": "web",
+          "attributes": {
+            "id": "webApp"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 733,
+          "end": 736,
+          "text": "webApp"
+        },
+        {
+          "operation": "rewrite-reference",
+          "start": 863,
+          "end": 866,
+          "text": "webApp"
+        },
+        {
+          "operation": "rewrite-reference",
+          "start": 933,
+          "end": 936,
+          "text": "webApp"
+        }
+      ],
+      "expect": "// a line comment before the workspace\n# a hash comment, which the DSL also accepts\n/*\n * a block comment spanning lines\n */\nworkspace \"Comments\" \"Every comment form the DSL actually accepts.\" {\n\n    model { // trailing a brace is legal\n        # hash comment inside the model\n        // Trailing a declaration is NOT: the real parser reads the comment as extra\n        // arguments and refuses the line. ADP accepts it anyway, which is harmless -\n        // a reader that takes more than the writer emits - but the corpus must not\n        // claim the format allows something it does not.\n        u = person \"User\" \"A user.\"\n        /* block comment between elements */\n        s = softwareSystem \"System\" \"A system.\" {\n            webApp = container \"Web App\" \"Serves pages.\" \"React\"\n            db = container \"Database\" \"Stores things.\" \"PostgreSQL\"\n            webApp -> db \"Reads from and writes to\" \"SQL/TCP\"\n        }\n        u -> webApp \"Visits\" \"HTTPS\"\n    }\n\n    views {\n        systemContext s \"context\" {\n            include *\n        }\n        container s \"containers\" {\n            include *\n        }\n    }\n\n}\n// a trailing comment after the closing brace\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 733,
+          "end": 739,
+          "text": "web"
+        },
+        {
+          "operation": "rewrite-reference",
+          "start": 866,
+          "end": 872,
+          "text": "web"
+        },
+        {
+          "operation": "rewrite-reference",
+          "start": 939,
+          "end": 945,
+          "text": "web"
+        }
+      ],
+      "expect": "// a line comment before the workspace\n# a hash comment, which the DSL also accepts\n/*\n * a block comment spanning lines\n */\nworkspace \"Comments\" \"Every comment form the DSL actually accepts.\" {\n\n    model { // trailing a brace is legal\n        # hash comment inside the model\n        // Trailing a declaration is NOT: the real parser reads the comment as extra\n        // arguments and refuses the line. ADP accepts it anyway, which is harmless -\n        // a reader that takes more than the writer emits - but the corpus must not\n        // claim the format allows something it does not.\n        u = person \"User\" \"A user.\"\n        /* block comment between elements */\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web App\" \"Serves pages.\" \"React\"\n            db = container \"Database\" \"Stores things.\" \"PostgreSQL\"\n            web -> db \"Reads from and writes to\" \"SQL/TCP\"\n        }\n        u -> web \"Visits\" \"HTTPS\"\n    }\n\n    views {\n        systemContext s \"context\" {\n            include *\n        }\n        container s \"containers\" {\n            include *\n        }\n    }\n\n}\n// a trailing comment after the closing brace\n"
+    }
+  ]
+}

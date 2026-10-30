@@ -72,6 +72,15 @@ fn replay(path: &Path) -> Result<usize, String> {
     let mut done: Vec<(Vec<u8>, Vec<u8>, Changes, bool)> = Vec::new();
     let mut undone: Vec<(Vec<u8>, Vec<u8>, Changes, bool)> = Vec::new();
     let steps = fixture["steps"].as_array().cloned().unwrap_or_default();
+    // A fixture whose input is a registration and whose splices each name their file (FBL 0.12, section 8.6) edits
+    // several files at once; this replay holds one body, so it leaves them to the host they were recorded from.
+    if steps
+        .iter()
+        .flat_map(|s| s["splices"].as_array().into_iter().flatten())
+        .any(|s| s.get("file").is_some())
+    {
+        return Ok(0);
+    }
     for (index, step) in steps.iter().enumerate() {
         let number = index + 1;
         let expected = if let Some(file) = step["expectFile"].as_str() {

@@ -34,7 +34,7 @@ mod hierarchical_requirement;
 /// of: `sankey-written-text` and `supply-chain-written-text`, which etalii.adp added with the Sankey and supply chain
 /// bindings, and the bullets family's (FBL 0.7 section 4.8, etalii.adp spec 036), with `behavior-tree-read/first-add`,
 /// which etalii.adp holds and the standalone host does not vendor.
-const STANDALONE_FIXTURES: [&str; 22] = [
+const STANDALONE_FIXTURES: [&str; 21] = [
     "behavior-tree-read/first-add",
     "bullets-edits",
     "bullets-edits/no-section",
@@ -53,7 +53,6 @@ const STANDALONE_FIXTURES: [&str; 22] = [
     "mindmap-nodes",
     "registration-blocks",
     "registration-layout",
-    "structurizr-open-block",
     "timeline-bom-lf",
     "timeline-edits",
     "timeline-written-text",
@@ -93,7 +92,7 @@ const KNOWLEDGE_STEPS: [(&str, usize, usize); 4] = [
 /// the standalone host does not vendor either. They are out of scope here, not failing: etalii.adp's splice replay
 /// (`fixtures.rs`) still runs every one of them. The hierarchical-requirement tool type's fixtures are run by
 /// [`hierarchical_requirement`], through the stand-in for its DESL interpreter.
-const NOT_SUPPORTED: [&str; 5] = [
+const NOT_SUPPORTED: [&str; 59] = [
     // The standalone host does not vendor this one at a7fdf03 either: its Retry's attempts is read as the text "1",
     // as every value of a lines or bullets group is, and the fixture reads the number 1, which the specification's
     // type gives it above FBL (agent-behavior-modelling.dis, `Retry.attempts: int`).
@@ -102,6 +101,63 @@ const NOT_SUPPORTED: [&str; 5] = [
     "insert-constant-json-read",
     "insert-constant-yaml",
     "insert-constant-yaml-read",
+    // FBL 0.10 to 0.12 (etalii.adp spec 066), which this port does not have: the grammar binding of Structurizr, the
+    // readings of one Databricks file, and the Wardley map. Most edit several files at once, which `fixtures.rs` leaves
+    // out as well, so nothing here runs them yet.
+    "structurizr-open-block",
+    "databricks-flow-empty/job",
+    "databricks-flow-empty/read-back",
+    "databricks-flow-one-line/job",
+    "databricks-flow-one-line/refused/mapping",
+    "databricks-flow-one-line/refused/several-lines",
+    "databricks-library-add/pipeline",
+    "databricks-library-add/read-back",
+    "databricks-readings/bundle",
+    "databricks-readings/job",
+    "databricks-readings/pipeline",
+    "databricks-refusals/job",
+    "databricks-refusals/pipeline",
+    "databricks-rename-shared/bundle",
+    "databricks-rename-shared/job",
+    "databricks-resources/bundle",
+    "databricks-resources/job-first",
+    "databricks-resources/job-named",
+    "databricks-resources/missing",
+    "databricks-resources/pipe-first",
+    "databricks-resources/pipe-named",
+    "databricks-secondary/both",
+    "databricks-secondary/legacy",
+    "databricks-template-key",
+    "grammar-comment-start",
+    "grammar-remove-part",
+    "structurizr-absent-arguments",
+    "structurizr-add-view",
+    "structurizr-block-comments",
+    "structurizr-comments",
+    "structurizr-escapes",
+    "structurizr-gathered-tags",
+    "structurizr-legacy-layout",
+    "structurizr-recover-edges",
+    "structurizr-recover-nested",
+    "structurizr-rename",
+    "structurizr-trailing-comments",
+    "structurizr-view-statements",
+    "structurizr-view-without-key/default-key",
+    "structurizr-view-without-key/no-view",
+    "wardley-annotation-positions",
+    "wardley-brace-ending",
+    "wardley-comments/comments-everywhere",
+    "wardley-comments/trailing-comments",
+    "wardley-duplicate-names/duplicate-names",
+    "wardley-duplicate-names/same-key-twice",
+    "wardley-legacy-identities",
+    "wardley-pipelines",
+    "wardley-rename-identity",
+    "wardley-strategy-identities",
+    "wardley-trailer/decorators",
+    "wardley-trailer/label-twice",
+    "wardley-trailer/lenient-trailer",
+    "wardley-unclosed-pipeline",
 ];
 
 fn vendor() -> PathBuf {

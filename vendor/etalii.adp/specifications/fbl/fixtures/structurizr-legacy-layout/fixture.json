@@ -1,0 +1,98 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.11, section 8.7, FR-010: the legacy layout of etalii.adp.ide.standalone/src/diagrams/c4/backend/EtAlii.Adp.Diagram.C4.Tests/Fixtures/findings/sidecar-keys.dsl at ad1a4680a, its sidecar-keys.layout.json with one entry added, \"alpha\" after \"ALPHA\" (the change from the copy), so that two keys of one view match one id. The registration has no layout: block and no view header, so the reading shows the first landscape view, 'Landscape', whose object the file keys 'landscape', matched ignoring case; ALPHA applies to alpha, the later alpha is reported fbl.duplicate-key and gone, which names no element, fbl.stale-view-data. A move writes x and y in the shortest form and prunes gone in the same edit; the duplicate and the 'Unknown view' object are not touched.",
+  "binding": "../../structurizr.fbl#workspace",
+  "input": "sidecar-keys.adp",
+  "read": {
+    "elements": [
+      {
+        "id": "alpha",
+        "type": "SoftwareSystem"
+      },
+      {
+        "id": "beta",
+        "type": "SoftwareSystem"
+      }
+    ],
+    "findings": [
+      {
+        "rule": "fbl.duplicate-key",
+        "line": 7
+      },
+      {
+        "rule": "fbl.stale-view-data",
+        "line": 11
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "A move of alpha is a replace-value of x and of y, numbers written shortest; the stale gone entry of this view is removed with its separator in the same edit.",
+      "edit": {
+        "place": {
+          "element": "alpha",
+          "x": 12.5,
+          "y": -40
+        }
+      },
+      "splices": [
+        {
+          "file": "sidecar-keys.layout.json",
+          "operation": "replace-value",
+          "start": 45,
+          "end": 55,
+          "text": "12.5"
+        },
+        {
+          "file": "sidecar-keys.layout.json",
+          "operation": "replace-value",
+          "start": 68,
+          "end": 75,
+          "text": "-40"
+        },
+        {
+          "file": "sidecar-keys.layout.json",
+          "operation": "remove-entry",
+          "start": 132,
+          "end": 180,
+          "text": ""
+        }
+      ],
+      "expect": "c4/system-landscape\n",
+      "expectFiles": {
+        "sidecar-keys.layout.json": "{\n  \"landscape\": {\n    \"ALPHA\": {\n      \"x\": 12.5,\n      \"y\": -40\n    },\n    \"alpha\": {\n      \"x\": 99,\n      \"y\": 99\n    }\n  },\n  \"Unknown view\": {\n    \"beta\": {\n      \"x\": 5,\n      \"y\": 6\n    }\n  }\n}\n"
+      }
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "file": "sidecar-keys.layout.json",
+          "operation": "replace-value",
+          "start": 45,
+          "end": 49,
+          "text": "12.3456789"
+        },
+        {
+          "file": "sidecar-keys.layout.json",
+          "operation": "replace-value",
+          "start": 62,
+          "end": 65,
+          "text": "-40.125"
+        },
+        {
+          "file": "sidecar-keys.layout.json",
+          "operation": "remove-entry",
+          "start": 122,
+          "end": 122,
+          "text": ",\n    \"gone\": {\n      \"x\": 1,\n      \"y\": 2\n    }"
+        }
+      ],
+      "expect": "c4/system-landscape\n",
+      "expectFiles": {
+        "sidecar-keys.layout.json": "{\n  \"landscape\": {\n    \"ALPHA\": {\n      \"x\": 12.3456789,\n      \"y\": -40.125\n    },\n    \"alpha\": {\n      \"x\": 99,\n      \"y\": 99\n    },\n    \"gone\": {\n      \"x\": 1,\n      \"y\": 2\n    }\n  },\n  \"Unknown view\": {\n    \"beta\": {\n      \"x\": 5,\n      \"y\": 6\n    }\n  }\n}\n"
+      }
+    }
+  ]
+}

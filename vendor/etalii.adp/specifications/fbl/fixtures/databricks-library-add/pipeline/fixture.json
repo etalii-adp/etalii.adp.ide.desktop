@@ -1,0 +1,69 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A library added to a YAML pipeline is a nested mapping (databricks.fbl#configuration, the notebookLibrary rule, whose path is bound with child: notebook; FBL 0.10, section 6.2; spec 066, User Story 2, scenario 9). The body after the add is ../added.yml, which read-back/ reads with the library added. Its body, legacy-target.yml, is etalii.adp.ide.standalone's src/diagrams/databricks/backend/EtAlii.Adp.Diagram.Databricks.Tests/Fixtures/legacy-target.yml at ad1a4680a, byte for byte (CRLF).",
+  "binding": "../../../databricks.fbl#configuration",
+  "input": "legacy.adp",
+  "read": {
+    "elements": [
+      {
+        "id": "pipeline",
+        "type": "Pipeline",
+        "attributes": {
+          "name": "Legacy target",
+          "catalog": "main",
+          "schema": "silver"
+        }
+      },
+      {
+        "id": "library:transformations/legacy",
+        "type": "Library",
+        "attributes": {
+          "libraryKind": "notebook",
+          "path": "transformations/legacy"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "A notebook library is added after the last library: one insert-entry of a sequence item whose path is written under the notebook level its child selector names, one step deeper, as a set creates it (FBL 0.10, section 6.2, keys).",
+      "edit": {
+        "add": {
+          "type": "Library",
+          "attributes": {
+            "libraryKind": "notebook",
+            "path": "transformations/extra"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "file": "../legacy-target.yml",
+          "start": 190,
+          "end": 190,
+          "text": "        - notebook:\r\n            path: transformations/extra\r\n"
+        }
+      ],
+      "expectFiles": {
+        "../legacy-target.yml": "resources:\r\n  pipelines:\r\n    legacy:\r\n      name: Legacy target\r\n      catalog: main\r\n      target: silver\r\n      libraries:\r\n        - notebook:\r\n            path: transformations/legacy\r\n        - notebook:\r\n            path: transformations/extra\r\n"
+      }
+    },
+    {
+      "doc": "Undo removes the library.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "file": "../legacy-target.yml",
+          "start": 190,
+          "end": 252,
+          "text": ""
+        }
+      ],
+      "expectFiles": {
+        "../legacy-target.yml": "resources:\r\n  pipelines:\r\n    legacy:\r\n      name: Legacy target\r\n      catalog: main\r\n      target: silver\r\n      libraries:\r\n        - notebook:\r\n            path: transformations/legacy\r\n"
+      }
+    }
+  ]
+}

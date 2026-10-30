@@ -1,0 +1,71 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The body pipeline/ beside this folder writes by adding a library, ../added.yml, read back through the same binding (FBL 0.10, section 6.2; spec 066, User Story 2, scenario 9): the library added is a notebook library with the path the add gave it.",
+  "binding": "../../../databricks.fbl#configuration",
+  "input": "legacy.adp",
+  "read": {
+    "elements": [
+      {
+        "id": "pipeline",
+        "type": "Pipeline",
+        "attributes": {
+          "name": "Legacy target"
+        }
+      },
+      {
+        "id": "library:transformations/legacy",
+        "type": "Library",
+        "attributes": {
+          "libraryKind": "notebook",
+          "path": "transformations/legacy"
+        }
+      },
+      {
+        "id": "library:transformations/extra",
+        "type": "Library",
+        "attributes": {
+          "libraryKind": "notebook",
+          "path": "transformations/extra"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "The added library is removed as any library is: a remove-entry of its line span.",
+      "edit": {
+        "remove": {
+          "element": "library:transformations/extra"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "file": "../added.yml",
+          "start": 190,
+          "end": 252,
+          "text": ""
+        }
+      ],
+      "expectFiles": {
+        "../added.yml": "resources:\r\n  pipelines:\r\n    legacy:\r\n      name: Legacy target\r\n      catalog: main\r\n      target: silver\r\n      libraries:\r\n        - notebook:\r\n            path: transformations/legacy\r\n"
+      }
+    },
+    {
+      "doc": "Undo puts it back.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "file": "../added.yml",
+          "start": 190,
+          "end": 190,
+          "text": "        - notebook:\r\n            path: transformations/extra\r\n"
+        }
+      ],
+      "expectFiles": {
+        "../added.yml": "resources:\r\n  pipelines:\r\n    legacy:\r\n      name: Legacy target\r\n      catalog: main\r\n      target: silver\r\n      libraries:\r\n        - notebook:\r\n            path: transformations/legacy\r\n        - notebook:\r\n            path: transformations/extra\r\n"
+      }
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A pipeline registration whose resource header names the second pipeline (FBL 0.10, section 8.2; spec 066, User Story 2, scenario 3): it reads and edits pipe_b. Its body, two-jobs-two-pipelines.yml, is etalii.adp.ide.standalone's src/diagrams/databricks/backend/EtAlii.Adp.Diagram.Databricks.Tests/Fixtures/two-jobs-two-pipelines.yml at ad1a4680a, byte for byte (CRLF).",
+  "binding": "../../../databricks.fbl#configuration",
+  "input": "pipe_b.adp",
+  "read": {
+    "elements": [
+      {
+        "id": "pipeline",
+        "type": "Pipeline",
+        "attributes": {
+          "name": "Pipe B",
+          "schema": "silver"
+        }
+      },
+      {
+        "id": "library:transformations/b",
+        "type": "Library",
+        "attributes": {
+          "libraryKind": "notebook",
+          "path": "transformations/b"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Setting the catalog of pipe_b, which has none, writes it after its name, the attribute before catalog in the rule's order.",
+      "edit": {
+        "set": {
+          "element": "pipeline",
+          "attributes": {
+            "catalog": "main"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "file": "../two-jobs-two-pipelines.yml",
+          "start": 981,
+          "end": 981,
+          "text": "      catalog: main\r\n"
+        }
+      ],
+      "expectFiles": {
+        "../two-jobs-two-pipelines.yml": "# Two jobs and two pipelines in one file, each reading with a finding of its own.\r\nbundle:\r\n  name: twin_bundle\r\n\r\nresources:\r\n  jobs:\r\n    job_a:\r\n      name: Job A\r\n      tasks:\r\n        - task_key: ingest\r\n          job_cluster_key: missing_cluster\r\n          notebook_task:\r\n            notebook_path: notebooks/a_ingest\r\n        - task_key: shape\r\n          depends_on:\r\n            - task_key: ingest\r\n          notebook_task:\r\n            notebook_path: notebooks/a_shape\r\n    job_b:\r\n      name: Job B\r\n      tasks:\r\n        - task_key: ingest\r\n          notebook_task:\r\n            notebook_path: notebooks/b_ingest\r\n        - task_key: report\r\n          depends_on:\r\n            - task_key: absent\r\n          notebook_task:\r\n            notebook_path: notebooks/b_report\r\n  pipelines:\r\n    pipe_a:\r\n      name: Pipe A\r\n      catalog: main\r\n      schema: bronze\r\n      libraries:\r\n        - notebook:\r\n            path: transformations/a\r\n    pipe_b:\r\n      name: Pipe B\r\n      catalog: main\r\n      schema: silver\r\n      libraries:\r\n        - notebook:\r\n            path: transformations/b\r\n\r\ntargets:\r\n  dev:\r\n    mode: development\r\n  prod:\r\n    mode: production\r\n"
+      }
+    },
+    {
+      "doc": "Undo removes the key.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "file": "../two-jobs-two-pipelines.yml",
+          "start": 981,
+          "end": 1002,
+          "text": ""
+        }
+      ],
+      "expectFiles": {
+        "../two-jobs-two-pipelines.yml": "# Two jobs and two pipelines in one file, each reading with a finding of its own.\r\nbundle:\r\n  name: twin_bundle\r\n\r\nresources:\r\n  jobs:\r\n    job_a:\r\n      name: Job A\r\n      tasks:\r\n        - task_key: ingest\r\n          job_cluster_key: missing_cluster\r\n          notebook_task:\r\n            notebook_path: notebooks/a_ingest\r\n        - task_key: shape\r\n          depends_on:\r\n            - task_key: ingest\r\n          notebook_task:\r\n            notebook_path: notebooks/a_shape\r\n    job_b:\r\n      name: Job B\r\n      tasks:\r\n        - task_key: ingest\r\n          notebook_task:\r\n            notebook_path: notebooks/b_ingest\r\n        - task_key: report\r\n          depends_on:\r\n            - task_key: absent\r\n          notebook_task:\r\n            notebook_path: notebooks/b_report\r\n  pipelines:\r\n    pipe_a:\r\n      name: Pipe A\r\n      catalog: main\r\n      schema: bronze\r\n      libraries:\r\n        - notebook:\r\n            path: transformations/a\r\n    pipe_b:\r\n      name: Pipe B\r\n      schema: silver\r\n      libraries:\r\n        - notebook:\r\n            path: transformations/b\r\n\r\ntargets:\r\n  dev:\r\n    mode: development\r\n  prod:\r\n    mode: production\r\n"
+      }
+    }
+  ]
+}

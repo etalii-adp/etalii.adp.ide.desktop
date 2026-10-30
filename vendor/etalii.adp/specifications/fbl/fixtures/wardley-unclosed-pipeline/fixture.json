@@ -1,0 +1,132 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.12, section 4.9, rules 5, 6 and 9, FR-002: etalii.adp.ide.standalone/src/diagrams/wardley-map/backend/EtAlii.Adp.Diagram.WardleyMap.Tests/Fixtures/unclosed-pipeline.owm at ad1a4680a, unchanged. The pipeline of Kettle opens its block on line 6 (its OPEN token starts at the line ending of line 5) and never closes it: its two components are its children, the two lines after them do not parse inside the block and are skipped, each reported as fbl.unparsed-text, as the tool passes over those two lines too, and the block ends at the end of the body, reported as fbl.unclosed-block at line 5. The skipped lines are kept and read as nothing else.",
+  "binding": "../../wardley-map.fbl#map",
+  "input": "unclosed-pipeline.owm",
+  "read": {
+    "elements": [
+      {
+        "id": "title",
+        "type": "Title",
+        "attributes": {
+          "title": "Unclosed pipeline"
+        }
+      },
+      {
+        "id": "user",
+        "type": "Anchor",
+        "attributes": {
+          "name": "User"
+        }
+      },
+      {
+        "id": "kettle",
+        "type": "Component",
+        "attributes": {
+          "name": "Kettle",
+          "maturity": 0.4
+        }
+      },
+      {
+        "id": "user-kettle",
+        "type": "Dependency",
+        "attributes": {
+          "from": "User",
+          "to": "Kettle"
+        }
+      },
+      {
+        "id": "kettle-pipeline",
+        "type": "Pipeline",
+        "attributes": {
+          "component": "Kettle"
+        }
+      },
+      {
+        "id": "electric",
+        "type": "PipelineComponent",
+        "parent": "kettle-pipeline",
+        "attributes": {
+          "name": "Electric",
+          "maturity": 0.6
+        }
+      },
+      {
+        "id": "gas",
+        "type": "PipelineComponent",
+        "parent": "kettle-pipeline",
+        "attributes": {
+          "name": "Gas",
+          "maturity": 0.3
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "fbl.unclosed-block",
+        "line": 5
+      },
+      {
+        "rule": "fbl.unparsed-text",
+        "line": 9
+      },
+      {
+        "rule": "fbl.unparsed-text",
+        "line": 10
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "An add into the pipeline, whose block is not closed, is refused and writes nothing.",
+      "edit": {
+        "add": {
+          "type": "PipelineComponent",
+          "id": "steam",
+          "parent": "kettle-pipeline",
+          "slot": "components",
+          "attributes": {
+            "name": "Steam",
+            "maturity": 0.8
+          }
+        }
+      },
+      "refused": "The block is not closed, so nothing can be added to it.",
+      "splices": [],
+      "expect": "title Unclosed pipeline\nanchor User [0.9, 0.5]\ncomponent Kettle [0.5, 0.4]\nUser->Kettle\npipeline Kettle\n{\n  component Electric [0.6]\n  component Gas [0.3]\ncomponent Power [0.1, 0.7]\nKettle->Power\n"
+    },
+    {
+      "doc": "Every other edit is planned as usual: a set of a component inside the unclosed block changes its number alone.",
+      "edit": {
+        "set": {
+          "element": "electric",
+          "attributes": {
+            "maturity": 0.65
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 128,
+          "end": 131,
+          "text": "0.65"
+        }
+      ],
+      "expect": "title Unclosed pipeline\nanchor User [0.9, 0.5]\ncomponent Kettle [0.5, 0.4]\nUser->Kettle\npipeline Kettle\n{\n  component Electric [0.65]\n  component Gas [0.3]\ncomponent Power [0.1, 0.7]\nKettle->Power\n"
+    },
+    {
+      "doc": "The undo puts 0.6 back.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 128,
+          "end": 132,
+          "text": "0.6"
+        }
+      ],
+      "expect": "title Unclosed pipeline\nanchor User [0.9, 0.5]\ncomponent Kettle [0.5, 0.4]\nUser->Kettle\npipeline Kettle\n{\n  component Electric [0.6]\n  component Gas [0.3]\ncomponent Power [0.1, 0.7]\nKettle->Power\n"
+    }
+  ]
+}

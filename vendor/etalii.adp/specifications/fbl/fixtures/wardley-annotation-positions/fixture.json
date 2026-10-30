@@ -1,0 +1,288 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.12, sections 5.2 and 6.3 (items), FR-025: etalii.adp.ide.standalone/src/diagrams/wardley-map/backend/EtAlii.Adp.Diagram.WardleyMap.Tests/Fixtures/annotations-and-labels.owm at ad1a4680a, unchanged. Annotation 1 is pinned at two positions, '[[0.43,0.49],[0.08,0.79]]', read as a list of two structured values, each a visibility and a maturity read from its position's two numbers; annotation 2's single bare position is a list of one. A set of one item's value is a replace-value of that value alone; an item added is an insert-key of the separator and the item's create.emit after the last item; an item removed is a remove-key of the item and the separator before it, or, for the first item, the one after it.",
+  "binding": "../../wardley-map.fbl#map",
+  "input": "annotations-and-labels.owm",
+  "read": {
+    "elements": [
+      {
+        "id": "title",
+        "type": "Title",
+        "attributes": {
+          "title": "Annotations and labels"
+        }
+      },
+      {
+        "id": "customer",
+        "type": "Anchor",
+        "attributes": {
+          "name": "Customer"
+        }
+      },
+      {
+        "id": "cup-of-tea",
+        "type": "Component",
+        "attributes": {
+          "name": "Cup of Tea",
+          "labelOffset": "-30, 12"
+        }
+      },
+      {
+        "id": "kettle",
+        "type": "Component",
+        "attributes": {
+          "name": "Kettle",
+          "labelOffset": "-57, 4"
+        }
+      },
+      {
+        "id": "power",
+        "type": "Component",
+        "attributes": {
+          "name": "Power",
+          "labelOffset": "-27, 20"
+        }
+      },
+      {
+        "id": "customer-cup",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Customer",
+          "to": "Cup of Tea"
+        }
+      },
+      {
+        "id": "cup-kettle",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Cup of Tea",
+          "to": "Kettle"
+        }
+      },
+      {
+        "id": "kettle-power",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Kettle",
+          "to": "Power"
+        }
+      },
+      {
+        "id": "annotation-1",
+        "type": "Annotation",
+        "attributes": {
+          "number": 1,
+          "positions": [
+            {
+              "visibility": 0.43,
+              "maturity": 0.49
+            },
+            {
+              "visibility": 0.08,
+              "maturity": 0.79
+            }
+          ],
+          "text": "Standardising power allows for standardised kettles"
+        }
+      },
+      {
+        "id": "annotation-2",
+        "type": "Annotation",
+        "attributes": {
+          "number": 2,
+          "positions": [
+            {
+              "visibility": 0.48,
+              "maturity": 0.85
+            }
+          ],
+          "text": "A single-position annotation, for contrast"
+        }
+      },
+      {
+        "id": "annotations",
+        "type": "AnnotationsPosition",
+        "attributes": {
+          "visibility": 0.6,
+          "maturity": 0.02
+        }
+      },
+      {
+        "id": "note",
+        "type": "Note",
+        "attributes": {
+          "text": "Tea is the point of all this",
+          "visibility": 0.22,
+          "maturity": 0.3
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "The second position's maturity alone: a replace-value of 0.79; the first position and the text are untouched.",
+      "edit": {
+        "set": {
+          "element": "annotation-1",
+          "attributes": {
+            "positions": [
+              {
+                "visibility": 0.43,
+                "maturity": 0.49
+              },
+              {
+                "visibility": 0.08,
+                "maturity": 0.8
+              }
+            ]
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 469,
+          "end": 473,
+          "text": "0.8"
+        }
+      ],
+      "expect": "title Annotations and labels\nanchor Customer [0.95, 0.63]\n\ncomponent Cup of Tea [0.79, 0.61] label [-30, 12]\ncomponent Kettle [0.43, 0.35] label [-57, 4]\ncomponent Power [0.10, 0.70] label [-27, 20]\n\nCustomer->Cup of Tea\nCup of Tea->Kettle\nKettle->Power\n\n// One numbered annotation pinned in two places. Requirement 6.8 says a one-element-one-position\n// model does not express this directly, and that none of the positions may be lost.\nannotation 1 [[0.43,0.49],[0.08,0.8]] Standardising power allows for standardised kettles\nannotation 2 [0.48, 0.85] A single-position annotation, for contrast\nannotations [0.60, 0.02]\n\nnote Tea is the point of all this [0.22, 0.30]\n"
+    },
+    {
+      "doc": "The undo puts 0.79 back.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 469,
+          "end": 472,
+          "text": "0.79"
+        }
+      ],
+      "expect": "title Annotations and labels\nanchor Customer [0.95, 0.63]\n\ncomponent Cup of Tea [0.79, 0.61] label [-30, 12]\ncomponent Kettle [0.43, 0.35] label [-57, 4]\ncomponent Power [0.10, 0.70] label [-27, 20]\n\nCustomer->Cup of Tea\nCup of Tea->Kettle\nKettle->Power\n\n// One numbered annotation pinned in two places. Requirement 6.8 says a one-element-one-position\n// model does not express this directly, and that none of the positions may be lost.\nannotation 1 [[0.43,0.49],[0.08,0.79]] Standardising power allows for standardised kettles\nannotation 2 [0.48, 0.85] A single-position annotation, for contrast\nannotations [0.60, 0.02]\n\nnote Tea is the point of all this [0.22, 0.30]\n"
+    },
+    {
+      "doc": "A third position is added after the last item: the separator and the item's create.emit.",
+      "edit": {
+        "set": {
+          "element": "annotation-1",
+          "attributes": {
+            "positions": [
+              {
+                "visibility": 0.43,
+                "maturity": 0.49
+              },
+              {
+                "visibility": 0.08,
+                "maturity": 0.79
+              },
+              {
+                "visibility": 0.5,
+                "maturity": 0.5
+              }
+            ]
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 474,
+          "end": 474,
+          "text": ",[0.5,0.5]"
+        }
+      ],
+      "expect": "title Annotations and labels\nanchor Customer [0.95, 0.63]\n\ncomponent Cup of Tea [0.79, 0.61] label [-30, 12]\ncomponent Kettle [0.43, 0.35] label [-57, 4]\ncomponent Power [0.10, 0.70] label [-27, 20]\n\nCustomer->Cup of Tea\nCup of Tea->Kettle\nKettle->Power\n\n// One numbered annotation pinned in two places. Requirement 6.8 says a one-element-one-position\n// model does not express this directly, and that none of the positions may be lost.\nannotation 1 [[0.43,0.49],[0.08,0.79],[0.5,0.5]] Standardising power allows for standardised kettles\nannotation 2 [0.48, 0.85] A single-position annotation, for contrast\nannotations [0.60, 0.02]\n\nnote Tea is the point of all this [0.22, 0.30]\n"
+    },
+    {
+      "doc": "The undo removes it.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 474,
+          "end": 484,
+          "text": ""
+        }
+      ],
+      "expect": "title Annotations and labels\nanchor Customer [0.95, 0.63]\n\ncomponent Cup of Tea [0.79, 0.61] label [-30, 12]\ncomponent Kettle [0.43, 0.35] label [-57, 4]\ncomponent Power [0.10, 0.70] label [-27, 20]\n\nCustomer->Cup of Tea\nCup of Tea->Kettle\nKettle->Power\n\n// One numbered annotation pinned in two places. Requirement 6.8 says a one-element-one-position\n// model does not express this directly, and that none of the positions may be lost.\nannotation 1 [[0.43,0.49],[0.08,0.79]] Standardising power allows for standardised kettles\nannotation 2 [0.48, 0.85] A single-position annotation, for contrast\nannotations [0.60, 0.02]\n\nnote Tea is the point of all this [0.22, 0.30]\n"
+    },
+    {
+      "doc": "The first position is removed with the separator after it, since it is the first item.",
+      "edit": {
+        "set": {
+          "element": "annotation-1",
+          "attributes": {
+            "positions": [
+              {
+                "visibility": 0.08,
+                "maturity": 0.79
+              }
+            ]
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 451,
+          "end": 463,
+          "text": ""
+        }
+      ],
+      "expect": "title Annotations and labels\nanchor Customer [0.95, 0.63]\n\ncomponent Cup of Tea [0.79, 0.61] label [-30, 12]\ncomponent Kettle [0.43, 0.35] label [-57, 4]\ncomponent Power [0.10, 0.70] label [-27, 20]\n\nCustomer->Cup of Tea\nCup of Tea->Kettle\nKettle->Power\n\n// One numbered annotation pinned in two places. Requirement 6.8 says a one-element-one-position\n// model does not express this directly, and that none of the positions may be lost.\nannotation 1 [[0.08,0.79]] Standardising power allows for standardised kettles\nannotation 2 [0.48, 0.85] A single-position annotation, for contrast\nannotations [0.60, 0.02]\n\nnote Tea is the point of all this [0.22, 0.30]\n"
+    },
+    {
+      "doc": "The undo puts it back.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 451,
+          "end": 451,
+          "text": "[0.43,0.49],"
+        }
+      ],
+      "expect": "title Annotations and labels\nanchor Customer [0.95, 0.63]\n\ncomponent Cup of Tea [0.79, 0.61] label [-30, 12]\ncomponent Kettle [0.43, 0.35] label [-57, 4]\ncomponent Power [0.10, 0.70] label [-27, 20]\n\nCustomer->Cup of Tea\nCup of Tea->Kettle\nKettle->Power\n\n// One numbered annotation pinned in two places. Requirement 6.8 says a one-element-one-position\n// model does not express this directly, and that none of the positions may be lost.\nannotation 1 [[0.43,0.49],[0.08,0.79]] Standardising power allows for standardised kettles\nannotation 2 [0.48, 0.85] A single-position annotation, for contrast\nannotations [0.60, 0.02]\n\nnote Tea is the point of all this [0.22, 0.30]\n"
+    },
+    {
+      "doc": "The second position is removed with the separator before it.",
+      "edit": {
+        "set": {
+          "element": "annotation-1",
+          "attributes": {
+            "positions": [
+              {
+                "visibility": 0.43,
+                "maturity": 0.49
+              }
+            ]
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 462,
+          "end": 474,
+          "text": ""
+        }
+      ],
+      "expect": "title Annotations and labels\nanchor Customer [0.95, 0.63]\n\ncomponent Cup of Tea [0.79, 0.61] label [-30, 12]\ncomponent Kettle [0.43, 0.35] label [-57, 4]\ncomponent Power [0.10, 0.70] label [-27, 20]\n\nCustomer->Cup of Tea\nCup of Tea->Kettle\nKettle->Power\n\n// One numbered annotation pinned in two places. Requirement 6.8 says a one-element-one-position\n// model does not express this directly, and that none of the positions may be lost.\nannotation 1 [[0.43,0.49]] Standardising power allows for standardised kettles\nannotation 2 [0.48, 0.85] A single-position annotation, for contrast\nannotations [0.60, 0.02]\n\nnote Tea is the point of all this [0.22, 0.30]\n"
+    },
+    {
+      "doc": "The undo puts it back.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 462,
+          "end": 462,
+          "text": ",[0.08,0.79]"
+        }
+      ],
+      "expect": "title Annotations and labels\nanchor Customer [0.95, 0.63]\n\ncomponent Cup of Tea [0.79, 0.61] label [-30, 12]\ncomponent Kettle [0.43, 0.35] label [-57, 4]\ncomponent Power [0.10, 0.70] label [-27, 20]\n\nCustomer->Cup of Tea\nCup of Tea->Kettle\nKettle->Power\n\n// One numbered annotation pinned in two places. Requirement 6.8 says a one-element-one-position\n// model does not express this directly, and that none of the positions may be lost.\nannotation 1 [[0.43,0.49],[0.08,0.79]] Standardising power allows for standardised kettles\nannotation 2 [0.48, 0.85] A single-position annotation, for contrast\nannotations [0.60, 0.02]\n\nnote Tea is the point of all this [0.22, 0.30]\n"
+    }
+  ]
+}

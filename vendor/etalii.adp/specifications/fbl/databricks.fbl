@@ -1,0 +1,233 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.10",
+  "doc": "One Databricks Asset Bundle file read as three diagrams through one binding (FBL 0.10, sections 5.1, 8.2 and 9.1): the bundle (definitions/diagrams/databricks-bundle.dis), one job (databricks-job.dis) and one pipeline (databricks-pipeline.dis), each editable, sharing one open body and its history. Written from the binding drafted in the appendix of etalii.adp.ide.standalone's .spec-workflow/specs/databricks-disl-fbl/requirements.md (at ad1a4680a), with what that draft marked as not FBL said in FBL 0.10: a rule's origins in place of the gap of one binding for three metamodels, registration.resource.byOrigin in place of a capture map, read as text (FBL 0.5) in place of as: text, secondary in place of its fallback for a pipeline's schema, refusals for the module's own sentences, a library written as a nested mapping on an add, and template.byOrigin with {key:lower}. Every rule names the readings it serves, so an entry under resources is a Resource to the bundle and the job or the pipeline itself to its own reading. Its types are the metamodels' own, except Job, the job reading's diagram, which the job definition maps as: \"diagram\" (DISL 11.2) as the draft's persistence does. A library of a bare settings file is read here and added through databricks-pipeline.fbl: an insert's when sees the attributes of the add and not the body, so the keyed pipeline's library rules, which come first, plan every library add of this binding.",
+  "bindings": {
+    "configuration": {
+      "title": "Databricks configuration",
+      "claims": {
+        "extensions": [".yml", ".yaml", ".json"],
+        "shared": true,
+        "registrationOnly": true,
+        "origins": ["databricks/bundle", "databricks/job", "databricks/pipeline"],
+        "suggest": { "contains": ["bundle:", "resources:"] }
+      },
+      "body": { "kind": "file", "family": "json", "alsoRead": ["yaml"] },
+      "reader": "declared",
+      "text": { "newline": "crlf", "indent": 2, "sequenceIndent": "indented", "finalNewline": true, "quote": "double" },
+      "registration": {
+        "resource": { "byOrigin": { "databricks/job": { "capture": "job" }, "databricks/pipeline": { "capture": "pipeline" }, "databricks/bundle": null } },
+        "createOnFirstPlacement": false
+      },
+      "elements": [
+        {
+          "name": "bundle",
+          "type": "Bundle",
+          "at": "/bundle",
+          "origins": ["databricks/bundle"],
+          "attributes": {
+            "name": { "key": "name", "read": "text", "empty": "refuse", "refusals": { "empty": "A bundle needs a name." } }
+          }
+        },
+        {
+          "name": "jobResource",
+          "type": "Resource",
+          "at": "/resources/jobs/{job}",
+          "origins": ["databricks/bundle"],
+          "attributes": {
+            "resourceKind": { "value": "'jobs'" },
+            "key": { "capture": "job", "readOnly": "A resource is renamed in the file." }
+          }
+        },
+        {
+          "name": "pipelineResource",
+          "type": "Resource",
+          "at": "/resources/pipelines/{pipeline}",
+          "origins": ["databricks/bundle"],
+          "attributes": {
+            "resourceKind": { "value": "'pipelines'" },
+            "key": { "capture": "pipeline", "readOnly": "A resource is renamed in the file." }
+          }
+        },
+        {
+          "name": "target",
+          "type": "Target",
+          "at": "/targets/{target}",
+          "origins": ["databricks/bundle"],
+          "attributes": {
+            "name": { "capture": "target", "readOnly": "A target is renamed in the file." },
+            "mode": { "key": "mode", "read": "text", "empty": "remove" },
+            "isDefault": { "key": "default", "default": false, "empty": "remove" }
+          }
+        },
+        {
+          "name": "job",
+          "type": "Job",
+          "at": "/resources/jobs/{job}",
+          "origins": ["databricks/job"],
+          "attributes": {
+            "jobKey": { "capture": "job", "readOnly": true },
+            "name": { "key": "name", "read": "text" },
+            "schedule": { "key": "quartz_cron_expression", "child": "schedule", "read": "text", "readOnly": "The schedule is edited in the file." },
+            "continuous": { "value": "has(entry.continuous)" }
+          }
+        },
+        {
+          "name": "task",
+          "type": "Task",
+          "at": "/resources/jobs/{job}/tasks/*",
+          "origins": ["databricks/job"],
+          "when": "has(entry.task_key)",
+          "attributes": {
+            "key": { "key": "task_key", "read": "text", "reference": { "to": ["task"], "by": "key" }, "empty": "refuse", "refusals": { "empty": "A task needs a key." } },
+            "taskType": {
+              "value": "has(entry.notebook_task) ? 'notebook' : has(entry.spark_python_task) ? 'python' : has(entry.python_wheel_task) ? 'wheel' : has(entry.sql_task) ? 'sql' : has(entry.dbt_task) ? 'dbt' : has(entry.pipeline_task) ? 'pipeline' : has(entry.run_job_task) ? 'run-job' : has(entry.condition_task) ? 'condition' : has(entry.for_each_task) ? 'for-each' : has(entry.spark_jar_task) ? 'jar' : 'other'",
+              "readOnly": "The type is which *_task mapping the file carries; change it in the file."
+            },
+            "clusterKey": { "key": "job_cluster_key", "read": "text", "empty": "remove", "reference": { "to": ["cluster"], "by": "key" } },
+            "runIf": { "key": "run_if", "read": "text", "empty": "remove" }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/resources/jobs/{job}/tasks",
+            "keys": ["task_key", "depends_on", "job_cluster_key", "run_if"],
+            "skeleton": "notebook_task:\n  notebook_path: notebooks/{key}\n",
+            "refusals": { "container": "The job has no tasks section to add into." }
+          },
+          "remove": { "cascade": ["dependency"] }
+        },
+        {
+          "name": "cluster",
+          "type": "JobCluster",
+          "at": "/resources/jobs/{job}/job_clusters/*",
+          "origins": ["databricks/job"],
+          "when": "has(entry.job_cluster_key)",
+          "attributes": {
+            "key": { "key": "job_cluster_key", "read": "text", "reference": { "to": ["cluster"], "by": "key" } },
+            "sparkVersion": { "key": "spark_version", "child": "new_cluster", "read": "text" },
+            "nodeType": { "key": "node_type_id", "child": "new_cluster", "read": "text" },
+            "workers": { "key": "num_workers", "child": "new_cluster", "fallback": { "value": 0, "report": false } }
+          },
+          "readOnly": "Job clusters are edited in the file."
+        },
+        {
+          "name": "pipeline",
+          "type": "Pipeline",
+          "at": "/resources/pipelines/{pipeline}",
+          "origins": ["databricks/pipeline"],
+          "attributes": {
+            "name": { "key": "name", "read": "text", "empty": "refuse", "refusals": { "empty": "A pipeline needs a name." } },
+            "catalog": { "key": "catalog", "read": "text", "empty": "remove" },
+            "schema": { "key": "schema", "read": "text", "empty": "remove", "secondary": { "key": "target" } },
+            "channel": { "key": "channel", "read": "text", "empty": "remove" },
+            "serverless": { "key": "serverless", "default": false, "fallback": { "value": false, "report": false }, "readOnly": true },
+            "continuous": { "key": "continuous", "default": false, "fallback": { "value": false, "report": false }, "readOnly": true },
+            "development": { "key": "development", "default": false, "fallback": { "value": false, "report": false }, "readOnly": true }
+          }
+        },
+        {
+          "name": "settings",
+          "type": "Pipeline",
+          "at": "/",
+          "origins": ["databricks/pipeline"],
+          "when": "!has(entry.resources) && (has(entry.name) || has(entry.libraries))",
+          "attributes": {
+            "name": { "key": "name", "read": "text", "empty": "refuse", "refusals": { "empty": "A pipeline needs a name." } },
+            "catalog": { "key": "catalog", "read": "text", "empty": "remove", "absent": { "json": "refuse" }, "refusals": { "absent": "The settings file has no \"catalog\" to rewrite." } },
+            "schema": { "key": "schema", "read": "text", "empty": "remove", "absent": { "json": "refuse" }, "secondary": { "key": "target" }, "refusals": { "absent": "The settings file has no \"schema\" to rewrite." } },
+            "channel": { "key": "channel", "read": "text", "empty": "remove", "absent": { "json": "refuse" }, "refusals": { "absent": "The settings file has no \"channel\" to rewrite." } },
+            "serverless": { "key": "serverless", "default": false, "fallback": { "value": false, "report": false }, "readOnly": true },
+            "continuous": { "key": "continuous", "default": false, "fallback": { "value": false, "report": false }, "readOnly": true },
+            "development": { "key": "development", "default": false, "fallback": { "value": false, "report": false }, "readOnly": true }
+          }
+        },
+        {
+          "name": "notebookLibrary",
+          "type": "Library",
+          "at": "/resources/pipelines/{pipeline}/libraries/*",
+          "origins": ["databricks/pipeline"],
+          "when": "has(entry.notebook)",
+          "attributes": {
+            "libraryKind": { "value": "'notebook'" },
+            "path": { "key": "path", "child": "notebook", "read": "text", "empty": "refuse", "refusals": { "empty": "A library needs a path." } }
+          },
+          "insert": { "place": "after-last", "container": "/resources/pipelines/{pipeline}/libraries", "when": "attributes.libraryKind == 'notebook'" },
+          "remove": { "container": "keep" }
+        },
+        {
+          "name": "fileLibrary",
+          "type": "Library",
+          "at": "/resources/pipelines/{pipeline}/libraries/*",
+          "origins": ["databricks/pipeline"],
+          "when": "has(entry.file)",
+          "attributes": {
+            "libraryKind": { "value": "'file'" },
+            "path": { "key": "path", "child": "file", "read": "text", "empty": "refuse", "refusals": { "empty": "A library needs a path." } }
+          },
+          "insert": { "place": "after-last", "container": "/resources/pipelines/{pipeline}/libraries", "when": "attributes.libraryKind == 'file'" },
+          "remove": { "container": "keep" }
+        },
+        {
+          "name": "globLibrary",
+          "type": "Library",
+          "at": "/resources/pipelines/{pipeline}/libraries/*",
+          "origins": ["databricks/pipeline"],
+          "when": "has(entry.glob)",
+          "attributes": {
+            "libraryKind": { "value": "'glob'" },
+            "path": { "key": "include", "child": "glob", "read": "text", "readOnly": "A glob library is edited in the file." }
+          },
+          "remove": { "container": "keep" }
+        },
+        {
+          "name": "settingsLibrary",
+          "type": "Library",
+          "at": "/libraries/*",
+          "origins": ["databricks/pipeline"],
+          "attributes": {
+            "libraryKind": {
+              "value": "has(entry.notebook) ? 'notebook' : has(entry.file) ? 'file' : has(entry.glob) ? 'glob' : 'other'",
+              "readOnly": "The kind is which mapping the library entry carries."
+            },
+            "path": {
+              "value": "has(entry.notebook) ? entry.notebook.path : has(entry.file) ? entry.file.path : has(entry.glob) ? entry.glob.include : ''",
+              "readOnly": "A library's path is changed by removing it and adding another."
+            }
+          },
+          "remove": { "container": "keep" }
+        }
+      ],
+      "relations": [
+        {
+          "name": "dependency",
+          "type": "Dependency",
+          "at": "/resources/jobs/{job}/tasks/*/depends_on/*",
+          "origins": ["databricks/job"],
+          "when": "has(entry.task_key)",
+          "source": { "key": "task_key" },
+          "target": { "parent": "key" },
+          "attributes": {
+            "upstreamKey": { "key": "task_key", "read": "text", "readOnly": true },
+            "outcome": { "key": "outcome", "read": "text", "empty": "remove" }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "depends_on",
+            "create": { "at": { "after": "task_key" } },
+            "keys": ["task_key", "outcome"]
+          },
+          "remove": { "container": "remove-when-empty" }
+        }
+      ],
+      "template": {
+        "text": "bundle:\r\n  name: {key:lower}\r\ntargets:\r\n  dev:\r\n    mode: development\r\n    default: true\r\n",
+        "byOrigin": {
+          "databricks/bundle": "bundle:\r\n  name: {key:lower}\r\ntargets:\r\n  dev:\r\n    mode: development\r\n    default: true\r\n",
+          "databricks/job": "resources:\r\n  jobs:\r\n    {key:lower}:\r\n      name: {base}\r\n      tasks:\r\n        - task_key: main\r\n          notebook_task:\r\n            notebook_path: notebooks/{key:lower}\r\n",
+          "databricks/pipeline": "{\r\n  \"name\": \"{key:lower}\",\r\n  \"libraries\": [\r\n    { \"notebook\": { \"path\": \"transformations/{key:lower}\" } }\r\n  ]\r\n}\r\n"
+        },
+        "doc": "The three new documents of the module's factory, one per reading, each keyed by the file's base name in lower case: My_Job.yml is the job my_job."
+      }
+    }
+  }
+}

@@ -1,0 +1,174 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.12, section 4.9 (segments in any order) and section 5.2 (a many attribute's {node} slot), FR-024: etalii.adp.ide.standalone/src/diagrams/wardley-map/backend/EtAlii.Adp.Diagram.WardleyMap.Tests/Fixtures/decorators.owm at ad1a4680a, unchanged. A component's decorators are one set, read in written order: all five on Everything, one the tool type does not know on Unknown (an item as written), one written twice on Repeated (two items), and decorators around inertia on Reordered. A set writes the difference: one removed with the whitespace before it, one added right after the last one, or, on a component with none, after its coordinates.",
+  "binding": "../../../wardley-map.fbl#map",
+  "input": "decorators.owm",
+  "read": {
+    "elements": [
+      {
+        "id": "title",
+        "type": "Title",
+        "attributes": {
+          "title": "Decorators"
+        }
+      },
+      {
+        "id": "user",
+        "type": "Anchor",
+        "attributes": {
+          "name": "User",
+          "decorators": []
+        }
+      },
+      {
+        "id": "everything",
+        "type": "Component",
+        "attributes": {
+          "name": "Everything",
+          "decorators": [
+            "market",
+            "ecosystem",
+            "build",
+            "buy",
+            "outsource"
+          ]
+        }
+      },
+      {
+        "id": "unknown",
+        "type": "Component",
+        "attributes": {
+          "name": "Unknown",
+          "decorators": [
+            "someDecoratorFromLater"
+          ]
+        }
+      },
+      {
+        "id": "repeated",
+        "type": "Component",
+        "attributes": {
+          "name": "Repeated",
+          "decorators": [
+            "build",
+            "build"
+          ]
+        }
+      },
+      {
+        "id": "reordered",
+        "type": "Component",
+        "attributes": {
+          "name": "Reordered",
+          "decorators": [
+            "outsource",
+            "market"
+          ],
+          "inertia": true
+        }
+      },
+      {
+        "id": "plain",
+        "type": "Component",
+        "attributes": {
+          "name": "Plain",
+          "decorators": []
+        }
+      },
+      {
+        "id": "user-everything",
+        "type": "Dependency",
+        "attributes": {
+          "from": "User",
+          "to": "Everything"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Reordered's decorators set from outsource and market to market and buy: (outsource) is removed with the space before it, and (buy) is added right after (market), the last one; inertia between them stays.",
+      "edit": {
+        "set": {
+          "element": "reordered",
+          "attributes": {
+            "decorators": [
+              "market",
+              "buy"
+            ]
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 250,
+          "end": 262,
+          "text": ""
+        },
+        {
+          "operation": "insert-key",
+          "start": 279,
+          "end": 279,
+          "text": " (buy)"
+        }
+      ],
+      "expect": "title Decorators\nanchor User [0.95, 0.5]\ncomponent Everything [0.8, 0.5] (market) (ecosystem) (build) (buy) (outsource)\ncomponent Unknown [0.7, 0.4] (someDecoratorFromLater)\ncomponent Repeated [0.6, 0.3] (build) (build)\ncomponent Reordered [0.5, 0.6] inertia (market) (buy)\ncomponent Plain [0.4, 0.7]\nUser->Everything\n"
+    },
+    {
+      "doc": "The undo removes (buy) and puts (outsource) back.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 250,
+          "end": 250,
+          "text": " (outsource)"
+        },
+        {
+          "operation": "insert-key",
+          "start": 267,
+          "end": 273,
+          "text": ""
+        }
+      ],
+      "expect": "title Decorators\nanchor User [0.95, 0.5]\ncomponent Everything [0.8, 0.5] (market) (ecosystem) (build) (buy) (outsource)\ncomponent Unknown [0.7, 0.4] (someDecoratorFromLater)\ncomponent Repeated [0.6, 0.3] (build) (build)\ncomponent Reordered [0.5, 0.6] (outsource) inertia (market)\ncomponent Plain [0.4, 0.7]\nUser->Everything\n"
+    },
+    {
+      "doc": "Plain, with no decorator, gains one after its coordinates, by its create.",
+      "edit": {
+        "set": {
+          "element": "plain",
+          "attributes": {
+            "decorators": [
+              "market"
+            ]
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 306,
+          "end": 306,
+          "text": " (market)"
+        }
+      ],
+      "expect": "title Decorators\nanchor User [0.95, 0.5]\ncomponent Everything [0.8, 0.5] (market) (ecosystem) (build) (buy) (outsource)\ncomponent Unknown [0.7, 0.4] (someDecoratorFromLater)\ncomponent Repeated [0.6, 0.3] (build) (build)\ncomponent Reordered [0.5, 0.6] (outsource) inertia (market)\ncomponent Plain [0.4, 0.7] (market)\nUser->Everything\n"
+    },
+    {
+      "doc": "The undo removes it.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 306,
+          "end": 315,
+          "text": ""
+        }
+      ],
+      "expect": "title Decorators\nanchor User [0.95, 0.5]\ncomponent Everything [0.8, 0.5] (market) (ecosystem) (build) (buy) (outsource)\ncomponent Unknown [0.7, 0.4] (someDecoratorFromLater)\ncomponent Repeated [0.6, 0.3] (build) (build)\ncomponent Reordered [0.5, 0.6] (outsource) inertia (market)\ncomponent Plain [0.4, 0.7]\nUser->Everything\n"
+    }
+  ]
+}

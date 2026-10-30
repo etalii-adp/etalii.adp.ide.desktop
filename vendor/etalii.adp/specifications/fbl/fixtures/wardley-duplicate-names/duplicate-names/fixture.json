@@ -1,0 +1,138 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.12, section 8.6 (ordinal), FR-028, edge case 19: etalii.adp.ide.standalone/src/diagrams/wardley-map/backend/EtAlii.Adp.Diagram.WardleyMap.Tests/Fixtures/duplicate-names.owm at ad1a4680a, unchanged, with a registration and an identities file written here in the form the tool writes (the transcript of etalii.adp.ide.standalone's Parity tests at that commit lists its nine kinds and keys; the ids are this fixture's). Kettle and Power each stand twice: the holders of one kind and key are counted in reading order, and the second of each is keyed with the ordinal, 'Kettle', U+001F, '2' and a tab, as the tool keys it, so each holder has an id of its own. A move of the second Kettle writes the body alone.",
+  "binding": "../../../wardley-map.fbl#map",
+  "input": "duplicate-names.adp",
+  "read": {
+    "elements": [
+      {
+        "id": "title",
+        "type": "Title"
+      },
+      {
+        "id": "n5q07c4sf3h605d25668a1fop",
+        "type": "Anchor",
+        "attributes": {
+          "name": "Business"
+        }
+      },
+      {
+        "id": "q2b8yn854moese04nr5gx5u0e",
+        "type": "Component",
+        "attributes": {
+          "name": "Kettle",
+          "visibility": 0.43
+        }
+      },
+      {
+        "id": "ak1f6x8xt2yekbcbx73rygst8",
+        "type": "Component",
+        "attributes": {
+          "name": "Power",
+          "visibility": 0.1
+        }
+      },
+      {
+        "id": "vwj4kv6znhdk0a8mi5h0b0di1",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Business",
+          "to": "Kettle"
+        }
+      },
+      {
+        "id": "0z3knp8mkf2pr9pcpwx1667zq",
+        "type": "Component",
+        "attributes": {
+          "name": "Kettle",
+          "visibility": 0.4,
+          "maturity": 0.55
+        }
+      },
+      {
+        "id": "ctwz2aeuerni60ukp52w9m01e",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Kettle",
+          "to": "Power"
+        }
+      },
+      {
+        "id": "kettle-evolve",
+        "type": "Evolve",
+        "attributes": {
+          "component": "Kettle",
+          "maturity": 0.62
+        }
+      },
+      {
+        "id": "2hvut7emj1e5vvr0go9r1es5w",
+        "type": "Pipeline",
+        "attributes": {
+          "component": "Kettle"
+        }
+      },
+      {
+        "id": "iofbshal3bklma8np15p4so76",
+        "type": "PipelineComponent",
+        "parent": "2hvut7emj1e5vvr0go9r1es5w",
+        "attributes": {
+          "name": "Electric Kettle"
+        }
+      },
+      {
+        "id": "pa87hy81dd6eb7izqgk7o6dwb",
+        "type": "Component",
+        "attributes": {
+          "name": "Power",
+          "visibility": 0.2,
+          "maturity": 0.75
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "A move of the second Kettle is a replace-value of its numbers; its identity entry's key does not change.",
+      "edit": {
+        "set": {
+          "element": "0z3knp8mkf2pr9pcpwx1667zq",
+          "attributes": {
+            "visibility": 0.45
+          }
+        }
+      },
+      "splices": [
+        {
+          "file": "duplicate-names.owm",
+          "operation": "replace-value",
+          "start": 143,
+          "end": 147,
+          "text": "0.45"
+        }
+      ],
+      "expect": "wardley/map\n",
+      "expectFiles": {
+        "duplicate-names.owm": "title Duplicate names\nanchor Business [0.95, 0.63]\ncomponent Kettle [0.43, 0.35]\ncomponent Power [0.1, 0.7]\nBusiness->Kettle\ncomponent Kettle [0.45, 0.55]\nKettle->Power\nevolve Kettle 0.62\npipeline Kettle\n{\n  component Electric Kettle [0.6]\n}\ncomponent Power [0.2, 0.75]\n"
+      }
+    },
+    {
+      "doc": "The undo puts 0.40 back.",
+      "undo": true,
+      "splices": [
+        {
+          "file": "duplicate-names.owm",
+          "operation": "replace-value",
+          "start": 143,
+          "end": 147,
+          "text": "0.40"
+        }
+      ],
+      "expect": "wardley/map\n",
+      "expectFiles": {
+        "duplicate-names.owm": "title Duplicate names\nanchor Business [0.95, 0.63]\ncomponent Kettle [0.43, 0.35]\ncomponent Power [0.1, 0.7]\nBusiness->Kettle\ncomponent Kettle [0.40, 0.55]\nKettle->Power\nevolve Kettle 0.62\npipeline Kettle\n{\n  component Electric Kettle [0.6]\n}\ncomponent Power [0.2, 0.75]\n"
+      }
+    }
+  ]
+}

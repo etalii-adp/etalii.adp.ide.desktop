@@ -14,7 +14,7 @@
   "items": [
     {
       "id": "the-gaps/1",
-      "text": "1. FBL: the statements of the selected view (B13)",
+      "text": "1. FBL 5.1 and 9.3: the statements of the selected view (B13)",
       "statedBy": "binding structurizr"
     },
     {
@@ -29,7 +29,7 @@
     },
     {
       "id": "the-gaps/4",
-      "text": "**Would resolve it.** Rules `within` a view block read for the registration's view only, and a `typeMap` entry that maps them `as: \"diagram\"`; or a",
+      "text": "**Answered.** FBL 0.11: a `block` rule names a view kind's views, their key and the origins whose readings show them (5.1), and the registration's",
       "statedBy": "binding structurizr"
     },
     {
@@ -39,7 +39,7 @@
     },
     {
       "id": "the-gaps/6",
-      "text": "2. FBL 4.7 and 4.6: a comment after a brace or a statement (B3, B4)",
+      "text": "2. FBL 4.9: a comment after a brace or a statement (B3, B4)",
       "statedBy": "binding structurizr"
     },
     {
@@ -49,12 +49,12 @@
     },
     {
       "id": "the-gaps/8",
-      "text": "**Shown by.** `comments-everywhere.dsl` (one `unreadable` entry under the example binding), `findings/trailing-comments.dsl`.",
+      "text": "**Shown by.** `comments-everywhere.dsl` (one `unreadable` entry under the example binding of FBL 0.7), `findings/trailing-comments.dsl`.",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/9",
-      "text": "**Would resolve it.** The binding's `comment`, or a second expression, stripped from the end of a statement outside quoted strings before the block",
+      "text": "**Answered.** FBL 0.11, 4.9 (*The tree*): in the `grammar` family a brace is a token of its own and a comment is an ignored token, so `model { // …`",
       "statedBy": "binding structurizr"
     },
     {
@@ -64,7 +64,7 @@
     },
     {
       "id": "the-gaps/11",
-      "text": "3. FBL: a comment that spans lines (B5)",
+      "text": "3. FBL 4.9: a comment that spans lines (B5)",
       "statedBy": "binding structurizr"
     },
     {
@@ -79,7 +79,7 @@
     },
     {
       "id": "the-gaps/14",
-      "text": "**Would resolve it.** `blockComment: {open, close}` on a binding.",
+      "text": "**Answered.** FBL 0.11, 4.9 (*The tree*, rule 3): a block comment is one ignored token, so nothing inside it is a statement, an element or a brace,",
       "statedBy": "binding structurizr"
     },
     {
@@ -89,7 +89,7 @@
     },
     {
       "id": "the-gaps/16",
-      "text": "4. FBL: an escape inside a quoted group (B7)",
+      "text": "4. FBL 5.2 and 6.3: an escape inside a quoted group (B7)",
       "statedBy": "binding structurizr"
     },
     {
@@ -104,287 +104,317 @@
     },
     {
       "id": "the-gaps/19",
-      "text": "**Would resolve it.** An escape for a quoted group, read and written.",
+      "text": "**Answered.** FBL 0.11: a `{node}` slot's `escape`, `{\"with\": \"\\\\\", \"quote\": \"\\\"\"}`, reads `\\\"` as a quote and `\\\\` as one backslash and leaves a",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/20",
-      "text": "**Meanwhile.** The module's commands write every edit.",
+      "text": "**The Structurizr CLI reads escapes otherwise.** Its tokenizer (`Tokenizer.java` of `structurizr/java`) keeps the backslash: `\\\"` is read as the two",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/21",
-      "text": "5. FBL: positional optional arguments (B18)",
+      "text": "**Meanwhile.** The module's commands write every edit.",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/22",
-      "text": "**Construct.** Where an argument is absent the tool appends it and writes `\"\"` for each absent argument before it, so a technology set on `container",
+      "text": "5. FBL 4.9: positional optional arguments (B18)",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/23",
-      "text": "**Shown by.** `findings/dangling-both-ends.dsl`: the transcript sets a technology on `ghost -> phantom`, which has no label, and the line becomes",
+      "text": "**Construct.** Where an argument is absent the tool appends it and writes `\"\"` for each absent argument before it, so a technology set on `container",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/24",
-      "text": "**Would resolve it.** Writing argument n writes an empty value for each absent argument before it, and never re-emits a statement that opens a block.",
+      "text": "**Shown by.** `findings/dangling-both-ends.dsl`: the transcript sets a technology on `ghost -> phantom`, which has no label, and the line becomes",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/25",
-      "text": "**Meanwhile.** As gap 4.",
+      "text": "**Answered.** FBL 0.11, 4.9 (*Writing*, an absent part): an attribute's `create` with `after` and `pad` writes an absent argument right after the",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/26",
-      "text": "6. FBL 4.7 and 7.5: a body whose braces do not balance (B22)",
+      "text": "**Meanwhile.** As gap 4.",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/27",
-      "text": "**Construct.** The tool opens a document whose braces do not balance with what can be read; FBL 4.7 makes such a body unreadable, empty and",
+      "text": "6. FBL 4.9 and 7.4: a body whose braces do not balance (B22)",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/28",
-      "text": "**Shown by.** `findings/unbalanced.dsl`.",
+      "text": "**Construct.** The tool opens a document whose braces do not balance with what can be read; FBL 4.7 makes such a body unreadable, empty and",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/29",
-      "text": "**Would resolve it.** A binding that asks to read what balances.",
+      "text": "**Shown by.** `findings/unbalanced.dsl`.",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/30",
-      "text": "**Meanwhile.** As gap 1.",
+      "text": "**Answered.** FBL 0.11, 4.9 (*Reading in part*, rules 4 to 9): `recover.nested` names a block's opening and closing tokens, so that a statement that",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/31",
-      "text": "7. FBL 8.7 and 9.3: the legacy layout and the view header (B14, B16)",
+      "text": "**Meanwhile.** As gap 1.",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/32",
-      "text": "**Construct.** The tool's positions live in `<base>.layout.json`, keyed by view and element, the element keys compared without case, each number as",
+      "text": "7. FBL 8.7 and 9.3: the legacy layout and the view header (B14, B16)",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/33",
-      "text": "**Shown by.** `findings/sidecar-keys.dsl` with its `.layout.json`, `findings/first-drag-undo.dsl`, `findings/view-without-key.dsl`.",
+      "text": "**Construct.** The tool's positions live in `<base>.layout.json`, keyed by view and element, the element keys compared without case, each number as",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/34",
-      "text": "**Would resolve it.** The number form, the comparison of element keys and the pruning of a legacy file, and what a `view` that names nothing opens.",
+      "text": "**Shown by.** `findings/sidecar-keys.dsl` with its `.layout.json`, `findings/first-drag-undo.dsl`, `findings/view-without-key.dsl`.",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/35",
-      "text": "**Meanwhile.** The module's `C4LayoutSidecar` stores positions as today, and a move on a view that names nothing is refused with \"This diagram has no",
+      "text": "**Answered.** FBL 0.11: a legacy layout's view and element keys are matched ignoring the case of ASCII letters, a second key for one id is reported",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/36",
-      "text": "8. FBL: adding a block, and a value gathered from two places (B24, B9)",
+      "text": "**Meanwhile.** The module's `C4LayoutSidecar` stores positions as today, and a move on a view that names nothing is refused with \"This diagram has no",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/37",
-      "text": "**Construct.** A block rule has no `insert`, so a view block cannot be added; and a `tags \"A\" \"B\"` line inside an element's block adds to the tags of",
+      "text": "8. FBL 5.1 and 5.2: adding a block, and a value gathered from two places (B24, B9)",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/38",
-      "text": "**Shown by.** `findings/tags-in-block.dsl` for the tags; for the view block, the transcript's `add view` steps, which every document of the corpus",
+      "text": "**Construct.** A block rule has no `insert`, so a view block cannot be added; and a `tags \"A\" \"B\"` line inside an element's block adds to the tags of",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/39",
-      "text": "**Would resolve it.** An `insert` for a block rule; a slot that gathers its values from several statements.",
+      "text": "**Shown by.** `findings/tags-in-block.dsl` for the tags; for the view block, the transcript's `add view` steps, which every document of the corpus",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/40",
-      "text": "**Meanwhile.** `AddC4ViewCommand` stays code. Tags are read-only in the tool, so nothing writes them.",
+      "text": "**Answered.** FBL 0.11: a `block` rule's `insert` adds a view block at the end of the views from its `emit` and its undo removes it (5.1, 4.9",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/41",
-      "text": "9. DISL 10: a layout's direction and spacing from a diagram attribute (A12)",
-      "statedBy": "algorithm c4Ranks"
+      "text": "**Meanwhile.** `AddC4ViewCommand` stays code until the body is written by splices. Tags are read-only in the tool, so nothing writes them.",
+      "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/42",
+      "text": "9. DISL 10: a layout's direction and spacing from a diagram attribute (A12)",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/43",
       "text": "**Construct.** A view's `autoLayout` sets the layout's direction and its rank and node separation (top to bottom, 120 and 60 otherwise), and a view",
       "statedBy": "algorithm c4Ranks"
     },
     {
-      "id": "the-gaps/43",
+      "id": "the-gaps/44",
       "text": "**Shown by.** `findings/autolayout-ignores-positions.dsl` with its `.layout.json`.",
       "statedBy": "algorithm c4Ranks"
     },
     {
-      "id": "the-gaps/44",
-      "text": "**Would resolve it.** `direction` and `spacing` as bindable values, and a layout setting that makes stored view data ignored while an expression holds.",
-      "statedBy": "algorithm c4Ranks"
-    },
-    {
       "id": "the-gaps/45",
-      "text": "**Meanwhile.** The definition's `c4Ranks` states the defaults; the module's layout reads the view's statements.",
+      "text": "**Would resolve it.** `direction` and `spacing` as bindable values, and a layout setting that makes stored view data ignored while an expression",
       "statedBy": "algorithm c4Ranks"
     },
     {
       "id": "the-gaps/46",
-      "text": "10. DISL 8.6: findings ordered by element (A11)",
-      "statedBy": "binding structurizr"
+      "text": "**Meanwhile.** The definition's `c4Ranks` states the defaults; the module's layout reads the view's statements.",
+      "statedBy": "algorithm c4Ranks"
     },
     {
       "id": "the-gaps/47",
+      "text": "10. DISL 8.6: findings ordered by element (A11)",
+      "statedBy": "algorithm c4Ranks"
+    },
+    {
+      "id": "the-gaps/48",
       "text": "**Construct.** The tool reports the includes, then for each element its description, technology, connection and placement findings, then each",
       "statedBy": "binding structurizr"
     },
     {
-      "id": "the-gaps/48",
+      "id": "the-gaps/49",
       "text": "**Shown by.** `findings/finding-order.dsl`.",
       "statedBy": "binding structurizr"
     },
     {
-      "id": "the-gaps/49",
+      "id": "the-gaps/50",
       "text": "**Would resolve it.** An order key per finding, such as the position of its target in reading order, before the rule's position.",
       "statedBy": "binding structurizr"
     },
     {
-      "id": "the-gaps/50",
+      "id": "the-gaps/51",
       "text": "**Meanwhile.** The module orders the definition's findings itself (`C4FindingOrder` in the conversion's design, Q4), finding a view's findings by",
       "statedBy": "binding structurizr"
     },
     {
-      "id": "the-gaps/51",
+      "id": "the-gaps/52",
       "text": "11. DISL 11.5.1: the identifier of a new element made from its name (A9)",
-      "statedBy": "fn identifierFor"
+      "statedBy": "binding structurizr"
     },
     {
-      "id": "the-gaps/52",
+      "id": "the-gaps/53",
       "text": "**Construct.** A new element's identifier is the letters and digits of its name, the first one lowered, `_` before a leading digit and `element` when",
       "statedBy": "fn identifierFor"
     },
     {
-      "id": "the-gaps/53",
+      "id": "the-gaps/54",
       "text": "**Shown by.** The transcript's adds (`minimal.dsl`: `Web App` gives `webApp` and then `webApp2`, `42 Things` gives `_42Things`, `!!!` gives",
       "statedBy": "fn identifierFor"
     },
     {
-      "id": "the-gaps/54",
+      "id": "the-gaps/55",
       "text": "**Would resolve it.** A transform of the key attributes before the pattern is applied, or `natural` defined to drop what the pattern refuses.",
       "statedBy": "fn identifierFor"
     },
     {
-      "id": "the-gaps/55",
+      "id": "the-gaps/56",
       "text": "**Meanwhile.** The module makes the identifier (`C4Placement.IdentifierFor`) and hands it to the operation, and refuses one already in use with \"This",
       "statedBy": "fn identifierFor"
     },
     {
-      "id": "the-gaps/56",
+      "id": "the-gaps/57",
       "text": "12. Both: an id that depends on a directive of the body (B12)",
-      "statedBy": "binding structurizr"
+      "statedBy": "fn identifierFor"
     },
     {
-      "id": "the-gaps/57",
+      "id": "the-gaps/58",
       "text": "**Construct.** `!identifiers hierarchical` makes a dotted reference such as `a.api` name an element by its path. Neither language states an id that",
       "statedBy": "binding structurizr"
     },
     {
-      "id": "the-gaps/58",
+      "id": "the-gaps/59",
       "text": "**Shown by.** `findings/hierarchical-identifiers.dsl`.",
       "statedBy": "binding structurizr"
     },
     {
-      "id": "the-gaps/59",
+      "id": "the-gaps/60",
       "text": "**Would resolve it.** An id rule chosen by a value the reader takes from the body.",
       "statedBy": "binding structurizr"
     },
     {
-      "id": "the-gaps/60",
+      "id": "the-gaps/61",
       "text": "**Meanwhile.** Kept unsupported, as today: the directive is carried and not honoured, a dotted reference names nothing and is reported as dangling,",
       "statedBy": "binding structurizr"
     },
     {
-      "id": "the-gaps/61",
+      "id": "the-gaps/62",
       "text": "13. DISL 12.2: what a view exposes to a rule about the model",
       "statedBy": "binding structurizr"
     },
     {
-      "id": "the-gaps/62",
+      "id": "the-gaps/63",
       "text": "**Construct.** A rule about every view reads `diagram.views`, whose `View` has `id`, `viewpoint`, `name` and `members` only. The tool's view findings",
       "statedBy": "binding structurizr"
     },
     {
-      "id": "the-gaps/63",
+      "id": "the-gaps/64",
       "text": "**Shown by.** `findings/finding-order.dsl` (`c4.unknown-view-scope` at line 20, `c4.empty-view` at line 26), `findings/view-without-key.dsl`, the new",
       "statedBy": "binding structurizr"
     },
     {
-      "id": "the-gaps/64",
+      "id": "the-gaps/65",
       "text": "**Would resolve it.** `View` exposing its reading's diagram attributes and a `location()`.",
       "statedBy": "binding structurizr"
     },
     {
-      "id": "the-gaps/65",
+      "id": "the-gaps/66",
       "text": "**Meanwhile.** `emptyView` is a rule without the line, its subject the view's key, and `c4.unknown-view-scope` is not a rule of the definition; the",
       "statedBy": "binding structurizr"
     },
     {
-      "id": "the-gaps/66",
-      "text": "14. DISL 11.2: the text an unset end was written with",
-      "statedBy": "fn writtenEnd"
-    },
-    {
       "id": "the-gaps/67",
-      "text": "**Construct.** A relation whose mapped end names nothing is created with that end unset (11.2), and the identifier the body writes there is then",
+      "text": "14. DISL 11.2: the text an unset end was written with",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/68",
+      "text": "**Construct.** A relation whose mapped end names nothing is created with that end unset (11.2), and the identifier the body writes there is then",
+      "statedBy": "fn writtenEnd"
+    },
+    {
+      "id": "the-gaps/69",
       "text": "**Shown by.** `findings/dangling-both-ends.dsl`, `findings/nested-relationships.dsl`, `findings/hierarchical-identifiers.dsl`.",
       "statedBy": "binding structurizr"
     },
     {
-      "id": "the-gaps/69",
+      "id": "the-gaps/70",
       "text": "**Would resolve it.** The written text of an unset end or reference, readable in CEL, such as `self.written('source')`.",
       "statedBy": "binding structurizr"
     },
     {
-      "id": "the-gaps/70",
-      "text": "**Meanwhile.** The plugin function `writtenEnd(relation, end)`, which the module supplies from its reading, as the timeline does (`timeline.md`, gap 4).",
-      "statedBy": "fn writtenEnd"
-    },
-    {
       "id": "the-gaps/71",
-      "text": "15. DISL 3.5 and 6.13: the order of a view's members and of its legend entries",
+      "text": "**Meanwhile.** The plugin function `writtenEnd(relation, end)`, which the module supplies from its reading, as the timeline does (`timeline.md`, gap",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/72",
+      "text": "15. DISL 3.5 and 6.13: the order of a view's members and of its legend entries",
+      "statedBy": "fn writtenEnd"
+    },
+    {
+      "id": "the-gaps/73",
       "text": "**Construct.** The tool draws, lays out and keys a view's members in the order of the statements that select them: what the view's `include`",
       "statedBy": "binding structurizr"
     },
     {
-      "id": "the-gaps/73",
+      "id": "the-gaps/74",
       "text": "**Shown by.** `findings/view-statements.dsl` (the view `named`, whose `include` names a container before a person) and the dynamic view",
       "statedBy": "binding structurizr"
     },
     {
-      "id": "the-gaps/74",
+      "id": "the-gaps/75",
       "text": "**Would resolve it.** An order of a viewpoint's members by an expression, such as the position of the first statement that selects each; and a legend",
       "statedBy": "binding structurizr"
     },
     {
-      "id": "the-gaps/75",
+      "id": "the-gaps/76",
       "text": "**Meanwhile.** The module orders the members it reads from the model by the view's statements, and keys the legend by them, each entry painted from",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/77",
+      "text": "16. FBL 5.2: several items written in one argument",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/78",
+      "text": "**Construct.** The tool splits a tags argument at its commas, so `tags \"Extra, More\"` gives the two tags `Extra` and `More`, as Structurizr does. A",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/79",
+      "text": "**Shown by.** `findings/tags-in-block.dsl` (`tags \"Extra, More\"`); `structurizr-gathered-tags` reads `\"Last, Least\"` as one item.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/80",
+      "text": "**Would resolve it.** A slot that splits a value read from one node into items at a separator, and writes them joined by it.",
+      "statedBy": "binding structurizr"
+    },
+    {
+      "id": "the-gaps/81",
+      "text": "**Meanwhile.** Tags are read-only, and the module's parser splits them (`C4Parser`, read by `C4Disl`).",
       "statedBy": "binding structurizr"
     },
     {

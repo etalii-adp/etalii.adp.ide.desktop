@@ -1,0 +1,33 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.11, section 9.3, FR-011: a container reading whose registration's view header names no view of etalii.adp.ide.standalone/src/diagrams/c4/backend/EtAlii.Adp.Diagram.C4.Tests/Fixtures/findings/view-without-key.dsl at ad1a4680a. The reading shows no view's content, so no statement of a view is read into the document's attributes, and no finding is reported; a placement is refused and nothing is written. The body's elements are not listed here: several are written without an identifier, and their ids are DISL's.",
+  "binding": "../../../structurizr.fbl#workspace",
+  "input": "views.adp",
+  "read": {
+    "document": {
+      "attributes": {
+        "workspaceName": "Views without keys",
+        "scope": null,
+        "includes": null
+      }
+    },
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "A change of view data is refused, as the view is not in the document.",
+      "edit": {
+        "place": {
+          "element": "u",
+          "x": 10,
+          "y": 20
+        }
+      },
+      "refused": "This view is not in the document, so its positions cannot be stored.",
+      "splices": [],
+      "expectFiles": {
+        "../view-without-key.dsl": "workspace \"Views without keys\" {\n    model {\n        u = person \"User\" \"A user.\"\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web\" \"Serves.\" \"React\" {\n                c = component \"Controller\" \"Handles.\" \"Spring\"\n            }\n        }\n        u -> c \"Uses\" \"HTTPS\"\n        deploymentEnvironment \"Live\" {\n            deploymentNode \"Server\" \"A box.\" \"Linux\" {\n                containerInstance web\n            }\n        }\n    }\n    views {\n        systemLandscape {\n            include *\n        }\n        systemContext s {\n            include *\n        }\n        container s \"containers\" \"A key and a description.\" {\n            include *\n        }\n        component web {\n            include *\n        }\n        dynamic s {\n            u -> c \"Uses\"\n        }\n        deployment s \"Live\" {\n            include *\n        }\n        deployment * \"Live\" \"everywhere\" \"Every system, live.\" {\n            include *\n        }\n    }\n}\n"
+      }
+    }
+  ]
+}

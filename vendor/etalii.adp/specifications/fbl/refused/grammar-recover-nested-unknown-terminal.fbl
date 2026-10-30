@@ -1,0 +1,52 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.11",
+  "doc": "Refused by FBL 0.10, section 14.1, step 6, which atd-grammar.py --bindings makes: recover.nested.close names ']', which is neither a terminal of the binding's grammar nor the text of one of its anonymous string terminals, so the reader cannot tell where a block ends (section 4.9, Reading in part). Its open, '{', is the text of one, and nothing else in the document is refused.",
+  "bindings": {
+    "outline": {
+      "title": "Outline, a block closed by a token the grammar has not",
+      "claims": {
+        "extensions": [
+          ".outline"
+        ],
+        "origins": [
+          "example/outline"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "grammar",
+        "grammar": "start: unit*\n?unit: item\n     | _NL\nitem: NAME [label [note]] [block]\nlabel: STRING\nnote: STRING\nblock: \"{\" unit* \"}\"\nNAME: /[a-z]+/\nSTRING: /\"[^\"\\r\\n]*\"/\n_NL: /(\\r?\\n[ \\t]*)+/\nWHITESPACE: /[ \\t]+/\nCOMMENT: /#[^\\r\\n]*/\n%ignore WHITESPACE\n%ignore COMMENT\n",
+        "recover": {
+          "unit": "unit",
+          "sync": [
+            "_NL"
+          ],
+          "nested": {
+            "open": "{",
+            "close": "]"
+          }
+        }
+      },
+      "reader": "declared",
+      "elements": [
+        {
+          "name": "item",
+          "type": "Item",
+          "at": "/item",
+          "id": {
+            "from": {
+              "node": "NAME"
+            }
+          },
+          "attributes": {
+            "label": {
+              "node": "label",
+              "match": "\"(?<value>[^\"]*)\""
+            }
+          }
+        }
+      ]
+    }
+  }
+}

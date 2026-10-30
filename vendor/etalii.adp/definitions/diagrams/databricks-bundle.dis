@@ -439,13 +439,8 @@
   },
 
   "persistence": {
-    "format": "plugin:net.etalii.adp.databricks.files",
-    "files": {
-      "mode": "split",
-      "model": "databricks.yml",
-      "view": "{name}.adp",
-      "doc": "The model is the bundle's own databricks.yml, which Databricks owns; the view is the ADP registration file's layout: block."
-    },
+    "format": "fbl",
+    "binding": "https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/databricks/backend/EtAlii.Adp.Diagram.Databricks/databricks.fbl#configuration",
     "ids": {
       "strategy": "natural",
       "prefix": { "Target": "target:" },
@@ -458,15 +453,23 @@
       },
       "doc": "`bundle`, `resource:<kind>/<key>`, `unknown:<path>`, `target:<name>` and `override:<target>/<kind>/<key>`."
     },
-    "view": { "store": ["bounds"], "styleOverrides": "none" }
+    "view": { "store": ["bounds"], "styleOverrides": "none" },
+    "typeMap": {
+      "BundleFile": { "as": "diagram", "doc": "The file's include globs and variables, the bundle diagram's attributes." },
+      "Bundle": { "as": "Bundle" },
+      "Resource": { "as": "Resource" },
+      "Unknown": { "as": "Unknown" },
+      "Target": { "as": "Target" },
+      "Override": { "as": "Override", "attributes": { "from": "source", "to": "target" }, "doc": "An entry of a target's own resources, read as an element so that one overriding a resource the bundle does not declare is kept with its target end unset (11.2)." }
+    }
   },
 
   "plugins": {
     "net.etalii.adp.databricks.files": {
       "version": "^0.1.0",
-      "provides": ["persistenceFormat", "action"],
+      "provides": ["action"],
       "required": true,
-      "doc": "Reads and writes the bundle inside Databricks' own databricks.yml by line splices, so an untouched file saves byte for byte, and keeps positions in the .adp registration's layout: block. As an action it runs the job reading's commands that the tool offers under this reading too."
+      "doc": "Runs the job reading's commands that the tool offers under this reading too. The bundle itself is read and written through the binding (persistence)."
     },
     "net.etalii.adp.databricks.layout": {
       "version": "^0.1.0",

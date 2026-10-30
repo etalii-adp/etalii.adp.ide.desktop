@@ -1,0 +1,99 @@
+# The lakehouse bundle: one nightly ingest job (declared in resources/), one declarative
+# pipeline refining bronze into gold, deployed to a development and a production target.
+bundle:
+  name: lakehouse
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: The Unity Catalog everything below writes into.
+    default: lakehouse_dev
+  warehouse_id:
+    description: The SQL warehouse the dashboard refresh runs on.
+    default: "4b9b953939869799"
+
+resources:
+  jobs:
+    nightly_ingest:
+      name: Nightly ingest
+      job_clusters:
+        - job_cluster_key: ingest_cluster
+          new_cluster:
+            spark_version: 15.4.x-scala2.12
+            node_type_id: Standard_DS3_v2
+            num_workers: 2
+      schedule:
+        quartz_cron_expression: "0 0 1 * * ?"
+        timezone_id: UTC
+      tasks:
+        - task_key: land_raw
+          job_cluster_key: ingest_cluster
+          notebook_task:
+            notebook_path: notebooks/land_raw
+            base_parameters:
+              catalog: ${var.catalog}
+        - task_key: quality_gate
+          depends_on:
+            - task_key: land_raw
+          condition_task:
+            op: GREATER_THAN
+            left: "{{tasks.land_raw.values.rows_landed}}"
+            right: "0"
+        - task_key: publish
+          depends_on:
+            - task_key: quality_gate
+              outcome: "true"
+          notebook_task:
+            notebook_path: notebooks/publish
+        - task_key: alert_on_empty
+          run_if: AT_LEAST_ONE_FAILED
+          depends_on:
+            - task_key: quality_gate
+              outcome: "false"
+          spark_python_task:
+            python_file: scripts/alert_on_empty.py
+        - task_key: refresh_dashboard
+          depends_on:
+            - task_key: publish
+          sql_task:
+            warehouse_id: ${var.warehouse_id}
+            query:
+              query_id: 9d3f2b1a
+  pipelines:
+    bronze_to_gold:
+      name: Bronze to gold
+      catalog: ${var.catalog}
+      schema: gold
+      serverless: true
+      channel: CURRENT
+      libraries:
+        - notebook:
+            path: transformations/bronze
+        - notebook:
+            path: transformations/silver
+        - glob:
+            include: transformations/gold/**
+      notifications:
+        - email_recipients:
+            - data-eng@vrenken.eu
+          alerts:
+            - on-update-failure
+            - on-update-fatal-failure
+
+targets:
+  dev:
+    mode: development
+    default: true
+  prod:
+    mode: production
+    resources:
+      pipelines:
+        bronze_to_gold:
+          catalog: lakehouse_prod
+          serverless: false
+      jobs:
+        nightly_ingest:
+          schedule:
+            quartz_cron_expression: "0 0 2 * * ?"

@@ -1,7 +1,7 @@
 {
   "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
   "fbl": "0.1",
-  "doc": "One job of a Databricks Asset Bundle resource file (definitions/diagrams/databricks-job.dis, databricks-job.md). The file belongs to Databricks' tooling and has a shared extension, so the binding claims it only through a registration, whose resource header picks the job when the file declares several.",
+  "doc": "One job of a Databricks Asset Bundle resource file (definitions/diagrams/databricks-job.dis, databricks-job.md). The file belongs to Databricks' tooling and has a shared extension, so the binding claims it only through a registration, whose resource header picks the job when the file declares several. This is the per-reading binding of FBL 0.1, kept for the fixtures that name it; databricks.fbl is the binding the bundle, job and pipeline readings of one file share (FBL 0.10, sections 5.1 and 9.1).",
   "bindings": {
     "job": {
       "title": "Databricks job",

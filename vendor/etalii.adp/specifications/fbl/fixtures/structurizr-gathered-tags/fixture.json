@@ -1,0 +1,49 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.11, section 5.2 (gather), FR-013, written here: the tags of a declaration and the tags statements of its block read as one list, in document order, each argument an item; an argument holding a comma is one item, as the binding reads it. A gathered attribute is read-only, so a set of it is refused and nothing is written.",
+  "binding": "../../structurizr.fbl#workspace",
+  "input": "tags.dsl",
+  "read": {
+    "elements": [
+      {
+        "id": "s",
+        "type": "SoftwareSystem",
+        "attributes": {
+          "tags": [
+            "Core",
+            "Extra",
+            "More",
+            "Last, Least"
+          ]
+        }
+      },
+      {
+        "id": "web",
+        "type": "Container",
+        "parent": "s",
+        "attributes": {
+          "tags": []
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "A set of a gathered, read-only attribute is refused.",
+      "edit": {
+        "set": {
+          "element": "s",
+          "attributes": {
+            "tags": [
+              "Core"
+            ]
+          }
+        }
+      },
+      "refused": "The tags are read-only.",
+      "splices": [],
+      "expect": "workspace \"Tags\" {\n    model {\n        s = softwareSystem \"System\" \"A system.\" \"Core\" {\n            tags \"Extra\" \"More\"\n            web = container \"Web\"\n            tags \"Last, Least\"\n        }\n    }\n}\n"
+    }
+  ]
+}

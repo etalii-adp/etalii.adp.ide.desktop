@@ -1,0 +1,89 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.11, section 4.9 (Escapes), FR-005: a quoted argument read and written with the slot's escape. \"The \\\"user\\\"\" reads The \"user\", and \"A path C:\\temp and a \\\"quote\\\".\" keeps the backslash that escapes nothing. A set to Parity \"name\" writes every quote escaped, and is not refused; a set to a value holding a line break is refused by the family's read-again check, and nothing is written. The input is etalii.adp.ide.standalone/src/diagrams/c4/backend/EtAlii.Adp.Diagram.C4.Tests/Fixtures/findings/escaped-quote.dsl at ad1a4680a, byte for byte.",
+  "binding": "../../structurizr.fbl#workspace",
+  "input": "escaped-quote.dsl",
+  "read": {
+    "elements": [
+      {
+        "id": "u",
+        "type": "Person",
+        "attributes": {
+          "name": "The \"user\"",
+          "description": "Says \"hello\"."
+        }
+      },
+      {
+        "id": "s",
+        "type": "SoftwareSystem",
+        "attributes": {
+          "name": "System",
+          "description": "A path C:\\temp and a \"quote\"."
+        }
+      }
+    ],
+    "document": {
+      "attributes": {
+        "workspaceName": "Escaped \"quotes\""
+      }
+    },
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "workspace \"Escaped \\\"quotes\\\"\" {\n    model {\n        u = person \"The \\\"user\\\"\" \"Says \\\"hello\\\".\"\n        s = softwareSystem \"System\" \"A path C:\\temp and a \\\"quote\\\".\"\n        u -> s \"Says \\\"hi\\\"\" \"HTTP \\\"S\\\"\"\n    }\n    views {\n        systemContext s \"context\" {\n            include *\n        }\n    }\n}\n"
+    },
+    {
+      "doc": "A set's value is written with every quote escaped, in the value's span inside its quotes (FBL 6.3, grammar).",
+      "edit": {
+        "set": {
+          "element": "u",
+          "attributes": {
+            "name": "Parity \"name\""
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 65,
+          "end": 77,
+          "text": "Parity \\\"name\\\""
+        }
+      ],
+      "expect": "workspace \"Escaped \\\"quotes\\\"\" {\n    model {\n        u = person \"Parity \\\"name\\\"\" \"Says \\\"hello\\\".\"\n        s = softwareSystem \"System\" \"A path C:\\temp and a \\\"quote\\\".\"\n        u -> s \"Says \\\"hi\\\"\" \"HTTP \\\"S\\\"\"\n    }\n    views {\n        systemContext s \"context\" {\n            include *\n        }\n    }\n}\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 65,
+          "end": 80,
+          "text": "The \\\"user\\\""
+        }
+      ],
+      "expect": "workspace \"Escaped \\\"quotes\\\"\" {\n    model {\n        u = person \"The \\\"user\\\"\" \"Says \\\"hello\\\".\"\n        s = softwareSystem \"System\" \"A path C:\\temp and a \\\"quote\\\".\"\n        u -> s \"Says \\\"hi\\\"\" \"HTTP \\\"S\\\"\"\n    }\n    views {\n        systemContext s \"context\" {\n            include *\n        }\n    }\n}\n"
+    },
+    {
+      "doc": "A value holding a line break cannot be written in a one-line string: the entry would not read back with it, so the set is refused and nothing is written (FBL 4.9, Writing).",
+      "edit": {
+        "set": {
+          "element": "u",
+          "attributes": {
+            "name": "two\nlines"
+          }
+        }
+      },
+      "refused": "The new name would not read back from the workspace.",
+      "splices": [],
+      "expect": "workspace \"Escaped \\\"quotes\\\"\" {\n    model {\n        u = person \"The \\\"user\\\"\" \"Says \\\"hello\\\".\"\n        s = softwareSystem \"System\" \"A path C:\\temp and a \\\"quote\\\".\"\n        u -> s \"Says \\\"hi\\\"\" \"HTTP \\\"S\\\"\"\n    }\n    views {\n        systemContext s \"context\" {\n            include *\n        }\n    }\n}\n"
+    }
+  ]
+}

@@ -1,0 +1,202 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.12, section 4.9 (segments in any order), FR-024, edge case 17: lenient-trailer.owm of etalii.adp.ide.standalone/src/diagrams/wardley-map/backend/EtAlii.Adp.Diagram.WardleyMap.Tests/Fixtures/ at ad1a4680a with two changes, which make it this fixture's: Ordered's line ends in a second label, ' label [4, 4]', and the line 'component Milk [0.3, 0.6]' follows it. Of a segment written twice for a single-valued attribute the first is read and written, the second kept as it is; a label is written on Milk, which has none, right after its coordinates as its create declares, and cleared again with the space before it.",
+  "binding": "../../../wardley-map.fbl#map",
+  "input": "label-twice.owm",
+  "read": {
+    "elements": [
+      {
+        "id": "title",
+        "type": "Title",
+        "attributes": {
+          "title": "Lenient trailer"
+        }
+      },
+      {
+        "id": "user",
+        "type": "Anchor",
+        "attributes": {
+          "name": "User"
+        }
+      },
+      {
+        "id": "ordered",
+        "type": "Component",
+        "attributes": {
+          "name": "Ordered",
+          "labelOffset": "-30, 12",
+          "inertia": true
+        }
+      },
+      {
+        "id": "milk",
+        "type": "Component",
+        "attributes": {
+          "name": "Milk",
+          "visibility": 0.3,
+          "maturity": 0.6,
+          "labelOffset": null
+        }
+      },
+      {
+        "id": "spaced",
+        "type": "Component",
+        "attributes": {
+          "name": "Spaced"
+        }
+      },
+      {
+        "id": "shouted",
+        "type": "Component",
+        "attributes": {
+          "name": "Shouted"
+        }
+      },
+      {
+        "id": "glued",
+        "type": "Component",
+        "attributes": {
+          "name": "Glued"
+        }
+      },
+      {
+        "id": "linked",
+        "type": "Component",
+        "attributes": {
+          "name": "Linked"
+        }
+      },
+      {
+        "id": "lookalike",
+        "type": "Component",
+        "attributes": {
+          "name": "Lookalike"
+        }
+      },
+      {
+        "id": "cased",
+        "type": "Component",
+        "attributes": {
+          "name": "Cased"
+        }
+      },
+      {
+        "id": "linked-url",
+        "type": "Url",
+        "attributes": {
+          "name": "linkedMap"
+        }
+      },
+      {
+        "id": "user-ordered",
+        "type": "Dependency",
+        "attributes": {
+          "from": "User",
+          "to": "Ordered"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Ordered's label offset replaces the first label's numbers; the second label, [4, 4], is kept as it is.",
+      "edit": {
+        "set": {
+          "element": "ordered",
+          "attributes": {
+            "labelOffset": "-20, 8"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 90,
+          "end": 97,
+          "text": "-20, 8"
+        }
+      ],
+      "expect": "title Lenient trailer\nanchor User [0.95, 0.5]\ncomponent Ordered [0.8, 0.3] (build) label [-20, 8] inertia label [4, 4]\ncomponent Milk [0.3, 0.6]\ncomponent Spaced [0.7,0.4]  label[ 5 , -7 ]( market )\nCOMPONENT Shouted [0.6, 0.5]\ncomponent Glued [0.5, 0.6] inertia(buy)\ncomponent Linked [0.4, 0.7] url( linkedMap ) (ecosystem)\ncomponent Lookalike [0.3, 0.8] inertial\nComponent Cased [0.2, 0.2] INERTIA (Outsource)\nurl linkedMap [linked.owm]\nUser->Ordered\n"
+    },
+    {
+      "doc": "The undo puts the numbers back.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 90,
+          "end": 96,
+          "text": "-30, 12"
+        }
+      ],
+      "expect": "title Lenient trailer\nanchor User [0.95, 0.5]\ncomponent Ordered [0.8, 0.3] (build) label [-30, 12] inertia label [4, 4]\ncomponent Milk [0.3, 0.6]\ncomponent Spaced [0.7,0.4]  label[ 5 , -7 ]( market )\nCOMPONENT Shouted [0.6, 0.5]\ncomponent Glued [0.5, 0.6] inertia(buy)\ncomponent Linked [0.4, 0.7] url( linkedMap ) (ecosystem)\ncomponent Lookalike [0.3, 0.8] inertial\nComponent Cased [0.2, 0.2] INERTIA (Outsource)\nurl linkedMap [linked.owm]\nUser->Ordered\n"
+    },
+    {
+      "doc": "A label set on Milk is written right after its coordinates, by one insert-key.",
+      "edit": {
+        "set": {
+          "element": "milk",
+          "attributes": {
+            "labelOffset": "-10, 5"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 145,
+          "end": 145,
+          "text": " label [-10, 5]"
+        }
+      ],
+      "expect": "title Lenient trailer\nanchor User [0.95, 0.5]\ncomponent Ordered [0.8, 0.3] (build) label [-30, 12] inertia label [4, 4]\ncomponent Milk [0.3, 0.6] label [-10, 5]\ncomponent Spaced [0.7,0.4]  label[ 5 , -7 ]( market )\nCOMPONENT Shouted [0.6, 0.5]\ncomponent Glued [0.5, 0.6] inertia(buy)\ncomponent Linked [0.4, 0.7] url( linkedMap ) (ecosystem)\ncomponent Lookalike [0.3, 0.8] inertial\nComponent Cased [0.2, 0.2] INERTIA (Outsource)\nurl linkedMap [linked.owm]\nUser->Ordered\n"
+    },
+    {
+      "doc": "Clearing it removes the label with the space before it.",
+      "edit": {
+        "set": {
+          "element": "milk",
+          "attributes": {
+            "labelOffset": ""
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 145,
+          "end": 160,
+          "text": ""
+        }
+      ],
+      "expect": "title Lenient trailer\nanchor User [0.95, 0.5]\ncomponent Ordered [0.8, 0.3] (build) label [-30, 12] inertia label [4, 4]\ncomponent Milk [0.3, 0.6]\ncomponent Spaced [0.7,0.4]  label[ 5 , -7 ]( market )\nCOMPONENT Shouted [0.6, 0.5]\ncomponent Glued [0.5, 0.6] inertia(buy)\ncomponent Linked [0.4, 0.7] url( linkedMap ) (ecosystem)\ncomponent Lookalike [0.3, 0.8] inertial\nComponent Cased [0.2, 0.2] INERTIA (Outsource)\nurl linkedMap [linked.owm]\nUser->Ordered\n"
+    },
+    {
+      "doc": "The undo of the clearing writes the label back.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 145,
+          "end": 145,
+          "text": " label [-10, 5]"
+        }
+      ],
+      "expect": "title Lenient trailer\nanchor User [0.95, 0.5]\ncomponent Ordered [0.8, 0.3] (build) label [-30, 12] inertia label [4, 4]\ncomponent Milk [0.3, 0.6] label [-10, 5]\ncomponent Spaced [0.7,0.4]  label[ 5 , -7 ]( market )\nCOMPONENT Shouted [0.6, 0.5]\ncomponent Glued [0.5, 0.6] inertia(buy)\ncomponent Linked [0.4, 0.7] url( linkedMap ) (ecosystem)\ncomponent Lookalike [0.3, 0.8] inertial\nComponent Cased [0.2, 0.2] INERTIA (Outsource)\nurl linkedMap [linked.owm]\nUser->Ordered\n"
+    },
+    {
+      "doc": "The undo of the set removes it.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 145,
+          "end": 160,
+          "text": ""
+        }
+      ],
+      "expect": "title Lenient trailer\nanchor User [0.95, 0.5]\ncomponent Ordered [0.8, 0.3] (build) label [-30, 12] inertia label [4, 4]\ncomponent Milk [0.3, 0.6]\ncomponent Spaced [0.7,0.4]  label[ 5 , -7 ]( market )\nCOMPONENT Shouted [0.6, 0.5]\ncomponent Glued [0.5, 0.6] inertia(buy)\ncomponent Linked [0.4, 0.7] url( linkedMap ) (ecosystem)\ncomponent Lookalike [0.3, 0.8] inertial\nComponent Cased [0.2, 0.2] INERTIA (Outsource)\nurl linkedMap [linked.owm]\nUser->Ordered\n"
+    }
+  ]
+}

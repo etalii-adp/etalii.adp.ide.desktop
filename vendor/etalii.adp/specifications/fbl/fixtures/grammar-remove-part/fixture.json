@@ -1,0 +1,103 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.11, section 4.9 (Writing, an absent part) and section 6.1: an attribute with `empty: \"remove\"` set to its empty value is a `remove-key` of its part and the whitespace before it, and its undo writes them back; a trailing comment after the part stays. With section 15.3, the grammar family's fixtures so exercise remove-key as well. Written here for spec 066 (contracts/fixtures.md, The operation coverage).",
+  "binding": "items.fbl#items",
+  "input": "items.txt",
+  "read": {
+    "elements": [
+      {
+        "id": "alpha",
+        "type": "Item",
+        "attributes": {
+          "title": "Alpha",
+          "note": "first"
+        }
+      },
+      {
+        "id": "beta",
+        "type": "Item",
+        "attributes": {
+          "title": "Beta",
+          "note": "second"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "alpha \"Alpha\" \"first\"\nbeta \"Beta\" \"second\" // kept\n"
+    },
+    {
+      "doc": "Setting the note to empty, with empty: \"remove\", is a remove-key of the part's span and the whitespace between it and the title.",
+      "edit": {
+        "set": {
+          "element": "alpha",
+          "attributes": {
+            "note": ""
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 13,
+          "end": 21,
+          "text": ""
+        }
+      ],
+      "expect": "alpha \"Alpha\"\nbeta \"Beta\" \"second\" // kept\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit removed.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 13,
+          "end": 13,
+          "text": " \"first\""
+        }
+      ],
+      "expect": "alpha \"Alpha\" \"first\"\nbeta \"Beta\" \"second\" // kept\n"
+    },
+    {
+      "doc": "Removing a part before a trailing comment keeps the comment and the space before it.",
+      "edit": {
+        "set": {
+          "element": "beta",
+          "attributes": {
+            "note": ""
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 33,
+          "end": 42,
+          "text": ""
+        }
+      ],
+      "expect": "alpha \"Alpha\" \"first\"\nbeta \"Beta\" // kept\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit removed.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 33,
+          "end": 33,
+          "text": " \"second\""
+        }
+      ],
+      "expect": "alpha \"Alpha\" \"first\"\nbeta \"Beta\" \"second\" // kept\n"
+    }
+  ]
+}

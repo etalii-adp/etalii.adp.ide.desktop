@@ -1,0 +1,141 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The job reading of the same Databricks bundle file (databricks.fbl#configuration; FBL 0.10, sections 5.1, 8.2 and 9.1; spec 066, User Story 2, scenario 1). Its registration's resource header selects nightly_ingest by the capture resource.byOrigin gives databricks/job, and the rules whose origins admit this reading read the job itself as the diagram (Job, which the job definition maps as: \"diagram\"), its cluster, its tasks and their dependencies; the bundle's Resource rules are not this reading's. The step edits the body the bundle and the pipeline readings read too. Its body, databricks.yml, is etalii.adp.ide.standalone's src/diagrams/databricks/examples/lakehouse/databricks.yml at ad1a4680a, byte for byte as git holds it (LF), with one change: the job resources/nightly-ingest.yml declares, its resources.jobs mapping as that file writes it, copied in under resources: before pipelines:, so that one body holds a job for the job reading (the example declares its job in an included file, which no reading follows).",
+  "binding": "../../../databricks.fbl#configuration",
+  "input": "databricks.job.adp",
+  "read": {
+    "document": {
+      "attributes": {
+        "jobKey": "nightly_ingest",
+        "name": "Nightly ingest",
+        "schedule": "0 0 1 * * ?",
+        "continuous": false
+      }
+    },
+    "elements": [
+      {
+        "id": "cluster:ingest_cluster",
+        "type": "JobCluster",
+        "attributes": {
+          "key": "ingest_cluster",
+          "sparkVersion": "15.4.x-scala2.12",
+          "nodeType": "Standard_DS3_v2",
+          "workers": 2
+        }
+      },
+      {
+        "id": "task:land_raw",
+        "type": "Task",
+        "attributes": {
+          "key": "land_raw",
+          "taskType": "notebook",
+          "clusterKey": "ingest_cluster"
+        }
+      },
+      {
+        "id": "task:quality_gate",
+        "type": "Task",
+        "attributes": {
+          "key": "quality_gate",
+          "taskType": "condition"
+        }
+      },
+      {
+        "id": "task:publish",
+        "type": "Task",
+        "attributes": {
+          "key": "publish",
+          "taskType": "notebook"
+        }
+      },
+      {
+        "id": "task:alert_on_empty",
+        "type": "Task",
+        "attributes": {
+          "key": "alert_on_empty",
+          "taskType": "python",
+          "runIf": "AT_LEAST_ONE_FAILED"
+        }
+      },
+      {
+        "id": "task:refresh_dashboard",
+        "type": "Task",
+        "attributes": {
+          "key": "refresh_dashboard",
+          "taskType": "sql"
+        }
+      },
+      {
+        "id": "edge:land_raw->quality_gate",
+        "type": "Dependency",
+        "attributes": {
+          "upstreamKey": "land_raw"
+        }
+      },
+      {
+        "id": "edge:quality_gate->publish",
+        "type": "Dependency",
+        "attributes": {
+          "upstreamKey": "quality_gate",
+          "outcome": "true"
+        }
+      },
+      {
+        "id": "edge:quality_gate->alert_on_empty",
+        "type": "Dependency",
+        "attributes": {
+          "upstreamKey": "quality_gate",
+          "outcome": "false"
+        }
+      },
+      {
+        "id": "edge:publish->refresh_dashboard",
+        "type": "Dependency",
+        "attributes": {
+          "upstreamKey": "publish"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "In the job reading, publish's run_if is set: an insert-key after depends_on, the key before run_if in the task rule's keys.",
+      "edit": {
+        "set": {
+          "element": "task:publish",
+          "attributes": {
+            "runIf": "ALL_DONE"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "file": "../databricks.yml",
+          "start": 1378,
+          "end": 1378,
+          "text": "          run_if: ALL_DONE\n"
+        }
+      ],
+      "expectFiles": {
+        "../databricks.yml": "# The lakehouse bundle: one nightly ingest job (declared in resources/), one declarative\n# pipeline refining bronze into gold, deployed to a development and a production target.\nbundle:\n  name: lakehouse\n\ninclude:\n  - resources/*.yml\n\nvariables:\n  catalog:\n    description: The Unity Catalog everything below writes into.\n    default: lakehouse_dev\n  warehouse_id:\n    description: The SQL warehouse the dashboard refresh runs on.\n    default: \"4b9b953939869799\"\n\nresources:\n  jobs:\n    nightly_ingest:\n      name: Nightly ingest\n      job_clusters:\n        - job_cluster_key: ingest_cluster\n          new_cluster:\n            spark_version: 15.4.x-scala2.12\n            node_type_id: Standard_DS3_v2\n            num_workers: 2\n      schedule:\n        quartz_cron_expression: \"0 0 1 * * ?\"\n        timezone_id: UTC\n      tasks:\n        - task_key: land_raw\n          job_cluster_key: ingest_cluster\n          notebook_task:\n            notebook_path: notebooks/land_raw\n            base_parameters:\n              catalog: ${var.catalog}\n        - task_key: quality_gate\n          depends_on:\n            - task_key: land_raw\n          condition_task:\n            op: GREATER_THAN\n            left: \"{{tasks.land_raw.values.rows_landed}}\"\n            right: \"0\"\n        - task_key: publish\n          depends_on:\n            - task_key: quality_gate\n              outcome: \"true\"\n          run_if: ALL_DONE\n          notebook_task:\n            notebook_path: notebooks/publish\n        - task_key: alert_on_empty\n          run_if: AT_LEAST_ONE_FAILED\n          depends_on:\n            - task_key: quality_gate\n              outcome: \"false\"\n          spark_python_task:\n            python_file: scripts/alert_on_empty.py\n        - task_key: refresh_dashboard\n          depends_on:\n            - task_key: publish\n          sql_task:\n            warehouse_id: ${var.warehouse_id}\n            query:\n              query_id: 9d3f2b1a\n  pipelines:\n    bronze_to_gold:\n      name: Bronze to gold\n      catalog: ${var.catalog}\n      schema: gold\n      serverless: true\n      channel: CURRENT\n      libraries:\n        - notebook:\n            path: transformations/bronze\n        - notebook:\n            path: transformations/silver\n        - glob:\n            include: transformations/gold/**\n      notifications:\n        - email_recipients:\n            - data-eng@vrenken.eu\n          alerts:\n            - on-update-failure\n            - on-update-fatal-failure\n\ntargets:\n  dev:\n    mode: development\n    default: true\n  prod:\n    mode: production\n    resources:\n      pipelines:\n        bronze_to_gold:\n          catalog: lakehouse_prod\n          serverless: false\n      jobs:\n        nightly_ingest:\n          schedule:\n            quartz_cron_expression: \"0 0 2 * * ?\"\n"
+      }
+    },
+    {
+      "doc": "Undo removes the key.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "file": "../databricks.yml",
+          "start": 1378,
+          "end": 1405,
+          "text": ""
+        }
+      ],
+      "expectFiles": {
+        "../databricks.yml": "# The lakehouse bundle: one nightly ingest job (declared in resources/), one declarative\n# pipeline refining bronze into gold, deployed to a development and a production target.\nbundle:\n  name: lakehouse\n\ninclude:\n  - resources/*.yml\n\nvariables:\n  catalog:\n    description: The Unity Catalog everything below writes into.\n    default: lakehouse_dev\n  warehouse_id:\n    description: The SQL warehouse the dashboard refresh runs on.\n    default: \"4b9b953939869799\"\n\nresources:\n  jobs:\n    nightly_ingest:\n      name: Nightly ingest\n      job_clusters:\n        - job_cluster_key: ingest_cluster\n          new_cluster:\n            spark_version: 15.4.x-scala2.12\n            node_type_id: Standard_DS3_v2\n            num_workers: 2\n      schedule:\n        quartz_cron_expression: \"0 0 1 * * ?\"\n        timezone_id: UTC\n      tasks:\n        - task_key: land_raw\n          job_cluster_key: ingest_cluster\n          notebook_task:\n            notebook_path: notebooks/land_raw\n            base_parameters:\n              catalog: ${var.catalog}\n        - task_key: quality_gate\n          depends_on:\n            - task_key: land_raw\n          condition_task:\n            op: GREATER_THAN\n            left: \"{{tasks.land_raw.values.rows_landed}}\"\n            right: \"0\"\n        - task_key: publish\n          depends_on:\n            - task_key: quality_gate\n              outcome: \"true\"\n          notebook_task:\n            notebook_path: notebooks/publish\n        - task_key: alert_on_empty\n          run_if: AT_LEAST_ONE_FAILED\n          depends_on:\n            - task_key: quality_gate\n              outcome: \"false\"\n          spark_python_task:\n            python_file: scripts/alert_on_empty.py\n        - task_key: refresh_dashboard\n          depends_on:\n            - task_key: publish\n          sql_task:\n            warehouse_id: ${var.warehouse_id}\n            query:\n              query_id: 9d3f2b1a\n  pipelines:\n    bronze_to_gold:\n      name: Bronze to gold\n      catalog: ${var.catalog}\n      schema: gold\n      serverless: true\n      channel: CURRENT\n      libraries:\n        - notebook:\n            path: transformations/bronze\n        - notebook:\n            path: transformations/silver\n        - glob:\n            include: transformations/gold/**\n      notifications:\n        - email_recipients:\n            - data-eng@vrenken.eu\n          alerts:\n            - on-update-failure\n            - on-update-fatal-failure\n\ntargets:\n  dev:\n    mode: development\n    default: true\n  prod:\n    mode: production\n    resources:\n      pipelines:\n        bronze_to_gold:\n          catalog: lakehouse_prod\n          serverless: false\n      jobs:\n        nightly_ingest:\n          schedule:\n            quartz_cron_expression: \"0 0 2 * * ?\"\n"
+      }
+    }
+  ]
+}

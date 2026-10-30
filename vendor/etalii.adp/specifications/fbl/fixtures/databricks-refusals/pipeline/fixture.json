@@ -1,0 +1,33 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The sentence of an empty refusal, given by the binding (databricks.fbl#configuration, the pipeline rule's name: empty: \"refuse\" with refusals.empty; FBL 0.10, sections 5.2 and 6.4; spec 066, User Story 2, scenario 6). Emptying the pipeline's name is refused with that sentence, and nothing is written. Its body is written here.",
+  "binding": "../../../databricks.fbl#configuration",
+  "input": "named.adp",
+  "read": {
+    "elements": [
+      {
+        "id": "pipeline",
+        "type": "Pipeline",
+        "attributes": {
+          "name": "A named pipeline",
+          "schema": "gold"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "The set is refused with the binding's sentence.",
+      "edit": {
+        "set": {
+          "element": "pipeline",
+          "attributes": {
+            "name": ""
+          }
+        }
+      },
+      "refused": "A pipeline needs a name.",
+      "splices": []
+    }
+  ]
+}

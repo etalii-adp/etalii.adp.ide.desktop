@@ -1,0 +1,64 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The body job/ beside this folder writes by adding a task to tasks: [], ../added.yml, read back through the same binding (FBL 0.10, section 6.2; spec 066, User Story 2, scenario 4): the job holds one task, first, the one added.",
+  "binding": "../../../databricks.fbl#configuration",
+  "input": "empty_flow.adp",
+  "read": {
+    "document": {
+      "attributes": {
+        "jobKey": "empty_flow"
+      }
+    },
+    "elements": [
+      {
+        "id": "task:first",
+        "type": "Task",
+        "attributes": {
+          "key": "first",
+          "taskType": "notebook"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "The added task is a task like any other: setting its run_if inserts the key after its task_key.",
+      "edit": {
+        "set": {
+          "element": "task:first",
+          "attributes": {
+            "runIf": "ALL_DONE"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "file": "../added.yml",
+          "start": 132,
+          "end": 132,
+          "text": "          run_if: ALL_DONE\r\n"
+        }
+      ],
+      "expectFiles": {
+        "../added.yml": "resources:\r\n  jobs:\r\n    empty_flow:\r\n      name: Tasks written as an empty flow sequence\r\n      tasks:\r\n        - task_key: first\r\n          run_if: ALL_DONE\r\n          notebook_task:\r\n            notebook_path: notebooks/first\r\n    flow_dependencies:\r\n      name: Dependencies written on one line\r\n      tasks:\r\n        - task_key: a\r\n          notebook_task: {notebook_path: notebooks/a}\r\n        - task_key: b\r\n          depends_on: [{task_key: a}]\r\n          notebook_task:\r\n            notebook_path: notebooks/b\r\n        - task_key: c\r\n          notebook_task:\r\n            notebook_path: notebooks/c\r\n  pipelines:\r\n    flow_pipeline:\r\n      name: Flow pipeline\r\n      libraries: [{notebook: {path: transformations/one}}, {file: {path: transformations/two.py}}]\r\n"
+      }
+    },
+    {
+      "doc": "Undo removes the key.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "file": "../added.yml",
+          "start": 132,
+          "end": 160,
+          "text": ""
+        }
+      ],
+      "expectFiles": {
+        "../added.yml": "resources:\r\n  jobs:\r\n    empty_flow:\r\n      name: Tasks written as an empty flow sequence\r\n      tasks:\r\n        - task_key: first\r\n          notebook_task:\r\n            notebook_path: notebooks/first\r\n    flow_dependencies:\r\n      name: Dependencies written on one line\r\n      tasks:\r\n        - task_key: a\r\n          notebook_task: {notebook_path: notebooks/a}\r\n        - task_key: b\r\n          depends_on: [{task_key: a}]\r\n          notebook_task:\r\n            notebook_path: notebooks/b\r\n        - task_key: c\r\n          notebook_task:\r\n            notebook_path: notebooks/c\r\n  pipelines:\r\n    flow_pipeline:\r\n      name: Flow pipeline\r\n      libraries: [{notebook: {path: transformations/one}}, {file: {path: transformations/two.py}}]\r\n"
+      }
+    }
+  ]
+}
