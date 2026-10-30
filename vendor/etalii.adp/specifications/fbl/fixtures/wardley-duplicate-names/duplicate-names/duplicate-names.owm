@@ -1,0 +1,13 @@
+title Duplicate names
+anchor Business [0.95, 0.63]
+component Kettle [0.43, 0.35]
+component Power [0.1, 0.7]
+Business->Kettle
+component Kettle [0.40, 0.55]
+Kettle->Power
+evolve Kettle 0.62
+pipeline Kettle
+{
+  component Electric Kettle [0.6]
+}
+component Power [0.2, 0.75]

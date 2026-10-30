@@ -1,0 +1,74 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.11, section 4.9 (Reading in part), FR-002 and FR-004, written here: a stray '}' at the top level closes no block, and is skipped alone and reported fbl.unmatched-close at line 6 (rule 7); a top-level statement that does not parse is skipped to its line's end and reported fbl.unparsed-text at line 7, as FBL 0.9's recovery does (rule 2); a block comment that is never closed is trivia to the end of the body, reported fbl.unclosed-comment at line 8 (rule 8), so the declaration after it is no statement. The workspace before them is read.",
+  "binding": "../../structurizr.fbl#workspace",
+  "input": "edges.dsl",
+  "read": {
+    "elements": [
+      {
+        "id": "u",
+        "type": "Person",
+        "attributes": {
+          "name": "User"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "fbl.unmatched-close",
+        "line": 6
+      },
+      {
+        "rule": "fbl.unparsed-text",
+        "line": 7
+      },
+      {
+        "rule": "fbl.unclosed-comment",
+        "line": 8
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "workspace \"Edges\" {\n    model {\n        u = person \"User\"\n    }\n}\n}\nthis is not a workspace\n/* never closed\ns = softwareSystem \"S\"\n"
+    },
+    {
+      "doc": "A set in the part that is read is planned as usual.",
+      "edit": {
+        "set": {
+          "element": "u",
+          "attributes": {
+            "name": "Person"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 52,
+          "end": 56,
+          "text": "Person"
+        }
+      ],
+      "expect": "workspace \"Edges\" {\n    model {\n        u = person \"Person\"\n    }\n}\n}\nthis is not a workspace\n/* never closed\ns = softwareSystem \"S\"\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 52,
+          "end": 58,
+          "text": "User"
+        }
+      ],
+      "expect": "workspace \"Edges\" {\n    model {\n        u = person \"User\"\n    }\n}\n}\nthis is not a workspace\n/* never closed\ns = softwareSystem \"S\"\n"
+    }
+  ]
+}

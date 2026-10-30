@@ -1,0 +1,108 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The bundle registration of a file with two jobs and two pipelines selects no resource (databricks.fbl#configuration, resource.byOrigin maps databricks/bundle to null; FBL 0.10, section 8.2; spec 066, User Story 2, scenario 3): it reads every resource. Its body, two-jobs-two-pipelines.yml, is etalii.adp.ide.standalone's src/diagrams/databricks/backend/EtAlii.Adp.Diagram.Databricks.Tests/Fixtures/two-jobs-two-pipelines.yml at ad1a4680a, byte for byte (CRLF).",
+  "binding": "../../../databricks.fbl#configuration",
+  "input": "twin.adp",
+  "read": {
+    "elements": [
+      {
+        "id": "bundle",
+        "type": "Bundle",
+        "attributes": {
+          "name": "twin_bundle"
+        }
+      },
+      {
+        "id": "resource:jobs/job_a",
+        "type": "Resource",
+        "attributes": {
+          "resourceKind": "jobs",
+          "key": "job_a"
+        }
+      },
+      {
+        "id": "resource:jobs/job_b",
+        "type": "Resource",
+        "attributes": {
+          "resourceKind": "jobs",
+          "key": "job_b"
+        }
+      },
+      {
+        "id": "resource:pipelines/pipe_a",
+        "type": "Resource",
+        "attributes": {
+          "resourceKind": "pipelines",
+          "key": "pipe_a"
+        }
+      },
+      {
+        "id": "resource:pipelines/pipe_b",
+        "type": "Resource",
+        "attributes": {
+          "resourceKind": "pipelines",
+          "key": "pipe_b"
+        }
+      },
+      {
+        "id": "target:dev",
+        "type": "Target",
+        "attributes": {
+          "name": "dev",
+          "mode": "development",
+          "isDefault": false
+        }
+      },
+      {
+        "id": "target:prod",
+        "type": "Target",
+        "attributes": {
+          "name": "prod",
+          "mode": "production",
+          "isDefault": false
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "The bundle reading edits a target: prod's mode, a replace-value.",
+      "edit": {
+        "set": {
+          "element": "target:prod",
+          "attributes": {
+            "mode": "development"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "file": "../two-jobs-two-pipelines.yml",
+          "start": 1141,
+          "end": 1151,
+          "text": "development"
+        }
+      ],
+      "expectFiles": {
+        "../two-jobs-two-pipelines.yml": "# Two jobs and two pipelines in one file, each reading with a finding of its own.\r\nbundle:\r\n  name: twin_bundle\r\n\r\nresources:\r\n  jobs:\r\n    job_a:\r\n      name: Job A\r\n      tasks:\r\n        - task_key: ingest\r\n          job_cluster_key: missing_cluster\r\n          notebook_task:\r\n            notebook_path: notebooks/a_ingest\r\n        - task_key: shape\r\n          depends_on:\r\n            - task_key: ingest\r\n          notebook_task:\r\n            notebook_path: notebooks/a_shape\r\n    job_b:\r\n      name: Job B\r\n      tasks:\r\n        - task_key: ingest\r\n          notebook_task:\r\n            notebook_path: notebooks/b_ingest\r\n        - task_key: report\r\n          depends_on:\r\n            - task_key: absent\r\n          notebook_task:\r\n            notebook_path: notebooks/b_report\r\n  pipelines:\r\n    pipe_a:\r\n      name: Pipe A\r\n      catalog: main\r\n      schema: bronze\r\n      libraries:\r\n        - notebook:\r\n            path: transformations/a\r\n    pipe_b:\r\n      name: Pipe B\r\n      schema: silver\r\n      libraries:\r\n        - notebook:\r\n            path: transformations/b\r\n\r\ntargets:\r\n  dev:\r\n    mode: development\r\n  prod:\r\n    mode: development\r\n"
+      }
+    },
+    {
+      "doc": "Undo puts production back.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "file": "../two-jobs-two-pipelines.yml",
+          "start": 1141,
+          "end": 1152,
+          "text": "production"
+        }
+      ],
+      "expectFiles": {
+        "../two-jobs-two-pipelines.yml": "# Two jobs and two pipelines in one file, each reading with a finding of its own.\r\nbundle:\r\n  name: twin_bundle\r\n\r\nresources:\r\n  jobs:\r\n    job_a:\r\n      name: Job A\r\n      tasks:\r\n        - task_key: ingest\r\n          job_cluster_key: missing_cluster\r\n          notebook_task:\r\n            notebook_path: notebooks/a_ingest\r\n        - task_key: shape\r\n          depends_on:\r\n            - task_key: ingest\r\n          notebook_task:\r\n            notebook_path: notebooks/a_shape\r\n    job_b:\r\n      name: Job B\r\n      tasks:\r\n        - task_key: ingest\r\n          notebook_task:\r\n            notebook_path: notebooks/b_ingest\r\n        - task_key: report\r\n          depends_on:\r\n            - task_key: absent\r\n          notebook_task:\r\n            notebook_path: notebooks/b_report\r\n  pipelines:\r\n    pipe_a:\r\n      name: Pipe A\r\n      catalog: main\r\n      schema: bronze\r\n      libraries:\r\n        - notebook:\r\n            path: transformations/a\r\n    pipe_b:\r\n      name: Pipe B\r\n      schema: silver\r\n      libraries:\r\n        - notebook:\r\n            path: transformations/b\r\n\r\ntargets:\r\n  dev:\r\n    mode: development\r\n  prod:\r\n    mode: production\r\n"
+      }
+    }
+  ]
+}

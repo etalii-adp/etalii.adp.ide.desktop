@@ -1,0 +1,91 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.11, sections 4.9 (Views) and 9.3, FR-008 and FR-009: the registration selects the container view 'titled' of etalii.adp.ide.standalone/src/diagrams/c4/backend/EtAlii.Adp.Diagram.C4.Tests/Fixtures/findings/view-statements.dsl at ad1a4680a, which has no view keyed 'containers', so this registration names its first container view. The document's attributes are that view's title, include, exclude and autoLayout statements and its scope, read by the selectedView rules and mapped onto the diagram by the C4 types' typeMap; the 'named' view's include statements and the dynamic view's title and interactions are read for no attribute of this reading. An edit of the body is a splice of the body file.",
+  "binding": "../../structurizr.fbl#workspace",
+  "input": "titled.adp",
+  "read": {
+    "elements": [
+      {
+        "id": "u",
+        "type": "Person"
+      },
+      {
+        "id": "s",
+        "type": "SoftwareSystem"
+      },
+      {
+        "id": "web",
+        "type": "Container",
+        "parent": "s"
+      },
+      {
+        "id": "api",
+        "type": "Container",
+        "parent": "s"
+      },
+      {
+        "id": "db",
+        "type": "Container",
+        "parent": "s"
+      }
+    ],
+    "document": {
+      "attributes": {
+        "workspaceName": "View statements",
+        "scope": "s",
+        "title": "A title the document declares",
+        "includes": [
+          "*"
+        ],
+        "excludes": [
+          "db"
+        ],
+        "autoLayout": "tb",
+        "rankSeparation": 300,
+        "nodeSeparation": 150
+      }
+    },
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "A set of a model element writes the body.",
+      "edit": {
+        "set": {
+          "element": "web",
+          "attributes": {
+            "description": "Serves pages."
+          }
+        }
+      },
+      "splices": [
+        {
+          "file": "view-statements.dsl",
+          "operation": "replace-value",
+          "start": 163,
+          "end": 170,
+          "text": "Serves pages."
+        }
+      ],
+      "expectFiles": {
+        "view-statements.dsl": "workspace \"View statements\" {\n    model {\n        u = person \"User\" \"A user.\"\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web\" \"Serves pages.\" \"React\"\n            api = container \"API\" \"Answers.\" \"Kotlin\"\n            db = container \"Store\" \"Keeps.\" \"PostgreSQL\"\n        }\n        u -> web \"Visits\" \"HTTPS\"\n        web -> api \"Calls\" \"JSON\"\n        api -> db \"Reads\" \"SQL\"\n    }\n    views {\n        container s \"titled\" {\n            title \"A title the document declares\"\n            include *\n            exclude db\n            autoLayout tb 300 150\n        }\n        container s \"named\" {\n            include web api\n            include u\n        }\n        dynamic s \"steps\" {\n            title \"Numbered steps\"\n            u -> web \"Visits\"\n            web -> api \"Calls\"\n            api -> db\n            autoLayout lr\n        }\n    }\n}\n"
+      }
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "file": "view-statements.dsl",
+          "operation": "replace-value",
+          "start": 163,
+          "end": 176,
+          "text": "Serves."
+        }
+      ],
+      "expectFiles": {
+        "view-statements.dsl": "workspace \"View statements\" {\n    model {\n        u = person \"User\" \"A user.\"\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web\" \"Serves.\" \"React\"\n            api = container \"API\" \"Answers.\" \"Kotlin\"\n            db = container \"Store\" \"Keeps.\" \"PostgreSQL\"\n        }\n        u -> web \"Visits\" \"HTTPS\"\n        web -> api \"Calls\" \"JSON\"\n        api -> db \"Reads\" \"SQL\"\n    }\n    views {\n        container s \"titled\" {\n            title \"A title the document declares\"\n            include *\n            exclude db\n            autoLayout tb 300 150\n        }\n        container s \"named\" {\n            include web api\n            include u\n        }\n        dynamic s \"steps\" {\n            title \"Numbered steps\"\n            u -> web \"Visits\"\n            web -> api \"Calls\"\n            api -> db\n            autoLayout lr\n        }\n    }\n}\n"
+      }
+    }
+  ]
+}

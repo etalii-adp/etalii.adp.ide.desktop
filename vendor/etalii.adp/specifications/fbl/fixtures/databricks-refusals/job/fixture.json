@@ -1,0 +1,30 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The sentence of a refusal, given by the binding (databricks.fbl#configuration, the task rule's insert.refusals.container; FBL 0.10, section 6.4; spec 066, User Story 2, scenario 6). The job no_tasks has no tasks section and the insert has no create, so adding a task is refused with the sentence the binding gives, not one a host builds from type names, and nothing is written. Its body is written here.",
+  "binding": "../../../databricks.fbl#configuration",
+  "input": "no_tasks.adp",
+  "read": {
+    "document": {
+      "attributes": {
+        "jobKey": "no_tasks",
+        "name": "A job without tasks"
+      }
+    },
+    "elements": []
+  },
+  "steps": [
+    {
+      "doc": "The add is refused with the binding's sentence.",
+      "edit": {
+        "add": {
+          "type": "Task",
+          "attributes": {
+            "key": "first"
+          }
+        }
+      },
+      "refused": "The job has no tasks section to add into.",
+      "splices": []
+    }
+  ]
+}

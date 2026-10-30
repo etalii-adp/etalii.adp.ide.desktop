@@ -1,0 +1,59 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.11, sections 4.9 (Views) and 9.3, FR-008: a view written without a key has the key the binding's block rule gives it, the view kind's name for a component view, so a component reading whose registration names 'COMPONENT', matched ignoring case, shows 'component web { include * }' of etalii.adp.ide.standalone/src/diagrams/c4/backend/EtAlii.Adp.Diagram.C4.Tests/Fixtures/findings/view-without-key.dsl at ad1a4680a, scoped to web.",
+  "binding": "../../../structurizr.fbl#workspace",
+  "input": "views.adp",
+  "read": {
+    "document": {
+      "attributes": {
+        "workspaceName": "Views without keys",
+        "scope": "web",
+        "includes": [
+          "*"
+        ]
+      }
+    },
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "A set of a model element writes the body.",
+      "edit": {
+        "set": {
+          "element": "u",
+          "attributes": {
+            "description": "A person."
+          }
+        }
+      },
+      "splices": [
+        {
+          "file": "../view-without-key.dsl",
+          "operation": "replace-value",
+          "start": 72,
+          "end": 79,
+          "text": "A person."
+        }
+      ],
+      "expectFiles": {
+        "../view-without-key.dsl": "workspace \"Views without keys\" {\n    model {\n        u = person \"User\" \"A person.\"\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web\" \"Serves.\" \"React\" {\n                c = component \"Controller\" \"Handles.\" \"Spring\"\n            }\n        }\n        u -> c \"Uses\" \"HTTPS\"\n        deploymentEnvironment \"Live\" {\n            deploymentNode \"Server\" \"A box.\" \"Linux\" {\n                containerInstance web\n            }\n        }\n    }\n    views {\n        systemLandscape {\n            include *\n        }\n        systemContext s {\n            include *\n        }\n        container s \"containers\" \"A key and a description.\" {\n            include *\n        }\n        component web {\n            include *\n        }\n        dynamic s {\n            u -> c \"Uses\"\n        }\n        deployment s \"Live\" {\n            include *\n        }\n        deployment * \"Live\" \"everywhere\" \"Every system, live.\" {\n            include *\n        }\n    }\n}\n"
+      }
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "file": "../view-without-key.dsl",
+          "operation": "replace-value",
+          "start": 72,
+          "end": 81,
+          "text": "A user."
+        }
+      ],
+      "expectFiles": {
+        "../view-without-key.dsl": "workspace \"Views without keys\" {\n    model {\n        u = person \"User\" \"A user.\"\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web\" \"Serves.\" \"React\" {\n                c = component \"Controller\" \"Handles.\" \"Spring\"\n            }\n        }\n        u -> c \"Uses\" \"HTTPS\"\n        deploymentEnvironment \"Live\" {\n            deploymentNode \"Server\" \"A box.\" \"Linux\" {\n                containerInstance web\n            }\n        }\n    }\n    views {\n        systemLandscape {\n            include *\n        }\n        systemContext s {\n            include *\n        }\n        container s \"containers\" \"A key and a description.\" {\n            include *\n        }\n        component web {\n            include *\n        }\n        dynamic s {\n            u -> c \"Uses\"\n        }\n        deployment s \"Live\" {\n            include *\n        }\n        deployment * \"Live\" \"everywhere\" \"Every system, live.\" {\n            include *\n        }\n    }\n}\n"
+      }
+    }
+  ]
+}

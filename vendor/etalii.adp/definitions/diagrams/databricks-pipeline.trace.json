@@ -28,7 +28,7 @@
     },
     {
       "id": "the-gaps/4",
-      "text": "**Would resolve it.** A rule's `readings`, listing the origins it is read for; or a `typeMap` entry `as: \"none\"`; or 9.2 relaxed for bindings of one",
+      "text": "**Answered.** FBL 0.10: a rule's `origins` lists the readings it is read for, and an entry becomes at most one element per reading (5.1), so `resource",
       "statedBy": "binding bundle"
     },
     {
@@ -53,7 +53,7 @@
     },
     {
       "id": "the-gaps/9",
-      "text": "**Would resolve it.** `registration.resource` as a map from origin to capture, and a sentence in 9.1 saying that one open body has one model of which",
+      "text": "**Answered.** FBL 0.10: `registration.resource.byOrigin` gives each origin its capture, or `null` to the bundle, which then sees every resource, and t",
       "statedBy": "binding bundle"
     },
     {
@@ -103,7 +103,7 @@
     },
     {
       "id": "the-gaps/19",
-      "text": "**Would resolve it.** A sentence in 4.3 or 6.2 that an insert into an empty flow sequence writes a block sequence holding the entry, and that an",
+      "text": "**Answered.** FBL 0.10, 4.3 and 6.2 (*Flow sequences*): an insert into an empty flow sequence opens it into a block sequence and its undo restores `[]",
       "statedBy": "capability reader.databricksBundle"
     },
     {
@@ -128,7 +128,7 @@
     },
     {
       "id": "the-gaps/24",
-      "text": "**Would resolve it.** A LocalizedText beside `empty: \"refuse\"`, `absent`, an insert's `when` and its `create`, as `readOnly` already takes one.",
+      "text": "**Answered.** FBL 0.10: an attribute binding's `refusals` (`empty`, `absent`) and an insert's (`when`, `container`) give the sentence a host shows, as",
       "statedBy": "capability reader.databricksBundle"
     },
     {
@@ -158,7 +158,7 @@
     },
     {
       "id": "the-gaps/30",
-      "text": "**Would resolve the rest.** An `emit` for a YAML sequence item, or a sentence that a `{key}` slot's `create` with `child` (FBL 0.4) applies to an add",
+      "text": "**Answered, the rest.** FBL 0.10, 6.2 (`keys`): an add writes an attribute bound with `child` under the levels of `child`, as a set creates them, so a",
       "statedBy": "capability reader.databricksBundle"
     },
     {
@@ -183,7 +183,7 @@
     },
     {
       "id": "the-gaps/35",
-      "text": "**Would resolve it.** A slot option naming a second slot read only when the first is absent (under a name of its own, since `fallback` is FBL 0.5's",
+      "text": "**Answered.** FBL 0.10: an attribute binding's `secondary`, a slot read only when the attribute's own is absent and removed when the attribute is writ",
       "statedBy": "capability reader.databricksBundle"
     },
     {
@@ -249,6 +249,11 @@
     {
       "id": "the-gaps/48",
       "text": "**A relation from the second holder of a key.** A model built from records whose natural ids repeat matches a relation's ends by key, so the",
+      "statedBy": "capability reader.databricksBundle"
+    },
+    {
+      "id": "the-gaps/49",
+      "text": "**A library of a bare settings file is added through `databricks-pipeline.fbl`.** `databricks.fbl` reads a bare settings file's libraries as the draft",
       "statedBy": "capability reader.databricksBundle"
     }
   ],

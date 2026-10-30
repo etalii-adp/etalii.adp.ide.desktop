@@ -1,0 +1,193 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.12, section 4.9, FR-023: etalii.adp.ide.standalone/src/diagrams/wardley-map/backend/EtAlii.Adp.Diagram.WardleyMap.Tests/Fixtures/pipelines-both-forms.owm at ad1a4680a, unchanged. The pipeline of Kettle has its { on the line below it and owns that block, so its two components are its children; the legacy pipeline of Power, two numbers on its line, is read and opens nothing; Water's pipeline has an empty block. The body is opened alone, without a registration, so no id is stored and each element has the one DISL makes, which the fixture names but the reading does not compare.",
+  "binding": "../../wardley-map.fbl#map",
+  "input": "pipelines-both-forms.owm",
+  "read": {
+    "elements": [
+      {
+        "id": "title",
+        "type": "Title",
+        "attributes": {
+          "title": "Pipelines in both forms"
+        }
+      },
+      {
+        "id": "customer",
+        "type": "Anchor",
+        "attributes": {
+          "name": "Customer",
+          "visibility": 0.95,
+          "maturity": 0.63
+        }
+      },
+      {
+        "id": "kettle",
+        "type": "Component",
+        "attributes": {
+          "name": "Kettle",
+          "visibility": 0.43,
+          "maturity": 0.35
+        }
+      },
+      {
+        "id": "kettle-pipeline",
+        "type": "Pipeline",
+        "parent": null,
+        "attributes": {
+          "component": "Kettle"
+        }
+      },
+      {
+        "id": "campfire-kettle",
+        "type": "PipelineComponent",
+        "parent": "kettle-pipeline",
+        "attributes": {
+          "name": "Campfire Kettle",
+          "maturity": 0.15
+        }
+      },
+      {
+        "id": "electric-kettle",
+        "type": "PipelineComponent",
+        "parent": "kettle-pipeline",
+        "attributes": {
+          "name": "Electric Kettle",
+          "maturity": 0.63
+        }
+      },
+      {
+        "id": "power",
+        "type": "Component",
+        "attributes": {
+          "name": "Power",
+          "visibility": 0.1,
+          "maturity": 0.7
+        }
+      },
+      {
+        "id": "power-pipeline",
+        "type": "LegacyPipeline",
+        "parent": null,
+        "attributes": {
+          "component": "Power"
+        }
+      },
+      {
+        "id": "water",
+        "type": "Component",
+        "attributes": {
+          "name": "Water",
+          "visibility": 0.38,
+          "maturity": 0.82
+        }
+      },
+      {
+        "id": "water-pipeline",
+        "type": "Pipeline",
+        "parent": null,
+        "attributes": {
+          "component": "Water"
+        }
+      },
+      {
+        "id": "customer-kettle",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Customer",
+          "to": "Kettle"
+        }
+      },
+      {
+        "id": "kettle-power",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Kettle",
+          "to": "Power"
+        }
+      },
+      {
+        "id": "kettle-water",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Kettle",
+          "to": "Water"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "A pipeline added for Customer is written with its brace on its own line, as the tool writes one: one insert-entry at the end of the document.",
+      "edit": {
+        "add": {
+          "type": "Pipeline",
+          "id": "customer-pipeline",
+          "attributes": {
+            "component": "Customer"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 707,
+          "end": 707,
+          "text": "pipeline Customer\n{\n}\n"
+        }
+      ],
+      "expect": "title Pipelines in both forms\nanchor Customer [0.95, 0.63]\n\n// The current, nested form: children carry an evolution position only, and take their\n// visibility from the parent (Requirement 5.4).\ncomponent Kettle [0.43, 0.35]\npipeline Kettle\n{\n  component Campfire Kettle [0.15]\n  component Electric Kettle [0.63]\n}\n\n// The legacy two-coordinate form. Requirement 3.2 says a map written this way is written\n// back this way, rather than being silently upgraded to the nested form.\ncomponent Power [0.10, 0.70]\npipeline Power [0.30, 0.85]\n\n// An empty pipeline, which the parser tolerates during map construction.\ncomponent Water [0.38, 0.82]\npipeline Water\n{\n}\n\nCustomer->Kettle\nKettle->Power\nKettle->Water\npipeline Customer\n{\n}\n"
+    },
+    {
+      "doc": "The undo removes all of it, the brace's two lines included.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 707,
+          "end": 729,
+          "text": ""
+        }
+      ],
+      "expect": "title Pipelines in both forms\nanchor Customer [0.95, 0.63]\n\n// The current, nested form: children carry an evolution position only, and take their\n// visibility from the parent (Requirement 5.4).\ncomponent Kettle [0.43, 0.35]\npipeline Kettle\n{\n  component Campfire Kettle [0.15]\n  component Electric Kettle [0.63]\n}\n\n// The legacy two-coordinate form. Requirement 3.2 says a map written this way is written\n// back this way, rather than being silently upgraded to the nested form.\ncomponent Power [0.10, 0.70]\npipeline Power [0.30, 0.85]\n\n// An empty pipeline, which the parser tolerates during map construction.\ncomponent Water [0.38, 0.82]\npipeline Water\n{\n}\n\nCustomer->Kettle\nKettle->Power\nKettle->Water\n"
+    },
+    {
+      "doc": "A component added to Water's pipeline, whose block is empty, goes inside it, indented one step: the block's { on the line below the statement opens it.",
+      "edit": {
+        "add": {
+          "type": "PipelineComponent",
+          "id": "boiled-water",
+          "parent": "water-pipeline",
+          "slot": "components",
+          "attributes": {
+            "name": "Boiled Water",
+            "maturity": 0.5
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 659,
+          "end": 659,
+          "text": "  component Boiled Water [0.5]\n"
+        }
+      ],
+      "expect": "title Pipelines in both forms\nanchor Customer [0.95, 0.63]\n\n// The current, nested form: children carry an evolution position only, and take their\n// visibility from the parent (Requirement 5.4).\ncomponent Kettle [0.43, 0.35]\npipeline Kettle\n{\n  component Campfire Kettle [0.15]\n  component Electric Kettle [0.63]\n}\n\n// The legacy two-coordinate form. Requirement 3.2 says a map written this way is written\n// back this way, rather than being silently upgraded to the nested form.\ncomponent Power [0.10, 0.70]\npipeline Power [0.30, 0.85]\n\n// An empty pipeline, which the parser tolerates during map construction.\ncomponent Water [0.38, 0.82]\npipeline Water\n{\n  component Boiled Water [0.5]\n}\n\nCustomer->Kettle\nKettle->Power\nKettle->Water\n"
+    },
+    {
+      "doc": "The undo removes the component's line.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 659,
+          "end": 690,
+          "text": ""
+        }
+      ],
+      "expect": "title Pipelines in both forms\nanchor Customer [0.95, 0.63]\n\n// The current, nested form: children carry an evolution position only, and take their\n// visibility from the parent (Requirement 5.4).\ncomponent Kettle [0.43, 0.35]\npipeline Kettle\n{\n  component Campfire Kettle [0.15]\n  component Electric Kettle [0.63]\n}\n\n// The legacy two-coordinate form. Requirement 3.2 says a map written this way is written\n// back this way, rather than being silently upgraded to the nested form.\ncomponent Power [0.10, 0.70]\npipeline Power [0.30, 0.85]\n\n// An empty pipeline, which the parser tolerates during map construction.\ncomponent Water [0.38, 0.82]\npipeline Water\n{\n}\n\nCustomer->Kettle\nKettle->Power\nKettle->Water\n"
+    }
+  ]
+}

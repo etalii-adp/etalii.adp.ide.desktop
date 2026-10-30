@@ -421,13 +421,8 @@
   },
 
   "persistence": {
-    "format": "plugin:net.etalii.adp.databricks.files",
-    "files": {
-      "mode": "split",
-      "model": "{name}.json",
-      "view": "{name}.adp",
-      "doc": "The model is the pipeline's own settings, a bare JSON settings file or a pipeline resource in a bundle's YAML, which Databricks owns; the view is the ADP registration file's layout: block."
-    },
+    "format": "fbl",
+    "binding": "https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/databricks/backend/EtAlii.Adp.Diagram.Databricks/databricks.fbl#configuration",
     "ids": {
       "strategy": "natural",
       "prefix": { "Library": "library:" },
@@ -440,15 +435,20 @@
       },
       "doc": "`library:<path>`, the fixed `pipeline`, `target`, `compute` and `notifications`, and the derived flows `flow:<path>->pipeline` and `flow:pipeline->target`."
     },
-    "view": { "store": ["bounds"], "styleOverrides": "none" }
+    "view": { "store": ["bounds"], "styleOverrides": "none" },
+    "typeMap": {
+      "Pipeline": { "as": "Pipeline" },
+      "Library": { "as": "Library" },
+      "Notification": { "as": "unreadable", "doc": "One notifications entry: the pipeline's one notifications node holds them all." }
+    }
   },
 
   "plugins": {
     "net.etalii.adp.databricks.files": {
       "version": "^0.1.0",
-      "provides": ["persistenceFormat", "action"],
+      "provides": ["action"],
       "required": true,
-      "doc": "Reads and writes the pipeline inside Databricks' own settings file (JSON or YAML) by line splices, so an untouched file saves byte for byte, and keeps positions in the .adp registration's layout: block. As an action it runs the job reading's commands that the tool offers under this reading too."
+      "doc": "Runs the job reading's commands that the tool offers under this reading too. The pipeline itself is read and written through the binding (persistence)."
     },
     "net.etalii.adp.databricks.layout": {
       "version": "^0.1.0",

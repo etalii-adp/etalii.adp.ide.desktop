@@ -1,0 +1,18 @@
+title Annotations and labels
+anchor Customer [0.95, 0.63]
+
+component Cup of Tea [0.79, 0.61] label [-30, 12]
+component Kettle [0.4291, 0.2928] label [-57, 4]
+component Power [0.10, 0.70] label [-27, 20]
+
+Customer->Cup of Tea
+Cup of Tea->Kettle
+Kettle->Power
+
+// One numbered annotation pinned in two places. Requirement 6.8 says a one-element-one-position
+// model does not express this directly, and that none of the positions may be lost.
+annotation 1 [[0.43,0.49],[0.08,0.79]] Standardising power allows for standardised kettles
+annotation 2 [0.48, 0.85] A single-position annotation, for contrast
+annotations [0.60, 0.02]
+
+note Tea is the point of all this [0.22, 0.30]

@@ -1,0 +1,179 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.12, section 4.9 (comments, FBL 0.11), FR-001: etalii.adp.ide.standalone/src/diagrams/wardley-map/backend/EtAlii.Adp.Diagram.WardleyMap.Tests/Fixtures/trailing-comments.owm at ad1a4680a, unchanged. A comment trails every kind of statement and is read as no part of it: '(market)' inside the comment after Kettle is no decorator, and the url definition's address is https://example.com/grid.owm whole, since the address is one token that starts before the // of the scheme and runs past it, so the comment terminal is never a candidate there. 'pipeline Kettle // after a pipeline' with { on the next line owns that block. A set of the link's context and of the address-bearing submap's coordinates keeps each comment.",
+  "binding": "../../../wardley-map.fbl#map",
+  "input": "trailing-comments.owm",
+  "read": {
+    "elements": [
+      {
+        "id": "title",
+        "type": "Title",
+        "attributes": {
+          "title": "Trailing comments"
+        }
+      },
+      {
+        "id": "user",
+        "type": "Anchor",
+        "attributes": {
+          "name": "User",
+          "visibility": 0.95,
+          "maturity": 0.5
+        }
+      },
+      {
+        "id": "kettle",
+        "type": "Component",
+        "attributes": {
+          "name": "Kettle",
+          "inertia": true,
+          "decorators": []
+        }
+      },
+      {
+        "id": "power",
+        "type": "Component",
+        "attributes": {
+          "name": "Power",
+          "decorators": [
+            "build"
+          ],
+          "inertia": false
+        }
+      },
+      {
+        "id": "grid",
+        "type": "Submap",
+        "attributes": {
+          "name": "Grid",
+          "url": "gridMap"
+        }
+      },
+      {
+        "id": "grid-url",
+        "type": "Url",
+        "attributes": {
+          "name": "gridMap",
+          "address": "https://example.com/grid.owm"
+        }
+      },
+      {
+        "id": "user-kettle",
+        "type": "Dependency",
+        "attributes": {
+          "from": "User",
+          "to": "Kettle"
+        }
+      },
+      {
+        "id": "kettle-power",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Kettle",
+          "to": "Power",
+          "context": "it needs power"
+        }
+      },
+      {
+        "id": "kettle-evolve",
+        "type": "Evolve",
+        "attributes": {
+          "component": "Kettle",
+          "maturity": 0.7
+        }
+      },
+      {
+        "id": "note",
+        "type": "Note",
+        "attributes": {
+          "text": "A note"
+        }
+      },
+      {
+        "id": "kettle-pipeline",
+        "type": "Pipeline",
+        "attributes": {
+          "component": "Kettle"
+        }
+      },
+      {
+        "id": "electric",
+        "type": "PipelineComponent",
+        "parent": "kettle-pipeline",
+        "attributes": {
+          "name": "Electric",
+          "maturity": 0.6
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "The context is replaced alone; '// after a context' stays.",
+      "edit": {
+        "set": {
+          "element": "kettle-power",
+          "attributes": {
+            "context": "it runs on power"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 389,
+          "end": 403,
+          "text": "it runs on power"
+        }
+      ],
+      "expect": "title Trailing comments // after the title\nanchor User [0.95, 0.5] // after an anchor\ncomponent Kettle [0.5, 0.4] inertia // (market) inside a comment\ncomponent Power [0.1, 0.7] (build) // after a decorator\nsubmap Grid [0.2, 0.8] url(gridMap) // after a url reference\nurl gridMap [https://example.com/grid.owm] // after an address with a scheme\nUser->Kettle // after a link\nKettle->Power; it runs on power // after a context\nevolve Kettle 0.7 // after an evolve\nnote A note [0.3, 0.3] // after a note\npipeline Kettle // after a pipeline\n{\n    component Electric [0.6] // after a pipeline component, indented by four\n}\n"
+    },
+    {
+      "doc": "The undo puts the context back.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 389,
+          "end": 405,
+          "text": "it needs power"
+        }
+      ],
+      "expect": "title Trailing comments // after the title\nanchor User [0.95, 0.5] // after an anchor\ncomponent Kettle [0.5, 0.4] inertia // (market) inside a comment\ncomponent Power [0.1, 0.7] (build) // after a decorator\nsubmap Grid [0.2, 0.8] url(gridMap) // after a url reference\nurl gridMap [https://example.com/grid.owm] // after an address with a scheme\nUser->Kettle // after a link\nKettle->Power; it needs power // after a context\nevolve Kettle 0.7 // after an evolve\nnote A note [0.3, 0.3] // after a note\npipeline Kettle // after a pipeline\n{\n    component Electric [0.6] // after a pipeline component, indented by four\n}\n"
+    },
+    {
+      "doc": "The evolution's maturity changes its number alone; '// after an evolve' stays.",
+      "edit": {
+        "set": {
+          "element": "kettle-evolve",
+          "attributes": {
+            "maturity": 0.75
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 437,
+          "end": 440,
+          "text": "0.75"
+        }
+      ],
+      "expect": "title Trailing comments // after the title\nanchor User [0.95, 0.5] // after an anchor\ncomponent Kettle [0.5, 0.4] inertia // (market) inside a comment\ncomponent Power [0.1, 0.7] (build) // after a decorator\nsubmap Grid [0.2, 0.8] url(gridMap) // after a url reference\nurl gridMap [https://example.com/grid.owm] // after an address with a scheme\nUser->Kettle // after a link\nKettle->Power; it needs power // after a context\nevolve Kettle 0.75 // after an evolve\nnote A note [0.3, 0.3] // after a note\npipeline Kettle // after a pipeline\n{\n    component Electric [0.6] // after a pipeline component, indented by four\n}\n"
+    },
+    {
+      "doc": "The undo puts 0.7 back.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 437,
+          "end": 441,
+          "text": "0.7"
+        }
+      ],
+      "expect": "title Trailing comments // after the title\nanchor User [0.95, 0.5] // after an anchor\ncomponent Kettle [0.5, 0.4] inertia // (market) inside a comment\ncomponent Power [0.1, 0.7] (build) // after a decorator\nsubmap Grid [0.2, 0.8] url(gridMap) // after a url reference\nurl gridMap [https://example.com/grid.owm] // after an address with a scheme\nUser->Kettle // after a link\nKettle->Power; it needs power // after a context\nevolve Kettle 0.7 // after an evolve\nnote A note [0.3, 0.3] // after a note\npipeline Kettle // after a pipeline\n{\n    component Electric [0.6] // after a pipeline component, indented by four\n}\n"
+    }
+  ]
+}

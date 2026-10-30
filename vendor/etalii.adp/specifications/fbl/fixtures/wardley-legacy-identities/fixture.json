@@ -1,0 +1,213 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.12, sections 8.6 and 8.7, FR-026, FR-027, edge case 18: etalii.adp.ide.standalone/src/diagrams/wardley-map/examples/example 2/annotations-and-labels.owm at ad1a4680a with its .adp, unchanged, and its .identities.json with one entry added at its end, the change that makes it this fixture's: an entry of the kind 'evolution', which no rule of the binding declares. The registration has no identities: block, so the legacy file is read: every element of a rule with a sidecar id has the stored id of its kind and key (the anchor Customer in the component kind, the links by their two ends and Dependency, the annotations by number), and none is made anew. The entry of the undeclared kind is kept as written and reported as fbl.stale-view-data at its line. Removing the note prunes its entry by a remove-entry with one separator in the same edit, and the undo puts both back; the undeclared entry is never touched.",
+  "binding": "../../wardley-map.fbl#map",
+  "input": "annotations-and-labels.adp",
+  "read": {
+    "elements": [
+      {
+        "id": "title",
+        "type": "Title",
+        "attributes": {
+          "title": "Annotations and labels"
+        }
+      },
+      {
+        "id": "bet6u4ixymtzkcwnfa3cetm62",
+        "type": "Anchor",
+        "attributes": {
+          "name": "Customer"
+        }
+      },
+      {
+        "id": "3idacjcg9p73xw1abwn25s76t",
+        "type": "Component",
+        "attributes": {
+          "name": "Cup of Tea"
+        }
+      },
+      {
+        "id": "avuvz18xgys3ql9t62tp3rghb",
+        "type": "Component",
+        "attributes": {
+          "name": "Kettle",
+          "visibility": 0.4291,
+          "maturity": 0.2928
+        }
+      },
+      {
+        "id": "5heyb0bom60bkckus0yidm22h",
+        "type": "Component",
+        "attributes": {
+          "name": "Power"
+        }
+      },
+      {
+        "id": "6aeudzbkyqs4vek24ev4d6loi",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Customer",
+          "to": "Cup of Tea"
+        }
+      },
+      {
+        "id": "dx6826fsnvevxodjeki9dp5lo",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Cup of Tea",
+          "to": "Kettle"
+        }
+      },
+      {
+        "id": "dqvi6dsohlsfehm9rxf071n7e",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Kettle",
+          "to": "Power"
+        }
+      },
+      {
+        "id": "567h3cu7gy3y55scw4z3y3m16",
+        "type": "Annotation",
+        "attributes": {
+          "number": 1,
+          "positions": [
+            {
+              "visibility": 0.43,
+              "maturity": 0.49
+            },
+            {
+              "visibility": 0.08,
+              "maturity": 0.79
+            }
+          ]
+        }
+      },
+      {
+        "id": "23vkbysacswy4yceugiahwxee",
+        "type": "Annotation",
+        "attributes": {
+          "number": 2
+        }
+      },
+      {
+        "id": "annotations",
+        "type": "AnnotationsPosition",
+        "attributes": {
+          "visibility": 0.6,
+          "maturity": 0.02
+        }
+      },
+      {
+        "id": "94qzxpujukkawmjgayj4ncxpa",
+        "type": "Note",
+        "attributes": {
+          "text": "Tea is the point of all this"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "rule": "fbl.stale-view-data",
+        "line": 52
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "A move of Kettle writes the body alone: its identity entry's key does not change.",
+      "edit": {
+        "set": {
+          "element": "avuvz18xgys3ql9t62tp3rghb",
+          "attributes": {
+            "visibility": 0.45
+          }
+        }
+      },
+      "splices": [
+        {
+          "file": "annotations-and-labels.owm",
+          "operation": "replace-value",
+          "start": 127,
+          "end": 133,
+          "text": "0.45"
+        }
+      ],
+      "expect": "wardley/map\n",
+      "expectFiles": {
+        "annotations-and-labels.owm": "title Annotations and labels\nanchor Customer [0.95, 0.63]\n\ncomponent Cup of Tea [0.79, 0.61] label [-30, 12]\ncomponent Kettle [0.45, 0.2928] label [-57, 4]\ncomponent Power [0.10, 0.70] label [-27, 20]\n\nCustomer->Cup of Tea\nCup of Tea->Kettle\nKettle->Power\n\n// One numbered annotation pinned in two places. Requirement 6.8 says a one-element-one-position\n// model does not express this directly, and that none of the positions may be lost.\nannotation 1 [[0.43,0.49],[0.08,0.79]] Standardising power allows for standardised kettles\nannotation 2 [0.48, 0.85] A single-position annotation, for contrast\nannotations [0.60, 0.02]\n\nnote Tea is the point of all this [0.22, 0.30]\n"
+      }
+    },
+    {
+      "doc": "The undo puts 0.4291 back.",
+      "undo": true,
+      "splices": [
+        {
+          "file": "annotations-and-labels.owm",
+          "operation": "replace-value",
+          "start": 127,
+          "end": 131,
+          "text": "0.4291"
+        }
+      ],
+      "expect": "wardley/map\n",
+      "expectFiles": {
+        "annotations-and-labels.owm": "title Annotations and labels\nanchor Customer [0.95, 0.63]\n\ncomponent Cup of Tea [0.79, 0.61] label [-30, 12]\ncomponent Kettle [0.4291, 0.2928] label [-57, 4]\ncomponent Power [0.10, 0.70] label [-27, 20]\n\nCustomer->Cup of Tea\nCup of Tea->Kettle\nKettle->Power\n\n// One numbered annotation pinned in two places. Requirement 6.8 says a one-element-one-position\n// model does not express this directly, and that none of the positions may be lost.\nannotation 1 [[0.43,0.49],[0.08,0.79]] Standardising power allows for standardised kettles\nannotation 2 [0.48, 0.85] A single-position annotation, for contrast\nannotations [0.60, 0.02]\n\nnote Tea is the point of all this [0.22, 0.30]\n"
+      }
+    },
+    {
+      "doc": "Removing the note removes its line from the body and prunes its entry from the identities file, with the separator before it.",
+      "edit": {
+        "remove": {
+          "element": "94qzxpujukkawmjgayj4ncxpa"
+        }
+      },
+      "splices": [
+        {
+          "file": "annotations-and-labels.owm",
+          "operation": "remove-entry",
+          "start": 627,
+          "end": 674,
+          "text": ""
+        },
+        {
+          "file": "annotations-and-labels.identities.json",
+          "operation": "remove-entry",
+          "start": 734,
+          "end": 844,
+          "text": ""
+        }
+      ],
+      "expect": "wardley/map\n",
+      "expectFiles": {
+        "annotations-and-labels.identities.json": "[\n  {\n    \"id\": \"bet6u4ixymtzkcwnfa3cetm62\",\n    \"kind\": \"component\",\n    \"key\": \"Customer\"\n  },\n  {\n    \"id\": \"3idacjcg9p73xw1abwn25s76t\",\n    \"kind\": \"component\",\n    \"key\": \"Cup of Tea\"\n  },\n  {\n    \"id\": \"avuvz18xgys3ql9t62tp3rghb\",\n    \"kind\": \"component\",\n    \"key\": \"Kettle\"\n  },\n  {\n    \"id\": \"5heyb0bom60bkckus0yidm22h\",\n    \"kind\": \"component\",\n    \"key\": \"Power\"\n  },\n  {\n    \"id\": \"6aeudzbkyqs4vek24ev4d6loi\",\n    \"kind\": \"link\",\n    \"key\": \"Customer\\u001FCup of Tea\\u001FDependency\"\n  },\n  {\n    \"id\": \"dx6826fsnvevxodjeki9dp5lo\",\n    \"kind\": \"link\",\n    \"key\": \"Cup of Tea\\u001FKettle\\u001FDependency\"\n  },\n  {\n    \"id\": \"dqvi6dsohlsfehm9rxf071n7e\",\n    \"kind\": \"link\",\n    \"key\": \"Kettle\\u001FPower\\u001FDependency\"\n  },\n  {\n    \"id\": \"567h3cu7gy3y55scw4z3y3m16\",\n    \"kind\": \"annotation\",\n    \"key\": \"1\"\n  },\n  {\n    \"id\": \"23vkbysacswy4yceugiahwxee\",\n    \"kind\": \"annotation\",\n    \"key\": \"2\"\n  },\n  {\n    \"id\": \"4kq2f8wz1mbn7c0x5ya3tdl9e\",\n    \"kind\": \"evolution\",\n    \"key\": \"Kettle\"\n  }\n]",
+        "annotations-and-labels.owm": "title Annotations and labels\nanchor Customer [0.95, 0.63]\n\ncomponent Cup of Tea [0.79, 0.61] label [-30, 12]\ncomponent Kettle [0.4291, 0.2928] label [-57, 4]\ncomponent Power [0.10, 0.70] label [-27, 20]\n\nCustomer->Cup of Tea\nCup of Tea->Kettle\nKettle->Power\n\n// One numbered annotation pinned in two places. Requirement 6.8 says a one-element-one-position\n// model does not express this directly, and that none of the positions may be lost.\nannotation 1 [[0.43,0.49],[0.08,0.79]] Standardising power allows for standardised kettles\nannotation 2 [0.48, 0.85] A single-position annotation, for contrast\nannotations [0.60, 0.02]\n\n"
+      }
+    },
+    {
+      "doc": "The undo puts the note's line and its entry back.",
+      "undo": true,
+      "splices": [
+        {
+          "file": "annotations-and-labels.owm",
+          "operation": "remove-entry",
+          "start": 627,
+          "end": 627,
+          "text": "note Tea is the point of all this [0.22, 0.30]\n"
+        },
+        {
+          "file": "annotations-and-labels.identities.json",
+          "operation": "remove-entry",
+          "start": 734,
+          "end": 734,
+          "text": ",\n  {\n    \"id\": \"94qzxpujukkawmjgayj4ncxpa\",\n    \"kind\": \"note\",\n    \"key\": \"Tea is the point of all this\"\n  }"
+        }
+      ],
+      "expect": "wardley/map\n",
+      "expectFiles": {
+        "annotations-and-labels.identities.json": "[\n  {\n    \"id\": \"bet6u4ixymtzkcwnfa3cetm62\",\n    \"kind\": \"component\",\n    \"key\": \"Customer\"\n  },\n  {\n    \"id\": \"3idacjcg9p73xw1abwn25s76t\",\n    \"kind\": \"component\",\n    \"key\": \"Cup of Tea\"\n  },\n  {\n    \"id\": \"avuvz18xgys3ql9t62tp3rghb\",\n    \"kind\": \"component\",\n    \"key\": \"Kettle\"\n  },\n  {\n    \"id\": \"5heyb0bom60bkckus0yidm22h\",\n    \"kind\": \"component\",\n    \"key\": \"Power\"\n  },\n  {\n    \"id\": \"6aeudzbkyqs4vek24ev4d6loi\",\n    \"kind\": \"link\",\n    \"key\": \"Customer\\u001FCup of Tea\\u001FDependency\"\n  },\n  {\n    \"id\": \"dx6826fsnvevxodjeki9dp5lo\",\n    \"kind\": \"link\",\n    \"key\": \"Cup of Tea\\u001FKettle\\u001FDependency\"\n  },\n  {\n    \"id\": \"dqvi6dsohlsfehm9rxf071n7e\",\n    \"kind\": \"link\",\n    \"key\": \"Kettle\\u001FPower\\u001FDependency\"\n  },\n  {\n    \"id\": \"94qzxpujukkawmjgayj4ncxpa\",\n    \"kind\": \"note\",\n    \"key\": \"Tea is the point of all this\"\n  },\n  {\n    \"id\": \"567h3cu7gy3y55scw4z3y3m16\",\n    \"kind\": \"annotation\",\n    \"key\": \"1\"\n  },\n  {\n    \"id\": \"23vkbysacswy4yceugiahwxee\",\n    \"kind\": \"annotation\",\n    \"key\": \"2\"\n  },\n  {\n    \"id\": \"4kq2f8wz1mbn7c0x5ya3tdl9e\",\n    \"kind\": \"evolution\",\n    \"key\": \"Kettle\"\n  }\n]",
+        "annotations-and-labels.owm": "title Annotations and labels\nanchor Customer [0.95, 0.63]\n\ncomponent Cup of Tea [0.79, 0.61] label [-30, 12]\ncomponent Kettle [0.4291, 0.2928] label [-57, 4]\ncomponent Power [0.10, 0.70] label [-27, 20]\n\nCustomer->Cup of Tea\nCup of Tea->Kettle\nKettle->Power\n\n// One numbered annotation pinned in two places. Requirement 6.8 says a one-element-one-position\n// model does not express this directly, and that none of the positions may be lost.\nannotation 1 [[0.43,0.49],[0.08,0.79]] Standardising power allows for standardised kettles\nannotation 2 [0.48, 0.85] A single-position annotation, for contrast\nannotations [0.60, 0.02]\n\nnote Tea is the point of all this [0.22, 0.30]\n"
+      }
+    }
+  ]
+}

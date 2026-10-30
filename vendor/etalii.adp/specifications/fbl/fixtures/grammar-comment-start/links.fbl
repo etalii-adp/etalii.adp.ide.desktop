@@ -1,0 +1,52 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.11",
+  "doc": "The binding of the fixture grammar-comment-start (FBL 0.11, section 4.9, The tree): a list of named links, one per line, whose grammar states where a comment can start by its terminals alone. A URL token runs over the // of its scheme and of its path, so the comment terminal is never a candidate there; a // after a token is a comment.",
+  "bindings": {
+    "links": {
+      "title": "Named links",
+      "claims": {
+        "extensions": [
+          ".links"
+        ],
+        "origins": [
+          "example/links"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "grammar",
+        "grammar": "start: unit*\n?unit: link\n     | _NL\nlink: NAME URL\nNAME: /[a-z]+/\nURL: /https?:\\/\\/[^ \\t\\r\\n]+/\n_NL: /(\\r?\\n[ \\t]*)+/\nWHITESPACE: /[ \\t]+/\nCOMMENT: /\\/\\/[^\\r\\n]*/\n%ignore WHITESPACE\n%ignore COMMENT\n",
+        "recover": {
+          "unit": "unit",
+          "sync": [
+            "_NL"
+          ]
+        }
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "lf",
+        "indent": 2,
+        "finalNewline": true
+      },
+      "elements": [
+        {
+          "name": "link",
+          "type": "Link",
+          "at": "/link",
+          "id": {
+            "from": {
+              "node": "NAME"
+            }
+          },
+          "attributes": {
+            "url": {
+              "node": "URL"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

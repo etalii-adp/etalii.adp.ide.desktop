@@ -1,0 +1,189 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.11, section 4.9 (Writing, an absent part), FR-006 and FR-007: positional arguments written where they are absent, from the C4 module's C4AppendedArgument cases, written here. On 'container \"Web\" // c' the technology is written right after the last present argument and before the comment, the empty description padded before it; on 'softwareSystem \"S\" {' a set and a written part leave the block's opening and its bytes; on 'container \"API\" \"\"' the technology follows the empty description, which is not padded again, and clearing it again leaves the empty description before it.",
+  "binding": "../../structurizr.fbl#workspace",
+  "input": "absent.dsl",
+  "read": {
+    "elements": [
+      {
+        "id": "s",
+        "type": "SoftwareSystem",
+        "attributes": {
+          "name": "S"
+        }
+      },
+      {
+        "id": "web",
+        "type": "Container",
+        "parent": "s",
+        "attributes": {
+          "name": "Web"
+        }
+      },
+      {
+        "id": "api",
+        "type": "Container",
+        "parent": "s",
+        "attributes": {
+          "name": "API",
+          "description": ""
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "The technology is one insert-key after \"Web\" and before the trailing comment, with the absent description padded as \"\" (create with pad).",
+      "edit": {
+        "set": {
+          "element": "web",
+          "attributes": {
+            "technology": "Java"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 109,
+          "end": 109,
+          "text": " \"\" \"Java\""
+        }
+      ],
+      "expect": "workspace \"Absent arguments\" {\n    model {\n        s = softwareSystem \"S\" {\n            web = container \"Web\" \"\" \"Java\" // c\n            api = container \"API\" \"\"\n        }\n    }\n}\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 109,
+          "end": 119,
+          "text": ""
+        }
+      ],
+      "expect": "workspace \"Absent arguments\" {\n    model {\n        s = softwareSystem \"S\" {\n            web = container \"Web\" // c\n            api = container \"API\" \"\"\n        }\n    }\n}\n"
+    },
+    {
+      "doc": "A description written on an entry that opens a block goes after its name and before ' {', and no byte of the block changes.",
+      "edit": {
+        "set": {
+          "element": "s",
+          "attributes": {
+            "description": "A system."
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 73,
+          "end": 73,
+          "text": " \"A system.\""
+        }
+      ],
+      "expect": "workspace \"Absent arguments\" {\n    model {\n        s = softwareSystem \"S\" \"A system.\" {\n            web = container \"Web\" // c\n            api = container \"API\" \"\"\n        }\n    }\n}\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 73,
+          "end": 85,
+          "text": ""
+        }
+      ],
+      "expect": "workspace \"Absent arguments\" {\n    model {\n        s = softwareSystem \"S\" {\n            web = container \"Web\" // c\n            api = container \"API\" \"\"\n        }\n    }\n}\n"
+    },
+    {
+      "doc": "A set of a present argument of an entry that opens a block replaces the value only.",
+      "edit": {
+        "set": {
+          "element": "s",
+          "attributes": {
+            "name": "System"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 71,
+          "end": 72,
+          "text": "System"
+        }
+      ],
+      "expect": "workspace \"Absent arguments\" {\n    model {\n        s = softwareSystem \"System\" {\n            web = container \"Web\" // c\n            api = container \"API\" \"\"\n        }\n    }\n}\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 71,
+          "end": 77,
+          "text": "S"
+        }
+      ],
+      "expect": "workspace \"Absent arguments\" {\n    model {\n        s = softwareSystem \"S\" {\n            web = container \"Web\" // c\n            api = container \"API\" \"\"\n        }\n    }\n}\n"
+    },
+    {
+      "doc": "The empty description is present, so the technology follows it and nothing is padded.",
+      "edit": {
+        "set": {
+          "element": "api",
+          "attributes": {
+            "technology": "Go"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 151,
+          "end": 151,
+          "text": " \"Go\""
+        }
+      ],
+      "expect": "workspace \"Absent arguments\" {\n    model {\n        s = softwareSystem \"S\" {\n            web = container \"Web\" // c\n            api = container \"API\" \"\" \"Go\"\n        }\n    }\n}\n"
+    },
+    {
+      "doc": "Clearing the technology, the last positional argument, writes it empty (empty: keep) and leaves the empty description before it as it is.",
+      "edit": {
+        "set": {
+          "element": "api",
+          "attributes": {
+            "technology": ""
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 153,
+          "end": 155,
+          "text": ""
+        }
+      ],
+      "expect": "workspace \"Absent arguments\" {\n    model {\n        s = softwareSystem \"S\" {\n            web = container \"Web\" // c\n            api = container \"API\" \"\" \"\"\n        }\n    }\n}\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 153,
+          "end": 153,
+          "text": "Go"
+        }
+      ],
+      "expect": "workspace \"Absent arguments\" {\n    model {\n        s = softwareSystem \"S\" {\n            web = container \"Web\" // c\n            api = container \"API\" \"\" \"Go\"\n        }\n    }\n}\n"
+    }
+  ]
+}

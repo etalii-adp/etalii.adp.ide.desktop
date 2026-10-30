@@ -1,0 +1,15 @@
+title Same key twice
+anchor User [0.95, 0.5]
+component Tea [0.8, 0.3]
+component Tea [0.6, 0.5]
+component Tea [0.4, 0.7]
+component Tea 2 [0.2, 0.6]
+User->Tea
+User->Tea
+evolve Tea 0.8
+pipeline Tea
+{
+  component Leaf [0.4]
+}
+note Same words [0.3, 0.2]
+note Same words [0.5, 0.2]

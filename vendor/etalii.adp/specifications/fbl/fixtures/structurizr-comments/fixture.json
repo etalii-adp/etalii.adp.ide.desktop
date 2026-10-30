@@ -1,0 +1,131 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.11, section 4.9 (The tree, comments), FR-001 and FR-004: every comment form the DSL takes, owned as the rules say. 'model { // trailing a brace is legal' is the model entry's trailing comment, not its first child's; the hash and line comments directly above 'u = person' are u's leading comments; '/* block comment between elements */' starts its line, so it leads s. Removing u takes its leading comments with its line span and, by cascade, the relationship that names it, and leaves the block comment with s. The input is etalii.adp.ide.standalone/src/diagrams/c4/backend/EtAlii.Adp.Diagram.C4.Tests/Fixtures/comments-everywhere.dsl at ad1a4680a, byte for byte.",
+  "binding": "../../structurizr.fbl#workspace",
+  "input": "comments-everywhere.dsl",
+  "read": {
+    "elements": [
+      {
+        "id": "u",
+        "type": "Person",
+        "parent": null,
+        "attributes": {
+          "name": "User",
+          "description": "A user."
+        }
+      },
+      {
+        "id": "s",
+        "type": "SoftwareSystem",
+        "parent": null,
+        "attributes": {
+          "name": "System"
+        }
+      },
+      {
+        "id": "web",
+        "type": "Container",
+        "parent": "s",
+        "attributes": {
+          "name": "Web App",
+          "technology": "React"
+        }
+      },
+      {
+        "id": "db",
+        "type": "Container",
+        "parent": "s",
+        "attributes": {
+          "name": "Database",
+          "technology": "PostgreSQL"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "// a line comment before the workspace\n# a hash comment, which the DSL also accepts\n/*\n * a block comment spanning lines\n */\nworkspace \"Comments\" \"Every comment form the DSL actually accepts.\" {\n\n    model { // trailing a brace is legal\n        # hash comment inside the model\n        // Trailing a declaration is NOT: the real parser reads the comment as extra\n        // arguments and refuses the line. ADP accepts it anyway, which is harmless -\n        // a reader that takes more than the writer emits - but the corpus must not\n        // claim the format allows something it does not.\n        u = person \"User\" \"A user.\"\n        /* block comment between elements */\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web App\" \"Serves pages.\" \"React\"\n            db = container \"Database\" \"Stores things.\" \"PostgreSQL\"\n            web -> db \"Reads from and writes to\" \"SQL/TCP\"\n        }\n        u -> web \"Visits\" \"HTTPS\"\n    }\n\n    views {\n        systemContext s \"context\" {\n            include *\n        }\n        container s \"containers\" {\n            include *\n        }\n    }\n\n}\n// a trailing comment after the closing brace\n"
+    },
+    {
+      "doc": "A set replaces the value's bytes only.",
+      "edit": {
+        "set": {
+          "element": "u",
+          "attributes": {
+            "description": "A person."
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 617,
+          "end": 624,
+          "text": "A person."
+        }
+      ],
+      "expect": "// a line comment before the workspace\n# a hash comment, which the DSL also accepts\n/*\n * a block comment spanning lines\n */\nworkspace \"Comments\" \"Every comment form the DSL actually accepts.\" {\n\n    model { // trailing a brace is legal\n        # hash comment inside the model\n        // Trailing a declaration is NOT: the real parser reads the comment as extra\n        // arguments and refuses the line. ADP accepts it anyway, which is harmless -\n        // a reader that takes more than the writer emits - but the corpus must not\n        // claim the format allows something it does not.\n        u = person \"User\" \"A person.\"\n        /* block comment between elements */\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web App\" \"Serves pages.\" \"React\"\n            db = container \"Database\" \"Stores things.\" \"PostgreSQL\"\n            web -> db \"Reads from and writes to\" \"SQL/TCP\"\n        }\n        u -> web \"Visits\" \"HTTPS\"\n    }\n\n    views {\n        systemContext s \"context\" {\n            include *\n        }\n        container s \"containers\" {\n            include *\n        }\n    }\n\n}\n// a trailing comment after the closing brace\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 617,
+          "end": 626,
+          "text": "A user."
+        }
+      ],
+      "expect": "// a line comment before the workspace\n# a hash comment, which the DSL also accepts\n/*\n * a block comment spanning lines\n */\nworkspace \"Comments\" \"Every comment form the DSL actually accepts.\" {\n\n    model { // trailing a brace is legal\n        # hash comment inside the model\n        // Trailing a declaration is NOT: the real parser reads the comment as extra\n        // arguments and refuses the line. ADP accepts it anyway, which is harmless -\n        // a reader that takes more than the writer emits - but the corpus must not\n        // claim the format allows something it does not.\n        u = person \"User\" \"A user.\"\n        /* block comment between elements */\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web App\" \"Serves pages.\" \"React\"\n            db = container \"Database\" \"Stores things.\" \"PostgreSQL\"\n            web -> db \"Reads from and writes to\" \"SQL/TCP\"\n        }\n        u -> web \"Visits\" \"HTTPS\"\n    }\n\n    views {\n        systemContext s \"context\" {\n            include *\n        }\n        container s \"containers\" {\n            include *\n        }\n    }\n\n}\n// a trailing comment after the closing brace\n"
+    },
+    {
+      "doc": "Removing u removes its line span, with the comments directly above it, and the relationship that names it (cascade); the block comment below u leads s and stays.",
+      "edit": {
+        "remove": {
+          "element": "u"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 237,
+          "end": 626,
+          "text": ""
+        },
+        {
+          "operation": "remove-entry",
+          "start": 920,
+          "end": 954,
+          "text": ""
+        }
+      ],
+      "expect": "// a line comment before the workspace\n# a hash comment, which the DSL also accepts\n/*\n * a block comment spanning lines\n */\nworkspace \"Comments\" \"Every comment form the DSL actually accepts.\" {\n\n    model { // trailing a brace is legal\n        /* block comment between elements */\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web App\" \"Serves pages.\" \"React\"\n            db = container \"Database\" \"Stores things.\" \"PostgreSQL\"\n            web -> db \"Reads from and writes to\" \"SQL/TCP\"\n        }\n    }\n\n    views {\n        systemContext s \"context\" {\n            include *\n        }\n        container s \"containers\" {\n            include *\n        }\n    }\n\n}\n// a trailing comment after the closing brace\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 237,
+          "end": 237,
+          "text": "        # hash comment inside the model\n        // Trailing a declaration is NOT: the real parser reads the comment as extra\n        // arguments and refuses the line. ADP accepts it anyway, which is harmless -\n        // a reader that takes more than the writer emits - but the corpus must not\n        // claim the format allows something it does not.\n        u = person \"User\" \"A user.\"\n"
+        },
+        {
+          "operation": "remove-entry",
+          "start": 531,
+          "end": 531,
+          "text": "        u -> web \"Visits\" \"HTTPS\"\n"
+        }
+      ],
+      "expect": "// a line comment before the workspace\n# a hash comment, which the DSL also accepts\n/*\n * a block comment spanning lines\n */\nworkspace \"Comments\" \"Every comment form the DSL actually accepts.\" {\n\n    model { // trailing a brace is legal\n        # hash comment inside the model\n        // Trailing a declaration is NOT: the real parser reads the comment as extra\n        // arguments and refuses the line. ADP accepts it anyway, which is harmless -\n        // a reader that takes more than the writer emits - but the corpus must not\n        // claim the format allows something it does not.\n        u = person \"User\" \"A user.\"\n        /* block comment between elements */\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web App\" \"Serves pages.\" \"React\"\n            db = container \"Database\" \"Stores things.\" \"PostgreSQL\"\n            web -> db \"Reads from and writes to\" \"SQL/TCP\"\n        }\n        u -> web \"Visits\" \"HTTPS\"\n    }\n\n    views {\n        systemContext s \"context\" {\n            include *\n        }\n        container s \"containers\" {\n            include *\n        }\n    }\n\n}\n// a trailing comment after the closing brace\n"
+    }
+  ]
+}

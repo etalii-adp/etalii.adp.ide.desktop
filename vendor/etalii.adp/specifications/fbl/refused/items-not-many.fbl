@@ -1,0 +1,53 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.12",
+  "doc": "Refused by FBL 0.12, section 14.1, step 6: the attribute title reads structured items (items), and the tool type it is read for, systems/causal-loop-diagram, declares a Loop's title single-valued, so the list of items has no attribute to hold it (section 5.2). The same slot without items loads.",
+  "bindings": {
+    "loops": {
+      "title": "Loops, structured items on a single-valued attribute",
+      "claims": {
+        "extensions": [
+          ".loops"
+        ],
+        "origins": [
+          "systems/causal-loop-diagram"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "grammar",
+        "grammar": "start: unit*\n?unit: loop\n     | _NL\nloop: NAME \"[\" part (\",\" part)* \"]\"\npart: NAME\nNAME: /[a-z]+/\n_NL: /(\\r?\\n[ \\t]*)+/\nWHITESPACE: /[ \\t]+/\n%ignore WHITESPACE\n",
+        "recover": {
+          "unit": "unit",
+          "sync": [
+            "_NL"
+          ]
+        }
+      },
+      "reader": "declared",
+      "elements": [
+        {
+          "name": "loop",
+          "type": "Loop",
+          "at": "/loop",
+          "id": {
+            "from": {
+              "node": "NAME"
+            }
+          },
+          "attributes": {
+            "title": {
+              "node": "part",
+              "items": {
+                "name": {
+                  "node": "NAME"
+                }
+              },
+              "readOnly": true
+            }
+          }
+        }
+      ]
+    }
+  }
+}

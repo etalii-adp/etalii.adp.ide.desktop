@@ -32,7 +32,7 @@
           "type": "string"
         },
         "fbl": {
-          "description": "The FBL version the document is written in: 0.1 to 0.9 (draft); 0.3 names the tool type's specification in place of DISL, lets a specification name one binding per format family, and spells a reference to a stored id as by: \"id\". 0.4 creates and removes the missing levels of a nested container or child mapping. 0.5 defines a scalar's written text, read with read, and adds quoted and fallback to an attribute binding. 0.6 applies an attribute binding's empty rule to an insert as well as to a set. 0.7 adds the bullets family and the drift check before an edit. 0.8 lets an insert of the yaml and json families write a constant. 0.9 adds the grammar family. See FBL 0.9, section 2.7.",
+          "description": "The FBL version the document is written in: 0.1 to 0.12 (draft); 0.3 names the tool type's specification in place of DISL, lets a specification name one binding per format family, and spells a reference to a stored id as by: \"id\". 0.4 creates and removes the missing levels of a nested container or child mapping. 0.5 defines a scalar's written text, read with read, and adds quoted and fallback to an attribute binding. 0.6 applies an attribute binding's empty rule to an insert as well as to a set. 0.7 adds the bullets family and the drift check before an edit. 0.8 lets an insert of the yaml and json families write a constant. 0.9 adds the grammar family. 0.10 lets one binding serve readings of different metamodels (origins on a rule, resource.byOrigin, one model per origin of one open body), inserts into a yaml flow sequence, gives a refusal its sentence, writes a nested mapping on an add, and adds secondary, {key:lower} and a fixture's template and expectFiles. 0.11 extends the grammar family so that Structurizr DSL is bound in it (comments owned and kept, recovery inside blocks, escapes, absent and positional parts, several nodes for a many attribute, a block written around a first child, views and the statements of the selected view, a view block that can be added, a value gathered from several places), and says how the legacy layout's keys, numbers and stale entries are written. 0.12 extends the grammar family so that the Wardley map's .owm is bound in it (a block brace on the next line, segments in any order, a slot's items and separator, a sidecar id's kind and ordinal, an identity entry that moves with its key), and reads the legacy identities file as the array of {id, kind, key} its tool writes, no longer as an object. See FBL 0.12, section 2.7.",
           "enum": [
             "0.1",
             "0.2",
@@ -42,7 +42,10 @@
             "0.6",
             "0.7",
             "0.8",
-            "0.9"
+            "0.9",
+            "0.10",
+            "0.11",
+            "0.12"
           ]
         },
         "doc": {
@@ -237,6 +240,79 @@
                       }
                     }
                   }
+                }
+              }
+            }
+          }
+        },
+        {
+          "description": "(FBL 0.11) A block rule of the grammar family has at and no line; a block rule's at and insert, a view given as a slot, opens as an object, selectedView, and an attribute binding's create with after, its gather and a slot's escape stand only in a binding of the grammar family (section 4.9).",
+          "if": {
+            "required": [
+              "body"
+            ],
+            "properties": {
+              "body": {
+                "required": [
+                  "family"
+                ],
+                "properties": {
+                  "family": {
+                    "const": "grammar"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "blocks": {
+                "items": {
+                  "required": [
+                    "at"
+                  ]
+                }
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "blocks": {
+                "items": {
+                  "not": {
+                    "anyOf": [
+                      {
+                        "required": [
+                          "at"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "insert"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "view"
+                        ],
+                        "properties": {
+                          "view": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              "elements": {
+                "items": {
+                  "$ref": "#/$defs/RuleOutsideGrammar"
+                }
+              },
+              "relations": {
+                "items": {
+                  "$ref": "#/$defs/RuleOutsideGrammar"
                 }
               }
             }
@@ -607,7 +683,7 @@
       ]
     },
     "Recover": {
-      "description": "(FBL 0.9) grammar: read a body that does not parse in part. The start rule's one expansion is unit*; the body is read unit by unit, and text that does not parse as a unit is skipped to the end of the next token of a sync terminal, kept, and reported as fbl.unparsed-text. See section 4.9.",
+      "description": "(FBL 0.9) grammar: read a body that does not parse in part. The start rule's one expansion is unit*; the body is read unit by unit, and text that does not parse as a unit is skipped to the end of the next token of a sync terminal, kept, and reported as fbl.unparsed-text. See section 4.9. (FBL 0.11) With nested, the body is read in part inside the blocks its open and close tokens make too, and with unclosed an ignored terminal's token that does not end with its text is reported as fbl.unclosed-comment.",
       "type": "object",
       "properties": {
         "unit": {
@@ -620,6 +696,37 @@
           "type": "array",
           "minItems": 1,
           "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "nested": {
+          "description": "FBL 0.11, section 4.9: read a body that does not parse in part inside its blocks too. open and close are the terminals (or anonymous string terminals) that open and close a block.",
+          "type": "object",
+          "properties": {
+            "open": {
+              "type": "string",
+              "minLength": 1
+            },
+            "close": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "open",
+            "close"
+          ],
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          }
+        },
+        "unclosed": {
+          "description": "FBL 0.11, section 4.9: ignored terminals whose token must end with the given text; one that does not is reported as fbl.unclosed-comment.",
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
             "type": "string",
             "minLength": 1
           }
@@ -754,7 +861,7 @@
       }
     },
     "BlockRule": {
-      "description": "blocks: a statement that opens a { } block and produces no element, such as 'model {' or 'views {', so that element rules can say which blocks they may appear in. A block rule with 'view' names a view of the body by the value of that group, which a registration's view header selects. See section 4.7.",
+      "description": "A node or statement that produces no element. blocks: a statement that opens a { } block, such as 'model {' or 'views {', so that element rules can say which blocks they may appear in. (FBL 0.11) grammar: the nodes a selector reaches, such as a view of a workspace. A block rule with 'view' names a view of the body by the value of that group or slot, which a registration's view header selects. See sections 4.7 and 4.9.",
       "type": "object",
       "properties": {
         "name": {
@@ -763,7 +870,12 @@
         "doc": {
           "$ref": "#/$defs/Doc"
         },
+        "at": {
+          "description": "FBL 0.11, grammar: where the rule's entries are (section 4.9). Exactly one of at and line.",
+          "$ref": "#/$defs/Selector"
+        },
         "line": {
+          "description": "blocks: the statement. Exactly one of at and line.",
           "$ref": "#/$defs/Regex"
         },
         "within": {
@@ -776,7 +888,28 @@
           "type": "boolean"
         },
         "view": {
-          "type": "string"
+          "description": "The block defines a view of the body, named by this group's value (blocks), or (FBL 0.11) by this slot's value, a {node} or {value} slot (grammar). A registration's view header selects it (section 9.3).",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/Slot"
+            }
+          ]
+        },
+        "origins": {
+          "description": "FBL 0.11, section 5.1: the readings this block rule is a view for, as origins of the binding's claims.origins, with the meaning origins has on every rule (section 9.3). Absent: every reading.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "insert": {
+          "description": "FBL 0.11, grammar: how a new entry of the block rule is written, planned and undone as an element's insert (section 6.2); it produces no element.",
+          "$ref": "#/$defs/Insert"
         }
       },
       "additionalProperties": false,
@@ -784,8 +917,19 @@
         "^x-": true
       },
       "required": [
-        "name",
-        "line"
+        "name"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "at"
+          ]
+        },
+        {
+          "required": [
+            "line"
+          ]
+        }
       ]
     },
     "SectionRule": {
@@ -840,9 +984,38 @@
             "type": "string"
           }
         },
-        "opens": {
-          "description": "blocks: the statement may open a { } block.",
+        "selectedView": {
+          "description": "FBL 0.11, grammar: the rule matches only entries inside the entry of the view the reading shows (sections 4.9, 9.3). Only in a binding with a block rule that has view (section 14.1).",
           "type": "boolean"
+        },
+        "opens": {
+          "description": "blocks: the statement may open a { } block. (FBL 0.11) grammar: the text that opens a block after the entry's last token, and the closing line, when an add puts a first child into an entry without a block; a line feed in open writes a line ending and the entry's indentation (section 4.9).",
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "open": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "close": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "open",
+                "close"
+              ],
+              "additionalProperties": false,
+              "patternProperties": {
+                "^x-": true
+              }
+            }
+          ]
         },
         "caseInsensitive": {
           "description": "lines, blocks, bullets: match 'line' ignoring the case of ASCII letters.",
@@ -857,6 +1030,15 @@
         },
         "when": {
           "$ref": "#/$defs/Expression"
+        },
+        "origins": {
+          "description": "FBL 0.10, section 5.1: the readings this rule is read for, as origins of the binding's claims.origins. Absent: every reading.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
         },
         "id": {
           "$ref": "#/$defs/IdBinding"
@@ -960,9 +1142,38 @@
             "type": "string"
           }
         },
-        "opens": {
-          "description": "blocks: the statement may open a { } block.",
+        "selectedView": {
+          "description": "FBL 0.11, grammar: the rule matches only entries inside the entry of the view the reading shows (sections 4.9, 9.3). Only in a binding with a block rule that has view (section 14.1).",
           "type": "boolean"
+        },
+        "opens": {
+          "description": "blocks: the statement may open a { } block. (FBL 0.11) grammar: the text that opens a block after the entry's last token, and the closing line, when an add puts a first child into an entry without a block; a line feed in open writes a line ending and the entry's indentation (section 4.9).",
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "open": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "close": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "open",
+                "close"
+              ],
+              "additionalProperties": false,
+              "patternProperties": {
+                "^x-": true
+              }
+            }
+          ]
         },
         "caseInsensitive": {
           "description": "lines, blocks, bullets: match 'line' ignoring the case of ASCII letters.",
@@ -977,6 +1188,15 @@
         },
         "when": {
           "$ref": "#/$defs/Expression"
+        },
+        "origins": {
+          "description": "FBL 0.10, section 5.1: the readings this rule is read for, as origins of the binding's claims.origins. Absent: every reading.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
         },
         "id": {
           "$ref": "#/$defs/IdBinding"
@@ -1075,6 +1295,15 @@
           "properties": {
             "key": {
               "$ref": "#/$defs/Expression"
+            },
+            "kind": {
+              "description": "(FBL 0.12) The kind an entry of this rule is kept under, in the identities block and in a legacy identities file: the key of an entry is the kind and the natural key together, so that elements of different kinds with the same natural key keep different ids. Without it, the rule's type is the kind (section 8.6).",
+              "$ref": "#/$defs/Name"
+            },
+            "ordinal": {
+              "description": "(FBL 0.12) The text appended to the natural key of the n-th later entry of the same kind and key, in document order, with {n} replaced by n, from 2 (section 8.6).",
+              "type": "string",
+              "pattern": "^(?:(?!\\{n\\}).)*\\{n\\}(?:(?!\\{n\\}).)*$"
             }
           },
           "additionalProperties": false,
@@ -1151,6 +1380,42 @@
         "match": {
           "description": "(FBL 0.9) With node: a regular expression with a named group 'value' that the whole text of the node must match; the value is that group, and its span the value's span (section 5.2).",
           "$ref": "#/$defs/Regex"
+        },
+        "items": {
+          "description": "(FBL 0.12) grammar, on the {node} slot of a many attribute: a map from an item attribute to a {node} slot relative to each node the selector reaches; the attribute is then a list of structured values, one per node, each a map of its item attributes (sections 5.2, 6.3).",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/Slot"
+          },
+          "minProperties": 1
+        },
+        "separator": {
+          "description": "(FBL 0.12) The text written between two items of an items slot; \", \" when none is given (section 6.3).",
+          "type": "string"
+        },
+        "escape": {
+          "description": "FBL 0.11, section 4.9, grammar, with node: the escapes of a quoted value. Reading replaces with+quote by quote and with+with by with, and keeps with before any other character; writing escapes every quote and with character of the value.",
+          "type": "object",
+          "properties": {
+            "with": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1
+            },
+            "quote": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1
+            }
+          },
+          "required": [
+            "with",
+            "quote"
+          ],
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          }
         }
       },
       "additionalProperties": false,
@@ -1203,7 +1468,18 @@
             "value"
           ]
         }
-      ]
+      ],
+      "dependentRequired": {
+        "escape": [
+          "node"
+        ],
+        "items": [
+          "node"
+        ],
+        "separator": [
+          "items"
+        ]
+      }
     },
     "AttributeBinding": {
       "description": "A slot bound to one DISL attribute, with what it reads from a scalar and how empty values, numbers, times, scalar style, references and wire values are written. See section 5.2.",
@@ -1300,6 +1576,30 @@
         "match": {
           "description": "(FBL 0.9) With node: a regular expression with a named group 'value' that the whole text of the node must match; the value is that group, and its span the value's span (section 5.2).",
           "$ref": "#/$defs/Regex"
+        },
+        "escape": {
+          "description": "FBL 0.11, section 4.9, grammar, with node: the escapes of a quoted value. Reading replaces with+quote by quote and with+with by with, and keeps with before any other character; writing escapes every quote and with character of the value.",
+          "type": "object",
+          "properties": {
+            "with": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1
+            },
+            "quote": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1
+            }
+          },
+          "required": [
+            "with",
+            "quote"
+          ],
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          }
         },
         "empty": {
           "enum": [
@@ -1422,6 +1722,10 @@
           "description": "A second slot that wins on read when present and is removed when the value is written (a formatted text beside a plain one).",
           "$ref": "#/$defs/Slot"
         },
+        "secondary": {
+          "description": "FBL 0.10, section 5.2: a second slot read only when the attribute's slot is absent. Writing the attribute writes its slot and removes this one (remove-key). Not with override.",
+          "$ref": "#/$defs/Slot"
+        },
         "content": {
           "description": "xml text slots: 'text' (escaped character data) or 'html-paragraphs' (an HTML body read as plain text, one line per <p>).",
           "enum": [
@@ -1430,7 +1734,7 @@
           ]
         },
         "create": {
-          "description": "How a missing child that holds the value is written when a value is set (section 5.2).",
+          "description": "How a missing child or part that holds the value is written when a value is set (sections 4.9, 5.2).",
           "anyOf": [
             {
               "type": "object",
@@ -1489,8 +1793,58 @@
               "required": [
                 "at"
               ]
+            },
+            {
+              "description": "FBL 0.11, grammar: how an absent part holding the value is written. emit is its text with {value}; it is written right after the last token of the first attribute of after that is present; with pad, each absent attribute of after before that one is written first, with its own emit and the empty value. See section 4.9.",
+              "type": "object",
+              "properties": {
+                "emit": {
+                  "type": "string"
+                },
+                "after": {
+                  "type": "array",
+                  "items": {
+                    "description": "An attribute of the same rule.",
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "minItems": 1
+                },
+                "pad": {
+                  "type": "boolean",
+                  "default": false
+                }
+              },
+              "required": [
+                "emit",
+                "after"
+              ],
+              "additionalProperties": false,
+              "patternProperties": {
+                "^x-": true
+              }
             }
           ]
+        },
+        "gather": {
+          "description": "FBL 0.11, grammar: further {node} slots of the same entry whose values follow the first slot's, in document order. Only on a read-only binding of a many attribute (section 14.1).",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Slot"
+          },
+          "minItems": 1
+        },
+        "items": {
+          "description": "(FBL 0.12) grammar, on a {node} slot of a many attribute: a map from an item attribute to a {node} slot relative to each node the selector reaches; the attribute is then a list of structured values, one per node, each a map of its item attributes (sections 5.2, 6.3).",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/Slot"
+          },
+          "minProperties": 1
+        },
+        "separator": {
+          "description": "(FBL 0.12) The text written between two items of an items slot; \", \" when none is given (section 6.3).",
+          "type": "string"
         },
         "readOnly": {
           "description": "true, or the sentence a host shows as the reason.",
@@ -1502,11 +1856,45 @@
               "$ref": "#/$defs/LocalizedText"
             }
           ]
+        },
+        "refusals": {
+          "description": "FBL 0.10, section 6.4: the sentence a host shows for each refusal this attribute binding causes, as readOnly gives one: empty, a set or an add refused by empty: \"refuse\"; absent, a set refused by absent.",
+          "type": "object",
+          "properties": {
+            "empty": {
+              "$ref": "#/$defs/LocalizedText"
+            },
+            "absent": {
+              "$ref": "#/$defs/LocalizedText"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          }
         }
       },
       "additionalProperties": false,
       "patternProperties": {
         "^x-": true
+      },
+      "not": {
+        "description": "FBL 0.10: secondary is the reverse of override, and an attribute binding takes at most one of them.",
+        "required": [
+          "secondary",
+          "override"
+        ]
+      },
+      "dependentRequired": {
+        "escape": [
+          "node"
+        ],
+        "items": [
+          "node"
+        ],
+        "separator": [
+          "items"
+        ]
       }
     },
     "Insert": {
@@ -1649,6 +2037,22 @@
         },
         "when": {
           "$ref": "#/$defs/Expression"
+        },
+        "refusals": {
+          "description": "FBL 0.10, section 6.4: the sentence a host shows for each refusal of this insert: when, the add refused because when is false; container, the add refused because the container is missing and the insert has no create.",
+          "type": "object",
+          "properties": {
+            "when": {
+              "$ref": "#/$defs/LocalizedText"
+            },
+            "container": {
+              "$ref": "#/$defs/LocalizedText"
+            }
+          },
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          }
         }
       },
       "additionalProperties": false,
@@ -1763,19 +2167,51 @@
           "description": "The first placement creates the registration beside a bare body, and (FBL 0.7) so does the first change to a setting a declared block keeps (section 8.4)."
         },
         "resource": {
-          "description": "The selector capture a registration's resource header selects, so one body can hold several diagrams (a bundle file with several jobs). Without the header, the first entry in document order is used.",
+          "description": "The selector capture a registration's resource header selects, so one body can hold several diagrams (a bundle file with several jobs): capture for every reading, or (FBL 0.10) byOrigin, a capture per reading's origin. Without the header, the first entry in document order is used, per origin (section 8.2).",
           "type": "object",
           "properties": {
             "capture": {
               "type": "string"
+            },
+            "byOrigin": {
+              "description": "FBL 0.10, section 8.2: the capture per reading's origin; null: readings of that origin select no resource and see every one. An origin not listed selects none. Every origin is one of claims.origins (section 14.1).",
+              "type": "object",
+              "additionalProperties": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "capture": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "capture"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
             }
           },
           "additionalProperties": false,
           "patternProperties": {
             "^x-": true
           },
-          "required": [
-            "capture"
+          "oneOf": [
+            {
+              "required": [
+                "capture"
+              ]
+            },
+            {
+              "required": [
+                "byOrigin"
+              ]
+            }
           ]
         },
         "legacyLayout": {
@@ -1783,7 +2219,7 @@
           "type": "string"
         },
         "legacyIdentities": {
-          "description": "A sidecar of ids read, keyed by natural key: '{base}.identities.json'.",
+          "description": "A sidecar of ids read when the registration has no identities: block, and written back while it exists: '{base}.identities.json'. (FBL 0.12) A JSON array of entries {id, kind, key}, matched to the element of that kind with that natural key (section 8.7).",
           "type": "string"
         }
       },
@@ -1793,7 +2229,7 @@
       }
     },
     "Template": {
-      "description": "The bytes of a new body. Placeholders {name}, {base} and {key} are replaced by the new file's name, its base name, and the base name folded to a key, and {newid:<rule>} by a new id made by that rule's id strategy; nothing else is interpreted. See section 13.",
+      "description": "The bytes of a new body. Placeholders {name}, {base} and {key} are replaced by the new file's name, its base name, and the base name folded to a key, (FBL 0.10) {key:lower} by that key with every ASCII letter in lower case, and {newid:<rule>} by a new id made by that rule's id strategy; nothing else is interpreted. See section 13.",
       "type": "object",
       "properties": {
         "text": {
@@ -1909,7 +2345,8 @@
           ]
         },
         "file": {
-          "type": "string"
+          "type": "string",
+          "description": "The file the splice writes, for folder subjects (section 10.4) and (FBL 0.10) in a fixture, a file beside its input, named relative to the input's folder: the body a registration names, or a sidecar (section 15.3). Absent: the input, or the subject's file."
         },
         "start": {
           "type": "integer",
@@ -1949,6 +2386,28 @@
         },
         "input": {
           "type": "string"
+        },
+        "template": {
+          "description": "FBL 0.10, section 15.3: the input is the new document the binding's template gives for a file of this name and the reading of this origin (section 13), placeholders replaced; the reading the fixture's read and steps describe is of that origin.",
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "origin": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "name",
+            "origin"
+          ],
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-": true
+          }
         },
         "read": {
           "description": "What reading the input yields.",
@@ -2076,6 +2535,13 @@
               },
               "expectFile": {
                 "type": "string"
+              },
+              "expectFiles": {
+                "description": "FBL 0.10, section 15.3: the bytes, after the step, of each file beside the input that the step's splices name in their file, by that name. A splice without file is the input's.",
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
               }
             },
             "additionalProperties": false,
@@ -2859,6 +3325,77 @@
       "description": "CEL source text.",
       "type": "string",
       "minLength": 1
+    },
+    "RuleOutsideGrammar": {
+      "description": "(FBL 0.11) What a rule of a binding of another family than grammar does not hold: opens as an object, selectedView, and attribute bindings with escape, gather or create with after (section 4.9); (FBL 0.12) nor items or separator (section 5.2).",
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "selectedView"
+            ]
+          },
+          {
+            "required": [
+              "opens"
+            ],
+            "properties": {
+              "opens": {
+                "type": "object"
+              }
+            }
+          },
+          {
+            "required": [
+              "attributes"
+            ],
+            "properties": {
+              "attributes": {
+                "not": {
+                  "additionalProperties": {
+                    "not": {
+                      "anyOf": [
+                        {
+                          "required": [
+                            "escape"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "gather"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "items"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "separator"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "create"
+                          ],
+                          "properties": {
+                            "create": {
+                              "required": [
+                                "after"
+                              ]
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
     }
   }
 }

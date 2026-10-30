@@ -1,0 +1,65 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.11",
+  "doc": "The binding of the fixture grammar-remove-part (FBL 0.11, section 4.9, Writing, an absent part): named items, one per line, with a positional title and note. The note is removed when it is set to empty (`empty: \"remove\"`), and written after the title when it is absent.",
+  "bindings": {
+    "items": {
+      "title": "Named items",
+      "claims": {
+        "extensions": [
+          ".items"
+        ],
+        "origins": [
+          "example/items"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "grammar",
+        "grammar": "start: unit*\n?unit: item\n     | _NL\nitem: NAME [title [note]]\ntitle: STRING\nnote: STRING\nNAME: /[a-z]+/\nSTRING: /\"[^\"\\r\\n]*\"/\n_NL: /(\\r?\\n[ \\t]*)+/\nWHITESPACE: /[ \\t]+/\nCOMMENT: /\\/\\/[^\\r\\n]*/\n%ignore WHITESPACE\n%ignore COMMENT\n",
+        "recover": {
+          "unit": "unit",
+          "sync": [
+            "_NL"
+          ]
+        }
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "lf",
+        "indent": 2,
+        "finalNewline": true
+      },
+      "elements": [
+        {
+          "name": "item",
+          "type": "Item",
+          "at": "/item",
+          "id": {
+            "from": {
+              "node": "NAME"
+            }
+          },
+          "attributes": {
+            "title": {
+              "node": "title",
+              "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
+              "empty": "keep"
+            },
+            "note": {
+              "node": "note",
+              "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
+              "empty": "remove",
+              "create": {
+                "emit": " \"{value}\"",
+                "after": [
+                  "title"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

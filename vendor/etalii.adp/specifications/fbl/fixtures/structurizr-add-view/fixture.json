@@ -1,0 +1,51 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.11, section 4.9 (Views), FR-012, written here: a block rule's insert adds one of its entries, a container view, at the end of the views block, from its emit, every line of the emit after the first indented like the view before it; the new view produces no element and creates no registration, and the undo removes it. The add names the block rule, containerView, as its type, and gives the values of the emit's placeholders as its attributes.",
+  "binding": "../../structurizr.fbl#workspace",
+  "input": "shop.dsl",
+  "read": {
+    "elements": [
+      {
+        "id": "shop",
+        "type": "SoftwareSystem"
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "The new container view follows the line span of the last view.",
+      "edit": {
+        "add": {
+          "type": "containerView",
+          "attributes": {
+            "scope": "shop",
+            "key": "containers"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 173,
+          "end": 173,
+          "text": "        container shop \"containers\" {\n            include *\n            autoLayout lr\n        }\n"
+        }
+      ],
+      "expect": "workspace \"Shop\" {\n    model {\n        shop = softwareSystem \"Shop\" \"Sells things.\"\n    }\n    views {\n        systemContext shop \"context\" {\n            include *\n        }\n        container shop \"containers\" {\n            include *\n            autoLayout lr\n        }\n    }\n}\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 173,
+          "end": 269,
+          "text": ""
+        }
+      ],
+      "expect": "workspace \"Shop\" {\n    model {\n        shop = softwareSystem \"Shop\" \"Sells things.\"\n    }\n    views {\n        systemContext shop \"context\" {\n            include *\n        }\n    }\n}\n"
+    }
+  ]
+}

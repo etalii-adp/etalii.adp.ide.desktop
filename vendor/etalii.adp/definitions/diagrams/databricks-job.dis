@@ -522,13 +522,8 @@
   },
 
   "persistence": {
-    "format": "plugin:net.etalii.adp.databricks.files",
-    "files": {
-      "mode": "split",
-      "model": "{name}.yml",
-      "view": "{name}.adp",
-      "doc": "The model is the job's own resource YAML, which Databricks owns; the view is the ADP registration file's layout: block."
-    },
+    "format": "fbl",
+    "binding": "https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/databricks/backend/EtAlii.Adp.Diagram.Databricks/databricks.fbl#configuration",
     "ids": {
       "strategy": "natural",
       "prefix": { "Task": "task:", "JobCluster": "cluster:" },
@@ -538,16 +533,17 @@
       },
       "doc": "`task:<task_key>`, `cluster:<job_cluster_key>` and `edge:<from>-><to>`: renaming a task changes its id, which is intended."
     },
-    "view": { "store": ["bounds"], "styleOverrides": "none" }
+    "view": { "store": ["bounds"], "styleOverrides": "none" },
+    "typeMap": {
+      "Job": { "as": "diagram", "doc": "A job resource is the job reading's diagram: its key, name, schedule and whether it runs continuously." },
+      "Task": { "as": "Task" },
+      "JobCluster": { "as": "JobCluster" },
+      "Dependency": { "as": "Dependency", "attributes": { "from": "source", "to": "target" }, "doc": "A depends_on entry, read as an element so that one naming a task the job does not declare is kept with its upstream end unset (11.2), and reported by the missing-task rule." },
+      "KeylessTask": { "as": "unreadable", "doc": "A task without a task_key: reported, and not drawn." }
+    }
   },
 
   "plugins": {
-    "net.etalii.adp.databricks.files": {
-      "version": "^0.1.0",
-      "provides": ["persistenceFormat"],
-      "required": true,
-      "doc": "Reads and writes the job inside Databricks' own resource YAML by line splices, so an untouched file saves byte for byte, and keeps positions in the .adp registration's layout: block."
-    },
     "net.etalii.adp.databricks.taskKeys": {
       "version": "^0.1.0",
       "provides": ["celFunctions"],

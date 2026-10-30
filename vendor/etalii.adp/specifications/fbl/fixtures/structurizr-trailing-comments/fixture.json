@@ -1,0 +1,135 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.11, section 4.9 (comments, rule 2), FR-001: a // or # comment after a statement is its trailing comment and part of no value, so a set changes the value's bytes only; a // or # inside quotes is part of the string. The input is etalii.adp.ide.standalone/src/diagrams/c4/backend/EtAlii.Adp.Diagram.C4.Tests/Fixtures/findings/trailing-comments.dsl at ad1a4680a, byte for byte.",
+  "binding": "../../structurizr.fbl#workspace",
+  "input": "trailing-comments.dsl",
+  "read": {
+    "elements": [
+      {
+        "id": "u",
+        "type": "Person",
+        "attributes": {
+          "name": "User",
+          "description": "A user."
+        }
+      },
+      {
+        "id": "s",
+        "type": "SoftwareSystem",
+        "attributes": {
+          "name": "System",
+          "description": "A system."
+        }
+      },
+      {
+        "id": "web",
+        "type": "Container",
+        "parent": "s",
+        "attributes": {
+          "name": "Web"
+        }
+      },
+      {
+        "id": "api",
+        "type": "Container",
+        "parent": "s",
+        "attributes": {
+          "name": "API",
+          "description": "Serves."
+        }
+      },
+      {
+        "id": "t",
+        "type": "SoftwareSystem",
+        "attributes": {
+          "name": "Partner"
+        }
+      },
+      {
+        "id": "h",
+        "type": "SoftwareSystem",
+        "attributes": {
+          "name": "Hash # inside",
+          "description": "See http://example.com//path"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "workspace \"Trailing comments\" { // after the workspace brace\n    model { # after the model brace\n        u = person \"User\" \"A user.\" // after a whole declaration\n        s = softwareSystem \"System\" \"A system.\" { // after an element's brace\n            web = container \"Web\" { # a container with a block and nothing else\n            }\n            api = container \"API\" \"Serves.\" // no technology yet\n        }\n        t = softwareSystem \"Partner\" // no description yet\n        h = softwareSystem \"Hash # inside\" \"See http://example.com//path\" # marks inside quotes\n        u -> s \"Uses\" // no technology yet\n        s -> t \"Calls\" \"HTTPS\" # after a whole relationship\n    }\n    views { // after the views brace\n        systemLandscape \"landscape\" { // after a view's brace\n            include * // after include\n        }\n        container s \"containers\" {\n            include * # after include\n            autoLayout lr // after autoLayout\n        }\n    }\n} // after the closing brace\n"
+    },
+    {
+      "doc": "The comment after the declaration stays where it is.",
+      "edit": {
+        "set": {
+          "element": "u",
+          "attributes": {
+            "description": "A person."
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 124,
+          "end": 131,
+          "text": "A person."
+        }
+      ],
+      "expect": "workspace \"Trailing comments\" { // after the workspace brace\n    model { # after the model brace\n        u = person \"User\" \"A person.\" // after a whole declaration\n        s = softwareSystem \"System\" \"A system.\" { // after an element's brace\n            web = container \"Web\" { # a container with a block and nothing else\n            }\n            api = container \"API\" \"Serves.\" // no technology yet\n        }\n        t = softwareSystem \"Partner\" // no description yet\n        h = softwareSystem \"Hash # inside\" \"See http://example.com//path\" # marks inside quotes\n        u -> s \"Uses\" // no technology yet\n        s -> t \"Calls\" \"HTTPS\" # after a whole relationship\n    }\n    views { // after the views brace\n        systemLandscape \"landscape\" { // after a view's brace\n            include * // after include\n        }\n        container s \"containers\" {\n            include * # after include\n            autoLayout lr // after autoLayout\n        }\n    }\n} // after the closing brace\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 124,
+          "end": 133,
+          "text": "A user."
+        }
+      ],
+      "expect": "workspace \"Trailing comments\" { // after the workspace brace\n    model { # after the model brace\n        u = person \"User\" \"A user.\" // after a whole declaration\n        s = softwareSystem \"System\" \"A system.\" { // after an element's brace\n            web = container \"Web\" { # a container with a block and nothing else\n            }\n            api = container \"API\" \"Serves.\" // no technology yet\n        }\n        t = softwareSystem \"Partner\" // no description yet\n        h = softwareSystem \"Hash # inside\" \"See http://example.com//path\" # marks inside quotes\n        u -> s \"Uses\" // no technology yet\n        s -> t \"Calls\" \"HTTPS\" # after a whole relationship\n    }\n    views { // after the views brace\n        systemLandscape \"landscape\" { // after a view's brace\n            include * // after include\n        }\n        container s \"containers\" {\n            include * # after include\n            autoLayout lr // after autoLayout\n        }\n    }\n} // after the closing brace\n"
+    },
+    {
+      "doc": "A # inside quotes is the value's; the # comment after the statement stays.",
+      "edit": {
+        "set": {
+          "element": "h",
+          "attributes": {
+            "name": "Hash #1"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 496,
+          "end": 509,
+          "text": "Hash #1"
+        }
+      ],
+      "expect": "workspace \"Trailing comments\" { // after the workspace brace\n    model { # after the model brace\n        u = person \"User\" \"A user.\" // after a whole declaration\n        s = softwareSystem \"System\" \"A system.\" { // after an element's brace\n            web = container \"Web\" { # a container with a block and nothing else\n            }\n            api = container \"API\" \"Serves.\" // no technology yet\n        }\n        t = softwareSystem \"Partner\" // no description yet\n        h = softwareSystem \"Hash #1\" \"See http://example.com//path\" # marks inside quotes\n        u -> s \"Uses\" // no technology yet\n        s -> t \"Calls\" \"HTTPS\" # after a whole relationship\n    }\n    views { // after the views brace\n        systemLandscape \"landscape\" { // after a view's brace\n            include * // after include\n        }\n        container s \"containers\" {\n            include * # after include\n            autoLayout lr // after autoLayout\n        }\n    }\n} // after the closing brace\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 496,
+          "end": 503,
+          "text": "Hash # inside"
+        }
+      ],
+      "expect": "workspace \"Trailing comments\" { // after the workspace brace\n    model { # after the model brace\n        u = person \"User\" \"A user.\" // after a whole declaration\n        s = softwareSystem \"System\" \"A system.\" { // after an element's brace\n            web = container \"Web\" { # a container with a block and nothing else\n            }\n            api = container \"API\" \"Serves.\" // no technology yet\n        }\n        t = softwareSystem \"Partner\" // no description yet\n        h = softwareSystem \"Hash # inside\" \"See http://example.com//path\" # marks inside quotes\n        u -> s \"Uses\" // no technology yet\n        s -> t \"Calls\" \"HTTPS\" # after a whole relationship\n    }\n    views { // after the views brace\n        systemLandscape \"landscape\" { // after a view's brace\n            include * // after include\n        }\n        container s \"containers\" {\n            include * # after include\n            autoLayout lr // after autoLayout\n        }\n    }\n} // after the closing brace\n"
+    }
+  ]
+}

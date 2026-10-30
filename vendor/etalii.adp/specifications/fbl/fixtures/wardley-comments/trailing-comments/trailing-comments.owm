@@ -1,0 +1,14 @@
+title Trailing comments // after the title
+anchor User [0.95, 0.5] // after an anchor
+component Kettle [0.5, 0.4] inertia // (market) inside a comment
+component Power [0.1, 0.7] (build) // after a decorator
+submap Grid [0.2, 0.8] url(gridMap) // after a url reference
+url gridMap [https://example.com/grid.owm] // after an address with a scheme
+User->Kettle // after a link
+Kettle->Power; it needs power // after a context
+evolve Kettle 0.7 // after an evolve
+note A note [0.3, 0.3] // after a note
+pipeline Kettle // after a pipeline
+{
+    component Electric [0.6] // after a pipeline component, indented by four
+}

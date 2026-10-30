@@ -1,0 +1,192 @@
+// The Structurizr DSL (https://docs.structurizr.com/dsl) in ATD grammar notation (ATD section 4), for the binding of
+// structurizr.fbl: FBL 0.11's grammar family (FBL section 4.9). It reads what the C4 tool types read of a workspace:
+// the eight element kinds, groups, deployment environments, relationships with or without a source, the six view
+// kinds with their keys, and the view statements, and every other statement as an unbound generic one, kept byte for
+// byte. Directives (!include, !identifiers, !docs) are statements too, never followed.
+//
+// - Line ends are tokens (_NL): the DSL is line-oriented, and a statement ends at its line's end. Horizontal
+//   whitespace and the three comment forms are ignored; a block comment that is never closed runs to the end of the
+//   body, which recover.unclosed reports. A `#` outside a string starts a comment wherever it stands, so a colour
+//   written `#08427b` in a style is read as its statement's comment and kept as written.
+// - Positional arguments are rules named by position (name, description, technology, tags, instances), so that a
+//   slot selects each by name; an argument is quoted (STRING) or bare (WORD). Arguments past the last named one are
+//   `extra`.
+// - Keywords are matched in any case by their patterns, since the notation has no flags, at a priority above WORD,
+//   so that a keyword wins where the parser's state can shift it and is a WORD elsewhere (ATD section 3.6).
+// - A block is "{" after a statement, and only the statements below open one (FBL section 4.9).
+
+start: unit*
+
+?unit: workspace
+     | directive
+     | _NL
+
+workspace: _WORKSPACE [name [description]] _workspace_block
+_workspace_block: "{" _workspace_item* "}"
+_workspace_item: _workspace_statement _NL
+               | _NL
+_workspace_statement: model
+                    | views
+                    | directive
+                    | generic
+
+// ---------------------------------------------------------------------------------------------------------- the model
+
+model: _MODEL _model_block
+_model_block: "{" _model_item* "}"
+_model_item: _model_statement _NL
+           | _NL
+_model_statement: person
+                | software_system
+                | container
+                | component
+                | deployment_environment
+                | deployment_node
+                | infrastructure_node
+                | container_instance
+                | software_system_instance
+                | group
+                | relationship
+                | tags_statement
+                | directive
+                | generic
+
+person: [identifier "="] _PERSON name [description [tags extra*]] [_model_block]
+software_system: [identifier "="] _SOFTWARE_SYSTEM name [description [tags extra*]] [_model_block]
+container: [identifier "="] _CONTAINER name [description [technology [tags extra*]]] [_model_block]
+component: [identifier "="] _COMPONENT name [description [technology [tags extra*]]] [_model_block]
+deployment_environment: [identifier "="] _DEPLOYMENT_ENVIRONMENT name [_model_block]
+deployment_node: [identifier "="] _DEPLOYMENT_NODE name [description [technology [tags [instances extra*]]]] [_model_block]
+infrastructure_node: [identifier "="] _INFRASTRUCTURE_NODE name [description [technology [tags extra*]]] [_model_block]
+container_instance: [identifier "="] _CONTAINER_INSTANCE instance_of [deployment_groups [tags extra*]] [_model_block]
+software_system_instance: [identifier "="] _SOFTWARE_SYSTEM_INSTANCE instance_of [deployment_groups [tags extra*]] [_model_block]
+group: [identifier "="] _GROUP name [_model_block]
+relationship: [identifier "="] [source] _ARROW destination [description [technology [tags extra*]]] [_model_block]
+tags_statement: _TAGS tag*
+
+identifier: WORD
+source: WORD
+destination: WORD
+instance_of: WORD
+name: _arg
+description: _arg
+technology: _arg
+tags: _arg
+instances: _arg
+deployment_groups: _arg
+tag: _arg
+extra: _arg
+
+// ---------------------------------------------------------------------------------------------------------- the views
+
+views: _VIEWS _views_block
+_views_block: "{" _views_item* "}"
+_views_item: _views_statement _NL
+           | _NL
+_views_statement: system_landscape_view
+                | system_context_view
+                | container_view
+                | component_view
+                | dynamic_view
+                | deployment_view
+                | directive
+                | generic
+
+// A view written without a key is the rule's alias `<kind>_view_default`, whose key the binding gives.
+system_landscape_view: _SYSTEM_LANDSCAPE key [description] _view_block
+                     | _SYSTEM_LANDSCAPE _view_block -> system_landscape_view_default
+system_context_view: _SYSTEM_CONTEXT scope key [description] _view_block
+                   | _SYSTEM_CONTEXT scope _view_block -> system_context_view_default
+container_view: _CONTAINER scope key [description] _view_block
+              | _CONTAINER scope _view_block -> container_view_default
+component_view: _COMPONENT scope key [description] _view_block
+              | _COMPONENT scope _view_block -> component_view_default
+dynamic_view: _DYNAMIC scope key [description] _view_block
+            | _DYNAMIC scope _view_block -> dynamic_view_default
+deployment_view: _DEPLOYMENT scope environment key [description] _view_block
+               | _DEPLOYMENT scope environment _view_block -> deployment_view_default
+
+scope: _arg
+environment: _arg
+key: _arg
+
+_view_block: "{" _view_item* "}"
+_view_item: _view_statement _NL
+          | _NL
+_view_statement: include_statement
+               | exclude_statement
+               | title_statement
+               | auto_layout_statement
+               | interaction
+               | directive
+               | generic
+
+include_statement: _INCLUDE member*
+exclude_statement: _EXCLUDE member*
+title_statement: _TITLE title
+auto_layout_statement: _AUTO_LAYOUT [direction [rank_separation [node_separation extra*]]]
+interaction: [source] _ARROW destination [description [technology extra*]]
+
+member: _arg
+title: _arg
+direction: _arg
+rank_separation: _arg
+node_separation: _arg
+
+// ------------------------------------------------------------------------------------------- everything else, unbound
+
+directive: DIRECTIVE _arg* [_generic_block]
+generic: keyword _arg* [_generic_block]
+       | STRING _arg* [_generic_block] -> string_statement
+keyword: WORD
+
+_generic_block: "{" _generic_item* "}"
+_generic_item: _generic_statement _NL
+             | _NL
+_generic_statement: generic
+                  | directive
+
+_arg: STRING
+    | WORD
+
+// --------------------------------------------------------------------------------------------------------- terminals
+
+_WORKSPACE.2: /[Ww][Oo][Rr][Kk][Ss][Pp][Aa][Cc][Ee]/
+_MODEL.2: /[Mm][Oo][Dd][Ee][Ll]/
+_VIEWS.2: /[Vv][Ii][Ee][Ww][Ss]/
+_PERSON.2: /[Pp][Ee][Rr][Ss][Oo][Nn]/
+_SOFTWARE_SYSTEM.2: /[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee][Ss][Yy][Ss][Tt][Ee][Mm]/
+_CONTAINER.2: /[Cc][Oo][Nn][Tt][Aa][Ii][Nn][Ee][Rr]/
+_COMPONENT.2: /[Cc][Oo][Mm][Pp][Oo][Nn][Ee][Nn][Tt]/
+_DEPLOYMENT_ENVIRONMENT.2: /[Dd][Ee][Pp][Ll][Oo][Yy][Mm][Ee][Nn][Tt][Ee][Nn][Vv][Ii][Rr][Oo][Nn][Mm][Ee][Nn][Tt]/
+_DEPLOYMENT_NODE.2: /[Dd][Ee][Pp][Ll][Oo][Yy][Mm][Ee][Nn][Tt][Nn][Oo][Dd][Ee]/
+_INFRASTRUCTURE_NODE.2: /[Ii][Nn][Ff][Rr][Aa][Ss][Tt][Rr][Uu][Cc][Tt][Uu][Rr][Ee][Nn][Oo][Dd][Ee]/
+_CONTAINER_INSTANCE.2: /[Cc][Oo][Nn][Tt][Aa][Ii][Nn][Ee][Rr][Ii][Nn][Ss][Tt][Aa][Nn][Cc][Ee]/
+_SOFTWARE_SYSTEM_INSTANCE.2: /[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee][Ss][Yy][Ss][Tt][Ee][Mm][Ii][Nn][Ss][Tt][Aa][Nn][Cc][Ee]/
+_GROUP.2: /[Gg][Rr][Oo][Uu][Pp]/
+_TAGS.2: /[Tt][Aa][Gg][Ss]/
+_SYSTEM_LANDSCAPE.2: /[Ss][Yy][Ss][Tt][Ee][Mm][Ll][Aa][Nn][Dd][Ss][Cc][Aa][Pp][Ee]/
+_SYSTEM_CONTEXT.2: /[Ss][Yy][Ss][Tt][Ee][Mm][Cc][Oo][Nn][Tt][Ee][Xx][Tt]/
+_DYNAMIC.2: /[Dd][Yy][Nn][Aa][Mm][Ii][Cc]/
+_DEPLOYMENT.2: /[Dd][Ee][Pp][Ll][Oo][Yy][Mm][Ee][Nn][Tt]/
+_INCLUDE.2: /[Ii][Nn][Cc][Ll][Uu][Dd][Ee]/
+_EXCLUDE.2: /[Ee][Xx][Cc][Ll][Uu][Dd][Ee]/
+_TITLE.2: /[Tt][Ii][Tt][Ll][Ee]/
+_AUTO_LAYOUT.2: /[Aa][Uu][Tt][Oo][Ll][Aa][Yy][Oo][Uu][Tt]/
+
+_ARROW: "->"
+DIRECTIVE: /![A-Za-z]+/
+STRING: /"([^"\\\r\n]|\\[^\r\n])*"/
+// A bare word: no whitespace, quote, brace or "=", not starting with "#", "/" or "!", and holding no "->".
+WORD: /([^ \t\r\n"{}=#\/!\-]|-[^ \t\r\n"{}=>\-])([^ \t\r\n"{}=\-]|-[^ \t\r\n"{}=>\-])*/
+
+_NL: /(\r?\n[ \t]*)+/
+WHITESPACE: /[ \t]+/
+LINE_COMMENT: /\/\/[^\r\n]*/
+HASH_COMMENT: /#[^\r\n]*/
+BLOCK_COMMENT: /\/\*([^*]|\*+[^*\/])*(\*+\/)?/
+
+%ignore WHITESPACE
+%ignore LINE_COMMENT
+%ignore HASH_COMMENT
+%ignore BLOCK_COMMENT

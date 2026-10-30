@@ -1,0 +1,41 @@
+atd 0.1
+
+/// A grammar binding whose grammar is not LALR(1): `item` and `other` both reduce `NAME ";"`, so at the end of the
+/// text the parser cannot tell which to reduce (FBL §4.9, ATD §11.9).
+diagram example/grammar-conflict version "0.1.0" {
+  label "Grammar conflict"
+
+  model {
+    element Item {
+      attribute name: string required
+      labelAttribute: name
+    }
+  }
+
+  notation {
+    node Item {
+      shape rect
+      label @name
+    }
+  }
+
+  binding items family grammar {
+    label "Items"
+    claims { extensions: [".items"], origins: ["example/grammar-conflict"] }
+    body { kind: file, start: doc }
+
+    grammar {
+      doc: item*
+      item: NAME ";"
+          | other
+      other: NAME ";"
+      NAME: /[a-z]+/
+      WS: /[ \n]+/
+      %ignore WS
+    }
+
+    element Item as item at "/item" {
+      attribute name from node "NAME"
+    }
+  }
+}

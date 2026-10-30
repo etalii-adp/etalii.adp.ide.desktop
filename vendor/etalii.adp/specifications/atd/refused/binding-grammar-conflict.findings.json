@@ -1,0 +1,13 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Findings",
+  "findings": [
+    {
+      "code": "ATD8001",
+      "severity": "error",
+      "file": "binding-grammar-conflict.atd",
+      "line": 29,
+      "column": 7,
+      "message": "The grammar is not LALR(1): a Reduce/Reduce conflict on $END between `item : NAME \";\"` and `other : NAME \";\"`."
+    }
+  ]
+}

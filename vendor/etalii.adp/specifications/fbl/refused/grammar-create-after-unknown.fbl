@@ -1,0 +1,59 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.11",
+  "doc": "Refused by FBL 0.10, section 14.1, step 6: the create of the attribute note writes its part after the attribute caption, which the rule item does not bind, so the place of the part is not stated (section 4.9, Writing). Its other names resolve.",
+  "bindings": {
+    "outline": {
+      "title": "Outline, a part written after an attribute the rule has not",
+      "claims": {
+        "extensions": [
+          ".outline"
+        ],
+        "origins": [
+          "example/outline"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "grammar",
+        "grammar": "start: unit*\n?unit: item\n     | _NL\nitem: NAME [label [note]] [block]\nlabel: STRING\nnote: STRING\nblock: \"{\" unit* \"}\"\nNAME: /[a-z]+/\nSTRING: /\"[^\"\\r\\n]*\"/\n_NL: /(\\r?\\n[ \\t]*)+/\nWHITESPACE: /[ \\t]+/\nCOMMENT: /#[^\\r\\n]*/\n%ignore WHITESPACE\n%ignore COMMENT\n",
+        "recover": {
+          "unit": "unit",
+          "sync": [
+            "_NL"
+          ]
+        }
+      },
+      "reader": "declared",
+      "elements": [
+        {
+          "name": "item",
+          "type": "Item",
+          "at": "/item",
+          "id": {
+            "from": {
+              "node": "NAME"
+            }
+          },
+          "attributes": {
+            "label": {
+              "node": "label",
+              "match": "\"(?<value>[^\"]*)\""
+            },
+            "note": {
+              "node": "note",
+              "match": "\"(?<value>[^\"]*)\"",
+              "create": {
+                "emit": " \"{value}\"",
+                "after": [
+                  "caption"
+                ],
+                "pad": true
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

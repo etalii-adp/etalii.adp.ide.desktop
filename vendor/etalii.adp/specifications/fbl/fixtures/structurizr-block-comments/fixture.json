@@ -1,0 +1,99 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.11, section 4.9 (comments, rule 3), FR-004: a block comment over three lines holding a declaration, a relationship and a brace reads as nothing; '/* before */ t = ...' and the statements with a comment after or inside them are read as if it were not there. The comment starts its line and lies directly above s, so it is s's leading comment: removing s takes it, with s's trailing '/* a brace { inside a comment */', and by cascade the relationships that name s. The input is etalii.adp.ide.standalone/src/diagrams/c4/backend/EtAlii.Adp.Diagram.C4.Tests/Fixtures/findings/block-comments.dsl at ad1a4680a, byte for byte.",
+  "binding": "../../structurizr.fbl#workspace",
+  "input": "block-comments.dsl",
+  "read": {
+    "elements": [
+      {
+        "id": "t",
+        "type": "SoftwareSystem",
+        "attributes": {
+          "name": "Other",
+          "description": "Another system."
+        }
+      },
+      {
+        "id": "u",
+        "type": "Person",
+        "attributes": {
+          "name": "User",
+          "description": "A user."
+        }
+      },
+      {
+        "id": "s",
+        "type": "SoftwareSystem",
+        "attributes": {
+          "name": "System",
+          "description": "A system."
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "workspace \"Block comments\" {\n    model {\n        /* before */ t = softwareSystem \"Other\" \"Another system.\" /* after */\n        u = person \"User\" \"A user.\" /* an inline block comment */\n        /*\n        hidden = person \"Hidden\" \"Declared inside a block comment.\"\n        u -> hidden \"Inside the comment\" {\n        */\n        s = softwareSystem \"System\" \"A system.\" /* a brace { inside a comment */\n        s -> t \"Calls\" /* between */ \"HTTPS\"\n        u -> s \"Uses\" \"HTTPS\"\n    }\n    views {\n        systemLandscape \"landscape\" {\n            include *\n        }\n    }\n}\n"
+    },
+    {
+      "doc": "Removing s removes the comment lines above it with its line span, and the two relationships that name it.",
+      "edit": {
+        "remove": {
+          "element": "s"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 185,
+          "end": 399,
+          "text": ""
+        },
+        {
+          "operation": "remove-entry",
+          "start": 399,
+          "end": 444,
+          "text": ""
+        },
+        {
+          "operation": "remove-entry",
+          "start": 444,
+          "end": 474,
+          "text": ""
+        }
+      ],
+      "expect": "workspace \"Block comments\" {\n    model {\n        /* before */ t = softwareSystem \"Other\" \"Another system.\" /* after */\n        u = person \"User\" \"A user.\" /* an inline block comment */\n    }\n    views {\n        systemLandscape \"landscape\" {\n            include *\n        }\n    }\n}\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 185,
+          "end": 185,
+          "text": "        /*\n        hidden = person \"Hidden\" \"Declared inside a block comment.\"\n        u -> hidden \"Inside the comment\" {\n        */\n        s = softwareSystem \"System\" \"A system.\" /* a brace { inside a comment */\n"
+        },
+        {
+          "operation": "remove-entry",
+          "start": 185,
+          "end": 185,
+          "text": "        s -> t \"Calls\" /* between */ \"HTTPS\"\n"
+        },
+        {
+          "operation": "remove-entry",
+          "start": 185,
+          "end": 185,
+          "text": "        u -> s \"Uses\" \"HTTPS\"\n"
+        }
+      ],
+      "expect": "workspace \"Block comments\" {\n    model {\n        /* before */ t = softwareSystem \"Other\" \"Another system.\" /* after */\n        u = person \"User\" \"A user.\" /* an inline block comment */\n        /*\n        hidden = person \"Hidden\" \"Declared inside a block comment.\"\n        u -> hidden \"Inside the comment\" {\n        */\n        s = softwareSystem \"System\" \"A system.\" /* a brace { inside a comment */\n        s -> t \"Calls\" /* between */ \"HTTPS\"\n        u -> s \"Uses\" \"HTTPS\"\n    }\n    views {\n        systemLandscape \"landscape\" {\n            include *\n        }\n    }\n}\n"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.10",
+  "doc": "Refused by FBL 0.10, section 14.1, step 6: the rule pipeline is read for the reading databricks/pipelines, which is not one of the binding's claims.origins (section 5.1), so no reading would ever read it. The rule resource lists a claimed origin and the registration's resource.byOrigin names only claimed origins, so this document is refused for the one reason this sentence names.",
+  "bindings": {
+    "configuration": {
+      "title": "A rule read for an origin the binding does not claim",
+      "claims": { "extensions": [".yml"], "shared": true, "registrationOnly": true, "origins": ["databricks/bundle", "databricks/pipeline"] },
+      "body": { "kind": "file", "family": "yaml" },
+      "reader": "declared",
+      "registration": { "resource": { "byOrigin": { "databricks/pipeline": { "capture": "pipeline" }, "databricks/bundle": null } } },
+      "elements": [
+        {
+          "name": "resource",
+          "type": "Resource",
+          "at": "/resources/pipelines/{pipeline}",
+          "origins": ["databricks/bundle"],
+          "attributes": { "key": { "capture": "pipeline", "readOnly": true } }
+        },
+        {
+          "name": "pipeline",
+          "type": "Pipeline",
+          "at": "/resources/pipelines/{pipeline}",
+          "origins": ["databricks/pipelines"],
+          "attributes": { "name": { "key": "name", "empty": "refuse" } }
+        }
+      ]
+    }
+  }
+}

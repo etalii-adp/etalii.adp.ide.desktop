@@ -1,0 +1,136 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.12, section 4.9 (comments, FBL 0.11), FR-001: etalii.adp.ide.standalone/src/diagrams/wardley-map/backend/EtAlii.Adp.Diagram.WardleyMap.Tests/Fixtures/comments-everywhere.owm at ad1a4680a, unchanged. A // comment on a line of its own and one that trails a statement are trivia: every statement reads as without them. A coordinate change of 'component Cup of Tea [0.79, 0.61] // a trailing comment on an element' changes only the numbers and keeps the comment; a removed link takes its trailing comment with its line, and the comment on the line after it stays.",
+  "binding": "../../../wardley-map.fbl#map",
+  "input": "comments-everywhere.owm",
+  "read": {
+    "elements": [
+      {
+        "id": "title",
+        "type": "Title",
+        "attributes": {
+          "title": "Comments everywhere"
+        }
+      },
+      {
+        "id": "customer",
+        "type": "Anchor",
+        "attributes": {
+          "name": "Customer"
+        }
+      },
+      {
+        "id": "cup-of-tea",
+        "type": "Component",
+        "attributes": {
+          "name": "Cup of Tea",
+          "visibility": 0.79,
+          "maturity": 0.61
+        }
+      },
+      {
+        "id": "kettle",
+        "type": "Component",
+        "attributes": {
+          "name": "Kettle"
+        }
+      },
+      {
+        "id": "customer-cup",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Customer",
+          "to": "Cup of Tea",
+          "context": null
+        }
+      },
+      {
+        "id": "cup-kettle",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Cup of Tea",
+          "to": "Kettle"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "A move of Cup of Tea is a replace-value of each number; the trailing comment is untouched.",
+      "edit": {
+        "set": {
+          "element": "cup-of-tea",
+          "attributes": {
+            "visibility": 0.2,
+            "maturity": 0.8
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 163,
+          "end": 167,
+          "text": "0.2"
+        },
+        {
+          "operation": "replace-value",
+          "start": 169,
+          "end": 173,
+          "text": "0.8"
+        }
+      ],
+      "expect": "// A comment before the title.\ntitle Comments everywhere\n\n// A comment between the title and the first element.\nanchor Customer [0.95, 0.63]\ncomponent Cup of Tea [0.2, 0.8] // a trailing comment on an element\n\n// A comment between elements, with a blank line either side.\n\ncomponent Kettle [0.43, 0.35]\n\nCustomer->Cup of Tea // a trailing comment on a link\n// A comment between two links.\nCup of Tea->Kettle\n\n// A comment at the end of the file.\n"
+    },
+    {
+      "doc": "The undo puts both numbers back.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 163,
+          "end": 166,
+          "text": "0.79"
+        },
+        {
+          "operation": "replace-value",
+          "start": 168,
+          "end": 171,
+          "text": "0.61"
+        }
+      ],
+      "expect": "// A comment before the title.\ntitle Comments everywhere\n\n// A comment between the title and the first element.\nanchor Customer [0.95, 0.63]\ncomponent Cup of Tea [0.79, 0.61] // a trailing comment on an element\n\n// A comment between elements, with a blank line either side.\n\ncomponent Kettle [0.43, 0.35]\n\nCustomer->Cup of Tea // a trailing comment on a link\n// A comment between two links.\nCup of Tea->Kettle\n\n// A comment at the end of the file.\n"
+    },
+    {
+      "doc": "Removing the link removes its line, its trailing comment with it; the comment line after it is kept.",
+      "edit": {
+        "remove": {
+          "element": "customer-cup"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 306,
+          "end": 359,
+          "text": ""
+        }
+      ],
+      "expect": "// A comment before the title.\ntitle Comments everywhere\n\n// A comment between the title and the first element.\nanchor Customer [0.95, 0.63]\ncomponent Cup of Tea [0.79, 0.61] // a trailing comment on an element\n\n// A comment between elements, with a blank line either side.\n\ncomponent Kettle [0.43, 0.35]\n\n// A comment between two links.\nCup of Tea->Kettle\n\n// A comment at the end of the file.\n"
+    },
+    {
+      "doc": "The undo puts the line back, comment and all.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 306,
+          "end": 306,
+          "text": "Customer->Cup of Tea // a trailing comment on a link\n"
+        }
+      ],
+      "expect": "// A comment before the title.\ntitle Comments everywhere\n\n// A comment between the title and the first element.\nanchor Customer [0.95, 0.63]\ncomponent Cup of Tea [0.79, 0.61] // a trailing comment on an element\n\n// A comment between elements, with a blank line either side.\n\ncomponent Kettle [0.43, 0.35]\n\nCustomer->Cup of Tea // a trailing comment on a link\n// A comment between two links.\nCup of Tea->Kettle\n\n// A comment at the end of the file.\n"
+    }
+  ]
+}

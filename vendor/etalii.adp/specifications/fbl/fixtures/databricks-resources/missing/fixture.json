@@ -1,0 +1,30 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A job registration whose resource header names a job the body does not hold (FBL 0.10, sections 7.4 and 8.2; spec 066, edge case 13): the reading opens empty and says why, with fbl.missing-resource at the header's line of the registration; the body is not unreadable. Its body, two-jobs-two-pipelines.yml, is etalii.adp.ide.standalone's src/diagrams/databricks/backend/EtAlii.Adp.Diagram.Databricks.Tests/Fixtures/two-jobs-two-pipelines.yml at ad1a4680a, byte for byte (CRLF).",
+  "binding": "../../../databricks.fbl#configuration",
+  "input": "job_c.adp",
+  "read": {
+    "elements": [],
+    "findings": [
+      {
+        "rule": "fbl.missing-resource",
+        "line": 3
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Adding a task to the job the header names, which the body does not hold, is refused: there is no tasks section to add into, and the binding gives that sentence (refusals.container, section 6.4).",
+      "edit": {
+        "add": {
+          "type": "Task",
+          "attributes": {
+            "key": "first"
+          }
+        }
+      },
+      "refused": "The job has no tasks section to add into.",
+      "splices": []
+    }
+  ]
+}

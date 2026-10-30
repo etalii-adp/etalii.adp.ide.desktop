@@ -1,0 +1,121 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "An insert into a one-line YAML flow sequence and a removal from it (databricks.fbl#configuration; FBL 0.10, sections 4.3 and 6.2; spec 066, User Story 2, scenario 5). b's depends_on is written [{task_key: a}]; the dependency added is on c, since in this body that list is b's own and a dependency of b on b would wait for itself. Its body, flow-dependencies.yml, is etalii.adp.ide.standalone's src/diagrams/databricks/backend/EtAlii.Adp.Diagram.Databricks.Tests/Fixtures/flow-dependencies.yml at ad1a4680a, byte for byte (CRLF).",
+  "binding": "../../../databricks.fbl#configuration",
+  "input": "flow_dependencies.adp",
+  "read": {
+    "document": {
+      "attributes": {
+        "jobKey": "flow_dependencies"
+      }
+    },
+    "elements": [
+      {
+        "id": "task:b",
+        "type": "Task",
+        "attributes": {
+          "key": "b"
+        }
+      },
+      {
+        "id": "task:a",
+        "type": "Task",
+        "attributes": {
+          "key": "a"
+        }
+      },
+      {
+        "id": "task:c",
+        "type": "Task",
+        "attributes": {
+          "key": "c"
+        }
+      },
+      {
+        "id": "edge:a->b",
+        "type": "Dependency",
+        "attributes": {
+          "upstreamKey": "a"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "A dependency of b on c is written inside the one-line flow sequence, after ', ', in flow form: one insert-entry before its ] (FBL 0.10, section 6.2, Flow sequences).",
+      "edit": {
+        "add": {
+          "type": "Dependency",
+          "attributes": {
+            "source": "task:c",
+            "target": "task:b"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "file": "../flow-dependencies.yml",
+          "start": 164,
+          "end": 164,
+          "text": ", {task_key: c}"
+        }
+      ],
+      "expectFiles": {
+        "../flow-dependencies.yml": "resources:\r\n  jobs:\r\n    flow_dependencies:\r\n      name: Dependencies written on one line\r\n      tasks:\r\n        - task_key: b\r\n          depends_on: [{task_key: a}, {task_key: c}]\r\n          notebook_task:\r\n            notebook_path: notebooks/b\r\n        - task_key: a\r\n          notebook_task: {notebook_path: notebooks/a}\r\n        - task_key: c\r\n          notebook_task:\r\n            notebook_path: notebooks/c\r\n"
+      }
+    },
+    {
+      "doc": "Removing it again is a remove-entry of the item and one separator, for the last item the one before it with the whitespace between: the line is as it was.",
+      "edit": {
+        "remove": {
+          "element": "edge:c->b"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "file": "../flow-dependencies.yml",
+          "start": 164,
+          "end": 179,
+          "text": ""
+        }
+      ],
+      "expectFiles": {
+        "../flow-dependencies.yml": "resources:\r\n  jobs:\r\n    flow_dependencies:\r\n      name: Dependencies written on one line\r\n      tasks:\r\n        - task_key: b\r\n          depends_on: [{task_key: a}]\r\n          notebook_task:\r\n            notebook_path: notebooks/b\r\n        - task_key: a\r\n          notebook_task: {notebook_path: notebooks/a}\r\n        - task_key: c\r\n          notebook_task:\r\n            notebook_path: notebooks/c\r\n"
+      }
+    },
+    {
+      "doc": "Undo of the removal puts the item back.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "file": "../flow-dependencies.yml",
+          "start": 164,
+          "end": 164,
+          "text": ", {task_key: c}"
+        }
+      ],
+      "expectFiles": {
+        "../flow-dependencies.yml": "resources:\r\n  jobs:\r\n    flow_dependencies:\r\n      name: Dependencies written on one line\r\n      tasks:\r\n        - task_key: b\r\n          depends_on: [{task_key: a}, {task_key: c}]\r\n          notebook_task:\r\n            notebook_path: notebooks/b\r\n        - task_key: a\r\n          notebook_task: {notebook_path: notebooks/a}\r\n        - task_key: c\r\n          notebook_task:\r\n            notebook_path: notebooks/c\r\n"
+      }
+    },
+    {
+      "doc": "Undo of the add takes it out: the line is [{task_key: a}] again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "file": "../flow-dependencies.yml",
+          "start": 164,
+          "end": 179,
+          "text": ""
+        }
+      ],
+      "expectFiles": {
+        "../flow-dependencies.yml": "resources:\r\n  jobs:\r\n    flow_dependencies:\r\n      name: Dependencies written on one line\r\n      tasks:\r\n        - task_key: b\r\n          depends_on: [{task_key: a}]\r\n          notebook_task:\r\n            notebook_path: notebooks/b\r\n        - task_key: a\r\n          notebook_task: {notebook_path: notebooks/a}\r\n        - task_key: c\r\n          notebook_task:\r\n            notebook_path: notebooks/c\r\n"
+      }
+    }
+  ]
+}

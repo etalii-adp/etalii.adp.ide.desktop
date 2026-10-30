@@ -1,0 +1,19 @@
+resources:
+  jobs:
+    several_lines:
+      name: Dependencies over several lines
+      tasks:
+        - task_key: a
+          notebook_task: {notebook_path: notebooks/a}
+        - task_key: b
+          depends_on: [
+            {task_key: a}
+          ]
+          notebook_task:
+            notebook_path: notebooks/b
+        - task_key: c
+          notebook_task:
+            notebook_path: notebooks/c
+    mapping:
+      name: Tasks written as a flow mapping
+      tasks: {}

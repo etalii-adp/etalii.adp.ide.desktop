@@ -1,0 +1,171 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.12, section 8.6 (ordinal), FR-028, edge case 19: etalii.adp.ide.standalone/src/diagrams/wardley-map/backend/EtAlii.Adp.Diagram.WardleyMap.Tests/Fixtures/same-key-twice.owm at ad1a4680a, unchanged, with a registration and an identities file written here in the form the tool writes (its eleven kinds and keys are the Parity transcript's at that commit; the ids are this fixture's). Three components are named Tea: the second and third are keyed 'Tea', U+001F, the ordinal and a tab, so that none of them is 'Tea 2', the fourth component's own name; the two links User->Tea and the two notes 'Same words' are counted the same way in their kinds. A fourth Tea added with the id tea-4 is keyed with the ordinal 4, and its entry is written in the same edit, after the array's last item and laid out as it is, with RFC 8785's escapes; the undo removes the component and prunes its entry. An id DISL makes for an element read without an entry is random, so the fixture shows an entry's first write with an add, whose id the edit gives.",
+  "binding": "../../../wardley-map.fbl#map",
+  "input": "same-key-twice.adp",
+  "read": {
+    "elements": [
+      {
+        "id": "title",
+        "type": "Title"
+      },
+      {
+        "id": "p16i53xg6y8vbpxiux6idfhnv",
+        "type": "Anchor",
+        "attributes": {
+          "name": "User"
+        }
+      },
+      {
+        "id": "ysd5h03blr9jizhacd9lkanwv",
+        "type": "Component",
+        "attributes": {
+          "name": "Tea",
+          "visibility": 0.8
+        }
+      },
+      {
+        "id": "1s48wmq2weij3e1046004dttp",
+        "type": "Component",
+        "attributes": {
+          "name": "Tea",
+          "visibility": 0.6
+        }
+      },
+      {
+        "id": "6hizdvacy962c6clumx1ibvnm",
+        "type": "Component",
+        "attributes": {
+          "name": "Tea",
+          "visibility": 0.4
+        }
+      },
+      {
+        "id": "trpw44vt0z95qjq4h0p2dc614",
+        "type": "Component",
+        "attributes": {
+          "name": "Tea 2",
+          "visibility": 0.2
+        }
+      },
+      {
+        "id": "dv6kvp7fwhsqqdxw9fq8t2n6f",
+        "type": "Dependency",
+        "attributes": {
+          "from": "User",
+          "to": "Tea"
+        }
+      },
+      {
+        "id": "b8q0ithnaur1aqfdz123z61tk",
+        "type": "Dependency",
+        "attributes": {
+          "from": "User",
+          "to": "Tea"
+        }
+      },
+      {
+        "id": "tea-evolve",
+        "type": "Evolve",
+        "attributes": {
+          "component": "Tea",
+          "maturity": 0.8
+        }
+      },
+      {
+        "id": "zsfgr21wpcrp6synltj6ue28c",
+        "type": "Pipeline",
+        "attributes": {
+          "component": "Tea"
+        }
+      },
+      {
+        "id": "9w0mngp5x7vupl06bhw0o504u",
+        "type": "PipelineComponent",
+        "parent": "zsfgr21wpcrp6synltj6ue28c",
+        "attributes": {
+          "name": "Leaf"
+        }
+      },
+      {
+        "id": "naw6bep1hlokui3x3x0cdgz4g",
+        "type": "Note",
+        "attributes": {
+          "text": "Same words",
+          "visibility": 0.3
+        }
+      },
+      {
+        "id": "1fjdav51ugfw8pnj27uggna2f",
+        "type": "Note",
+        "attributes": {
+          "text": "Same words",
+          "visibility": 0.5
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "A fourth Tea, added with the id tea-4: an insert-entry at the end of the body, and its entry, keyed with the ordinal 4, an insert-entry after the identities file's last item.",
+      "edit": {
+        "add": {
+          "type": "Component",
+          "id": "tea-4",
+          "attributes": {
+            "name": "Tea",
+            "visibility": 0.1,
+            "maturity": 0.9
+          }
+        }
+      },
+      "splices": [
+        {
+          "file": "same-key-twice.owm",
+          "operation": "insert-entry",
+          "start": 276,
+          "end": 276,
+          "text": "component Tea [0.1, 0.9]\n"
+        },
+        {
+          "file": "same-key-twice.identities.json",
+          "operation": "insert-entry",
+          "start": 1089,
+          "end": 1089,
+          "text": ",\n  {\n    \"id\": \"tea-4\",\n    \"kind\": \"component\",\n    \"key\": \"Tea\\u001f4\\t\"\n  }"
+        }
+      ],
+      "expect": "wardley/map\n",
+      "expectFiles": {
+        "same-key-twice.identities.json": "[\n  {\n    \"id\": \"p16i53xg6y8vbpxiux6idfhnv\",\n    \"kind\": \"component\",\n    \"key\": \"User\"\n  },\n  {\n    \"id\": \"ysd5h03blr9jizhacd9lkanwv\",\n    \"kind\": \"component\",\n    \"key\": \"Tea\"\n  },\n  {\n    \"id\": \"1s48wmq2weij3e1046004dttp\",\n    \"kind\": \"component\",\n    \"key\": \"Tea\\u001F2\\t\"\n  },\n  {\n    \"id\": \"6hizdvacy962c6clumx1ibvnm\",\n    \"kind\": \"component\",\n    \"key\": \"Tea\\u001F3\\t\"\n  },\n  {\n    \"id\": \"trpw44vt0z95qjq4h0p2dc614\",\n    \"kind\": \"component\",\n    \"key\": \"Tea 2\"\n  },\n  {\n    \"id\": \"dv6kvp7fwhsqqdxw9fq8t2n6f\",\n    \"kind\": \"link\",\n    \"key\": \"User\\u001FTea\\u001FDependency\"\n  },\n  {\n    \"id\": \"b8q0ithnaur1aqfdz123z61tk\",\n    \"kind\": \"link\",\n    \"key\": \"User\\u001FTea\\u001FDependency\\u001F2\\t\"\n  },\n  {\n    \"id\": \"zsfgr21wpcrp6synltj6ue28c\",\n    \"kind\": \"pipeline\",\n    \"key\": \"Tea\"\n  },\n  {\n    \"id\": \"9w0mngp5x7vupl06bhw0o504u\",\n    \"kind\": \"pipeline-child\",\n    \"key\": \"Tea\\u001FLeaf\"\n  },\n  {\n    \"id\": \"naw6bep1hlokui3x3x0cdgz4g\",\n    \"kind\": \"note\",\n    \"key\": \"Same words\"\n  },\n  {\n    \"id\": \"1fjdav51ugfw8pnj27uggna2f\",\n    \"kind\": \"note\",\n    \"key\": \"Same words\\u001F2\\t\"\n  },\n  {\n    \"id\": \"tea-4\",\n    \"kind\": \"component\",\n    \"key\": \"Tea\\u001f4\\t\"\n  }\n]",
+        "same-key-twice.owm": "title Same key twice\nanchor User [0.95, 0.5]\ncomponent Tea [0.8, 0.3]\ncomponent Tea [0.6, 0.5]\ncomponent Tea [0.4, 0.7]\ncomponent Tea 2 [0.2, 0.6]\nUser->Tea\nUser->Tea\nevolve Tea 0.8\npipeline Tea\n{\n  component Leaf [0.4]\n}\nnote Same words [0.3, 0.2]\nnote Same words [0.5, 0.2]\ncomponent Tea [0.1, 0.9]\n"
+      }
+    },
+    {
+      "doc": "The undo removes the component's line and prunes its entry.",
+      "undo": true,
+      "splices": [
+        {
+          "file": "same-key-twice.owm",
+          "operation": "insert-entry",
+          "start": 276,
+          "end": 301,
+          "text": ""
+        },
+        {
+          "file": "same-key-twice.identities.json",
+          "operation": "insert-entry",
+          "start": 1089,
+          "end": 1168,
+          "text": ""
+        }
+      ],
+      "expect": "wardley/map\n",
+      "expectFiles": {
+        "same-key-twice.identities.json": "[\n  {\n    \"id\": \"p16i53xg6y8vbpxiux6idfhnv\",\n    \"kind\": \"component\",\n    \"key\": \"User\"\n  },\n  {\n    \"id\": \"ysd5h03blr9jizhacd9lkanwv\",\n    \"kind\": \"component\",\n    \"key\": \"Tea\"\n  },\n  {\n    \"id\": \"1s48wmq2weij3e1046004dttp\",\n    \"kind\": \"component\",\n    \"key\": \"Tea\\u001F2\\t\"\n  },\n  {\n    \"id\": \"6hizdvacy962c6clumx1ibvnm\",\n    \"kind\": \"component\",\n    \"key\": \"Tea\\u001F3\\t\"\n  },\n  {\n    \"id\": \"trpw44vt0z95qjq4h0p2dc614\",\n    \"kind\": \"component\",\n    \"key\": \"Tea 2\"\n  },\n  {\n    \"id\": \"dv6kvp7fwhsqqdxw9fq8t2n6f\",\n    \"kind\": \"link\",\n    \"key\": \"User\\u001FTea\\u001FDependency\"\n  },\n  {\n    \"id\": \"b8q0ithnaur1aqfdz123z61tk\",\n    \"kind\": \"link\",\n    \"key\": \"User\\u001FTea\\u001FDependency\\u001F2\\t\"\n  },\n  {\n    \"id\": \"zsfgr21wpcrp6synltj6ue28c\",\n    \"kind\": \"pipeline\",\n    \"key\": \"Tea\"\n  },\n  {\n    \"id\": \"9w0mngp5x7vupl06bhw0o504u\",\n    \"kind\": \"pipeline-child\",\n    \"key\": \"Tea\\u001FLeaf\"\n  },\n  {\n    \"id\": \"naw6bep1hlokui3x3x0cdgz4g\",\n    \"kind\": \"note\",\n    \"key\": \"Same words\"\n  },\n  {\n    \"id\": \"1fjdav51ugfw8pnj27uggna2f\",\n    \"kind\": \"note\",\n    \"key\": \"Same words\\u001F2\\t\"\n  }\n]",
+        "same-key-twice.owm": "title Same key twice\nanchor User [0.95, 0.5]\ncomponent Tea [0.8, 0.3]\ncomponent Tea [0.6, 0.5]\ncomponent Tea [0.4, 0.7]\ncomponent Tea 2 [0.2, 0.6]\nUser->Tea\nUser->Tea\nevolve Tea 0.8\npipeline Tea\n{\n  component Leaf [0.4]\n}\nnote Same words [0.3, 0.2]\nnote Same words [0.5, 0.2]\n"
+      }
+    }
+  ]
+}
