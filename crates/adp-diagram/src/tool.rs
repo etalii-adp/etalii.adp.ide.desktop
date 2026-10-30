@@ -101,6 +101,7 @@ impl DiagramTool {
             derive_id: Some(natural_ids::of(specification)),
             attribute_type: Some(attribute_types::of(specification)),
             time_attributes: attribute_types::time_attributes(specification, &self.binding),
+            rule_observer: self.module.as_ref().and_then(|m| m.rule_observer()),
             ..FblOptions::default()
         };
         if let Some(registration) = registration {
