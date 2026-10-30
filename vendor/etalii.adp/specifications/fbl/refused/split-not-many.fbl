@@ -1,0 +1,50 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.13",
+  "doc": "Refused by FBL 0.13, section 14.1, step 6: the attribute title cuts its argument into items at its commas (split), and the tool type it is read for, systems/causal-loop-diagram, declares a Loop's title single-valued, so the items have no attribute to hold them (sections 4.9, 5.2). The same slot without split loads.",
+  "bindings": {
+    "loops": {
+      "title": "Loops, a split argument on a single-valued attribute",
+      "claims": {
+        "extensions": [
+          ".loops"
+        ],
+        "origins": [
+          "systems/causal-loop-diagram"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "grammar",
+        "grammar": "start: unit*\n?unit: loop\n     | _NL\nloop: NAME STRING\nNAME: /[a-z]+/\nSTRING: /\"([^\"\\\\\\r\\n]|\\\\[^\\r\\n])*\"/\n_NL: /(\\r?\\n[ \\t]*)+/\nWHITESPACE: /[ \\t]+/\n%ignore WHITESPACE\n",
+        "recover": {
+          "unit": "unit",
+          "sync": [
+            "_NL"
+          ]
+        }
+      },
+      "reader": "declared",
+      "elements": [
+        {
+          "name": "loop",
+          "type": "Loop",
+          "at": "/loop",
+          "id": {
+            "from": {
+              "node": "NAME"
+            }
+          },
+          "attributes": {
+            "title": {
+              "node": "STRING",
+              "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
+              "split": ",",
+              "readOnly": true
+            }
+          }
+        }
+      ]
+    }
+  }
+}

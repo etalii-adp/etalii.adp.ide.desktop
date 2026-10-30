@@ -1,0 +1,78 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.13, section 4.9 (Several items in one node) and section 5.2 (split), FR-038, gap 16 of the C4 companions: a tags argument holds the tags its text is cut into at its commas, the white space around each taken off, as Structurizr and the C4 tool read it. tags \"Extra, More\" in the system's block is the two tags Extra and More, after the declaration's Core; \"Existing System\" is one tag, since only a comma cuts. The tags stay read-only, gathered from two places (FBL 0.11, gather), so a set is refused and nothing is written. The input is etalii.adp.ide.standalone/src/diagrams/c4/backend/EtAlii.Adp.Diagram.C4.Tests/Fixtures/findings/tags-in-block.dsl at edbddc92e, byte for byte.",
+  "binding": "../../structurizr.fbl#workspace",
+  "input": "tags-in-block.dsl",
+  "read": {
+    "elements": [
+      {
+        "id": "u",
+        "type": "Person",
+        "attributes": {
+          "tags": [
+            "Internal"
+          ]
+        }
+      },
+      {
+        "id": "ext",
+        "type": "SoftwareSystem",
+        "attributes": {
+          "tags": [
+            "External"
+          ]
+        }
+      },
+      {
+        "id": "s",
+        "type": "SoftwareSystem",
+        "attributes": {
+          "tags": [
+            "Core",
+            "Extra",
+            "More"
+          ]
+        }
+      },
+      {
+        "id": "db",
+        "type": "Container",
+        "parent": "s",
+        "attributes": {
+          "tags": [
+            "Database",
+            "Existing System"
+          ]
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "workspace \"Tags in a block\" {\n    model {\n        u = person \"User\" \"A user.\" \"Internal\"\n        ext = softwareSystem \"Partner\" \"Someone else's system.\" {\n            tags \"External\"\n        }\n        s = softwareSystem \"System\" \"A system.\" \"Core\" {\n            db = container \"Store\" \"Keeps things.\" \"PostgreSQL\" {\n                tags \"Database\" \"Existing System\"\n            }\n            tags \"Extra, More\"\n        }\n        u -> s \"Uses\" \"HTTPS\"\n        s -> ext \"Calls\" \"HTTPS\"\n        u -> db \"Reads\" \"SQL\"\n    }\n    views {\n        systemContext s \"context\" {\n            include *\n        }\n        container s \"containers\" {\n            include *\n        }\n    }\n}\n"
+    },
+    {
+      "doc": "A set of the gathered, read-only tags is refused, split or not, and nothing is written.",
+      "edit": {
+        "set": {
+          "element": "s",
+          "attributes": {
+            "tags": [
+              "Core",
+              "Extra"
+            ]
+          }
+        }
+      },
+      "refused": "The tags are read-only.",
+      "splices": [],
+      "expect": "workspace \"Tags in a block\" {\n    model {\n        u = person \"User\" \"A user.\" \"Internal\"\n        ext = softwareSystem \"Partner\" \"Someone else's system.\" {\n            tags \"External\"\n        }\n        s = softwareSystem \"System\" \"A system.\" \"Core\" {\n            db = container \"Store\" \"Keeps things.\" \"PostgreSQL\" {\n                tags \"Database\" \"Existing System\"\n            }\n            tags \"Extra, More\"\n        }\n        u -> s \"Uses\" \"HTTPS\"\n        s -> ext \"Calls\" \"HTTPS\"\n        u -> db \"Reads\" \"SQL\"\n    }\n    views {\n        systemContext s \"context\" {\n            include *\n        }\n        container s \"containers\" {\n            include *\n        }\n    }\n}\n"
+    }
+  ]
+}

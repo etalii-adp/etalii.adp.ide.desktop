@@ -404,17 +404,17 @@
     },
     {
       "id": "the-gaps/79",
-      "text": "**Shown by.** `findings/tags-in-block.dsl` (`tags \"Extra, More\"`); `structurizr-gathered-tags` reads `\"Last, Least\"` as one item.",
+      "text": "**Shown by.** `findings/tags-in-block.dsl` (`tags \"Extra, More\"`), and the argument `\"Last, Least\"` of `structurizr-gathered-tags`, which",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/80",
-      "text": "**Would resolve it.** A slot that splits a value read from one node into items at a separator, and writes them joined by it.",
+      "text": "**Answered.** FBL 0.13: a `{node}` slot of a `many` attribute takes `split`, and its value is cut at every occurrence of that text into items, each",
       "statedBy": "binding structurizr"
     },
     {
       "id": "the-gaps/81",
-      "text": "**Meanwhile.** Tags are read-only, and the module's parser splits them (`C4Parser`, read by `C4Disl`).",
+      "text": "**Meanwhile.** Tags are read-only in the tool, so nothing writes them, and the module's parser splits them (`C4Parser`, read by `C4Disl`) until",
       "statedBy": "binding structurizr"
     },
     {

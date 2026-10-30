@@ -76,7 +76,7 @@ Today a tool engineer specifies a tool type in up to three JSON files, each in a
 
 ### 1.3 Relation to the other specifications
 
-DISL, DID, DESL, DED, EDSL, EDD and FBL remain specifications of this repository. ATD carries every construct of DISL 0.6, DESL 0.2 and FBL 0.12 (Appendix C maps each of their properties to the ATD construct that carries it), and the constructs an editor needs, which EDSL, a placeholder, does not yet have (section 10). ATD reuses their schemas: a setting of an ATD construct is checked against the `$defs` entry of DISL, DESL or FBL for the same thing (section 14.6), and a binding in ATD is an FBL binding written as text. Tools keep storing their documents in DID, DED or a body a binding reads; a tool description replaces none of them.
+DISL, DID, DESL, DED, EDSL, EDD and FBL remain specifications of this repository. ATD carries every construct of DISL 0.6, DESL 0.2 and FBL 0.13 (Appendix C maps each of their properties to the ATD construct that carries it), and the constructs an editor needs, which EDSL, a placeholder, does not yet have (section 10). ATD reuses their schemas: a setting of an ATD construct is checked against the `$defs` entry of DISL, DESL or FBL for the same thing (section 14.6), and a binding in ATD is an FBL binding written as text. Tools keep storing their documents in DID, DED or a body a binding reads; a tool description replaces none of them.
 
 ---
 
@@ -102,7 +102,7 @@ A **conformance fixture** is one case of one tool type: input files, the gesture
 - `read` is what reading the inputs yields: the elements with their type, parent and the attributes compared; the relations with their ends; the findings (each with its rule or code and its line); and the parts the reader could not read.
 - `drawing` is the scene after reading (section 2.4), inline or as `{"$ref": "<file>"}` beside the case.
 - `steps` are the gestures, in order. A step has exactly one of `action` (with `args`, after `select`), `property`, `move`, `create`, `connect`, `delete`, `outside`, `undo` and `redo`, and states what it produces: `splices` (FBL `$defs/Splice`, UTF-8 byte offsets into the body before the step), the body's bytes after it (`expect` inline, or `expectFile`), `findings`, `drawing`, or `refused` with the reason the gesture was refused with. `ids` lists the ids the reference host generated in the step, in order; a runtime **MUST** be given them, in that order, in place of ids of its own, so that bytes can be equal.
-- A `move` step moves `element` to a place, `x` and `y`, or into `parent`: before the child at `index` there, counted among the parent's children as they are before the move, the element itself included, or after the last when `index` is -1 or absent, as the reference host's gesture placed it.
+- A `move` step moves `element` to a place, `x` and `y`, by a distance from where it is drawn, `dx` and `dy`, or into `parent`: before the child at `index` there, counted among the parent's children as they are before the move, the element itself included, or after the last when `index` is -1 or absent, as the reference host's gesture placed it.
 - An `outside` step writes a file of the case as another program or an agent would, replacing the first occurrence of `from` in `file` by `to`, and tells the host the file changed, as its watcher does; the history starts afresh with it, so no step before it can be undone, and a refused step leaves the bytes as they were. A designer's gesture on its page is an `action` naming the operation, with the entry it is made on in `select` and the operation's parameters in `args`.
 - An `undo` **MUST** give back the bytes before the step it undoes exactly, and a `redo` the bytes after it.
 - `provenance` names, for each part (`bytes`, `reading`, `findings`, `drawing`), the host and repository that produced it, `commit`, the reference commit whose behaviour it records, `recordedWith`, for a recorded part the commit of the recorder, and `source`, a standalone host's golden or `atd record`. The reference host differs by part: the standalone host for bytes, as the desktop host's parity goldens record them, and the desktop host at its reference commit for readings, findings and drawings (spec 035, Q5). A tool type the desktop host did not have at its reference commit (the Hierarchical Requirement Designer, added by spec 036) takes its readings and findings from the desktop host at the commit that records them, which `commit` and `recordedWith` then both name. A designer's page has no recording painter, so a designer's case states no drawing.
@@ -608,7 +608,7 @@ The text's model is the description's model: its element types are what the edit
 
 ## 11. Bindings
 
-A binding (`grammar/binding.lark`) is an FBL 0.12 binding written as text (FBL §3 to §13): every property of FBL's `Binding` has its ATD form in Appendix C. Its meaning, reading and writing are FBL's, unchanged.
+A binding (`grammar/binding.lark`) is an FBL 0.13 binding written as text (FBL §3 to §13): every property of FBL's `Binding` has its ATD form in Appendix C. Its meaning, reading and writing are FBL's, unchanged.
 
 ### 11.1 The binding
 
@@ -630,7 +630,7 @@ A description **MAY** have several bindings, one per format family, as DESL's `p
 `element <Type> [as <name>] [at "<selector>" | line "<regex>"] { … }` is an element rule (FBL §5.1), `relation <Type> [as <name>] […] { … }` a relation rule (FBL §5.4). The name after `as` is FBL's rule `name`, written as FBL writes it, hyphens and dots included (`as unreadable-requirement`, section 3.6); without it the rule's name is its type's. The same holds for every name a binding declares or names: the binding's own, a block's, a section's, and those `parent`, `within`, `files` and `references` name. Members:
 
 - `id from <slot> [{ … }]` or `id { … }` (FBL §5.3);
-- `attribute <name> [from <slot>] [{ … }]`: an attribute binding (FBL §5.2), its options as settings (`empty`, `absent`, `default`, `number`, `time`, `style`, `map`, `override`, `content`, `create`, `readOnly`, `read`, `quoted`, `fallback`, *(FBL 0.10)* `secondary` and `refusals`, *(FBL 0.11)* `escape` and `gather`, *(FBL 0.12)* `items` and `separator`), and `references <rules> by <name>` for FBL's `reference` (`by id` for a reference by stored id, FBL §5.7);
+- `attribute <name> [from <slot>] [{ … }]`: an attribute binding (FBL §5.2), its options as settings (`empty`, `absent`, `default`, `number`, `time`, `style`, `map`, `override`, `content`, `create`, `readOnly`, `read`, `quoted`, `fallback`, *(FBL 0.10)* `secondary` and `refusals`, *(FBL 0.11)* `escape` and `gather`, *(FBL 0.12)* `items` and `separator`, *(FBL 0.13)* `split`), and `references <rules> by <name>` for FBL's `reference` (`by id` for a reference by stored id, FBL §5.7);
 - `parent <rules> [slot <name>]` (FBL §5.5), `within <names>`, `when <CEL>`, `files <names>`;
 - `insert { … }` and `remove { … }` (section 11.5);
 - in a relation rule, `source from <slot>` and `target from <slot>`;
@@ -670,6 +670,7 @@ FBL's guarantees hold for every binding in ATD (FBL §1.4, §6, §7): reading ne
 - *(FBL 0.11)* An attribute binding's `create` takes, in this family, `{ emit: "<text>", after: [<attributes>], pad: true }`: the text of an absent part, the attributes whose parts precede it, nearest first, and whether the parts before it are written empty (FBL §4.9, *Writing*); and `gather: [<slots>]`, further slots of a read-only `many` attribute whose items follow the first slot's (FBL §5.2).
 - *(FBL 0.11)* A rule's `opens` is, in this family, a settings map, `opens: { open: " {", close: "}" }`, the text of a block written around a first child (FBL §4.9); and `selectedView: true` reads the rule for the selected view only (FBL §4.9, *Views*, §9.3).
 - *(FBL 0.12)* An attribute binding's slot takes, in this family, `items: { <attribute>: <slot>, … }`, a slot per item attribute relative to each node the slot reaches, and `separator: "<text>"`, so that a `many` attribute is a list of structured values (FBL §5.2, §6.3): `attribute positions from node "positions/position" { items: { visibility: { node: "visibility" }, maturity: { node: "maturity" } }, separator: "," }`.
+- *(FBL 0.13)* An attribute binding's slot takes, in this family, `split: "<text>"`, the text at which the value of each node it reaches is cut into the items of a `many` attribute, each without the white space around it, and a set of them is written into the node by splices (FBL §4.9, §5.2, §6.3): `attribute tags from node "tags" { split: ",", readOnly: true }` reads `"Extra, More"` as the two tags `Extra` and `More`.
 - *(FBL 0.11)* A block rule of this family is `block <name> { … }` with the settings `at`, the selector of the view's node, `view`, its key from a slot, `origins`, the readings that show it, and `insert`, how a view block is added (FBL §5.1, §4.9, *Views*); it has no `line`.
 - A rule's `at "<selector>"` selects nodes of the tree by their names (`at "/triples_statement"`), and a slot `node "<selector>"` reads the text of the node or token its relative selector reaches, with the setting `match` when only part of the text is the value (`attribute name from node "PNAME_NS" { match: r"(?<value>[^:]*):" }`); FBL §4.9 and §5.2 define both.
 - The checker builds the grammar with the desktop host's table builder, on `etalii-lark` (research R9): a grammar that is not LALR(1), or in which two terminals a state accepts match the same text, is refused with `ATD8001`, placed at the head of the definition of the rule whose reduction is in conflict (of two such rules, the one defined first), and naming the kind of conflict, the terminal and the rules. A grammar the checker cannot read as notation is `ATD1001` at the place it stops, as for any syntax error; a file named by `grammar from` that is not there is `ATD2009`.
@@ -1087,6 +1088,7 @@ An agent writing a description is given `grammar/atd.flat.lark`, with which a mo
 - **0.1, amendment of 2026-10-29, FBL 0.10** (spec 066, pull request B, for the Databricks conversion): FBL 0.10's constructs for one binding that several readings share, as settings and with no change under `grammar/`: a rule's `origins` (§11.3), an attribute binding's `secondary` and `refusals` (§11.3), an insert's `refusals` (§11.5), and `resource`'s `byOrigin` in `registration` (§11.6); C.3 is FBL 0.10's, with a row for each, and for a fixture's `template`. A setting is checked against FBL's `$defs` (§14.6), so a description gains them with the schema. Every description that checked before still checks, with the same meaning.
 - **0.1, amendment of 2026-10-29, FBL 0.11** (spec 066, pull request A, for the C4 conversions): FBL 0.11's constructs of the `grammar` family, as settings and with no change under `grammar/` but the tables of `structurizr.lark` (§11.9): `recover`'s `nested` and `unclosed`, a slot's and an attribute binding's `escape`, an attribute binding's `create` with `emit`, `after` and `pad` and its `gather`, a rule's `opens` as a settings map and its `selectedView`, and a block rule's `at`, `view`, `origins` and `insert` in `block <name> { … }` (§11.3, §11.4, §11.9); C.3 is FBL 0.11's, with a row for each new property. Every description that checked before still checks, with the same meaning.
 - **0.1, amendment of 2026-10-29, FBL 0.12** (spec 066, pull request C, for the Wardley map conversion): FBL 0.12's constructs of the `grammar` family, as settings and with no change under `grammar/` but the tables of `wardley-map.lark` (§11.9): a slot's and an attribute binding's `items` and `separator`, a sidecar id's `kind` and `ordinal`, and `legacyIdentities` read as the array the tool writes (§11.6, §11.9); C.3 is FBL 0.12's, with a row for each new property. Every description that checked before still checks, with the same meaning.
+- **0.1, amendment of 2026-10-30, FBL 0.13** (spec 066, gap 16 of the C4 conversions, by the maintainer's ruling of 2026-10-30): FBL 0.13's `split` of a slot and of an attribute binding of the `grammar` family, as a setting and with no change under `grammar/` (§11.3, §11.9); C.3 is FBL 0.13's, with a row for each. A setting is checked against FBL's `$defs` (§14.6), so a description gains it with the schema. Every description that checked before still checks, with the same meaning.
 
 
 ---
@@ -3142,14 +3144,14 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `desl.schema.json#/$defs/CelValue/properties/resultType` | the key `resultType` in a value of CelValue (a settings map, §6.4) | §6.4 |
 | `desl.schema.json#/$defs/CelValue/properties/doc` | the key `doc` in a value of CelValue (a settings map, §6.4) | §6.4 |
 
-### C.3 FBL 0.12
+### C.3 FBL 0.13
 
-239 properties.
+241 properties.
 
 | JSON pointer | ATD | Section |
 |---|---|---|
 | `fbl.schema.json#/$defs/Document/properties/$schema` | none | §11.1 |
-| `fbl.schema.json#/$defs/Document/properties/fbl` | the header `atd <version>` (§5.1); a binding is FBL 0.12's in ATD 0.1 | §11.1 |
+| `fbl.schema.json#/$defs/Document/properties/fbl` | the header `atd <version>` (§5.1); a binding is FBL 0.13's in ATD 0.1 | §11.1 |
 | `fbl.schema.json#/$defs/Document/properties/doc` | `doc` and `///` | §11.1 |
 | `fbl.schema.json#/$defs/Document/properties/bindings` | `binding` | §11.1 |
 | `fbl.schema.json#/$defs/Binding/properties/title` | `label` | §11.1 |
@@ -3283,6 +3285,7 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `fbl.schema.json#/$defs/Slot/properties/escape` | *(FBL 0.11)* the setting `escape` of the slot after `from` (a settings map, §6.4) | §11.3, §11.9 |
 | `fbl.schema.json#/$defs/Slot/properties/items` | *(FBL 0.12)* the setting `items` of the slot after `from` (a settings map of slots, §6.4) | §11.3, §11.9 |
 | `fbl.schema.json#/$defs/Slot/properties/separator` | *(FBL 0.12)* the setting `separator` of the slot after `from` | §11.3, §11.9 |
+| `fbl.schema.json#/$defs/Slot/properties/split` | *(FBL 0.13)* the setting `split` of the slot after `from` | §11.3, §11.9 |
 | `fbl.schema.json#/$defs/AttributeBinding/properties/key` | `attribute name from key …` | §11.3 |
 | `fbl.schema.json#/$defs/AttributeBinding/properties/attribute` | `attribute name from attribute …` | §11.3 |
 | `fbl.schema.json#/$defs/AttributeBinding/properties/text` | `attribute name from text …` | §11.3 |
@@ -3317,6 +3320,7 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `fbl.schema.json#/$defs/AttributeBinding/properties/gather` | *(FBL 0.11)* the setting `gather` of `attribute` of a rule (a list of slots as settings maps, §6.4) | §11.3, §11.9 |
 | `fbl.schema.json#/$defs/AttributeBinding/properties/items` | *(FBL 0.12)* the setting `items` of `attribute` of a rule (a settings map of slots, §6.4) | §11.3, §11.9 |
 | `fbl.schema.json#/$defs/AttributeBinding/properties/separator` | *(FBL 0.12)* the setting `separator` of `attribute` of a rule | §11.3, §11.9 |
+| `fbl.schema.json#/$defs/AttributeBinding/properties/split` | *(FBL 0.13)* the setting `split` of `attribute` of a rule | §11.3, §11.9 |
 | `fbl.schema.json#/$defs/Insert/properties/place` | the setting `place` of `insert` | §11.5 |
 | `fbl.schema.json#/$defs/Insert/properties/container` | the setting `container` of `insert` | §11.5 |
 | `fbl.schema.json#/$defs/Insert/properties/create` | the setting `create` of `insert` | §11.5 |

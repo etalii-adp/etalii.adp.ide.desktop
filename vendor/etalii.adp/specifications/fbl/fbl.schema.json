@@ -32,7 +32,7 @@
           "type": "string"
         },
         "fbl": {
-          "description": "The FBL version the document is written in: 0.1 to 0.12 (draft); 0.3 names the tool type's specification in place of DISL, lets a specification name one binding per format family, and spells a reference to a stored id as by: \"id\". 0.4 creates and removes the missing levels of a nested container or child mapping. 0.5 defines a scalar's written text, read with read, and adds quoted and fallback to an attribute binding. 0.6 applies an attribute binding's empty rule to an insert as well as to a set. 0.7 adds the bullets family and the drift check before an edit. 0.8 lets an insert of the yaml and json families write a constant. 0.9 adds the grammar family. 0.10 lets one binding serve readings of different metamodels (origins on a rule, resource.byOrigin, one model per origin of one open body), inserts into a yaml flow sequence, gives a refusal its sentence, writes a nested mapping on an add, and adds secondary, {key:lower} and a fixture's template and expectFiles. 0.11 extends the grammar family so that Structurizr DSL is bound in it (comments owned and kept, recovery inside blocks, escapes, absent and positional parts, several nodes for a many attribute, a block written around a first child, views and the statements of the selected view, a view block that can be added, a value gathered from several places), and says how the legacy layout's keys, numbers and stale entries are written. 0.12 extends the grammar family so that the Wardley map's .owm is bound in it (a block brace on the next line, segments in any order, a slot's items and separator, a sidecar id's kind and ordinal, an identity entry that moves with its key), and reads the legacy identities file as the array of {id, kind, key} its tool writes, no longer as an object. See FBL 0.12, section 2.7.",
+          "description": "The FBL version the document is written in: 0.1 to 0.13 (draft); 0.3 names the tool type's specification in place of DISL, lets a specification name one binding per format family, and spells a reference to a stored id as by: \"id\". 0.4 creates and removes the missing levels of a nested container or child mapping. 0.5 defines a scalar's written text, read with read, and adds quoted and fallback to an attribute binding. 0.6 applies an attribute binding's empty rule to an insert as well as to a set. 0.7 adds the bullets family and the drift check before an edit. 0.8 lets an insert of the yaml and json families write a constant. 0.9 adds the grammar family. 0.10 lets one binding serve readings of different metamodels (origins on a rule, resource.byOrigin, one model per origin of one open body), inserts into a yaml flow sequence, gives a refusal its sentence, writes a nested mapping on an add, and adds secondary, {key:lower} and a fixture's template and expectFiles. 0.11 extends the grammar family so that Structurizr DSL is bound in it (comments owned and kept, recovery inside blocks, escapes, absent and positional parts, several nodes for a many attribute, a block written around a first child, views and the statements of the selected view, a view block that can be added, a value gathered from several places), and says how the legacy layout's keys, numbers and stale entries are written. 0.12 extends the grammar family so that the Wardley map's .owm is bound in it (a block brace on the next line, segments in any order, a slot's items and separator, a sidecar id's kind and ordinal, an identity entry that moves with its key), and reads the legacy identities file as the array of {id, kind, key} its tool writes, no longer as an object. 0.13 lets a {node} slot of a many attribute read several items from one node with split, cut at that text, and write a set of them into the node by splices (Structurizr's tags \"Extra, More\"). See FBL 0.13, section 2.7.",
           "enum": [
             "0.1",
             "0.2",
@@ -45,7 +45,8 @@
             "0.9",
             "0.10",
             "0.11",
-            "0.12"
+            "0.12",
+            "0.13"
           ]
         },
         "doc": {
@@ -1390,8 +1391,13 @@
           "minProperties": 1
         },
         "separator": {
-          "description": "(FBL 0.12) The text written between two items of an items slot; \", \" when none is given (section 6.3).",
+          "description": "(FBL 0.12) The text written between two items of an items slot, (FBL 0.13) or of a split slot; \", \" when none is given (section 6.3).",
           "type": "string"
+        },
+        "split": {
+          "description": "(FBL 0.13) grammar, on a {node} slot of a many attribute: the text at which the slot's value is cut into items; each piece without the white space at its start and end is an item with its own span, and an empty piece is no item. Not beside items, and holding neither character of the slot's escape (sections 4.9, 5.2, 6.3, 14.1).",
+          "type": "string",
+          "minLength": 1
         },
         "escape": {
           "description": "FBL 0.11, section 4.9, grammar, with node: the escapes of a quoted value. Reading replaces with+quote by quote and with+with by with, and keeps with before any other character; writing escapes every quote and with character of the value.",
@@ -1476,9 +1482,34 @@
         "items": [
           "node"
         ],
-        "separator": [
-          "items"
+        "split": [
+          "node"
         ]
+      },
+      "dependentSchemas": {
+        "separator": {
+          "description": "(FBL 0.12) separator stands beside items, (FBL 0.13) or beside split.",
+          "anyOf": [
+            {
+              "required": [
+                "items"
+              ]
+            },
+            {
+              "required": [
+                "split"
+              ]
+            }
+          ]
+        },
+        "split": {
+          "description": "(FBL 0.13) A slot whose node holds several items is not a slot of structured items.",
+          "not": {
+            "required": [
+              "items"
+            ]
+          }
+        }
       }
     },
     "AttributeBinding": {
@@ -1843,8 +1874,13 @@
           "minProperties": 1
         },
         "separator": {
-          "description": "(FBL 0.12) The text written between two items of an items slot; \", \" when none is given (section 6.3).",
+          "description": "(FBL 0.12) The text written between two items of an items slot, (FBL 0.13) or of a split slot; \", \" when none is given (section 6.3).",
           "type": "string"
+        },
+        "split": {
+          "description": "(FBL 0.13) grammar, on a {node} slot of a many attribute: the text at which the slot's value is cut into items; each piece without the white space at its start and end is an item with its own span, and an empty piece is no item. Not beside items, and holding neither character of the slot's escape (sections 4.9, 5.2, 6.3, 14.1).",
+          "type": "string",
+          "minLength": 1
         },
         "readOnly": {
           "description": "true, or the sentence a host shows as the reason.",
@@ -1892,9 +1928,34 @@
         "items": [
           "node"
         ],
-        "separator": [
-          "items"
+        "split": [
+          "node"
         ]
+      },
+      "dependentSchemas": {
+        "separator": {
+          "description": "(FBL 0.12) separator stands beside items, (FBL 0.13) or beside split.",
+          "anyOf": [
+            {
+              "required": [
+                "items"
+              ]
+            },
+            {
+              "required": [
+                "split"
+              ]
+            }
+          ]
+        },
+        "split": {
+          "description": "(FBL 0.13) A slot whose node holds several items is not a slot of structured items.",
+          "not": {
+            "required": [
+              "items"
+            ]
+          }
+        }
       }
     },
     "Insert": {
@@ -3327,7 +3388,7 @@
       "minLength": 1
     },
     "RuleOutsideGrammar": {
-      "description": "(FBL 0.11) What a rule of a binding of another family than grammar does not hold: opens as an object, selectedView, and attribute bindings with escape, gather or create with after (section 4.9); (FBL 0.12) nor items or separator (section 5.2).",
+      "description": "(FBL 0.11) What a rule of a binding of another family than grammar does not hold: opens as an object, selectedView, and attribute bindings with escape, gather or create with after (section 4.9); (FBL 0.12) nor items or separator (section 5.2); (FBL 0.13) nor split (section 4.9).",
       "not": {
         "anyOf": [
           {
@@ -3373,6 +3434,11 @@
                         {
                           "required": [
                             "separator"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "split"
                           ]
                         },
                         {

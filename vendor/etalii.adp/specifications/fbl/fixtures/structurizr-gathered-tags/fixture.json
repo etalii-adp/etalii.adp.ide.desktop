@@ -1,6 +1,6 @@
 {
   "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
-  "doc": "FBL 0.11, section 5.2 (gather), FR-013, written here: the tags of a declaration and the tags statements of its block read as one list, in document order, each argument an item; an argument holding a comma is one item, as the binding reads it. A gathered attribute is read-only, so a set of it is refused and nothing is written.",
+  "doc": "FBL 0.11, section 5.2 (gather), FR-013, written here: the tags of a declaration and the tags statements of its block read as one list, in document order, each argument an item; (FBL 0.13) an argument holding a comma holds the items its text is cut into at the comma, so \"Last, Least\" is the two tags Last and Least, as Structurizr reads them (section 4.9, split). A gathered attribute is read-only, so a set of it is refused and nothing is written.",
   "binding": "../../structurizr.fbl#workspace",
   "input": "tags.dsl",
   "read": {
@@ -13,7 +13,8 @@
             "Core",
             "Extra",
             "More",
-            "Last, Least"
+            "Last",
+            "Least"
           ]
         }
       },

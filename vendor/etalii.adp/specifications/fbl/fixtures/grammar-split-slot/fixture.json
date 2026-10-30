@@ -1,0 +1,353 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.13, sections 4.9 (Several items in one node) and 6.3 (An item of a slot with split), FR-038: one quoted argument holds several tags cut at its commas, each without the white space around it, an empty piece being no tag, and a set of the tags writes the difference into the argument by splices, so that every byte of a tag it keeps, and between two tags it keeps, stays. Written here for spec 066, gap 16 of the C4 companions; structurizr-split-tags reads the C4 tool's own tags-in-block.dsl.",
+  "binding": "labels.fbl#labels",
+  "input": "labels.txt",
+  "read": {
+    "elements": [
+      {
+        "id": "alpha",
+        "type": "Label",
+        "attributes": {
+          "tags": [
+            "Extra",
+            "More"
+          ]
+        }
+      },
+      {
+        "id": "beta",
+        "type": "Label",
+        "attributes": {
+          "tags": [
+            "One",
+            "Two",
+            "Three"
+          ]
+        }
+      },
+      {
+        "id": "gamma",
+        "type": "Label",
+        "attributes": {
+          "tags": []
+        }
+      },
+      {
+        "id": "delta",
+        "type": "Label",
+        "attributes": {
+          "tags": [
+            "Say \"hi\"",
+            "Bye"
+          ]
+        }
+      },
+      {
+        "id": "epsilon",
+        "type": "Label",
+        "attributes": {
+          "tags": []
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "alpha \"Extra, More\"\nbeta \"One ,Two,  Three\" // kept\ngamma \"\"\ndelta \"Say \\\"hi\\\",, Bye\"\nepsilon\n"
+    },
+    {
+      "doc": "A new tag is an insert-key, right after the last item, of the separator and the value: \"Extra, More\" given Most becomes \"Extra, More, Most\".",
+      "edit": {
+        "set": {
+          "element": "alpha",
+          "attributes": {
+            "tags": [
+              "Extra",
+              "More",
+              "Most"
+            ]
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 18,
+          "end": 18,
+          "text": ", Most"
+        }
+      ],
+      "expect": "alpha \"Extra, More, Most\"\nbeta \"One ,Two,  Three\" // kept\ngamma \"\"\ndelta \"Say \\\"hi\\\",, Bye\"\nepsilon\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 18,
+          "end": 24,
+          "text": ""
+        }
+      ],
+      "expect": "alpha \"Extra, More\"\nbeta \"One ,Two,  Three\" // kept\ngamma \"\"\ndelta \"Say \\\"hi\\\",, Bye\"\nepsilon\n"
+    },
+    {
+      "doc": "Removing the first tag is a remove-key from its start to the start of the item kept after it: \"Extra, More\" becomes \"More\".",
+      "edit": {
+        "set": {
+          "element": "alpha",
+          "attributes": {
+            "tags": [
+              "More"
+            ]
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 7,
+          "end": 14,
+          "text": ""
+        }
+      ],
+      "expect": "alpha \"More\"\nbeta \"One ,Two,  Three\" // kept\ngamma \"\"\ndelta \"Say \\\"hi\\\",, Bye\"\nepsilon\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 7,
+          "end": 7,
+          "text": "Extra, "
+        }
+      ],
+      "expect": "alpha \"Extra, More\"\nbeta \"One ,Two,  Three\" // kept\ngamma \"\"\ndelta \"Say \\\"hi\\\",, Bye\"\nepsilon\n"
+    },
+    {
+      "doc": "Removing a tag after one the set keeps is a remove-key from the end of that item to the end of the removed one, so the separator and the white space before it go with it, and every other byte of the argument stays: \"One ,Two,  Three\" becomes \"One,  Three\".",
+      "edit": {
+        "set": {
+          "element": "beta",
+          "attributes": {
+            "tags": [
+              "One",
+              "Three"
+            ]
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 29,
+          "end": 34,
+          "text": ""
+        }
+      ],
+      "expect": "alpha \"Extra, More\"\nbeta \"One,  Three\" // kept\ngamma \"\"\ndelta \"Say \\\"hi\\\",, Bye\"\nepsilon\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 29,
+          "end": 29,
+          "text": " ,Two"
+        }
+      ],
+      "expect": "alpha \"Extra, More\"\nbeta \"One ,Two,  Three\" // kept\ngamma \"\"\ndelta \"Say \\\"hi\\\",, Bye\"\nepsilon\n"
+    },
+    {
+      "doc": "A changed tag is a replace-value of that item's span alone.",
+      "edit": {
+        "set": {
+          "element": "beta",
+          "attributes": {
+            "tags": [
+              "One",
+              "2",
+              "Three"
+            ]
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 31,
+          "end": 34,
+          "text": "2"
+        }
+      ],
+      "expect": "alpha \"Extra, More\"\nbeta \"One ,2,  Three\" // kept\ngamma \"\"\ndelta \"Say \\\"hi\\\",, Bye\"\nepsilon\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 31,
+          "end": 32,
+          "text": "Two"
+        }
+      ],
+      "expect": "alpha \"Extra, More\"\nbeta \"One ,Two,  Three\" // kept\ngamma \"\"\ndelta \"Say \\\"hi\\\",, Bye\"\nepsilon\n"
+    },
+    {
+      "doc": "An argument that holds no item takes the new tags, joined by the separator, as a replace-value of its value's span.",
+      "edit": {
+        "set": {
+          "element": "gamma",
+          "attributes": {
+            "tags": [
+              "Extra",
+              "More"
+            ]
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 59,
+          "end": 59,
+          "text": "Extra, More"
+        }
+      ],
+      "expect": "alpha \"Extra, More\"\nbeta \"One ,Two,  Three\" // kept\ngamma \"Extra, More\"\ndelta \"Say \\\"hi\\\",, Bye\"\nepsilon\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 59,
+          "end": 70,
+          "text": ""
+        }
+      ],
+      "expect": "alpha \"Extra, More\"\nbeta \"One ,Two,  Three\" // kept\ngamma \"\"\ndelta \"Say \\\"hi\\\",, Bye\"\nepsilon\n"
+    },
+    {
+      "doc": "A new tag is written with its quotes escaped, by the slot's escape; the empty piece between the two commas stays, as every byte between two kept items does.",
+      "edit": {
+        "set": {
+          "element": "delta",
+          "attributes": {
+            "tags": [
+              "Say \"hi\"",
+              "Bye",
+              "A \"b\""
+            ]
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 84,
+          "end": 84,
+          "text": ", A \\\"b\\\""
+        }
+      ],
+      "expect": "alpha \"Extra, More\"\nbeta \"One ,Two,  Three\" // kept\ngamma \"\"\ndelta \"Say \\\"hi\\\",, Bye, A \\\"b\\\"\"\nepsilon\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 84,
+          "end": 93,
+          "text": ""
+        }
+      ],
+      "expect": "alpha \"Extra, More\"\nbeta \"One ,Two,  Three\" // kept\ngamma \"\"\ndelta \"Say \\\"hi\\\",, Bye\"\nepsilon\n"
+    },
+    {
+      "doc": "Removing every tag of an argument removes the argument as a node of a many slot without split is: a remove-key of the node and the whitespace before it.",
+      "edit": {
+        "set": {
+          "element": "alpha",
+          "attributes": {
+            "tags": []
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 5,
+          "end": 19,
+          "text": ""
+        }
+      ],
+      "expect": "alpha\nbeta \"One ,Two,  Three\" // kept\ngamma \"\"\ndelta \"Say \\\"hi\\\",, Bye\"\nepsilon\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 5,
+          "end": 5,
+          "text": " \"Extra, More\""
+        }
+      ],
+      "expect": "alpha \"Extra, More\"\nbeta \"One ,Two,  Three\" // kept\ngamma \"\"\ndelta \"Say \\\"hi\\\",, Bye\"\nepsilon\n"
+    },
+    {
+      "doc": "Where the slot reaches no node, the slot's create writes one, its value the new tags joined by the separator, after the name.",
+      "edit": {
+        "set": {
+          "element": "epsilon",
+          "attributes": {
+            "tags": [
+              "X",
+              "Y"
+            ]
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 93,
+          "end": 93,
+          "text": " \"X, Y\""
+        }
+      ],
+      "expect": "alpha \"Extra, More\"\nbeta \"One ,Two,  Three\" // kept\ngamma \"\"\ndelta \"Say \\\"hi\\\",, Bye\"\nepsilon \"X, Y\"\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the edit replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 93,
+          "end": 100,
+          "text": ""
+        }
+      ],
+      "expect": "alpha \"Extra, More\"\nbeta \"One ,Two,  Three\" // kept\ngamma \"\"\ndelta \"Say \\\"hi\\\",, Bye\"\nepsilon\n"
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.13",
+  "doc": "The binding of the fixture grammar-split-slot (FBL 0.13, sections 4.9 and 6.3, split): named labels, one per line, each with one quoted argument that holds several tags cut at its commas, as Structurizr writes a tags argument. The tags are writable, so the fixture shows how a set splices the argument; the separator is the default, \", \".",
+  "bindings": {
+    "labels": {
+      "title": "Tagged labels",
+      "claims": {
+        "extensions": [
+          ".labels"
+        ],
+        "origins": [
+          "example/labels"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "grammar",
+        "grammar": "start: unit*\n?unit: label\n     | _NL\nlabel: NAME [tags]\ntags: STRING\nNAME: /[a-z]+/\nSTRING: /\"([^\"\\\\\\r\\n]|\\\\[^\\r\\n])*\"/\n_NL: /(\\r?\\n[ \\t]*)+/\nWHITESPACE: /[ \\t]+/\nCOMMENT: /\\/\\/[^\\r\\n]*/\n%ignore WHITESPACE\n%ignore COMMENT\n",
+        "recover": {
+          "unit": "unit",
+          "sync": [
+            "_NL"
+          ]
+        }
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "lf",
+        "indent": 2,
+        "finalNewline": true
+      },
+      "elements": [
+        {
+          "name": "label",
+          "type": "Label",
+          "at": "/label",
+          "id": {
+            "from": {
+              "node": "NAME"
+            }
+          },
+          "attributes": {
+            "name": {
+              "node": "NAME",
+              "readOnly": true
+            },
+            "tags": {
+              "node": "tags",
+              "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
+              "escape": {
+                "with": "\\",
+                "quote": "\""
+              },
+              "split": ",",
+              "create": {
+                "emit": " \"{value}\"",
+                "after": [
+                  "name"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

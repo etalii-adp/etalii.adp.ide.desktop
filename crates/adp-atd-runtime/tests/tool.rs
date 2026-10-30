@@ -156,3 +156,32 @@ fn a_case_opens_from_memory_and_reads_as_the_module_read_it() {
         );
     }
 }
+
+#[test]
+fn a_node_on_an_axis_with_a_scale_is_placed_in_its_canvas_units() {
+    let checked = check(&FsFiles, &vendor().join("definitions/diagrams/dependency-graph.atd"));
+    let symbols = checked.symbols.as_ref().expect("symbols");
+    let runtime = diagram_tool(&checked.description, symbols, &RuntimeHost::default()).unwrap();
+    let case = vendor().join("definitions/diagrams/conformance/dependency-graph/services");
+    let mut documents = DiagramDocuments::default();
+    let document = documents.open_bytes(
+        runtime.tool.clone(),
+        Path::new("/nowhere/services.dgr"),
+        None,
+        std::fs::read(case.join("services.dgr")).unwrap(),
+        None,
+    );
+    // Row 4 of an axis of 60 canvas units a row; `x`, on an axis without a scale, as it is written.
+    let (x, y) = document.positions()["api-gateway"];
+    assert_eq!((round2(x), y), (270.43, 240.0));
+
+    let element = document.element("api-gateway").expect("the node");
+    let module = runtime.tool.module.as_ref().expect("the description's module");
+    let placed = module.placement(&element, 100.5, 305.0).unwrap().unwrap();
+    assert_eq!(placed.attributes.get("x"), Some(&adp_cel::Value::Double(100.5)));
+    assert_eq!(
+        placed.attributes.get("row"),
+        Some(&adp_cel::Value::Int(5)),
+        "the nearest row"
+    );
+}
