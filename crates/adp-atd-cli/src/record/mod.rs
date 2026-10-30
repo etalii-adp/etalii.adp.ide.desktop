@@ -280,6 +280,12 @@ fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), Stri
                     to.insert(key.into(), value.clone());
                 }
             }
+            // A move to a place: the parity script's `to`, a step's own `x` and `y` in the case (ATD §2.3).
+            for key in ["x", "y"] {
+                if let Some(value) = movement["to"].get(key) {
+                    to.insert(key.into(), value.clone());
+                }
+            }
             gesture.insert("move".into(), Json::Object(to));
             gesture.insert("doc".into(), json!(format!("The parity script's gesture: {movement}")));
         } else if let Some(n) = step.get("undo").and_then(Json::as_u64) {
