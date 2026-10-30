@@ -19,6 +19,7 @@ use std::path::{Path, PathBuf};
 use adp_atd_check::Description;
 use adp_atd_runtime::RuntimeTool;
 use adp_context::Prompt;
+use adp_diagram::ElementKind;
 use adp_diagram::document::EditedFile;
 use adp_diagram::session::{ActionOutcome, ActionTarget, DiagramSession};
 use adp_diagram::workspace::DiagramWorkspace;
@@ -548,6 +549,17 @@ impl Replay {
         if let Some(parent) = movement.get("parent").and_then(Json::as_str) {
             let index = movement.get("index").and_then(Json::as_i64).unwrap_or(-1);
             return self.session.move_element(&mut self.workspace, id, Some(parent), index);
+        }
+        // A move by a distance goes from where the element is drawn, as the reference host's drag did.
+        if movement.get("dx").is_some() || movement.get("dy").is_some() {
+            let distance = |key: &str| movement.get(key).and_then(Json::as_f64).unwrap_or(0.0);
+            let elements = self.session.render(self.workspace.documents())?;
+            let element = elements
+                .iter()
+                .find(|e| e.id == id && e.kind == ElementKind::Node)
+                .ok_or_else(|| format!("no node '{id}' is on the diagram"))?;
+            let (x, y) = (element.x + distance("dx"), element.y + distance("dy"));
+            return self.session.move_element_to(&mut self.workspace, id, x, y);
         }
         let x = movement.get("x").and_then(Json::as_f64).ok_or("A place has x.")?;
         let y = movement.get("y").and_then(Json::as_f64).ok_or("A place has y.")?;
