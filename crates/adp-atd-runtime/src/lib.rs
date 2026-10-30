@@ -5,6 +5,6 @@ pub mod capabilities;
 pub mod lowering;
 pub mod tool;
 
-pub use capabilities::{Capabilities, LayoutCapability, RoutingCapability};
+pub use capabilities::{Capabilities, LayoutCapability, RoutingCapability, Version};
 pub use lowering::{LoadedDiagram, load_diagram, lower_diagram};
 pub use tool::{RuntimeHost, RuntimeTool, diagram_tool};

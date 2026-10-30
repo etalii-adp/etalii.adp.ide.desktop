@@ -9,8 +9,9 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::rc::Rc;
 
-use adp_atd_check::{Description, Symbols};
+use adp_atd_check::{Description, Finding, Severity, Symbols};
 use adp_atd_script::debug::Debugger;
+use adp_atd_syntax::Span;
 use adp_cel::{Map, Value};
 use adp_diagram::disl_definition::DislDiagramDefinition;
 use adp_diagram::{DiagramDocument, DiagramModule, DiagramTool};
@@ -50,6 +51,9 @@ impl Default for RuntimeHost {
 pub struct RuntimeTool {
     pub tool: Rc<DiagramTool>,
     pub loaded: LoadedDiagram,
+    /// One `ATD9010` for each capability the description requires that this host does not provide, or not in the
+    /// range required (ATD §13.4): the description still opens, and the gestures that need it are refused.
+    pub findings: Vec<Finding>,
 }
 
 /// The tool of a checked diagram description.
@@ -85,7 +89,17 @@ pub fn diagram_tool(description: &Description, symbols: &Symbols, host: &Runtime
         .pointer("/language/label")
         .and_then(Json::as_str)
         .unwrap_or(&origin);
-    let mut module = RuntimeModule::of(&loaded.json, host);
+    let mut missing = Vec::new();
+    let mut findings = Vec::new();
+    for required in description.members().filter(|m| m["kind"] == "requires") {
+        let name = required["capability"]["text"].as_str().unwrap_or_default();
+        let range = required["range"].as_str().unwrap_or_default();
+        if let Some(reason) = host.capabilities.lacks(name, range) {
+            findings.push(lacking(required, &reason));
+            missing.push((name.to_owned(), reason));
+        }
+    }
+    let mut module = RuntimeModule::of(&loaded.json, host, missing);
     if let Some(debugger) = &host.debugger {
         module.rule_observer = Some(rule_observer(description, Rc::clone(debugger)));
     }
@@ -100,6 +114,7 @@ pub fn diagram_tool(description: &Description, symbols: &Symbols, host: &Runtime
     Ok(RuntimeTool {
         tool: Rc::new(tool),
         loaded,
+        findings,
     })
 }
 
@@ -139,6 +154,25 @@ fn rule_observer(description: &Description, debugger: Rc<Debugger>) -> RuleObser
     })
 }
 
+/// The finding of a capability the host lacks, at the `requires` that names it.
+fn lacking(required: &Json, reason: &str) -> Finding {
+    let span = Span::of(required).unwrap_or_default();
+    Finding {
+        code: "ATD9010",
+        severity: Severity::Warning,
+        file: span.file,
+        line: span.line,
+        column: span.column,
+        end_line: span.end_line,
+        end_column: span.end_column,
+        start: span.start,
+        end: span.end,
+        message: format!("{reason} The description opens; the gestures that need it are refused."),
+        suggestions: Vec::new(),
+        fixes: Vec::new(),
+    }
+}
+
 /// The layout a description names by a capability (ATD §8.8): the capability and its arguments.
 #[derive(Debug, Clone)]
 struct CapabilityLayout {
@@ -152,6 +186,8 @@ pub struct RuntimeModule {
     /// Told of each binding rule as it reads an entry, when the script runs under the debugger.
     rule_observer: Option<RuleObserver>,
     capabilities: Capabilities,
+    /// The capabilities the description requires that the host lacks, each with the reason.
+    missing: Vec<(String, String)>,
     layout: Option<CapabilityLayout>,
     /// Each viewer's initial view state, by key: `collapsed` from `persistence.view.initial`.
     initial_view: serde_json::Map<String, Json>,
@@ -166,7 +202,7 @@ impl std::fmt::Debug for RuntimeModule {
 }
 
 impl RuntimeModule {
-    fn of(specification: &Json, host: &RuntimeHost) -> Self {
+    fn of(specification: &Json, host: &RuntimeHost, missing: Vec<(String, String)>) -> Self {
         let layout = specification.pointer("/layout").and_then(|layout| {
             let default = layout["default"].as_str()?;
             let algorithm = &layout["algorithms"][default];
@@ -185,6 +221,7 @@ impl RuntimeModule {
             plugins: Rc::clone(&host.plugins),
             rule_observer: None,
             capabilities: host.capabilities.clone(),
+            missing,
             layout,
             initial_view,
             views: RefCell::default(),
@@ -228,6 +265,18 @@ impl RuntimeModule {
 impl DiagramModule for RuntimeModule {
     fn rule_observer(&self) -> Option<RuleObserver> {
         self.rule_observer.clone()
+    }
+
+    /// A `layout` action whose plugin is a capability the host lacks is refused with the reason (ATD §13.4); any other
+    /// is left to the engines.
+    fn layout(
+        &self,
+        _specification: &DislSpecification,
+        plugin: &str,
+        _diagram: &adp_disl::DislDiagram,
+    ) -> Option<Result<Vec<adp_disl::DislChange>, String>> {
+        let (_, reason) = self.missing.iter().find(|(name, _)| name == plugin)?;
+        Some(Err(reason.clone()))
     }
 
     /// The host's plugin `plugin_id`, else its reader capability of that name (ATD §11.7).

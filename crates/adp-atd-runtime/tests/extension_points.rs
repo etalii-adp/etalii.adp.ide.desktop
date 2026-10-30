@@ -71,7 +71,13 @@ impl PersistencePlugin for LinesAsResources {
 
 /// ATD's example of a capability as the family, with the language id DISL needs to open its documents.
 fn described() -> PathBuf {
+    described_requiring("^1")
+}
+
+/// The example, requiring `reader.turtle` in `range`.
+fn described_requiring(range: &str) -> PathBuf {
     let example = std::fs::read_to_string(vendor().join("specifications/atd/binding-capability.atd")).unwrap();
+    let example = example.replacen("reader.turtle@^1", &format!("reader.turtle@{range}"), 1);
     let described = example.replacen(
         "  label \"Resource graph\"\n",
         "  label \"Resource graph\"\n  id: \"example.resourceGraph\"\n",
@@ -172,4 +178,73 @@ fn a_routing_plugin_is_drawn_by_the_routing_capability_of_its_name() {
             .route("routing.noSuchThing", origin, origin, &ends)
             .is_none()
     );
+}
+
+/// The `ATD9010` findings of the example requiring `reader.turtle` in `range`, on a host with `capabilities`.
+fn lacking(range: &str, capabilities: Capabilities) -> Vec<String> {
+    let checked = check(&FsFiles, &described_requiring(range));
+    let symbols = checked.symbols.as_ref().expect("symbols");
+    let host = RuntimeHost {
+        capabilities,
+        ..RuntimeHost::default()
+    };
+    let runtime = diagram_tool(&checked.description, symbols, &host).expect("the description still opens");
+    runtime
+        .findings
+        .iter()
+        .map(|f| format!("{} {}:{} {}", f.code, f.line, f.column, f.message))
+        .collect()
+}
+
+#[test]
+fn a_required_capability_the_host_lacks_is_one_finding_and_the_description_still_opens() {
+    let found = lacking("^1", Capabilities::desktop());
+    assert_eq!(found.len(), 1, "{found:?}");
+    assert!(found[0].starts_with("ATD9010 "), "{found:?}");
+    assert!(
+        found[0].contains("does not provide the capability `reader.turtle`"),
+        "{found:?}"
+    );
+
+    let reader = || Capabilities::desktop().with_reader("reader.turtle", Rc::new(LinesAsResources));
+    assert!(lacking("^1", reader()).is_empty());
+    let found = lacking("^2", reader());
+    assert_eq!(found.len(), 1, "{found:?}");
+    assert!(found[0].contains("at 1.0.0, which `^2` does not allow"), "{found:?}");
+}
+
+#[test]
+fn a_range_is_read_as_npms_semver_ranges() {
+    use adp_atd_runtime::Version;
+    let v = Version(1, 2, 3);
+    for (range, holds) in [
+        ("^1", true),
+        ("^1.2", true),
+        ("^1.3", false),
+        ("^2", false),
+        ("~1.2", true),
+        ("~1.1", false),
+        ("~1", true),
+        (">=1.0", true),
+        (">=1.3", false),
+        (">1.1", true),
+        (">1.2", false),
+        (">1.2.3", false),
+        ("<2", true),
+        ("<1.2.3", false),
+        ("<=1.2", true),
+        ("<=1.1", false),
+        ("1.2.3", true),
+        ("=1.2", true),
+        ("1.3", false),
+        (">=1.0 <2", true),
+        (">=1.0 <1.2", false),
+        ("", false),
+        ("^x", false),
+    ] {
+        assert_eq!(v.satisfies(range), holds, "{range}");
+    }
+    assert!(Version(0, 2, 5).satisfies("^0.2"));
+    assert!(!Version(0, 3, 0).satisfies("^0.2"));
+    assert!(!Version(0, 0, 4).satisfies("^0.0.3"));
 }
