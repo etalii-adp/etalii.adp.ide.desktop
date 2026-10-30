@@ -41,13 +41,22 @@ binding freeplane family xml {
       child: "richcontent[@TYPE='NOTE']"
       content: "html-paragraphs"
       empty: remove
+      create: {
+        emit: "<richcontent TYPE=\"NOTE\"><html><head/><body>{value}</body></html></richcontent>",
+        place: { before: "node" }
+      }
     }
     /// `LINK` exactly as stored: present (empty or not) or absent; unlinking removes it.
     attribute link from attribute "LINK" { empty: remove }
     /// `FOLDED="true"`, any case: read, never written.
-    attribute folded from attribute "FOLDED" { readOnly: "Folding is a viewer's state and is never written to the map." }
+    attribute folded from attribute "FOLDED" {
+      default: "false"
+      readOnly: "Folding is a viewer's state and is never written to the map."
+    }
     /// `POSITION` on a first-level node: read, never written.
-    attribute position from attribute "POSITION" { readOnly: "The side follows Freeplane's layout and is kept as Freeplane wrote it." }
+    attribute position from attribute "POSITION" {
+      readOnly: "The side follows Freeplane's layout and is kept as Freeplane wrote it."
+    }
     /// A new node is `<node TEXT="…" ID="ID_…"/>`, its attributes in that order, as the last child or right after the
     /// node an operation names.
     insert { place: "last-child", emit: "<node TEXT=\"{text}\" ID=\"{id}\"/>" }

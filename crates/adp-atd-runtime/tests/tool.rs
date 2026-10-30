@@ -76,8 +76,8 @@ fn the_mind_maps_binding_is_fbls_example_but_for_what_the_description_leaves_out
     let mut found = BTreeSet::new();
     differences(&lowered, &written, "", &mut found);
     let expected: BTreeSet<String> = [
-        // What a new note is written as, which the description states in prose only.
-        "- /elements/0/attributes/notes/create",
+        // What an absent FOLDED reads as, which the cases state and FBL's example leaves unread.
+        "+ /elements/0/attributes/folded/default",
         // The reason a read-only side gives, worded otherwise.
         "~ /elements/0/attributes/position/readOnly",
     ]
@@ -126,15 +126,7 @@ fn a_case_opens_from_memory_and_reads_as_the_module_read_it() {
             json!({"id": e.id, "type": e.element_type, "parent": e.parent, "attributes": attributes})
         })
         .collect();
-    // The module read a node without `FOLDED` as not folded; the description's binding states no value for an absent
-    // `FOLDED` (FBL's `absent`), so it reads none. That is the one difference, which validation reports.
-    let mut expected = fixture["read"]["elements"].clone();
-    for node in expected.as_array_mut().unwrap() {
-        let attributes = node["attributes"].as_object_mut().unwrap();
-        if attributes.get("folded") == Some(&json!("false")) {
-            attributes.shift_remove("folded");
-        }
-    }
+    let expected = fixture["read"]["elements"].clone();
     assert_eq!(Json::Array(nodes), expected);
 
     // The layout is the capability's: the boxes its fixture of this map places, as centres.

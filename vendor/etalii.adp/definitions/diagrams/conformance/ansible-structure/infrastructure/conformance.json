@@ -424,7 +424,9 @@
   "steps": [
     {
       "move": {
-        "element": "role:nginx"
+        "element": "role:nginx",
+        "x": 640,
+        "y": 160
       },
       "doc": "The parity script's gesture: {\"refs\":[\"role:nginx\"],\"to\":{\"x\":640,\"y\":160}}",
       "expectFile": "after-1.adp",
@@ -484,7 +486,9 @@
     },
     {
       "move": {
-        "element": "taskfile:roles/nginx/tasks/tls.yml"
+        "element": "taskfile:roles/nginx/tasks/tls.yml",
+        "x": 800.5,
+        "y": -40.25
       },
       "doc": "The parity script's gesture: {\"refs\":[\"taskfile:roles/nginx/tasks/tls.yml\"],\"to\":{\"x\":800.5,\"y\":-40.25}}",
       "select": [
@@ -528,7 +532,9 @@
     },
     {
       "move": {
-        "element": "edge:role:nginx|DependsOn|common"
+        "element": "edge:role:nginx|DependsOn|common",
+        "x": 100,
+        "y": 100
       },
       "doc": "The parity script's gesture: {\"refs\":[\"edge:role:nginx|DependsOn|common\"],\"to\":{\"x\":100,\"y\":100}}",
       "refused": {
@@ -557,7 +563,9 @@
     },
     {
       "move": {
-        "element": "playbook:webservers.yml"
+        "element": "playbook:webservers.yml",
+        "x": 0,
+        "y": 0
       },
       "doc": "The parity script's gesture: {\"refs\":[\"playbook:webservers.yml\"],\"to\":{\"x\":0,\"y\":0}}",
       "expectFile": "after-7.adp",
@@ -579,7 +587,9 @@
     },
     {
       "move": {
-        "element": "role:postgres"
+        "element": "role:postgres",
+        "x": 409.4,
+        "y": 168
       },
       "doc": "The parity script's gesture: {\"refs\":[\"role:postgres\"],\"to\":{\"x\":409.4,\"y\":168}}",
       "expectFile": "after-9.adp",
@@ -648,7 +658,9 @@
     },
     {
       "move": {
-        "element": "role:common"
+        "element": "role:common",
+        "x": 0.0001,
+        "y": 3.33333
       },
       "doc": "The parity script's gesture: {\"refs\":[\"role:common\"],\"to\":{\"x\":0.0001,\"y\":3.33333}}",
       "expectFile": "after-13.adp",
@@ -659,7 +671,9 @@
     },
     {
       "move": {
-        "element": "playbook:site.yml"
+        "element": "playbook:site.yml",
+        "x": -120.5,
+        "y": -60.0625
       },
       "doc": "The parity script's gesture: {\"refs\":[\"playbook:site.yml\"],\"to\":{\"x\":-120.5,\"y\":-60.0625}}",
       "expectFile": "after-14.adp",
@@ -699,21 +713,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "8a37f0f",
+      "recordedWith": "e728fc8",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "8a37f0f",
+      "recordedWith": "e728fc8",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "8a37f0f",
+      "recordedWith": "e728fc8",
       "source": "atd record (drawing)"
     }
   }

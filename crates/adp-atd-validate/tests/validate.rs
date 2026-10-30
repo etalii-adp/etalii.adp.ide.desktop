@@ -147,19 +147,16 @@ fn each_difference_is_attributed_to_the_construct_that_produced_it() {
     assert!(unattributed.is_empty(), "{unattributed:?}");
     for (place, at) in [
         // The reading, to the binding's rule for the type of the first element that differs.
-        ("fold read:reading", "mindmap.freeplane.atd:28"),
+        ("duplicate-id read:reading", "mindmap.freeplane.atd:67"),
         // A finding, to the constraint that has its code: here the built-in `std.unparseable`.
         ("not-a-map read:findings", "mindmap.atd:226"),
         // A refusal, to the constraint of the gesture's kind: `keepCentralTopic` for a deletion,
         // `reparentWithinTree` for a move.
         ("refusals 1:refused", "mindmap.atd:261"),
         ("refusals 3:refused", "mindmap.atd:269"),
-        // A gesture, to its operation (`editNotes`), the `behavior` block for a deletion, or the binding's rule
-        // for the type of the element a gesture named only by its kind (`editLabel`) changed.
-        ("example-1 8:refused", "mindmap.atd:299"),
-        ("example-1 8:bytes", "mindmap.atd:299"),
-        ("example-1 10:bytes", "mindmap.atd:326"),
-        ("example-1 7:bytes", "mindmap.freeplane.atd:28"),
+        // A gesture, to its operation (`link`).
+        ("example-1 20:refused", "mindmap.atd:306"),
+        ("example-1 20:bytes", "mindmap.atd:306"),
         // A drawing, to the notation's entry for the type of the element drawn differently.
         ("fold 1:drawing", "mindmap.notation.atd:58"),
     ] {
@@ -174,30 +171,14 @@ fn the_mind_maps_cases_differ_only_where_known() {
     let known: [(&str, &[&str]); 6] = [
         // A duplicate id: the module read the later holder under an ephemeral id and reported it, and draws it so.
         ("duplicate-id", &["read:drawing", "read:findings", "read:reading"]),
-        // The notes, whose `create` the description's binding does not state, and the reading's absent FOLDED.
-        // Each refused gesture leaves the map, and so its drawing, behind the reference's from that step on; the
-        // moves of steps 9 and 22 are made, the first at the end of its new parent, as the case's `move` carries no
-        // index (ATD §2.3).
+        // The link picker, a plugin of the host's that this runtime has not, and so the map behind the reference's from
+        // step 20 on; and the root's ↗, which the reference did not draw again after an undo.
         (
             "example-1",
             &[
-                "10:bytes",
-                "10:drawing",
-                "11:bytes",
                 "11:drawing",
-                "12:bytes",
-                "12:drawing",
-                "13:bytes",
-                "13:drawing",
-                "14:bytes",
                 "14:drawing",
-                "15:bytes",
-                "15:drawing",
-                "16:bytes",
-                "16:drawing",
-                "18:bytes",
                 "18:drawing",
-                "19:bytes",
                 "19:drawing",
                 "20:bytes",
                 "20:drawing",
@@ -206,37 +187,19 @@ fn the_mind_maps_cases_differ_only_where_known() {
                 "21:drawing",
                 "22:bytes",
                 "22:drawing",
-                "6:bytes",
-                "6:drawing",
-                "6:refused",
-                "7:bytes",
-                "7:drawing",
-                "8:bytes",
-                "8:drawing",
-                "8:refused",
-                "9:bytes",
-                "9:drawing",
-                "read:reading",
             ],
         ),
-        // The absent FOLDED; the folded node's ⊕, which the canvas draws from the bound view and the reference
+        // The folded node's ⊕, which the canvas draws from the bound view and the reference
         // recorder, binding no view, did not; the host's wording of an action the selection does not offer.
-        ("fold", &["1:drawing", "3:refused", "read:reading"]),
+        ("fold", &["1:drawing", "3:refused"]),
         // Two roots: the module refused to read the map, and the runtime still draws the first.
         ("not-a-map", &["read:drawing", "read:findings", "read:reading"]),
         // The host's wording, and moves only a plugin writes.
         (
             "refusals",
-            &[
-                "1:refused",
-                "2:refused",
-                "3:refused",
-                "4:refused",
-                "5:refused",
-                "read:reading",
-            ],
+            &["1:refused", "2:refused", "3:refused", "4:refused", "5:refused"],
         ),
-        ("unnamed-root", &["read:reading"]),
+        ("unnamed-root", &[]),
     ];
     let (tool, description) = runtime(None);
     let mut unexpected = Vec::new();
