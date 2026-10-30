@@ -12,7 +12,7 @@ The definition raises `language.limits.celCost` to 10 000 000 from DISL's defaul
 
 ## The gaps
 
-Sixteen, each a candidate change for this repository: the twelve the conversion's requirements list (C1 to C12, in their order), three found while writing the definitions and one found while binding the format. None is worked around in the `.dis` by stating something the tool does not do. FBL 0.11 (etalii.adp's feature `066-fbl-conversion-gaps`) answers gaps 1 to 8, each below with the section that answers it and the fixture under `specifications/fbl/fixtures/` that shows it: the format is bound in the `grammar` family by [`structurizr.fbl`](../../specifications/fbl/structurizr.fbl), whose grammar is [`structurizr.lark`](../../specifications/fbl/structurizr.lark), written from the conversion's appendix draft in FBL 0.11's constructs. Gap 12 stays unsupported on purpose; gaps 9 to 11 and 13 to 15 are DISL's and stay open; gap 16 is FBL's and open.
+Sixteen, each a candidate change for this repository: the twelve the conversion's requirements list (C1 to C12, in their order), three found while writing the definitions and one found while binding the format. None is worked around in the `.dis` by stating something the tool does not do. FBL 0.11 (etalii.adp's feature `066-fbl-conversion-gaps`) answers gaps 1 to 8, and FBL 0.13, of the same feature, gap 16, each below with the section that answers it and the fixture under `specifications/fbl/fixtures/` that shows it: the format is bound in the `grammar` family by [`structurizr.fbl`](../../specifications/fbl/structurizr.fbl), whose grammar is [`structurizr.lark`](../../specifications/fbl/structurizr.lark), written from the conversion's appendix draft in FBL 0.11's constructs. Gap 12 stays unsupported on purpose; gaps 9 to 11 and 13 to 15 are DISL's and stay open.
 
 | # | Language | Construct | Finding | Status |
 | --- | --- | --- | --- | --- |
@@ -31,7 +31,7 @@ Sixteen, each a candidate change for this repository: the twelve the conversion'
 | 13 | DISL | What a view exposes to a rule about the model | found while writing | Open; DISL's, since what a rule reads of a view is DISL's `View` (12.2), which a binding does not shape |
 | 14 | DISL | The text an unset end was written with | found while writing | Open; DISL's, since the binding reads an end as it is written, and no CEL function of DISL returns that text for an end that names nothing |
 | 15 | DISL | The order of a view's members and of its legend entries | found while writing | Open; DISL's, since a view's members and its legend are ordered by DISL's evaluation of the model (3.5, 6.13), not by the reading |
-| 16 | FBL | Several items written in one argument | found while binding the format | Open; FBL's, since a `{node}` slot reads one token as one item |
+| 16 | FBL | Several items written in one argument | found while binding the format | Answered by FBL 0.13 (`structurizr-split-tags`, `grammar-split-slot`) |
 
 ### 1. FBL 5.1 and 9.3: the statements of the selected view (B13)
 
@@ -142,9 +142,9 @@ Sixteen, each a candidate change for this repository: the twelve the conversion'
 ### 16. FBL 5.2: several items written in one argument
 
 - **Construct.** The tool splits a tags argument at its commas, so `tags "Extra, More"` gives the two tags `Extra` and `More`, as Structurizr does. A `{node}` slot of a `many` attribute reads each node it reaches as one item (5.2), and a quoted argument is one token of the grammar, so the binding reads `Extra, More` as one tag.
-- **Shown by.** `findings/tags-in-block.dsl` (`tags "Extra, More"`); `structurizr-gathered-tags` reads `"Last, Least"` as one item.
-- **Would resolve it.** A slot that splits a value read from one node into items at a separator, and writes them joined by it.
-- **Meanwhile.** Tags are read-only, and the module's parser splits them (`C4Parser`, read by `C4Disl`).
+- **Shown by.** `findings/tags-in-block.dsl` (`tags "Extra, More"`), and the argument `"Last, Least"` of `structurizr-gathered-tags`, which FBL 0.11 read as one item.
+- **Answered.** FBL 0.13: a `{node}` slot of a `many` attribute takes `split`, and its value is cut at every occurrence of that text into items, each without the white space around it, an empty piece being no item (4.9, 5.2); a set writes the difference into the argument by splices, a changed item replaced alone, a new one written after the last with the slot's `separator`, a removed one taken with one separator, and every other byte of the argument kept (6.3). `structurizr.fbl` splits every tags argument at its commas, the declaration's and those of its block's `tags` statements, so `structurizr-split-tags` reads `findings/tags-in-block.dsl` with `Extra` and `More` as two tags and `Existing System` as one, and `structurizr-gathered-tags` reads `"Last, Least"` as `Last` and `Least`; `grammar-split-slot` shows the writing, on a binding whose tags are writable.
+- **Meanwhile.** Tags are read-only in the tool, so nothing writes them, and the module's parser splits them (`C4Parser`, read by `C4Disl`) until the body is read through the binding.
 
 ## Stand-ins
 
@@ -158,7 +158,7 @@ Code that stands in for a gap while it stands, named so that nobody reads it as 
 | The statement order of `C4Definitions.Drawing` | Gap 15: a view's members and legend entries in the order of its statements | The module |
 | `C4Placement.IdentifierFor` | Gap 11: a new element's identifier | The module, handed to the operation |
 | `AddC4ViewCommand` and its inverse `RemoveC4ViewCommand` | Gap 8: adding a view block, and the registration that opens it. It can go with etalii.adp's spec 066, FR-012 (a block rule's `insert`), once the body is written by splices; the registration stays the host's | The module |
-| The tags read by `C4Disl` | Gaps 8 and 16: the tags of a declaration and of its block's `tags` statements. It can go with spec 066, FR-013 (`gather`), once the body is read through the binding, except for an argument holding commas (gap 16) | The module |
+| The tags read by `C4Disl` | Gaps 8 and 16: the tags of a declaration and of its block's `tags` statements. It can go with spec 066, FR-013 (`gather`) and FR-038 (`split`, FBL 0.13), once the body is read through the binding | The module |
 | `C4LayoutSidecar` | Gap 7: positions in the legacy sidecar | The module |
 | `net.etalii.adp.c4.writtenEnds` | Gap 14: `writtenEnd`, supplied from the module's reading | A plugin of the definition, with a fallback |
 

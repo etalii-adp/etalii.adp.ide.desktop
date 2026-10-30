@@ -14,7 +14,7 @@ use adp_atd_script::debug::Debugger;
 use adp_atd_syntax::Span;
 use adp_cel::{Map, Value};
 use adp_diagram::disl_definition::DislDiagramDefinition;
-use adp_diagram::{DiagramDocument, DiagramModule, DiagramTool};
+use adp_diagram::{DiagramDocument, DiagramModule, DiagramTool, ModulePlacement};
 use adp_disl::{DislElement, DislPluginFunctions, DislSpecification};
 use adp_fbl::model::{RuleEvent, RuleObserver};
 use adp_fbl::plugins::PersistencePlugin;
@@ -180,8 +180,72 @@ struct CapabilityLayout {
     arguments: serde_json::Map<String, Json>,
 }
 
+/// Where a node type's notation places it (ATD §8.2): the attribute and the axis's canvas units per value, on each axis.
+#[derive(Debug, Clone)]
+struct ScaledPlacement {
+    x: ScaledAxis,
+    y: ScaledAxis,
+}
+
+#[derive(Debug, Clone)]
+struct ScaledAxis {
+    attribute: String,
+    /// The canvas units of one value along the axis (`scale`): 1 when the axis states none.
+    scale: f64,
+    /// Whether a value along the axis is whole (`precision: 0`).
+    whole: bool,
+}
+
+impl ScaledAxis {
+    /// The canvas coordinate of `element`'s value along this axis; 0 for one that does not read as a number.
+    fn canvas(&self, element: &DislElement) -> f64 {
+        element.value_of(&self.attribute).as_number().unwrap_or_default() * self.scale
+    }
+
+    /// The value a canvas coordinate means along this axis: the nearest whole one on a whole axis.
+    fn value(&self, canvas: f64) -> Value {
+        let value = canvas / self.scale;
+        if self.whole {
+            Value::Int(value.round() as i64)
+        } else {
+            Value::Double(value)
+        }
+    }
+}
+
+/// The placements of the description's node types that have an axis with a `scale` of its own; a placement on axes
+/// without one draws its attributes as they are, which the engines do by themselves.
+fn scaled_placements(specification: &Json) -> HashMap<String, ScaledPlacement> {
+    let coordinates = &specification["coordinates"];
+    let axis = |placement: &Json, system: &str, name: &str| -> Option<ScaledAxis> {
+        let attribute = placement[name]["attribute"].as_str()?.to_owned();
+        let axis = &coordinates["axes"][coordinates["systems"][system][name].as_str()?];
+        Some(ScaledAxis {
+            attribute,
+            scale: axis["scale"].as_f64().filter(|s| *s != 0.0).unwrap_or(1.0),
+            whole: axis["precision"].as_i64() == Some(0),
+        })
+    };
+    let default = coordinates["default"].as_str().unwrap_or_default();
+    specification["notation"]["nodes"]
+        .as_object()
+        .into_iter()
+        .flatten()
+        .filter_map(|(name, node)| {
+            let placement = &node["placement"];
+            let system = placement["system"].as_str().unwrap_or(default);
+            let scaled = ScaledPlacement {
+                x: axis(placement, system, "x")?,
+                y: axis(placement, system, "y")?,
+            };
+            (scaled.x.scale != 1.0 || scaled.y.scale != 1.0).then(|| (name.clone(), scaled))
+        })
+        .collect()
+}
+
 /// What a hand-written module gives the engines, taken from a description.
 pub struct RuntimeModule {
+    scaled: HashMap<String, ScaledPlacement>,
     plugins: Plugins,
     /// Told of each binding rule as it reads an entry, when the script runs under the debugger.
     rule_observer: Option<RuleObserver>,
@@ -218,6 +282,7 @@ impl RuntimeModule {
             .cloned()
             .unwrap_or_default();
         RuntimeModule {
+            scaled: scaled_placements(specification),
             plugins: Rc::clone(&host.plugins),
             rule_observer: None,
             capabilities: host.capabilities.clone(),
@@ -263,6 +328,33 @@ impl RuntimeModule {
 }
 
 impl DiagramModule for RuntimeModule {
+    /// A node on an axis with a `scale`: its values in the axis's canvas units (ATD §8.1).
+    fn position(&self, element: &DislElement) -> Option<(f64, f64)> {
+        let placement = self.scaled.get(&element.type_name())?;
+        Some((placement.x.canvas(element), placement.y.canvas(element)))
+    }
+
+    /// What a gesture to a canvas point writes of a node on an axis with a `scale`: the values the point means.
+    fn placement(&self, element: &DislElement, x: f64, y: f64) -> Option<Result<ModulePlacement, String>> {
+        let placement = self.scaled.get(&element.type_name())?;
+        let (new_x, new_y) = (placement.x.value(x), placement.y.value(y));
+        let canvas = |axis: &ScaledAxis, value: &Value| value.as_number().unwrap_or_default() * axis.scale;
+        let bounds =
+            |x: f64, y: f64| -> Map { [("x", Value::Double(x)), ("y", Value::Double(y))].into_iter().collect() };
+        let new_bounds = bounds(canvas(&placement.x, &new_x), canvas(&placement.y, &new_y));
+        let attributes: Map = [
+            (placement.x.attribute.as_str(), new_x),
+            (placement.y.attribute.as_str(), new_y),
+        ]
+        .into_iter()
+        .collect();
+        Some(Ok(ModulePlacement {
+            attributes,
+            old_bounds: bounds(placement.x.canvas(element), placement.y.canvas(element)),
+            new_bounds,
+        }))
+    }
+
     fn rule_observer(&self) -> Option<RuleObserver> {
         self.rule_observer.clone()
     }

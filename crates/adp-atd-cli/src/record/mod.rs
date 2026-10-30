@@ -273,7 +273,7 @@ fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), Stri
                 to.insert("element".into(), element.clone());
             }
             // A move into a parent goes before the child at `index` there, or last when it is -1 (ATD §2.3).
-            for key in ["parent", "index", "x", "y"] {
+            for key in ["parent", "index", "x", "y", "dx", "dy"] {
                 if let Some(value) = movement.get(key)
                     && (key != "index" || movement.get("parent").is_some())
                 {

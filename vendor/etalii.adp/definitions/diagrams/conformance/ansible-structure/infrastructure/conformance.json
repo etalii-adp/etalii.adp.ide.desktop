@@ -437,7 +437,9 @@
     },
     {
       "move": {
-        "element": "playbook:site.yml"
+        "element": "playbook:site.yml",
+        "dx": 0,
+        "dy": 300
       },
       "doc": "The parity script's gesture: {\"refs\":[\"playbook:site.yml\"],\"dx\":0,\"dy\":300}",
       "expectFile": "after-2.adp",
@@ -448,7 +450,9 @@
     },
     {
       "move": {
-        "element": "inventory:inventories/staging"
+        "element": "inventory:inventories/staging",
+        "dx": -50,
+        "dy": 40
       },
       "doc": "The parity script's gesture: {\"refs\":[\"inventory:inventories/staging\"],\"dx\":-50,\"dy\":40}",
       "expectFile": "after-3.adp",
@@ -459,7 +463,9 @@
     },
     {
       "move": {
-        "element": "vars:inventories/staging/group_vars"
+        "element": "vars:inventories/staging/group_vars",
+        "dx": 12.3456,
+        "dy": -7.8912
       },
       "doc": "The parity script's gesture: {\"refs\":[\"vars:inventories/staging/group_vars\"],\"dx\":12.3456,\"dy\":-7.8912}",
       "expectFile": "after-4.adp",
@@ -502,7 +508,9 @@
     },
     {
       "move": {
-        "element": "role:nginx"
+        "element": "role:nginx",
+        "dx": 30,
+        "dy": 30
       },
       "doc": "The parity script's gesture: {\"refs\":[\"role:nginx\"],\"dx\":30,\"dy\":30}",
       "expectFile": "after-6.adp",
@@ -576,7 +584,9 @@
     },
     {
       "move": {
-        "element": "playbook:dbservers.yml"
+        "element": "playbook:dbservers.yml",
+        "dx": 181.6,
+        "dy": 0
       },
       "doc": "The parity script's gesture: {\"refs\":[\"playbook:dbservers.yml\"],\"dx\":181.6,\"dy\":0}",
       "expectFile": "after-8.adp",
@@ -600,7 +610,9 @@
     },
     {
       "move": {
-        "element": "inventory:inventories/production"
+        "element": "inventory:inventories/production",
+        "dx": 0,
+        "dy": 50
       },
       "doc": "The parity script's gesture: {\"refs\":[\"inventory:inventories/production\"],\"dx\":0,\"dy\":50}",
       "expectFile": "after-10.adp",
@@ -611,7 +623,9 @@
     },
     {
       "move": {
-        "element": "vars:inventories/production/group_vars"
+        "element": "vars:inventories/production/group_vars",
+        "dx": 0,
+        "dy": 50
       },
       "doc": "The parity script's gesture: {\"refs\":[\"vars:inventories/production/group_vars\"],\"dx\":0,\"dy\":50}",
       "expectFile": "after-11.adp",
@@ -622,7 +636,9 @@
     },
     {
       "move": {
-        "element": "vars:inventories/production/host_vars"
+        "element": "vars:inventories/production/host_vars",
+        "dx": 0,
+        "dy": 50
       },
       "doc": "The parity script's gesture: {\"refs\":[\"vars:inventories/production/host_vars\"],\"dx\":0,\"dy\":50}",
       "expectFile": "after-12.adp",
@@ -692,7 +708,9 @@
     },
     {
       "move": {
-        "element": "role:common"
+        "element": "role:common",
+        "dx": 5,
+        "dy": 5
       },
       "doc": "The parity script's gesture: {\"refs\":[\"role:common\"],\"dx\":5,\"dy\":5}",
       "expectFile": "after-15.adp",
@@ -713,21 +731,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "d78ee5f",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "d78ee5f",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "d78ee5f",
       "source": "atd record (drawing)"
     }
   }

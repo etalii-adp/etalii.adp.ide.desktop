@@ -3174,7 +3174,7 @@
           ]
         },
         "move": {
-          "description": "A move gesture: to a place (`x`, `y`), or into a parent before its child at `index`, last when it is -1.",
+          "description": "A move gesture: to a place (`x`, `y`), by a distance from where the element is drawn (`dx`, `dy`), or into a parent before its child at `index`, last when it is -1.",
           "type": "object",
           "properties": {
             "element": {
@@ -3184,6 +3184,12 @@
               "type": "number"
             },
             "y": {
+              "type": "number"
+            },
+            "dx": {
+              "type": "number"
+            },
+            "dy": {
               "type": "number"
             },
             "parent": {

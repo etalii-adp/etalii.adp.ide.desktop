@@ -14,3 +14,5 @@ The FBL documents in this folder are valid against [`fbl.schema.json`](../fbl.sc
 | `grammar-selected-view-without-views.fbl` | *(FBL 0.11)* Section 14.1, step 6: a rule with `selectedView` in a binding with no block rule that has `view` (sections 4.9, 9.3). |
 | `grammar-gather-writable.fbl` | *(FBL 0.11)* Section 14.1, step 6: `gather` on an attribute binding that is not read-only (section 4.9). |
 | `items-not-many.fbl` | *(FBL 0.12)* Section 14.1, step 6: `items` on an attribute that the tool type the binding is read for declares single-valued (section 5.2). |
+| `split-not-many.fbl` | *(FBL 0.13)* Section 14.1, step 6: `split` on an attribute that the tool type the binding is read for declares single-valued (sections 4.9, 5.2). |
+| `split-escape-collision.fbl` | *(FBL 0.13)* Section 14.1, step 6: a slot's `split` holds a character of its `escape` (section 4.9). |

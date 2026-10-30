@@ -92,7 +92,7 @@ const KNOWLEDGE_STEPS: [(&str, usize, usize); 4] = [
 /// the standalone host does not vendor either. They are out of scope here, not failing: etalii.adp's splice replay
 /// (`fixtures.rs`) still runs every one of them. The hierarchical-requirement tool type's fixtures are run by
 /// [`hierarchical_requirement`], through the stand-in for its DESL interpreter.
-const NOT_SUPPORTED: [&str; 59] = [
+const NOT_SUPPORTED: [&str; 61] = [
     // The standalone host does not vendor this one at a7fdf03 either: its Retry's attempts is read as the text "1",
     // as every value of a lines or bullets group is, and the fixture reads the number 1, which the specification's
     // type gives it above FBL (agent-behavior-modelling.dis, `Retry.attempts: int`).
@@ -158,6 +158,8 @@ const NOT_SUPPORTED: [&str; 59] = [
     "wardley-trailer/label-twice",
     "wardley-trailer/lenient-trailer",
     "wardley-unclosed-pipeline",
+    "grammar-split-slot",
+    "structurizr-split-tags",
 ];
 
 fn vendor() -> PathBuf {
