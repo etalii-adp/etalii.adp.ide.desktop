@@ -51,8 +51,8 @@ impl Breakpoint {
     }
 }
 
-/// The lines of the statements in a checked tree (a description's, or one of its functions, operations or hooks), by
-/// file: the lines a breakpoint can be verified on.
+/// The lines of the statements in a checked tree (a description's, or one of its functions, operations or hooks), and
+/// of its binding rules, by file: the lines a breakpoint can be verified on.
 pub fn statement_lines(tree: &Json) -> BTreeSet<(String, usize)> {
     let mut lines = BTreeSet::new();
     collect_statements(tree, &mut lines);
@@ -62,6 +62,12 @@ pub fn statement_lines(tree: &Json) -> BTreeSet<(String, usize)> {
 fn collect_statements(node: &Json, lines: &mut BTreeSet<(String, usize)>) {
     match node {
         Json::Object(object) => {
+            // A binding's rule stops as it reads an entry.
+            if object.get("kind").and_then(Json::as_str) == Some("rule")
+                && let Some(span) = Span::of(node)
+            {
+                lines.insert((span.file, span.line));
+            }
             for (key, value) in object {
                 if matches!(key.as_str(), "body" | "then" | "else") {
                     let statements = match value {
@@ -283,6 +289,7 @@ impl Debugger {
             stack: Vec::new(),
             inspector: Box::new(()),
             stopped: false,
+            unbreakable: false,
         };
         Debugger {
             events,
@@ -323,6 +330,28 @@ impl Debugger {
             state.inspector = Box::new(inspector);
         }
         script.on_statement(self.hook());
+    }
+
+    /// Asks the debugger at a construct that is not a statement of the script, as a binding rule reading an entry is:
+    /// `at` is the construct in the description (its `span`), `name` what the call stack calls it, and `locals` what
+    /// the scopes show. It pauses there as at a statement: on a breakpoint on its line when `breakable` (the first
+    /// time for an entry, so that a breakpoint stops once for it), or on a step.
+    pub fn observe(&self, at: &Json, name: &str, locals: &[(String, Value)], breakable: bool) -> Control {
+        let Ok(mut state) = self.state.try_borrow_mut() else {
+            return Control::Continue;
+        };
+        state.unbreakable = !breakable;
+        let event = Event {
+            function: name,
+            statement: at,
+            locals: locals.iter().map(|(n, v)| (n.as_str(), v)).collect(),
+            arguments: 0,
+            depth: 1,
+            steps: 0,
+        };
+        let control = state.statement(&event);
+        state.unbreakable = false;
+        control
     }
 
     /// The hook that asks the debugger at each statement; a statement reached while the debugger itself is busy (a
@@ -387,6 +416,8 @@ struct State {
     stack: Vec<Level>,
     inspector: Box<dyn Inspect>,
     stopped: bool,
+    /// Whether the construct being asked about takes no breakpoint, only steps ([`Debugger::observe`]).
+    unbreakable: bool,
 }
 
 impl State {
@@ -434,7 +465,7 @@ impl State {
             _ => None,
         };
         let reason = reason.or_else(|| {
-            let span = span.as_ref()?;
+            let span = span.as_ref().filter(|_| !self.unbreakable)?;
             self.hits(span, &event.locals).then_some(PauseReason::Breakpoint)
         });
         self.entry = false;

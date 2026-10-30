@@ -197,7 +197,25 @@ pub struct FblOptions {
     /// relative to the folder, given the folder's full path (the standalone host's `SupplementaryEntries`; outside
     /// FBL 0.2). None adds nothing.
     pub supplementary_entries: Option<SupplementaryEntries>,
+    /// Told of each rule as it reads an entry, as a debugger is; none tells no one.
+    pub rule_observer: Option<RuleObserver>,
 }
+
+/// What a reader is told as a rule reads an entry (the debugger's view of a binding, etalii.adp spec 035, FR-070): once
+/// as the rule takes the entry, with no attributes, then after each attribute it reads, with those read so far.
+pub struct RuleEvent<'a> {
+    /// The rule, as the binding names it.
+    pub rule: &'a str,
+    pub type_name: &'a str,
+    /// The entry's line in the body, from 1.
+    pub line: usize,
+    pub attributes: &'a Map,
+    /// Whether this is the first time for the entry: as the rule takes it, before any attribute is read.
+    pub first: bool,
+}
+
+/// Told of each rule as it reads an entry ([`FblOptions::rule_observer`]).
+pub type RuleObserver = Rc<dyn Fn(&RuleEvent<'_>)>;
 
 /// What [`FblOptions::supplementary_entries`] gives for a folder: paths relative to it, with no bytes.
 pub type SupplementaryEntries = Rc<dyn Fn(&std::path::Path) -> Vec<String>>;
@@ -218,6 +236,7 @@ impl Default for FblOptions {
             resource: None,
             identities: HashMap::new(),
             supplementary_entries: None,
+            rule_observer: None,
         }
     }
 }

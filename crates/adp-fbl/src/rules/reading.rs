@@ -15,7 +15,7 @@ use crate::documents::types::{AttributeBinding, FblBinding, Slot};
 use crate::expressions::{self, CelContext};
 use crate::families::{EntryId, EntryKind, Family, FamilyKind};
 use crate::model::{
-    FblElement, FblModel, FblOptions, FblView, Finding, FindingSeverity, IdRequest, SourceLocation, codes,
+    FblElement, FblModel, FblOptions, FblView, Finding, FindingSeverity, IdRequest, RuleEvent, SourceLocation, codes,
 };
 use crate::planning::new_text;
 use crate::rules::read_mode::{self, ReadMode};
@@ -610,7 +610,22 @@ impl BodyReading {
     fn read_slots(&self, element: &mut ReadElement) {
         let binding = self.family.binding.clone();
         let rule = &binding.rules[element.rule];
+        // Told before each attribute is read, with those read so far, and once all are.
+        let observe = |element: &ReadElement, first: bool| {
+            if let Some(observer) = &self.options().rule_observer {
+                observer(&RuleEvent {
+                    rule: &rule.name,
+                    type_name: &rule.type_name,
+                    line: element.line,
+                    attributes: &element.attributes,
+                    first,
+                });
+            }
+        };
+        let mut first = true;
         for (name, attribute) in &rule.attributes {
+            observe(element, first);
+            first = false;
             let many = attribute.word.is_some() && !attribute.flag && self.options().many(&rule.type_name, name);
             let read = if many {
                 self.read_many(&element.candidate, attribute, element.rule)
@@ -670,6 +685,7 @@ impl BodyReading {
                 element.attributes.insert(name.clone(), value);
             }
         }
+        observe(element, first);
         if let Some(source) = &rule.source {
             element.source_read = Some(Box::new(self.read_slot(
                 &element.candidate,
