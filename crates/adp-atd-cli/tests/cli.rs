@@ -231,14 +231,14 @@ fn validate_reports_each_difference_at_its_construct() {
     let case = &result["cases"][0];
     assert_eq!(case["name"], "refusals");
     assert_eq!(case["passed"], false);
-    let deletion = case["differences"]
+    let reparent = case["differences"]
         .as_array()
         .unwrap()
         .iter()
-        .find(|d| d["step"] == 1)
+        .find(|d| d["step"] == 3)
         .unwrap();
-    assert_eq!(deletion["part"], "refused");
-    assert_eq!(deletion["at"]["line"], 261);
+    assert_eq!(reparent["part"], "refused");
+    assert_eq!(reparent["at"]["line"], 269);
 
     let (code, _, err) = atd(&["validate", "--case", "no-such-case", &mindmap]);
     assert_eq!(code, 2, "{err}");

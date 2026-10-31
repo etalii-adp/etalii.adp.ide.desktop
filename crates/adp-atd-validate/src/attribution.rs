@@ -69,6 +69,8 @@ pub struct Constructs {
     drawn: BTreeMap<String, At>,
     /// The description's name of each action, by the wire id that names it in the cases.
     wire_actions: BTreeMap<String, String>,
+    /// The wire id of the action each toolbox tool's drop runs, by the tool's wire id.
+    wire_tools: BTreeMap<String, String>,
 }
 
 impl Constructs {
@@ -91,8 +93,27 @@ impl Constructs {
                     constructs.wire_actions.insert(id.to_owned(), name.clone());
                 }
             }
+            for tool in block["tools"].as_object().into_iter().flatten().map(|(_, tool)| tool) {
+                if let (Some(id), Some(drop)) = (tool["id"].as_str(), tool["drop"].as_str()) {
+                    constructs.wire_tools.insert(id.to_owned(), drop.to_owned());
+                }
+            }
         }
         constructs
+    }
+
+    /// What a step names as what it runs: its action, a connect's entry, or the action a create's toolbox tool runs;
+    /// by the description's name when its wire block maps the id.
+    fn named<'a>(&'a self, step: &'a Json) -> Option<&'a str> {
+        let action = step
+            .get("action")
+            .and_then(Json::as_str)
+            .or_else(|| step["connect"]["type"].as_str())
+            .or_else(|| {
+                let tool = step["create"]["type"].as_str()?;
+                self.wire_tools.get(tool).map(String::as_str)
+            });
+        action.map(|a| self.wire_actions.get(a).map_or(a, String::as_str))
     }
 
     fn walk(&mut self, node: &Json, in_binding: bool) {
@@ -156,10 +177,10 @@ impl Constructs {
     /// the type of the element it changed (`element_type`: the property's, the moved one's, the selection's), else
     /// the binding.
     pub(crate) fn gesture(&self, step: &Json, element_type: Option<&str>) -> Option<At> {
-        let action = step.get("action").and_then(Json::as_str);
-        let name = action.map(|a| self.wire_actions.get(a).map_or(a, String::as_str));
+        let name = self.named(step);
+        let deletes = name == Some("delete") || step.get("delete").is_some();
         name.and_then(|n| self.operations.get(n))
-            .or_else(|| (name == Some("delete")).then_some(self.behavior.as_ref()).flatten())
+            .or_else(|| deletes.then_some(self.behavior.as_ref()).flatten())
             .cloned()
             .or_else(|| self.rule(element_type))
     }
@@ -172,11 +193,10 @@ impl Constructs {
         }
         let kind = if step.get("move").is_some() {
             Some("containment")
+        } else if step.get("delete").is_some() {
+            Some("delete")
         } else {
-            step.get("action")
-                .and_then(Json::as_str)
-                .map(|a| self.wire_actions.get(a).map_or(a, String::as_str))
-                .filter(|name| *name == "delete")
+            self.named(step).filter(|name| *name == "delete")
         };
         kind.and_then(|k| self.kinds.get(k))
             .cloned()

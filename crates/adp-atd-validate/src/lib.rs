@@ -15,6 +15,7 @@ pub mod parts;
 use std::cell::RefCell;
 use std::collections::{BTreeMap, VecDeque};
 use std::path::{Path, PathBuf};
+use std::rc::Rc;
 
 use adp_atd_check::Description;
 use adp_atd_runtime::RuntimeTool;
@@ -22,6 +23,7 @@ use adp_context::Prompt;
 use adp_diagram::ElementKind;
 use adp_diagram::document::EditedFile;
 use adp_diagram::session::{ActionOutcome, ActionTarget, DiagramSession};
+use adp_diagram::tool::DiagramTool;
 use adp_diagram::workspace::DiagramWorkspace;
 use adp_disl::{HostAction, IdSource};
 use adp_history::Outcome;
@@ -116,6 +118,7 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
         registration_name.and_then(|r| case.files.get(r).cloned()),
     );
     let mut replay = Replay {
+        tool: runtime.tool.clone(),
         workspace,
         session,
         body_path,
@@ -172,6 +175,7 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
         let element = ["property", "move"]
             .iter()
             .find_map(|gesture| step[gesture]["element"].as_str().map(str::to_owned))
+            .or_else(|| step["delete"][0].as_str().map(str::to_owned))
             .or(element);
         let element_type = element.and_then(|id| replay.types().remove(&id));
         let element_type = element_type.as_deref();
@@ -185,7 +189,7 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
         };
         match (&outcome, expected_refusal) {
             (Ok(()), None) => {}
-            (Err(actual), Some(expected)) if actual == expected => {}
+            (Err(actual), Some(expected)) if same_refusal(expected, actual) => {}
             (Err(actual), expected) => differences.push(Difference {
                 step: number,
                 part: "refused",
@@ -250,6 +254,28 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
         }
     }
     differences
+}
+
+/// Whether two reasons a gesture was refused with are the same refusal (ATD §2.3, spec 067, FR-011): a reason compares
+/// exactly, unless both are the host's own sentence that the gesture is not offered, which says nothing a description
+/// wrote.
+fn same_refusal(expected: &str, actual: &str) -> bool {
+    expected == actual || (not_offered(expected) && not_offered(actual))
+}
+
+/// Whether `reason` is one of the host's "not offered" sentences, a closed set (ATD §2.3).
+fn not_offered(reason: &str) -> bool {
+    // What the host names in its sentence is an action's id: one word, in quotes it does not itself hold.
+    let an_id = |id: &str| !id.is_empty() && !id.contains(|c: char| c == '\'' || c.is_whitespace());
+    reason == "That action is not available for this item."
+        || reason
+            .strip_prefix("Unknown action '")
+            .and_then(|r| r.strip_suffix("'."))
+            .is_some_and(an_id)
+        || reason
+            .strip_prefix('\'')
+            .and_then(|r| r.strip_suffix("' does not apply to this selection."))
+            .is_some_and(an_id)
 }
 
 /// A case's drawing: inline, or `{"$ref": "<file>"}` beside the case.
@@ -351,6 +377,7 @@ fn first_difference(expected: &[u8], actual: &[u8]) -> Option<(String, String)> 
 }
 
 struct Replay {
+    tool: Rc<DiagramTool>,
     workspace: DiagramWorkspace,
     session: DiagramSession,
     body_path: PathBuf,
@@ -412,8 +439,20 @@ impl Replay {
         if let Some(select) = step.get("select") {
             self.select(select)?;
         }
+        let args = step.get("args").unwrap_or(&Json::Null);
         if let Some(action) = step.get("action").and_then(Json::as_str) {
-            return self.action(action, step.get("args").unwrap_or(&Json::Null));
+            let target = self.target(args)?;
+            return self.action(&target, action, args);
+        }
+        // A connect that ends on empty canvas states that new end as the `create` of its step.
+        if let Some(connect) = step.get("connect") {
+            return self.connect(connect, step.get("create"), args);
+        }
+        if let Some(create) = step.get("create") {
+            return self.create(create, args);
+        }
+        if let Some(delete) = step.get("delete") {
+            return self.delete(delete);
         }
         if let Some(property) = step.get("property") {
             return self.property(property);
@@ -449,7 +488,12 @@ impl Replay {
         }
     }
 
+    /// What an action is made on: the canvas at `args.at`, the element `args.target`, else the selection.
     fn target(&self, args: &Json) -> Result<ActionTarget, String> {
+        if let Some(at) = args.get("at") {
+            let (x, y) = point_of(at)?;
+            return Ok(ActionTarget::Canvas { x, y });
+        }
         match args.get("target").and_then(Json::as_str) {
             Some(target) => Ok(ActionTarget::Element(target.to_owned())),
             None => self
@@ -460,13 +504,109 @@ impl Replay {
         }
     }
 
-    /// An action of the selection's menu, its prompt answered with `args.value` or `args.confirm`. An operation that
-    /// asks nothing and ends by editing a label inline takes `args.value` as the text typed into it.
-    fn action(&mut self, action: &str, args: &Json) -> Result<(), String> {
-        let target = self.target(args)?;
+    /// A create gesture on the description's own tool: the entry of its toolbox that `type` names, by its id or by the
+    /// element type it creates, dropped at `at`. An entry that names an action runs it on the canvas there, its prompt
+    /// answered from `args`, as a toolbox drop and the canvas's menu share one implementation.
+    fn create(&mut self, create: &Json, args: &Json) -> Result<(), String> {
+        let type_name = create["type"].as_str().ok_or("A create names its type.")?;
+        if create.get("parent").is_some() || create.get("attributes").is_some() {
+            return Err(format!("The runner knows no step {create}."));
+        }
+        let (x, y) = point_of(&create["at"])?;
+        let tools = self.session.toolbox(self.workspace.documents());
+        let creating = self.tool_creating(type_name);
+        let Some(tool) = tools
+            .iter()
+            .find(|tool| tool.id == type_name || creating.as_deref() == Some(tool.id.as_str()))
+        else {
+            return Err(format!("Unknown action '{type_name}'."));
+        };
+        if tool.drop_action_id.is_empty() {
+            return self.session.drop_tool(&mut self.workspace, &tool.id, x, y, &self.ids);
+        }
+        self.action(&ActionTarget::Canvas { x, y }, &tool.drop_action_id, args)
+    }
+
+    /// The id of the toolbox's first tool that creates the element type `type_name`.
+    fn tool_creating(&self, type_name: &str) -> Option<String> {
+        let groups = self
+            .tool
+            .definition
+            .specification()
+            .root()
+            .get("toolbox")?
+            .get("groups")?;
+        let tool = groups
+            .as_array()?
+            .iter()
+            .filter_map(|group| group.get("tools")?.as_array())
+            .flatten()
+            .find(|tool| tool.get("creates").and_then(|c| c.as_str()) == Some(type_name))?;
+        Some(self.tool.definition.ids().tool_id(tool.get("id")?.as_str()?))
+    }
+
+    /// A connect gesture on the description's own tool: a relation of the type `type` names; else the entry of that id
+    /// in the menu of a connection between the two ends, as a finished connect gesture runs it. With the `create` of
+    /// its step, the gesture is released on empty canvas at that create's `at`, and the tool makes the new end.
+    fn connect(&mut self, connect: &Json, created: Option<&Json>, args: &Json) -> Result<(), String> {
+        let name = connect["type"].as_str().ok_or("A connect names its type.")?;
+        let source = connect["source"].as_str().ok_or("A connect names its source.")?;
+        let end = connect["target"].as_str().ok_or("A connect names its target.")?;
+        let relations = self
+            .session
+            .relation_types_between(self.workspace.documents(), source, None);
+        let named = relations.iter().find(|relation| *relation == name);
+        if let Some(created) = created {
+            let (x, y) = point_of(&created["at"])?;
+            let relation = named
+                .or(relations.first())
+                .ok_or_else(|| format!("no relation leaves '{source}' towards empty canvas"))?;
+            return self
+                .session
+                .connect_to_new(&mut self.workspace, relation, source, x, y, &self.ids);
+        }
+        if named.is_some() {
+            return self.session.connect(&mut self.workspace, name, source, end, &self.ids);
+        }
+        let connection = ActionTarget::Connection {
+            source: Some(source.to_owned()),
+            target: Some(end.to_owned()),
+        };
+        self.action(&connection, name, args)
+    }
+
+    /// A delete gesture on the description's own tool: the elements named, as one command, by the deletion each one's
+    /// menu offers; the step states that it was made, so whatever the tool would ask first is confirmed.
+    fn delete(&mut self, delete: &Json) -> Result<(), String> {
+        let ids: Vec<String> = delete
+            .as_array()
+            .ok_or("A delete is a list.")?
+            .iter()
+            .map(|id| id.as_str().map(str::to_owned).ok_or("An element is named by a string."))
+            .collect::<Result<_, _>>()?;
+        let documents = self.workspace.documents();
+        let deletion = ids.first().and_then(|id| {
+            let element = ActionTarget::Element(id.clone());
+            self.session
+                .actions(documents, &element)
+                .into_iter()
+                .flat_map(|group| group.actions)
+                .map(|action| action.id)
+                .find(|action| self.session.is_deletion(documents, &element, action))
+        });
+        let deletion = deletion.unwrap_or_default();
+        match self.session.delete_elements(&mut self.workspace, &ids, &deletion, true) {
+            ActionOutcome::Refused(reason) => Err(reason),
+            _ => Ok(()),
+        }
+    }
+
+    /// An action of `target`'s menu, its prompt answered with `args.value` or `args.confirm`. An operation that asks
+    /// nothing and ends by editing a label inline takes `args.value` as the text typed into it.
+    fn action(&mut self, target: &ActionTarget, action: &str, args: &Json) -> Result<(), String> {
         let value = args.get("value").and_then(Json::as_str);
         let _ = self.session.take_host_actions();
-        let prompt = match self.session.execute(&mut self.workspace, &target, action, &self.ids) {
+        let prompt = match self.session.execute(&mut self.workspace, target, action, &self.ids) {
             ActionOutcome::Done => {
                 let Some(value) = value else { return Ok(()) };
                 let edited = self.session.take_host_actions().into_iter().find_map(|a| match a {
@@ -494,7 +634,7 @@ impl Replay {
         };
         match self
             .session
-            .answer_with_ids(&mut self.workspace, &target, action, &answer, &self.ids)
+            .answer_with_ids(&mut self.workspace, target, action, &answer, &self.ids)
         {
             ActionOutcome::Done => Ok(()),
             ActionOutcome::Refused(reason) => Err(reason),
@@ -565,6 +705,13 @@ impl Replay {
         let y = movement.get("y").and_then(Json::as_f64).ok_or("A place has y.")?;
         self.session.move_element_to(&mut self.workspace, id, x, y)
     }
+}
+
+/// A place as a step writes it: `x` and `y`.
+fn point_of(at: &Json) -> Result<(f64, f64), String> {
+    let x = at.get("x").and_then(Json::as_f64).ok_or("A place has x.")?;
+    let y = at.get("y").and_then(Json::as_f64).ok_or("A place has y.")?;
+    Ok((x, y))
 }
 
 fn history(outcome: Outcome) -> Result<(), String> {

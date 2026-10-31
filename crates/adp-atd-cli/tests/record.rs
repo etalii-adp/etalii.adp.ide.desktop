@@ -184,6 +184,73 @@ fn recording_the_mind_map_keeps_its_golden_bytes_and_draws_its_scene_snapshot() 
     assert_eq!(files(cases.path()), files(again.path()));
 }
 
+/// Recording writes a parity script's gestures in ATD §2.3's terms (etalii.adp spec 067, T018 to T020): a point is a
+/// `create` of the toolbox entry its action is, two ends a `connect` and a target a `select`, and the steps' results
+/// stay as they were: recording itself replays the case as written and fails otherwise (FR-006).
+#[test]
+fn recording_writes_a_scripts_gestures_in_atds_terms() {
+    let folder = tempfile::tempdir().unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_atd"))
+        .args(["record", "generic/dependencies", "--cases"])
+        .arg(folder.path())
+        .env("ATD_RECORDED_WITH", "0000000")
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+    assert_eq!(
+        String::from_utf8_lossy(&output.stderr),
+        "",
+        "every gesture of the dependency graph can be stated"
+    );
+    let case = |name: &str| -> Value {
+        let file = folder.path().join(name).join("conformance.json");
+        serde_json::from_str(&std::fs::read_to_string(file).unwrap()).unwrap()
+    };
+    let services = case("services");
+    let validator = validator("ConformanceFixture");
+    assert!(validator.is_valid(&services), "{:?}", validator.validate(&services));
+    let steps = services["steps"].as_array().unwrap();
+    for (index, step) in steps.iter().enumerate() {
+        assert!(step["args"].get("target").is_none(), "step {}: {step}", index + 1);
+    }
+
+    assert_eq!(steps[12]["connect"]["type"], "dependencies.connect");
+    assert_eq!(steps[12]["connect"]["source"], "checkout-web");
+    assert_eq!(steps[12]["connect"]["target"], "identity-service");
+    assert!(steps[12].get("action").is_none());
+    assert_eq!(steps[12]["ids"], serde_json::json!(["f2l95kayzmapdgsrek57ftky9"]));
+
+    // An element the action was made on is what the step selects.
+    assert_eq!(steps[13]["action"], "dependencies.disconnect");
+    assert_eq!(steps[13]["select"], serde_json::json!(["f2l95kayzmapdgsrek57ftky9"]));
+
+    assert_eq!(
+        steps[15]["create"],
+        serde_json::json!({"type": "dependencies.toolbox.node", "at": {"x": 300, "y": 0}})
+    );
+    assert!(steps[15].get("action").is_none());
+
+    // A new end: the connect names the node the step made, the create where it stands.
+    assert_eq!(
+        steps[16]["connect"],
+        serde_json::json!({
+            "type": "dependencies.connect", "source": "payments-db", "target": "7yxwlqfi4fcv63bmdakhufj59",
+        })
+    );
+    assert_eq!(
+        steps[16]["create"],
+        serde_json::json!({"type": "Node", "at": {"x": 1400, "y": 0}})
+    );
+
+    // A refused gesture keeps its reason.
+    let refused = &case("refusals")["steps"][0];
+    assert_eq!(refused["connect"]["source"], "api");
+    assert!(refused["refused"]["reason"].is_string());
+    let refused = &case("not-yaml")["steps"][0];
+    assert_eq!(refused["create"]["type"], "dependencies.toolbox.node");
+    assert!(refused["refused"]["reason"].is_string());
+}
+
 #[test]
 fn recording_a_capability_writes_valid_fixtures_from_the_code_that_does_it() {
     let record = || {

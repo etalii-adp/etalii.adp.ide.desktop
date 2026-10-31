@@ -632,12 +632,23 @@ fn compare_files(case: &Case, project: &Path) -> Result<Vec<(String, FileResult)
 
 impl Replay<'_> {
     fn step(&mut self, step: &Json) -> Result<(), String> {
+        // A script's selection is a step of its own; a case's goes before the gesture of its step (ATD §2.3).
         if let Some(select) = step.get("select") {
-            return self.select(select);
+            let selected = self.select(select);
+            if step.as_object().is_none_or(|s| s.len() == 1) {
+                return selected;
+            }
+            selected?;
         }
+        let args = step.get("args").cloned().unwrap_or(Json::Null);
         if let Some(action) = step.get("action").and_then(Json::as_str) {
-            let args = step.get("args").cloned().unwrap_or(Json::Null);
             return self.action(action, &args);
+        }
+        if let Some(connect) = step.get("connect") {
+            return self.connect(connect, step.get("create"), &args);
+        }
+        if let Some(create) = step.get("create") {
+            return self.create(create, &args);
         }
         if let Some(property) = step.get("property") {
             return self.property(property);
@@ -682,10 +693,46 @@ impl Replay<'_> {
         }
     }
 
-    /// The source of an action: `args.target` (an element, `new:x,y` for the canvas, `rel:a->b` for a connect
-    /// gesture), else the selection.
-    fn target(&self, target: Option<&Json>) -> Result<ActionTarget, String> {
-        let Some(target) = target else {
+    /// A gesture as a case writes it (ATD §2.3): the entry of the toolbox `create.type` names, dropped on the canvas at
+    /// `create.at`, as that entry's action there.
+    fn create(&mut self, create: &Json, args: &Json) -> Result<(), String> {
+        let tool = create["type"].as_str().ok_or("a create names its type")?;
+        let (x, y) = point_of(&create["at"])?;
+        let action = self
+            .session
+            .toolbox(self.workspace.documents())
+            .into_iter()
+            .find(|item| item.id == tool && !item.drop_action_id.is_empty())
+            .map(|item| item.drop_action_id)
+            .ok_or_else(|| format!("no toolbox entry '{tool}' names an action"))?;
+        self.run(ActionTarget::Canvas { x, y }, &action, args)
+    }
+
+    /// A connect gesture as a case writes it (ATD §2.3): the entry `connect.type` names of the menu of a connection
+    /// between its ends; or, with a `create` in the same step, released on empty canvas at that create's `at`.
+    fn connect(&mut self, connect: &Json, created: Option<&Json>, args: &Json) -> Result<(), String> {
+        let name = connect["type"].as_str().ok_or("a connect names its type")?;
+        let source = connect["source"].as_str().ok_or("a connect names its source")?;
+        let target = connect["target"].as_str().ok_or("a connect names its target")?;
+        if let Some(created) = created {
+            let (x, y) = point_of(&created["at"])?;
+            return self.connect_to_new(source, x, y);
+        }
+        let target = ActionTarget::Connection {
+            source: Some(source.to_owned()),
+            target: Some(target.to_owned()),
+        };
+        self.run(target, name, args)
+    }
+
+    /// The source of an action: `args.at` (the canvas, as a case writes it), `args.target` (an element, `new:x,y` for
+    /// the canvas, `rel:a->b` for a connect gesture), else the selection.
+    fn target(&self, args: &Json) -> Result<ActionTarget, String> {
+        if let Some(at) = args.get("at") {
+            let (x, y) = point_of(at)?;
+            return Ok(ActionTarget::Canvas { x, y });
+        }
+        let Some(target) = args.get("target") else {
             return self
                 .selection
                 .clone()
@@ -728,15 +775,22 @@ impl Replay<'_> {
                 _ => {}
             }
         }
-        let target = self.target(args.get("target"))?;
+        let target = self.target(args)?;
         if let ActionTarget::Connection {
             source: Some(source),
             target: Some(end),
         } = &target
             && let Some(point) = end.strip_prefix("new:")
         {
-            return self.connect_to_new(source, point);
+            let (x, y) = point.split_once(',').ok_or("a canvas end is new:x,y")?;
+            let number = |n: &str| n.trim().parse::<f64>().map_err(|e| format!("'{n}': {e}"));
+            return self.connect_to_new(source, number(x)?, number(y)?);
         }
+        self.run(target, action, args)
+    }
+
+    /// Action `action` of `target`'s menu, its prompt answered with `args.value` or `args.confirm`, or dismissed.
+    fn run(&mut self, target: ActionTarget, action: &str, args: &Json) -> Result<(), String> {
         let prompt = match self.session.execute(&mut self.workspace, &target, action, self.ids) {
             ActionOutcome::Done => {
                 return match args.get("value").and_then(Json::as_str) {
@@ -774,11 +828,9 @@ impl Replay<'_> {
         add_entry(self.workspace.root(), args)
     }
 
-    /// A connect gesture from `source` released on empty canvas at `point` (`rel:a->new:x,y`), as the canvas runs it:
+    /// A connect gesture from `source` released on empty canvas at (`x`, `y`) (`rel:a->new:x,y`), as the canvas runs it:
     /// the first relation type that may leave `source` towards empty canvas, its target made at the point.
-    fn connect_to_new(&mut self, source: &str, point: &str) -> Result<(), String> {
-        let (x, y) = point.split_once(',').ok_or("a canvas end is new:x,y")?;
-        let number = |n: &str| n.trim().parse::<f64>().map_err(|e| format!("'{n}': {e}"));
+    fn connect_to_new(&mut self, source: &str, x: f64, y: f64) -> Result<(), String> {
         let relation = self
             .session
             .relation_types_between(self.workspace.documents(), source, None)
@@ -786,7 +838,7 @@ impl Replay<'_> {
             .next()
             .ok_or_else(|| format!("no relation leaves '{source}' towards empty canvas"))?;
         self.session
-            .connect_to_new(&mut self.workspace, &relation, source, number(x)?, number(y)?, self.ids)
+            .connect_to_new(&mut self.workspace, &relation, source, x, y, self.ids)
     }
 
     /// `ContextService.SetProperty`, the row named by its id or by its label as the grid shows it.
@@ -912,6 +964,13 @@ fn entry_named(root: &Path, name: &str) -> Option<PathBuf> {
         }
     }
     None
+}
+
+/// A place as a case writes it: `x` and `y`.
+fn point_of(at: &Json) -> Result<(f64, f64), String> {
+    let x = at["x"].as_f64().ok_or("a place has x")?;
+    let y = at["y"].as_f64().ok_or("a place has y")?;
+    Ok((x, y))
 }
 
 fn compact(step: &Json) -> String {

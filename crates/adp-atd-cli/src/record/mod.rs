@@ -5,11 +5,16 @@
 //! gave, the drawing its canvas draws (the shell's recording painter) and the bytes it wrote. The replay must end in the
 //! standalone host's golden bytes, so the bytes are the standalone host's; readings, findings and drawings are the
 //! desktop host's. Each part names who produced it.
+//!
+//! A script's gestures are written in ATD §2.3's terms (`gesture`, etalii.adp spec 067, T018 to T020), and the script
+//! is then replayed on the module once more as the case writes it, so that recording fails rather than writes a step
+//! whose result is not the one it states (FR-006).
 
 mod c4;
 pub mod capability;
 pub mod check;
 mod editor;
+mod gesture;
 mod hierarchy;
 mod w3c;
 
@@ -19,14 +24,17 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use adp_atd_validate::parts::{findings, reading};
+use adp_diagram::ElementKind;
 use adp_parity::{Case, Observed};
 use adp_theme::Kind;
+use gesture::{Before, Written};
 use serde_json::{Map, Value as Json, json};
 
 /// The desktop host's commit whose behaviour the readings and drawings stand for (research R17).
 pub const REFERENCE: &str = "fe5feec";
 
 /// What a reading or a step left behind.
+#[derive(PartialEq)]
 struct Seen {
     outcome: Result<(), String>,
     generated: Vec<String>,
@@ -34,6 +42,20 @@ struct Seen {
     findings: Vec<Json>,
     drawing: Result<Json, String>,
     read: Option<(Vec<Json>, Vec<Json>)>,
+}
+
+impl Seen {
+    fn of(observed: &Observed, origin: &str, body_path: &Path) -> Seen {
+        let elements = observed.session.render(observed.documents).unwrap_or_default();
+        Seen {
+            outcome: observed.outcome.clone(),
+            generated: observed.generated.clone(),
+            bytes: fs::read(observed.project.join(body_path)).ok(),
+            findings: findings(observed.session, observed.documents),
+            drawing: adp_shell::recording::drawing_of(origin, observed.session, observed.documents, Kind::Light),
+            read: observed.step.is_none().then(|| reading(&elements)),
+        }
+    }
 }
 
 /// A gesture's references with the ids of `$N` and `$cN` put in, from the ids the standalone host generated.
@@ -74,6 +96,13 @@ thread_local! {
     /// The commit `recordedWith` names in place of the one `atd record` runs at: `atd record --check` records each case
     /// as it was recorded.
     static RECORDED_WITH: RefCell<Option<String>> = const { RefCell::new(None) };
+    /// The gestures ATD's steps cannot state, as recording found them (spec 067, FR-007).
+    static UNSTATED: RefCell<Vec<String>> = const { RefCell::new(Vec::new()) };
+}
+
+/// The gestures recorded since the last call that ATD's steps cannot state, one line each, and forgets them.
+pub fn take_unstated() -> Vec<String> {
+    UNSTATED.with(|u| std::mem::take(&mut *u.borrow_mut()))
 }
 
 pub(crate) fn override_recorded_with(commit: Option<String>) {
@@ -191,17 +220,34 @@ fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), Stri
     let (body, inputs) = copy_inputs(case, folder)?;
     let origin = case.script.tool.clone();
     let body_path = PathBuf::from(&body);
+    let generated: Vec<(String, bool)> = case
+        .recorded
+        .generated
+        .iter()
+        .map(|g| (g.id.clone(), g.connection))
+        .collect();
     let mut seen: Vec<Seen> = Vec::new();
+    // What the module said of each step's gesture just before it was made, and what its gesture made.
+    let mut before: Vec<Before> = Vec::new();
+    let mut made: Vec<BTreeMap<String, (String, bool)>> = Vec::new();
     let verdict = adp_parity::replay_observed(case, &mut |observed: &Observed| {
         let elements = observed.session.render(observed.documents).unwrap_or_default();
-        seen.push(Seen {
-            outcome: observed.outcome.clone(),
-            generated: observed.generated.clone(),
-            bytes: fs::read(observed.project.join(&body_path)).ok(),
-            findings: findings(observed.session, observed.documents),
-            drawing: adp_shell::recording::drawing_of(&origin, observed.session, observed.documents, Kind::Light),
-            read: observed.step.is_none().then(|| reading(&elements)),
-        });
+        made.push(
+            elements
+                .iter()
+                .filter(|e| observed.generated.contains(&e.id))
+                .map(|e| (e.id.clone(), (e.element_type.clone(), e.kind == ElementKind::Relation)))
+                .collect(),
+        );
+        seen.push(Seen::of(observed, &origin, &body_path));
+        let next = observed.step.map_or(0, |step| step + 1);
+        if let Some(step) = case.script.steps.get(next) {
+            before.push(Before::of(
+                &resolve(step, &generated),
+                observed.session,
+                observed.documents,
+            ));
+        }
     })?;
     if !verdict.matches() {
         return Err(format!(
@@ -235,29 +281,43 @@ fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), Stri
     if let Some(bytes) = &opened.bytes {
         texts.insert(bytes.clone(), body.clone());
     }
-    let generated: Vec<(String, bool)> = case
-        .recorded
-        .generated
-        .iter()
-        .map(|g| (g.id.clone(), g.connection))
-        .collect();
 
     let mut steps: Vec<Json> = Vec::new();
+    // The script's steps as the case writes its gestures, replayed below.
+    let mut written: Vec<Json> = Vec::new();
     let mut select: Option<Json> = None;
-    for (step, after) in case.script.steps.iter().zip(seen.iter().skip(1)) {
+    // What the module has selected, and what a replay of the case has: a gesture's own target is not the module's
+    // selection, and is the case's.
+    let mut selected = json!([]);
+    let mut replayed = json!([]);
+    for (index, (step, after)) in case.script.steps.iter().zip(seen.iter().skip(1)).enumerate() {
         let step = resolve(step, &generated);
         let mut gesture = Map::new();
         let mut repeat = 1;
+        let mut targeted = None;
+        // Whether the gesture acts on the selection.
+        let mut on_selection = false;
         if let Some(refs) = step.get("select") {
             select = Some(refs.clone());
+            selected = refs.clone();
+            written.push(step);
             continue;
-        } else if let Some(action) = step.get("action") {
-            gesture.insert("action".into(), action.clone());
-            if let Some(args) = step
-                .get("args")
-                .filter(|a| a.as_object().is_some_and(|o| !o.is_empty()))
-            {
-                gesture.insert("args".into(), args.clone());
+        } else if step.get("action").is_some() {
+            match gesture::write(&step, &before[index], &made[index + 1]) {
+                Written::Gesture { fields, select } => {
+                    on_selection =
+                        fields.contains_key("action") && fields.get("args").is_none_or(|a| a.get("at").is_none());
+                    gesture = fields;
+                    targeted = select;
+                }
+                Written::Unstated { reason, fields } => {
+                    let name = &case.name;
+                    UNSTATED.with(|u| {
+                        u.borrow_mut()
+                            .push(format!("{name}, script step {}: {reason}", index + 1))
+                    });
+                    gesture = fields;
+                }
             }
         } else if let Some(property) = step.get("property") {
             let mut set = Map::new();
@@ -266,6 +326,7 @@ fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), Stri
             }
             set.insert("attribute".into(), property.get("row").cloned().unwrap_or_default());
             set.insert("value".into(), property.get("value").cloned().unwrap_or_default());
+            on_selection = property.get("target").is_none();
             gesture.insert("property".into(), Json::Object(set));
         } else if let Some(movement) = step.get("move") {
             let mut to = Map::new();
@@ -296,11 +357,29 @@ fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), Stri
             repeat = n.max(1) as usize;
         } else {
             // A save writes nothing a case states.
+            written.push(step);
             continue;
         }
-        if let Some(refs) = select.take() {
+        // The script's selection goes with the next gesture, unless that gesture names what it is made on; a gesture
+        // on the selection after one that named its own says again what the module still has selected.
+        let carried = select.take();
+        let refs = match targeted {
+            Some(target) => Some(json!([target])),
+            None if carried.is_some() => carried,
+            None if on_selection && replayed != selected => Some(selected.clone()),
+            None => None,
+        };
+        let mut as_written = if step.get("action").is_some() {
+            Json::Object(gesture.clone())
+        } else {
+            step
+        };
+        if let Some(refs) = refs {
+            replayed = refs.clone();
+            as_written["select"] = refs.clone();
             gesture.insert("select".into(), refs);
         }
+        written.push(as_written);
         if !after.generated.is_empty() {
             gesture.insert("ids".into(), json!(after.generated));
         }
@@ -330,6 +409,8 @@ fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), Stri
         }
         steps.push(Json::Object(gesture));
     }
+
+    same_when_replayed_as_written(case, written, &seen, &origin, &body_path)?;
 
     let desktop = |part: &str| {
         json!({
@@ -368,6 +449,36 @@ fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), Stri
         },
     });
     write_json(&folder.join("conformance.json"), &fixture)
+}
+
+/// Replays the script on the module with its steps as the case writes them: every step must leave what the script's
+/// own step left (spec 067, FR-006), or the case would state a result its gesture does not give.
+fn same_when_replayed_as_written(
+    case: &Case,
+    written: Vec<Json>,
+    seen: &[Seen],
+    origin: &str,
+    body_path: &Path,
+) -> Result<(), String> {
+    let mut as_written = case.clone();
+    as_written.script.steps = written;
+    let mut again: Vec<Seen> = Vec::new();
+    adp_parity::replay_observed(&as_written, &mut |observed: &Observed| {
+        again.push(Seen::of(observed, origin, body_path));
+    })?;
+    let different = (0..seen.len()).find(|&n| seen.get(n) != again.get(n));
+    match different {
+        None if seen.len() == again.len() => Ok(()),
+        None => Err(format!("{}: replayed as written, its steps do not line up", case.name)),
+        Some(0) => Err(format!("{}: replayed as written, the reading differs", case.name)),
+        Some(n) => Err(format!(
+            "{}: script step {n}, written as {}, does not leave what it left: {:?}, not {:?}",
+            case.name,
+            as_written.script.steps[n - 1],
+            again.get(n).map(|s| &s.outcome),
+            seen[n].outcome,
+        )),
+    }
 }
 
 pub(crate) fn collect_files(root: &Path, folder: &Path, out: &mut Vec<String>) {
