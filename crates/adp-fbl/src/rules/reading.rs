@@ -1432,8 +1432,9 @@ impl BodyReading {
                                     .is_some_and(|reference| reference.by != "id")
                             })
                             .filter_map(|(a, (name, _))| {
-                                let Some(Value::String(key)) = e.attributes.get(name) else {
-                                    return None;
+                                let key = match e.attributes.get(name) {
+                                    Some(Value::String(key)) if !key.is_empty() => key,
+                                    _ => return None,
                                 };
                                 let found = self.referenced_by((e.rule, a), key)?;
                                 Some((name.clone(), self.elements[found].id.clone()))
