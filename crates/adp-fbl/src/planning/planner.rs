@@ -237,7 +237,10 @@ fn plan_set(plan: &mut Plan<'_>, id: &str, attributes: &Map) -> Planning {
         if binding.secondary.is_some() {
             read = reading.family.read(&element.candidate, binding, false);
         }
-        let empty = new_text::is_empty(&value) || (binding.flag && matches!(value, Value::Bool(false)));
+        // A value a grammar slot's `map` writes as no text is its slot's absence (FBL 0.12 section 4.9).
+        let unwritten = reading.family.family_name() == "grammar"
+            && new_text::wire(binding, &value, None).is_some_and(|wire| wire.is_empty());
+        let empty = new_text::is_empty(&value) || unwritten || (binding.flag && matches!(value, Value::Bool(false)));
         if empty && !binding.flag && binding.empty.as_deref() == Some("refuse") {
             return refuse(
                 binding
@@ -269,10 +272,20 @@ fn plan_set(plan: &mut Plan<'_>, id: &str, attributes: &Map) -> Planning {
         if !empty && is_key(reading, index, attribute, binding) {
             let key = new_text::plain(&value, None);
             if key != element.key {
-                if reading
-                    .elements()
-                    .any(|e| !std::ptr::eq(e, element) && e.rule == element.rule && e.key == key)
-                {
+                // The same rules (FBL section 5.7): the element's own, and those a reference names together with it.
+                let named_with = |other: usize| {
+                    let other = &reading.family.rule(other).name;
+                    reading.binding_rc().all_rules().iter().any(|r| {
+                        r.attributes.iter().any(|(_, a)| {
+                            a.reference
+                                .as_ref()
+                                .is_some_and(|to| to.to.contains(&element_rule.name) && to.to.contains(other))
+                        })
+                    })
+                };
+                if reading.elements().any(|e| {
+                    !std::ptr::eq(e, element) && e.key == key && (e.rule == element.rule || named_with(e.rule))
+                }) {
                     return refuse(format!("Another {} is already named '{key}'.", element_rule.type_name));
                 }
                 new_key = Some(key);

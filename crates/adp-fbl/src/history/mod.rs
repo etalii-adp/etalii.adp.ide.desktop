@@ -349,6 +349,18 @@ impl OpenBody {
         Ok(())
     }
 
+    /// Reads the body again with the stored ids of `identities` (FBL 0.12 section 8.6), its history kept.
+    pub(crate) fn set_identities(&mut self, identities: std::collections::HashMap<String, String>) {
+        if self.options.identities == identities {
+            return;
+        }
+        self.options = Rc::new(FblOptions {
+            identities,
+            ..(*self.options).clone()
+        });
+        self.reread();
+    }
+
     pub fn undo(&mut self) -> UndoResult {
         let result = self.file.undo(None);
         if let UndoResult::Done(_) = result {

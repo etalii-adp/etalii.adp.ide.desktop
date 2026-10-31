@@ -359,8 +359,8 @@ impl Family {
         }
     }
 
-    /// Reads a word slot of an attribute the tool type's specification gives `many` (FBL 0.7 section 4.6): every
-    /// word of the group that matches, each an item; a slot of a family without words, or no word slot, as any slot.
+    /// Reads a slot of several items (FBL 0.7 section 4.6, FBL 0.11 section 5.2): every word of the group that matches or
+    /// node the slot reaches, each an item; a slot of a family without either, or no such slot, as any slot.
     pub fn read_many(&self, candidate: &Candidate, attribute: &AttributeBinding) -> SlotRead {
         let slot = &attribute.slot;
         let many = match &self.kind {

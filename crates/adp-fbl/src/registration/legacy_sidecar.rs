@@ -1,7 +1,7 @@
 //! A sidecar file hosts wrote before FBL (FBL section 8.7; the standalone host's `Registration/LegacySidecar`): a
-//! legacy layout, keyed by view key and then by element id with `{"x", "y"}`, or legacy identities, a natural key
-//! mapped to an id. It is read when the registration has no matching block and written back by json splices while
-//! it exists; this crate never creates one.
+//! legacy layout, keyed by view key and then by element id with `{"x", "y"}`, or *(FBL 0.12)* legacy identities, an
+//! array of `{"id", "kind", "key"}`. It is read when the registration has no matching block and written back by json
+//! splices while it exists; this crate never creates one.
 
 use std::collections::{BTreeMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -51,6 +51,40 @@ fn sidecar_binding() -> FblBinding {
         registration: RegistrationSettings::default(),
         template: None,
     }
+}
+
+/// An entry of a legacy identities file (FBL 0.12 section 8.7), with where it and its `key` value stand.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct IdentityEntry {
+    pub id: String,
+    pub kind: Option<String>,
+    pub key: String,
+    pub key_span: Span,
+    pub own: Span,
+}
+
+impl IdentityEntry {
+    /// The entry's key among the identities of a reading: `<kind>:<key>` with a kind.
+    pub fn entry_key(&self) -> String {
+        format!("{}{}", self.kind_prefix(), self.key)
+    }
+
+    fn kind_prefix(&self) -> String {
+        self.kind.as_ref().map_or(String::new(), |kind| format!("{kind}:"))
+    }
+
+    /// Whether a rule declares the entry's kind; an entry without a kind is the binding's.
+    pub fn is_declared(&self, declared: &[String]) -> bool {
+        self.kind.as_ref().is_none_or(|kind| declared.contains(kind))
+    }
+}
+
+/// A new entry of a legacy identities file.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct NewIdentity {
+    pub id: String,
+    pub kind: Option<String>,
+    pub key: String,
 }
 
 /// One open legacy sidecar: its bytes, its json reading, and the one history of its edits.
@@ -126,20 +160,190 @@ impl LegacySidecar {
         positions
     }
 
-    /// Legacy identities: natural key to id.
-    pub fn identities(&self) -> BTreeMap<String, String> {
-        let mut identities = BTreeMap::new();
-        let Some(root) = self.root() else {
-            return identities;
+    /// The entries of a legacy identities file, in order (FBL 0.12 section 8.7); none when it is not one JSON array.
+    pub(crate) fn identity_entries(&self) -> Option<Vec<IdentityEntry>> {
+        let root = self.array()?;
+        let text = |mapping: ValueId, key: &str| {
+            let value = self.reading.value_of(self.reading.member(mapping, key)?);
+            match &value.typed {
+                Value::String(text) => Some((text.clone(), value.span)),
+                _ => None,
+            }
         };
-        for &entry in &self.reading.tree_value(root).entries {
-            if let (Some(name), Value::String(id)) =
-                (&self.reading.entries[entry].name, &self.reading.value_of(entry).typed)
-            {
-                identities.insert(name.clone(), id.clone());
+        let mut entries = Vec::new();
+        for &item in &self.reading.tree_value(root).entries {
+            let mapping = self.reading.entries[item].tree().value;
+            if self.reading.tree_value(mapping).kind != ValueKind::Mapping {
+                continue;
+            }
+            let (Some((id, _)), Some((key, key_span))) = (text(mapping, "id"), text(mapping, "key")) else {
+                continue;
+            };
+            entries.push(IdentityEntry {
+                id,
+                kind: text(mapping, "kind").map(|(kind, _)| kind),
+                key,
+                key_span,
+                own: self.reading.entries[item].own,
+            });
+        }
+        Some(entries)
+    }
+
+    /// What reading legacy identities reports (FBL 0.12 sections 8.5, 8.7): each entry whose kind no rule declares, which
+    /// is kept, and each whose key names no element of `keys`, which the next write of the body prunes, as
+    /// `fbl.stale-view-data`.
+    pub(crate) fn identity_findings(
+        &self,
+        declared: &[String],
+        keys: &HashSet<String>,
+        file_name: &str,
+    ) -> Vec<Finding> {
+        let entries = self.identity_entries().unwrap_or_default();
+        let mut findings = Vec::new();
+        for entry in &entries {
+            let message = if !entry.is_declared(declared) {
+                format!(
+                    "The identities file keeps an entry of the kind '{}', which no rule declares; it is kept as it is.",
+                    entry.kind.as_deref().unwrap_or_default()
+                )
+            } else if !keys.contains(&entry.entry_key()) {
+                format!(
+                    "The identities file keeps an id for '{}', which the file no longer has; it is removed at the next write.",
+                    entry.key
+                )
+            } else {
+                continue;
+            };
+            findings.push(self.finding(
+                codes::STALE_VIEW_DATA,
+                FindingSeverity::Info,
+                message,
+                entry.own,
+                file_name,
+            ));
+        }
+        findings
+    }
+
+    /// One edit of legacy identities (FBL 0.12 section 8.7): `moved`, entries by their key and each's new one, a
+    /// `replace-value` of `key`; `pruned`, a `remove-entry` with one separator; `new`, each an `insert-entry` after the
+    /// array's last item, laid out as that item is.
+    pub(crate) fn plan_identities(
+        &self,
+        moved: &[(String, String)],
+        pruned: &[String],
+        new: &[NewIdentity],
+    ) -> PlanResult {
+        let Some(entries) = self.identity_entries() else {
+            return PlanResult::Refused("The identities file could not be read, so it is not written.".into());
+        };
+        let mut splices = Vec::new();
+        for entry in &entries {
+            let key = entry.entry_key();
+            if let Some((_, to)) = moved.iter().find(|(from, _)| *from == key) {
+                let natural = to.strip_prefix(&entry.kind_prefix()).unwrap_or(to);
+                splices.push(Splice {
+                    operation: Operation::ReplaceValue,
+                    start: entry.key_span.start,
+                    end: entry.key_span.end,
+                    text: quote(natural),
+                });
             }
         }
-        identities
+        let gone: Vec<usize> = entries
+            .iter()
+            .enumerate()
+            .filter(|(_, entry)| pruned.contains(&entry.entry_key()))
+            .map(|(place, _)| place)
+            .collect();
+        let mut at = 0;
+        while at < gone.len() {
+            let first = gone[at];
+            let mut last = first;
+            while gone.get(at + 1) == Some(&(last + 1)) {
+                at += 1;
+                last = gone[at];
+            }
+            at += 1;
+            let (start, end) = match (first.checked_sub(1), entries.get(last + 1)) {
+                (Some(before), _) => (entries[before].own.end, entries[last].own.end),
+                (None, Some(after)) => (entries[first].own.start, after.own.start),
+                (None, None) => (entries[first].own.start, entries[last].own.end),
+            };
+            splices.push(Splice {
+                operation: Operation::RemoveEntry,
+                start,
+                end,
+                text: String::new(),
+            });
+        }
+        splices.extend(self.new_identities(new));
+        splices.sort_by_key(|s| (s.start, usize::from(s.start != s.end)));
+        planned(splices)
+    }
+
+    /// The new entries after the array's last item, one line each when it is written on one line.
+    fn new_identities(&self, new: &[NewIdentity]) -> Vec<Splice> {
+        let Some(root) = self.array().filter(|_| !new.is_empty()) else {
+            return Vec::new();
+        };
+        let newline = self.newline();
+        let container = self.reading.tree_value(root);
+        let empty = container.entries.is_empty();
+        let (at, indent, one_line) = match container.entries.last() {
+            Some(&last) => {
+                let entry = &self.reading.entries[last];
+                (entry.own.end, entry.indent, self.is_one_line(last))
+            }
+            None => (container.span.start + 1, self.column(container.span.start) + 2, false),
+        };
+        let step = container
+            .entries
+            .last()
+            .and_then(|&last| {
+                let mapping = self.reading.tree_value(self.reading.entries[last].tree().value);
+                let member = &self.reading.entries[*mapping.entries.first()?];
+                member.indent.checked_sub(indent)
+            })
+            .filter(|&step| step > 0)
+            .unwrap_or(2);
+        let mut splices = Vec::new();
+        for (place, identity) in new.iter().enumerate() {
+            let mut members = vec![format!("\"id\": {}", quote(&identity.id))];
+            if let Some(kind) = &identity.kind {
+                members.push(format!("\"kind\": {}", quote(kind)));
+            }
+            members.push(format!("\"key\": {}", quote(&identity.key)));
+            let item = if one_line {
+                format!("{{ {} }}", members.join(", "))
+            } else {
+                let inner = " ".repeat(indent + step);
+                let members: Vec<String> = members.iter().map(|m| format!("{inner}{m}")).collect();
+                format!(
+                    "{{{newline}{}{newline}{}}}",
+                    members.join(&format!(",{newline}")),
+                    " ".repeat(indent)
+                )
+            };
+            let before = if place > 0 || !empty { "," } else { "" };
+            let mut text = if one_line {
+                format!("{before} {item}")
+            } else {
+                format!("{before}{newline}{}{item}", " ".repeat(indent))
+            };
+            if empty && place + 1 == new.len() {
+                text.push_str(newline);
+                text.push_str(&" ".repeat(indent - 2));
+            }
+            splices.push(Splice {
+                operation: Operation::InsertEntry,
+                start: at,
+                end: at,
+                text,
+            });
+        }
+        splices
     }
 
     /// What reading the view reports (FBL 0.11 section 8.7): each key after the first that matches one id, as
@@ -405,27 +609,6 @@ impl LegacySidecar {
         (value.kind == ValueKind::Mapping).then(|| value.entries.clone())
     }
 
-    /// Stores an id for a natural key: replaced in place, or a new member at the end of the object.
-    pub fn plan_identify(&self, key: &str, id: &str) -> PlanResult {
-        let Some(root) = self.root() else {
-            return PlanResult::Refused("The identities file could not be read, so it is not written.".into());
-        };
-        let text = quote(id);
-        if let Some(existing) = self.reading.member(root, key) {
-            let span = self.reading.value_of(existing).span;
-            if self.reading.text.text_of(span) == text {
-                return planned(Vec::new());
-            }
-            return planned(vec![Splice {
-                operation: Operation::ReplaceValue,
-                start: span.start,
-                end: span.end,
-                text,
-            }]);
-        }
-        self.insert(root, &quote(key), &|_| text.clone())
-    }
-
     /// Plans a change with `plan` and applies it: the planned edit, or the refusal with nothing written.
     pub fn change(&mut self, plan: impl FnOnce(&LegacySidecar) -> PlanResult) -> PlanResult {
         let result = plan(self);
@@ -457,6 +640,22 @@ impl LegacySidecar {
 
     fn reread(&mut self) {
         self.reading = read(self.file.bytes());
+    }
+
+    /// Applies an edit that is no step of the history (FBL 0.12 section 8.6, an id first stored).
+    pub(crate) fn apply_outside_history(&mut self, edit: &PlannedEdit) {
+        if matches!(self.file.apply_outside_history(edit), Ok(true)) {
+            self.reread();
+        }
+    }
+
+    /// The root array's value; none when the sidecar is not one JSON array.
+    fn array(&self) -> Option<ValueId> {
+        if self.reading.unreadable.is_some() {
+            return None;
+        }
+        let root = self.reading.entries[self.reading.tree_root()?].tree().value;
+        (self.reading.tree_value(root).kind == ValueKind::Sequence).then_some(root)
     }
 
     /// The root object's value; none when the sidecar is not one JSON object.
@@ -647,20 +846,76 @@ mod tests {
         );
     }
 
+    /// FBL 0.12 section 8.7: the array the tools write, a key moved by a `replace-value` with RFC 8785's escapes, a pruned
+    /// entry with one separator, a new one laid out as the last, and a kind no rule declares reported and kept.
     #[test]
     fn legacy_identities_are_read_and_written() {
-        let mut sidecar = LegacySidecar::open(b"{\r\n  \"Tea\": \"c1\"\r\n}\r\n".to_vec());
+        let original = "[\r\n  {\r\n    \"id\": \"c1\",\r\n    \"kind\": \"component\",\r\n    \"key\": \"Tea\"\r\n  },\r\n  {\r\n    \"id\": \"c2\",\r\n    \"kind\": \"other\",\r\n    \"key\": \"Cup\"\r\n  }\r\n]\r\n";
+        let mut sidecar = LegacySidecar::open(original.as_bytes().to_vec());
 
-        let result = sidecar.change(|s| s.plan_identify("Cup", "c2"));
+        let entries = sidecar.identity_entries().unwrap();
+        assert_eq!(entries[0].entry_key(), "component:Tea");
+        let findings = sidecar.identity_findings(
+            &["component".to_owned()],
+            &HashSet::from(["component:Tea".to_owned()]),
+            "x.json",
+        );
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].location.as_ref().unwrap().line, 7);
+
+        let moved = [("component:Tea".to_owned(), "component:Tea\u{1f}2\t".to_owned())];
+        let new = [NewIdentity {
+            id: "c3".into(),
+            kind: Some("component".into()),
+            key: "Pot".into(),
+        }];
+        let result = sidecar.change(|s| s.plan_identities(&moved, &[], &new));
 
         assert!(planned_ok(&result), "{result:?}");
         assert_eq!(
             String::from_utf8_lossy(sidecar.bytes()),
-            "{\r\n  \"Tea\": \"c1\",\r\n  \"Cup\": \"c2\"\r\n}\r\n"
+            "[\r\n  {\r\n    \"id\": \"c1\",\r\n    \"kind\": \"component\",\r\n    \"key\": \"Tea\\u001f2\\t\"\r\n  },\r\n  {\r\n    \"id\": \"c2\",\r\n    \"kind\": \"other\",\r\n    \"key\": \"Cup\"\r\n  },\r\n  {\r\n    \"id\": \"c3\",\r\n    \"kind\": \"component\",\r\n    \"key\": \"Pot\"\r\n  }\r\n]\r\n"
         );
-        assert_eq!(sidecar.identities()["Cup"], "c2");
-        let same = sidecar.change(|s| s.plan_identify("Cup", "c2"));
-        assert_eq!(same, PlanResult::Planned(PlannedEdit::default()));
+        assert!(matches!(sidecar.undo(None), UndoResult::Done(_)));
+        assert_eq!(String::from_utf8_lossy(sidecar.bytes()), original);
+
+        let pruned = sidecar.change(|s| s.plan_identities(&[], &["component:Tea".to_owned()], &[]));
+        assert!(planned_ok(&pruned), "{pruned:?}");
+        assert_eq!(
+            String::from_utf8_lossy(sidecar.bytes()),
+            "[\r\n  {\r\n    \"id\": \"c2\",\r\n    \"kind\": \"other\",\r\n    \"key\": \"Cup\"\r\n  }\r\n]\r\n"
+        );
+    }
+
+    /// FBL section 8.7: the object FBL 0.9 described is not read.
+    #[test]
+    fn an_object_of_identities_is_not_read() {
+        assert_eq!(
+            LegacySidecar::open(b"{ \"Tea\": \"c1\" }".to_vec()).identity_entries(),
+            None
+        );
+    }
+
+    /// An empty array takes its first entry between its brackets, a one-line one takes a new entry on the line.
+    #[test]
+    fn a_new_identity_is_laid_out_as_the_file_is() {
+        let new = [NewIdentity {
+            id: "c".into(),
+            kind: None,
+            key: "K".into(),
+        }];
+        let mut empty = LegacySidecar::open(b"[]\n".to_vec());
+        assert!(planned_ok(&empty.change(|s| s.plan_identities(&[], &[], &new))));
+        assert_eq!(
+            String::from_utf8_lossy(empty.bytes()),
+            "[\n  {\n    \"id\": \"c\",\n    \"key\": \"K\"\n  }\n]\n"
+        );
+        let mut line = LegacySidecar::open(b"[{ \"id\": \"a\", \"key\": \"A\" }]\n".to_vec());
+        assert!(planned_ok(&line.change(|s| s.plan_identities(&[], &[], &new))));
+        assert_eq!(
+            String::from_utf8_lossy(line.bytes()),
+            "[{ \"id\": \"a\", \"key\": \"A\" }, { \"id\": \"c\", \"key\": \"K\" }]\n"
+        );
     }
 
     #[test]

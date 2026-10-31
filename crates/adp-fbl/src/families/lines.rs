@@ -434,12 +434,16 @@ impl Family {
                         value: value.as_str().to_owned(),
                         value_span: Span::new(offset, offset + value.as_str().len()),
                         word,
+                        node: 0,
+                        parts: Vec::new(),
                     });
                 }
                 None => items.push(WordItem {
                     value: word.text.clone(),
                     value_span: word.span,
                     word,
+                    node: 0,
+                    parts: Vec::new(),
                 }),
             }
         }
@@ -921,7 +925,7 @@ impl Family {
             .map(|v| self.emitted(binding, v))
     }
 
-    fn with_space_before(&self, span: Span) -> Span {
+    pub(super) fn with_space_before(&self, span: Span) -> Span {
         let mut start = span.start;
         while start > 0 && matches!(self.text.bytes()[start - 1], b' ' | b'\t') {
             start -= 1;
@@ -1193,7 +1197,7 @@ impl Family {
 
 /// Whether `value` is the number `read` already holds, however it is spelled there.
 /// The pairs of places, in `held` and in `wanted`, of a longest common subsequence of the two.
-fn common_subsequence(held: &[&str], wanted: &[String]) -> Vec<(usize, usize)> {
+pub(super) fn common_subsequence(held: &[&str], wanted: &[String]) -> Vec<(usize, usize)> {
     let mut lengths = vec![vec![0usize; wanted.len() + 1]; held.len() + 1];
     for a in (0..held.len()).rev() {
         for b in (0..wanted.len()).rev() {
