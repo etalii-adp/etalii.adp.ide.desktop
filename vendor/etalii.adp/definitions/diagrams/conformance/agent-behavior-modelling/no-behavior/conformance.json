@@ -24,9 +24,14 @@
   },
   "steps": [
     {
-      "action": "abm.add.action",
+      "create": {
+        "type": "abm.toolbox.action",
+        "at": {
+          "x": 0,
+          "y": 0
+        }
+      },
       "args": {
-        "target": "new:0,0",
         "value": "First step"
       },
       "expectFile": "after-1.md",
@@ -41,28 +46,28 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "2f18863",
+      "recordedWith": "e390321",
       "source": "atd record (bytes)"
     },
     "reading": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "2f18863",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "2f18863",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "2f18863",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

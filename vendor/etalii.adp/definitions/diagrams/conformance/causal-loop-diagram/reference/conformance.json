@@ -496,9 +496,12 @@
       }
     },
     {
-      "action": "causal-loop.add-variable",
-      "args": {
-        "target": "new:300,-200"
+      "create": {
+        "type": "causal-loop.toolbox.variable",
+        "at": {
+          "x": 300,
+          "y": -200
+        }
       },
       "ids": [
         "variable:variable1"
@@ -782,9 +785,11 @@
     {
       "action": "causal-loop.remove-variable",
       "args": {
-        "target": "variable:deaths",
         "confirm": true
       },
+      "select": [
+        "variable:deaths"
+      ],
       "expectFile": "after-16.cld",
       "findings": [
         {
@@ -821,9 +826,9 @@
     },
     {
       "action": "causal-loop.remove-loop",
-      "args": {
-        "target": "loop:B2"
-      },
+      "select": [
+        "loop:B2"
+      ],
       "expectFile": "after-17.cld",
       "findings": [
         {
@@ -938,21 +943,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

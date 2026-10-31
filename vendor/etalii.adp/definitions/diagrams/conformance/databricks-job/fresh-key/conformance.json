@@ -76,9 +76,12 @@
   },
   "steps": [
     {
-      "action": "databricks.add-task:notebook",
-      "args": {
-        "target": "new:600,400"
+      "create": {
+        "type": "databricks.toolbox.notebook-task",
+        "at": {
+          "x": 600,
+          "y": 400
+        }
       },
       "expectFile": "after-1.yml",
       "findings": [],
@@ -87,9 +90,12 @@
       }
     },
     {
-      "action": "databricks.add-task:python",
-      "args": {
-        "target": "new:860,400"
+      "create": {
+        "type": "databricks.toolbox.python-task",
+        "at": {
+          "x": 860,
+          "y": 400
+        }
       },
       "expectFile": "after-2.yml",
       "findings": [],
@@ -98,9 +104,12 @@
       }
     },
     {
-      "action": "databricks.add-task:condition",
-      "args": {
-        "target": "new:860,520"
+      "create": {
+        "type": "databricks.toolbox.condition-task",
+        "at": {
+          "x": 860,
+          "y": 520
+        }
       },
       "expectFile": "after-3.yml",
       "findings": [],
@@ -114,28 +123,28 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (bytes)"
     },
     "reading": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

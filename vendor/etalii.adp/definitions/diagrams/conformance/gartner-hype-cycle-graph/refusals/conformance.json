@@ -179,9 +179,10 @@
       }
     },
     {
-      "action": "ghg.connect.influence",
-      "args": {
-        "target": "rel:steam->patent"
+      "connect": {
+        "type": "ghg.connect.influence",
+        "source": "steam",
+        "target": "patent"
       },
       "refused": {
         "reason": "An influence cannot end at a trigger."
@@ -200,9 +201,10 @@
       }
     },
     {
-      "action": "ghg.connect.influence",
-      "args": {
-        "target": "rel:steam->steam"
+      "connect": {
+        "type": "ghg.connect.influence",
+        "source": "steam",
+        "target": "steam"
       },
       "refused": {
         "reason": "A trend cannot influence itself."
@@ -221,9 +223,10 @@
       }
     },
     {
-      "action": "ghg.connect.influence",
-      "args": {
-        "target": "rel:steam->rail"
+      "connect": {
+        "type": "ghg.connect.influence",
+        "source": "steam",
+        "target": "rail"
       },
       "refused": {
         "reason": "This trend already influences that one; a trend influences another once in each direction."
@@ -242,9 +245,10 @@
       }
     },
     {
-      "action": "ghg.connect.influence",
-      "args": {
-        "target": "rel:patent->rail"
+      "connect": {
+        "type": "ghg.connect.influence",
+        "source": "patent",
+        "target": "rail"
       },
       "ids": [
         "ID_case1"
@@ -289,28 +293,28 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "e390321",
       "source": "atd record (bytes)"
     },
     "reading": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

@@ -484,9 +484,11 @@
     {
       "action": "rdf.rename-resource",
       "args": {
-        "target": "res:https://data.nobelprize.org/resource/laureate/295",
         "value": "laureate:295b"
       },
+      "select": [
+        "res:https://data.nobelprize.org/resource/laureate/295"
+      ],
       "ids": [
         "res:https://data.nobelprize.org/resource/laureate/295b",
         "edge:res:https://data.nobelprize.org/resource/laureate/295b|https://data.nobelprize.org/terms/nobelPrize|res:https://data.nobelprize.org/resource/nobelprize/physiology-or-medicine-1903"
@@ -500,9 +502,11 @@
     {
       "action": "rdf.rename-resource",
       "args": {
-        "target": "res:https://data.nobelprize.org/resource/laureate/4",
         "value": "nope:4"
       },
+      "select": [
+        "res:https://data.nobelprize.org/resource/laureate/4"
+      ],
       "refused": {
         "reason": "'rdf.rename-resource' does not apply to this selection."
       },
@@ -513,9 +517,14 @@
       }
     },
     {
-      "action": "rdf.add-prefix",
+      "create": {
+        "type": "rdf.toolbox.prefix",
+        "at": {
+          "x": 0,
+          "y": 0
+        }
+      },
       "args": {
-        "target": "new:0,0",
         "value": "foaf: <http://xmlns.com/foaf/0.1/>"
       },
       "expectFile": "after-4.ttl",
@@ -525,9 +534,14 @@
       }
     },
     {
-      "action": "rdf.add-prefix",
+      "create": {
+        "type": "rdf.toolbox.prefix",
+        "at": {
+          "x": 0,
+          "y": 0
+        }
+      },
       "args": {
-        "target": "new:0,0",
         "value": "not a declaration"
       },
       "refused": {
@@ -540,9 +554,14 @@
       }
     },
     {
-      "action": "rdf.add-resource",
+      "create": {
+        "type": "rdf.toolbox.resource",
+        "at": {
+          "x": 400,
+          "y": 300
+        }
+      },
       "args": {
-        "target": "new:400,300",
         "value": "laureate:999"
       },
       "ids": [
@@ -555,9 +574,12 @@
       }
     },
     {
-      "action": "rdf.connect",
+      "connect": {
+        "type": "rdf.connect",
+        "source": "res:https://data.nobelprize.org/resource/laureate/999",
+        "target": "res:https://data.nobelprize.org/resource/nobelprize/physics-1903"
+      },
       "args": {
-        "target": "rel:res:https://data.nobelprize.org/resource/laureate/999->res:https://data.nobelprize.org/resource/nobelprize/physics-1903",
         "value": "nobel:nobelPrize"
       },
       "ids": [
@@ -570,9 +592,12 @@
       }
     },
     {
-      "action": "rdf.connect",
+      "connect": {
+        "type": "rdf.connect",
+        "source": "res:https://data.nobelprize.org/resource/laureate/999",
+        "target": "res:https://data.nobelprize.org/resource/nobelprize/peace-1903"
+      },
       "args": {
-        "target": "rel:res:https://data.nobelprize.org/resource/laureate/999->res:https://data.nobelprize.org/resource/nobelprize/peace-1903",
         "value": "foaf:knows"
       },
       "ids": [
@@ -586,9 +611,9 @@
     },
     {
       "action": "rdf.remove-edge",
-      "args": {
-        "target": "edge:res:https://data.nobelprize.org/resource/laureate/4|https://data.nobelprize.org/terms/nobelPrize|res:https://data.nobelprize.org/resource/nobelprize/physics-1903"
-      },
+      "select": [
+        "edge:res:https://data.nobelprize.org/resource/laureate/4|https://data.nobelprize.org/terms/nobelPrize|res:https://data.nobelprize.org/resource/nobelprize/physics-1903"
+      ],
       "expectFile": "after-8.ttl",
       "findings": [],
       "drawing": {
@@ -614,9 +639,11 @@
     {
       "action": "rdf.remove-resource",
       "args": {
-        "target": "res:https://data.nobelprize.org/resource/laureate/466",
         "confirm": true
       },
+      "select": [
+        "res:https://data.nobelprize.org/resource/laureate/466"
+      ],
       "expectFile": "after-9.ttl",
       "findings": [],
       "drawing": {
@@ -633,9 +660,9 @@
     },
     {
       "action": "rdf.remove-resource",
-      "args": {
-        "target": "res:https://data.nobelprize.org/resource/laureate/572"
-      },
+      "select": [
+        "res:https://data.nobelprize.org/resource/laureate/572"
+      ],
       "expectFile": "after-8.ttl",
       "findings": [],
       "drawing": {
@@ -645,9 +672,11 @@
     {
       "action": "rdf.remove-resource",
       "args": {
-        "target": "res:https://data.nobelprize.org/resource/laureate/162",
         "confirm": true
       },
+      "select": [
+        "res:https://data.nobelprize.org/resource/laureate/162"
+      ],
       "expectFile": "after-10.ttl",
       "findings": [],
       "drawing": {
@@ -775,21 +804,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

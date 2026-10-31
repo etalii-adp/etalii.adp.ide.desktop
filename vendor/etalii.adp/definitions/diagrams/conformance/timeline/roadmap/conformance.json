@@ -733,9 +733,10 @@
       }
     },
     {
-      "action": "timeline.connect",
-      "args": {
-        "target": "rel:discovery->launch"
+      "connect": {
+        "type": "timeline.connect",
+        "source": "discovery",
+        "target": "launch"
       },
       "ids": [
         "3t7vniw5x9jk4wdchfa0rk3fo"
@@ -748,9 +749,9 @@
     },
     {
       "action": "timeline.disconnect",
-      "args": {
-        "target": "3t7vniw5x9jk4wdchfa0rk3fo"
-      },
+      "select": [
+        "3t7vniw5x9jk4wdchfa0rk3fo"
+      ],
       "expectFile": "after-10.tml",
       "findings": [],
       "drawing": {
@@ -766,9 +767,12 @@
       }
     },
     {
-      "action": "timeline.add-element",
-      "args": {
-        "target": "new:1790000000,15"
+      "create": {
+        "type": "timeline.toolbox.element",
+        "at": {
+          "x": 1790000000,
+          "y": 15
+        }
       },
       "ids": [
         "arbg82ztuqr5xmtlzdhxp60fi"
@@ -780,9 +784,12 @@
       }
     },
     {
-      "action": "timeline.add-moment",
-      "args": {
-        "target": "new:1795000000,16"
+      "create": {
+        "type": "timeline.toolbox.moment",
+        "at": {
+          "x": 1795000000,
+          "y": 16
+        }
       },
       "ids": [
         "bqhcw98ovn10iazz3hhy3xx6o"
@@ -876,21 +883,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

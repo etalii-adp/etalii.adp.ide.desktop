@@ -285,9 +285,14 @@
       }
     },
     {
-      "action": "shacl.add-node-shape",
+      "create": {
+        "type": "shacl.toolbox.node-shape",
+        "at": {
+          "x": 960,
+          "y": 0
+        }
+      },
       "args": {
-        "target": "new:960,0",
         "value": ":personNavShape"
       },
       "ids": [
@@ -307,9 +312,14 @@
       }
     },
     {
-      "action": "shacl.add-node-shape",
+      "create": {
+        "type": "shacl.toolbox.node-shape",
+        "at": {
+          "x": 960,
+          "y": 0
+        }
+      },
       "args": {
-        "target": "new:960,0",
         "value": "foaf:Person"
       },
       "refused": {
@@ -331,9 +341,11 @@
     {
       "action": "rdf.rename-resource",
       "args": {
-        "target": "res:http://fairdatapoint.org/distNavShape",
         "value": ":distributionNavShape"
       },
+      "select": [
+        "res:http://fairdatapoint.org/distNavShape"
+      ],
       "ids": [
         "res:http://fairdatapoint.org/distributionNavShape",
         "shacl-edge:res:http://fairdatapoint.org/datasetNavShape|node|res:http://fairdatapoint.org/distributionNavShape"
@@ -354,9 +366,11 @@
     {
       "action": "rdf.remove-resource",
       "args": {
-        "target": "res:http://fairdatapoint.org/repoNavShape",
         "confirm": true
       },
+      "select": [
+        "res:http://fairdatapoint.org/repoNavShape"
+      ],
       "refused": {
         "reason": "That element is rooted in a blank node, which has no identity that survives a reparse, so this edit cannot land in the file. Name the node with an IRI to edit it."
       },
@@ -517,21 +531,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

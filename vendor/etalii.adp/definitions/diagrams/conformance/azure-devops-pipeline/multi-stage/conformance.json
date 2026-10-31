@@ -263,9 +263,9 @@
     },
     {
       "action": "azure-pipeline.toggle-enabled",
-      "args": {
-        "target": "Test/Integration"
-      },
+      "select": [
+        "Test/Integration"
+      ],
       "expectFile": "after-3.yml",
       "findings": [],
       "drawing": {
@@ -274,9 +274,9 @@
     },
     {
       "action": "azure-pipeline.toggle-enabled",
-      "args": {
-        "target": "Test/Integration"
-      },
+      "select": [
+        "Test/Integration"
+      ],
       "expectFile": "after-2.yml",
       "findings": [],
       "drawing": {
@@ -285,9 +285,9 @@
     },
     {
       "action": "azure-pipeline.toggle-enabled",
-      "args": {
-        "target": "Build/Compile/step-1"
-      },
+      "select": [
+        "Build/Compile/step-1"
+      ],
       "expectFile": "after-4.yml",
       "findings": [],
       "drawing": {
@@ -308,9 +308,9 @@
     },
     {
       "action": "azure-pipeline.clear-dependencies",
-      "args": {
-        "target": "DeployProduction"
-      },
+      "select": [
+        "DeployProduction"
+      ],
       "ids": [
         "edge:DeployStaging->DeployProduction"
       ],
@@ -337,9 +337,9 @@
     },
     {
       "action": "azure-pipeline.clear-dependencies",
-      "args": {
-        "target": "Notify"
-      },
+      "select": [
+        "Notify"
+      ],
       "expectFile": "after-7.yml",
       "findings": [],
       "drawing": {
@@ -364,9 +364,9 @@
     },
     {
       "action": "azure-pipeline.add-stage",
-      "args": {
-        "target": "Notify"
-      },
+      "select": [
+        "Notify"
+      ],
       "ids": [
         "NewStage",
         "edge:Notify->NewStage"
@@ -379,9 +379,9 @@
     },
     {
       "action": "azure-pipeline.add-job",
-      "args": {
-        "target": "Test"
-      },
+      "select": [
+        "Test"
+      ],
       "expectFile": "after-9.yml",
       "findings": [],
       "drawing": {
@@ -390,9 +390,9 @@
     },
     {
       "action": "azure-pipeline.add-deployment-job",
-      "args": {
-        "target": "DeployStaging"
-      },
+      "select": [
+        "DeployStaging"
+      ],
       "expectFile": "after-10.yml",
       "findings": [],
       "drawing": {
@@ -401,9 +401,9 @@
     },
     {
       "action": "azure-pipeline.add-step",
-      "args": {
-        "target": "Notify/Announce"
-      },
+      "select": [
+        "Notify/Announce"
+      ],
       "expectFile": "after-11.yml",
       "findings": [],
       "drawing": {
@@ -412,9 +412,9 @@
     },
     {
       "action": "azure-pipeline.move-step-up",
-      "args": {
-        "target": "Build/Compile/step-2"
-      },
+      "select": [
+        "Build/Compile/step-2"
+      ],
       "expectFile": "after-12.yml",
       "findings": [],
       "drawing": {
@@ -423,9 +423,9 @@
     },
     {
       "action": "azure-pipeline.move-step-down",
-      "args": {
-        "target": "Build/Compile/step-0"
-      },
+      "select": [
+        "Build/Compile/step-0"
+      ],
       "expectFile": "after-13.yml",
       "findings": [],
       "drawing": {
@@ -442,9 +442,9 @@
     },
     {
       "action": "azure-pipeline.remove",
-      "args": {
-        "target": "Test/Unit"
-      },
+      "select": [
+        "Test/Unit"
+      ],
       "expectFile": "after-14.yml",
       "findings": [],
       "drawing": {
@@ -469,9 +469,9 @@
     },
     {
       "action": "azure-pipeline.remove",
-      "args": {
-        "target": "DeployStaging/Staging/step-0"
-      },
+      "select": [
+        "DeployStaging/Staging/step-0"
+      ],
       "expectFile": "after-15.yml",
       "findings": [],
       "drawing": {
@@ -481,9 +481,11 @@
     {
       "action": "azure-pipeline.rename",
       "args": {
-        "target": "Notify/Announce/step-0",
         "value": "Send: notification"
       },
+      "select": [
+        "Notify/Announce/step-0"
+      ],
       "expectFile": "after-16.yml",
       "findings": [],
       "drawing": {
@@ -519,9 +521,9 @@
     },
     {
       "action": "azure-pipeline.add-job",
-      "args": {
-        "target": "Build/Compile"
-      },
+      "select": [
+        "Build/Compile"
+      ],
       "refused": {
         "reason": "That action is not available for this item."
       },
@@ -564,9 +566,9 @@
     },
     {
       "action": "azure-pipeline.toggle-stage",
-      "args": {
-        "target": "Test"
-      },
+      "select": [
+        "Test"
+      ],
       "ids": [
         "Test/Integration",
         "Test/NewJob"
@@ -579,9 +581,9 @@
     },
     {
       "action": "azure-pipeline.remove",
-      "args": {
-        "target": "NewStage"
-      },
+      "select": [
+        "NewStage"
+      ],
       "expectFile": "after-18.yml",
       "findings": [],
       "drawing": {
@@ -603,6 +605,9 @@
         "value": "azure-devops/pipeline",
         "text": "release"
       },
+      "select": [
+        "Build"
+      ],
       "expectFile": "after-17.yml",
       "findings": [],
       "drawing": {
@@ -621,21 +626,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

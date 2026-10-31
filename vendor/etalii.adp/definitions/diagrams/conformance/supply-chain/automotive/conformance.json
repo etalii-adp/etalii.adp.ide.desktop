@@ -955,9 +955,9 @@
     },
     {
       "action": "supply-chain.decrease",
-      "args": {
-        "target": "kolwezi-cobalt"
-      },
+      "select": [
+        "kolwezi-cobalt"
+      ],
       "expectFile": "after-2.supply",
       "findings": [],
       "drawing": {
@@ -969,6 +969,9 @@
       "args": {
         "value": "Battery pack line"
       },
+      "select": [
+        "pack-assembly"
+      ],
       "expectFile": "after-3.supply",
       "findings": [],
       "drawing": {
@@ -1001,9 +1004,9 @@
     },
     {
       "action": "supply-chain.increase",
-      "args": {
-        "target": "pack-assembly"
-      },
+      "select": [
+        "pack-assembly"
+      ],
       "expectFile": "after-5.supply",
       "findings": [],
       "drawing": {
@@ -1099,9 +1102,12 @@
       }
     },
     {
-      "action": "supply-chain.add.hub",
-      "args": {
-        "target": "new:2600,1400"
+      "create": {
+        "type": "supply-chain.toolbox.hub",
+        "at": {
+          "x": 2600,
+          "y": 1400
+        }
       },
       "ids": [
         "3b178e67wkhkkkbv43kg73std"
@@ -1113,9 +1119,10 @@
       }
     },
     {
-      "action": "supply-chain.connect",
-      "args": {
-        "target": "rel:vehicle-plant->3b178e67wkhkkkbv43kg73std"
+      "connect": {
+        "type": "supply-chain.connect",
+        "source": "vehicle-plant",
+        "target": "3b178e67wkhkkkbv43kg73std"
       },
       "ids": [
         "azjobtvsshswgrzyiz22869mv"
@@ -1127,9 +1134,10 @@
       }
     },
     {
-      "action": "supply-chain.connect",
-      "args": {
-        "target": "rel:vehicle-plant->3b178e67wkhkkkbv43kg73std"
+      "connect": {
+        "type": "supply-chain.connect",
+        "source": "vehicle-plant",
+        "target": "3b178e67wkhkkkbv43kg73std"
       },
       "refused": {
         "reason": "the standalone host generated no further id at step 18, but the desktop host creates a flow"
@@ -1156,9 +1164,11 @@
     {
       "action": "supply-chain.group",
       "args": {
-        "target": "3b178e67wkhkkkbv43kg73std",
         "value": "Overseas"
       },
+      "select": [
+        "3b178e67wkhkkkbv43kg73std"
+      ],
       "ids": [
         "29eav2jgqtd3511rt0yq68qwg"
       ],
@@ -1169,9 +1179,12 @@
       }
     },
     {
-      "action": "supply-chain.add-group",
-      "args": {
-        "target": "new:-600,200"
+      "create": {
+        "type": "supply-chain.toolbox.group",
+        "at": {
+          "x": -600,
+          "y": 200
+        }
       },
       "ids": [
         "4gcbv04e700b4mzxwatjulaxq"
@@ -1211,9 +1224,11 @@
     {
       "action": "supply-chain.remove",
       "args": {
-        "target": "body-shop",
         "confirm": true
       },
+      "select": [
+        "body-shop"
+      ],
       "expectFile": "after-18.supply",
       "findings": [],
       "drawing": {
@@ -1230,9 +1245,9 @@
     },
     {
       "action": "supply-chain.remove",
-      "args": {
-        "target": "australia"
-      },
+      "select": [
+        "australia"
+      ],
       "expectFile": "after-19.supply",
       "findings": [],
       "drawing": {
@@ -1242,7 +1257,10 @@
     {
       "action": "supply-chain.arrange",
       "args": {
-        "target": "new:0,0"
+        "at": {
+          "x": 0,
+          "y": 0
+        }
       },
       "expectFile": "after-20.supply",
       "findings": [],
@@ -1265,9 +1283,9 @@
     },
     {
       "action": "supply-chain.remove",
-      "args": {
-        "target": "fleet-leasing-to-company-fleets"
-      },
+      "select": [
+        "fleet-leasing-to-company-fleets"
+      ],
       "expectFile": "after-22.supply",
       "findings": [],
       "drawing": {
@@ -1276,9 +1294,9 @@
     },
     {
       "action": "supply-chain.decrease",
-      "args": {
-        "target": "3b178e67wkhkkkbv43kg73std"
-      },
+      "select": [
+        "3b178e67wkhkkkbv43kg73std"
+      ],
       "refused": {
         "reason": "That action is not available for this item."
       },
@@ -1300,21 +1318,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

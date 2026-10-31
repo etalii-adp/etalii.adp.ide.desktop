@@ -1560,9 +1560,12 @@
       }
     },
     {
-      "action": "ghg.add.trend",
-      "args": {
-        "target": "new:6960,2520"
+      "create": {
+        "type": "ghg.toolbox.trend",
+        "at": {
+          "x": 6960,
+          "y": 2520
+        }
       },
       "ids": [
         "32lkzg78n14tzy1chkfn6zd2u"
@@ -1598,9 +1601,12 @@
       }
     },
     {
-      "action": "ghg.add.trigger",
-      "args": {
-        "target": "new:6000,2580"
+      "create": {
+        "type": "ghg.toolbox.trigger",
+        "at": {
+          "x": 6000,
+          "y": 2580
+        }
       },
       "ids": [
         "0qd5kemq533c4fmpfrg7btxdm"
@@ -1612,9 +1618,12 @@
       }
     },
     {
-      "action": "ghg.add.note",
-      "args": {
-        "target": "new:7100,2650"
+      "create": {
+        "type": "ghg.toolbox.note",
+        "at": {
+          "x": 7100,
+          "y": 2650
+        }
       },
       "ids": [
         "7ms4dby15gsa7372b9ts16mbe"
@@ -1663,9 +1672,10 @@
       }
     },
     {
-      "action": "ghg.connect.influence",
-      "args": {
-        "target": "rel:longwall-mining->32lkzg78n14tzy1chkfn6zd2u"
+      "connect": {
+        "type": "ghg.connect.influence",
+        "source": "longwall-mining",
+        "target": "32lkzg78n14tzy1chkfn6zd2u"
       },
       "ids": [
         "7lb3a136zpql3tmkh42anpahm"
@@ -1702,9 +1712,9 @@
     },
     {
       "action": "ghg.disconnect",
-      "args": {
-        "target": "coke-smelting--newcomen-engine"
-      },
+      "select": [
+        "coke-smelting--newcomen-engine"
+      ],
       "expectFile": "after-26.ghg",
       "findings": [],
       "drawing": {
@@ -1763,7 +1773,10 @@
     {
       "action": "ghg.arrange",
       "args": {
-        "target": "new:0,0"
+        "at": {
+          "x": 0,
+          "y": 0
+        }
       },
       "expectFile": "after-29.ghg",
       "findings": [],
@@ -1783,21 +1796,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }
