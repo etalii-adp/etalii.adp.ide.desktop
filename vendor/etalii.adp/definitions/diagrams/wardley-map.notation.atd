@@ -25,32 +25,30 @@ coordinates {
       typed: refuse
       message: "Both of a Wardley map's axes run from 0 to 1, so a position outside that is off the map."
     }
-    ranges: [
-      { id: "genesis", label: "Genesis", from: 0, to: 0.175, style: band1 },
-      {
-        id: "custom"
-        label: "Custom Built"
-        from: 0.175
-        to: 0.4
-        style: band2
-        separator: { color: $color.border, width: 1, dash: [6, 6], dashScale: absolute }
-      },
-      {
-        id: "product"
-        label: "Product (+rental)"
-        from: 0.4
-        to: 0.7
-        style: band3
-        separator: { color: $color.border, width: 1, dash: [6, 6], dashScale: absolute }
-      },
-      {
-        id: "commodity"
-        label: "Commodity (+utility)"
-        from: 0.7
-        to: 1
-        style: band4
-        separator: { color: $color.border, width: 1, dash: [6, 6], dashScale: absolute }
-      }
+    ranges: [{ id: "genesis", label: "Genesis", from: 0, to: 0.175, style: band1 }, {
+      id: "custom"
+      label: "Custom Built"
+      from: 0.175
+      to: 0.4
+      style: band2
+      separator: { color: $color.border, width: 1, dash: [6, 6], dashScale: absolute }
+    }
+    , {
+      id: "product"
+      label: "Product (+rental)"
+      from: 0.4
+      to: 0.7
+      style: band3
+      separator: { color: $color.border, width: 1, dash: [6, 6], dashScale: absolute }
+    }
+    , {
+      id: "commodity"
+      label: "Commodity (+utility)"
+      from: 0.7
+      to: 1
+      style: band4
+      separator: { color: $color.border, width: 1, dash: [6, 6], dashScale: absolute }
+    }
     ]
     doc: "The four stages are the reference renderer's offsets 3.5, 8 and 14 on its 20-unit scale."
   }
@@ -101,38 +99,19 @@ notation {
     doc: "The standalone host draws with its theme's surface, raised surface, text, muted text and border colours; these tokens stand in for them."
   }
 
-  style band1 {
-    fill: $color.surface.raised
-    fillOpacity: 0.35
-  }
+  style band1 { fill: $color.surface.raised fillOpacity: 0.35 }
 
-  style band2 {
-    fill: $color.surface.raised
-    fillOpacity: 0.5
-  }
+  style band2 { fill: $color.surface.raised fillOpacity: 0.5 }
 
-  style band3 {
-    fill: $color.surface.raised
-    fillOpacity: 0.65
-  }
+  style band3 { fill: $color.surface.raised fillOpacity: 0.65 }
 
-  style band4 {
-    fill: $color.surface.raised
-    fillOpacity: 0.8
-  }
+  style band4 { fill: $color.surface.raised fillOpacity: 0.8 }
 
-  style mark {
-    fill: $color.surface
-    stroke: { color: $color.text, width: 2 }
-  }
+  style mark { fill: $color.surface stroke: { color: $color.text, width: 2 } }
 
-  style name {
-    font: { size: 15, color: $color.text }
-  }
+  style name { font: { size: 15, color: $color.text } }
 
-  style badges {
-    font: { size: 12, color: $color.text.muted }
-  }
+  style badges { font: { size: 12, color: $color.text.muted } }
 
   style evolveTarget {
     fill: none
@@ -140,28 +119,23 @@ notation {
     visible: (drawnEvolution(self))
   }
 
-  style evolveLine {
-    stroke: { color: $color.text, width: 2, dash: [8, 6] }
-    visible: (drawnEvolution(self))
-  }
+  style evolveLine { stroke: { color: $color.text, width: 2, dash: [8, 6] } visible: (drawnEvolution(self)) }
 
   /// A ring inside a fainter outer ring.
   shape doubleRing {
     label: "Submap"
-    parts: [
-      {
-        id: "outer"
-        shape: circle
-        box: { x: -3, y: -3, w: (w + 6.0), h: (h + 6.0) }
-        style: { fill: none, stroke: { width: 1 }, opacity: 0.6 }
-      },
-      { id: "inner", shape: circle, box: { x: 0, y: 0, w: (w), h: (h) }, outline: true }
-    ]
+    parts: [{
+      id: "outer"
+      shape: ellipse
+      box: { x: -3, y: -3, w: (w + 6.0), h: (h + 6.0) }
+      style: { fill: none, stroke: { width: 1 }, opacity: 0.6 }
+    }
+    , { id: "inner", shape: ellipse, box: { x: 0, y: 0, w: (w), h: (h) }, outline: true }]
     aspectRatio: 1
   }
 
   node Component {
-    shape circle
+    shape ellipse
     style: mark
     size: { fixed: [18, 18] }
     placement: {
@@ -183,7 +157,7 @@ notation {
       wrap: none
       style: name
     }
-    label ((decoratorNames().filter(d, decorated(self, d)) + (self.inertia ? ['inertia'] : [])).join(' · ')) as badges {
+    label ((decoratorNames().filter(d, decorated(self, d)) + (self.inertia ? ['inertia'] : []) + evolutionOf(self).map(e, '→ ' + fixedNumber(e.maturity))).join(' · ')) as badges {
       position: {
         anchor: [0.5, 0.5]
         offset: (has(self.labelOffset) ? [self.labelOffset.dx, self.labelOffset.dy + 14.0] : [15.0, 18.0])
@@ -193,15 +167,15 @@ notation {
       draggable: false
       wrap: none
       style: badges
-      visible: (decoratorNames().exists(d, decorated(self, d)) || self.inertia)
+      visible: (decoratorNames().exists(d, decorated(self, d)) || self.inertia || evolutionOf(self).size() > 0)
     }
     badge inertia {
-      position: right
+      position: top-right
       offset: [4, 0]
       shape: { type: line, params: { orientation: vertical } }
       size: 30
       style: { stroke: { color: $color.text, width: 4, cap: round } }
-      visible: @inertia
+      visible: (self.inertia)
       tooltip: "Inertia"
       doc: "A thick bar beside the mark, from 6 above it to 6 below it."
     }
@@ -230,7 +204,7 @@ notation {
       wrap: none
       style: name
     }
-    label ((decoratorNames().filter(d, decorated(self, d)) + (self.inertia ? ['inertia'] : [])).join(' · ')) as badges {
+    label ((decoratorNames().filter(d, decorated(self, d)) + (self.inertia ? ['inertia'] : []) + evolutionOf(self).map(e, '→ ' + fixedNumber(e.maturity))).join(' · ')) as badges {
       position: {
         anchor: [0.5, 0.5]
         offset: (has(self.labelOffset) ? [self.labelOffset.dx, self.labelOffset.dy + 14.0] : [15.0, 18.0])
@@ -240,15 +214,15 @@ notation {
       draggable: false
       wrap: none
       style: badges
-      visible: (decoratorNames().exists(d, decorated(self, d)) || self.inertia)
+      visible: (decoratorNames().exists(d, decorated(self, d)) || self.inertia || evolutionOf(self).size() > 0)
     }
     badge inertia {
-      position: right
+      position: top-right
       offset: [4, 0]
       shape: { type: line, params: { orientation: vertical } }
       size: 30
       style: { stroke: { color: $color.text, width: 4, cap: round } }
-      visible: @inertia
+      visible: (self.inertia)
       tooltip: "Inertia"
       doc: "A thick bar beside the mark, from 6 above it to 6 below it."
     }
@@ -277,7 +251,7 @@ notation {
       wrap: none
       style: name
     }
-    label ((decoratorNames().filter(d, decorated(self, d)) + (self.inertia ? ['inertia'] : [])).join(' · ')) as badges {
+    label ((decoratorNames().filter(d, decorated(self, d)) + (self.inertia ? ['inertia'] : []) + evolutionOf(self).map(e, '→ ' + fixedNumber(e.maturity))).join(' · ')) as badges {
       position: {
         anchor: [0.5, 0.5]
         offset: (has(self.labelOffset) ? [self.labelOffset.dx, self.labelOffset.dy + 14.0] : [15.0, 18.0])
@@ -287,65 +261,28 @@ notation {
       draggable: false
       wrap: none
       style: badges
-      visible: (decoratorNames().exists(d, decorated(self, d)) || self.inertia)
+      visible: (decoratorNames().exists(d, decorated(self, d)) || self.inertia || evolutionOf(self).size() > 0)
     }
     badge inertia {
-      position: right
+      position: top-right
       offset: [4, 0]
       shape: { type: line, params: { orientation: vertical } }
       size: 30
       style: { stroke: { color: $color.text, width: 4, cap: round } }
-      visible: @inertia
+      visible: (self.inertia)
       tooltip: "Inertia"
       doc: "A thick bar beside the mark, from 6 above it to 6 below it."
     }
   }
 
-  /// The target sits at its element's visibility. Only the first `evolve` of an element that names an element is drawn.
-  node Evolution {
-    shape circle
-    style: evolveTarget
-    size: { fixed: [18, 18] }
-    placement: {
-      system: map
-      x: @maturity
-      y: (has(self.component) ? self.component.visibility : 0.0)
-      anchor: center
-      movable: false
-    }
-    selectable: false
-    deletable: false
-    label @renamedTo as renamedTo {
-      position: { anchor: [0.5, 0.5], offset: [15, 4], align: start }
-      editable: false
-      wrap: none
-      style: name
-      visible: (self.renamedTo != '')
-    }
-  }
-
-  /// A pipeline draws nothing of its own; its components are drawn at the parent's visibility.
-  node Pipeline {
-    shape none
-    size: { fixed: [0, 0] }
-    placement: {
-      system: map
-      x: (has(self.component) ? self.component.maturity : 0.0)
-      y: (has(self.component) ? self.component.visibility : 0.0)
-      anchor: center
-      movable: false
-    }
-    selectable: false
-  }
-
   node PipelineComponent {
-    shape circle
+    shape ellipse
     style: mark
     size: { fixed: [18, 18] }
     placement: {
       system: map
       x: @maturity
-      y: (has(self.parent.component) ? self.parent.component.visibility : 0.0)
+      y: @parentVisibility
       anchor: center
       movable: { x: true, y: false }
       doc: "Dragging changes the maturity only; the visibility is the parent's."
@@ -359,9 +296,9 @@ notation {
   }
 
   node Note {
-    shape text
+    shape none
     style: { font: { size: 14, color: $color.text } }
-    placement: { system: map, x: @maturity, y: @visibility, anchor: left, movable: false }
+    placement: { system: map, x: @atMaturity, y: @atVisibility, anchor: left, movable: false }
     selectable: false
     label @text as text { editable: false }
   }
@@ -374,20 +311,24 @@ notation {
   }
 
   node AnnotationPin {
-    shape circle
+    shape ellipse
     style: { fill: $color.surface, stroke: { color: $color.text, width: 1.5 } }
     size: { fixed: [22, 22] }
     placement: { system: map, x: @maturity, y: @visibility, anchor: center, movable: false }
     tooltip: (self.text)
     selectable: false
-    label (string(self.number)) as number { position: center, editable: false, style: { font: { size: 12, color: $color.text } } }
+    label (string(self.number)) as number {
+      position: center,
+      editable: false,
+      style: { font: { size: 12, color: $color.text } }
+    }
   }
 
   node Accelerator {
-    shape { type: line, params: { orientation: horizontal } }
+    shape rect
     style: { stroke: { color: $color.text, width: 3 } }
     size: { fixed: [32, 3] }
-    placement: { system: map, x: @maturity, y: @visibility, anchor: center, movable: false }
+    placement: { system: map, x: @atMaturity, y: @atVisibility, anchor: center, movable: false }
     selectable: false
     label @name as name {
       position: { anchor: [0.5, 0.5], offset: [22, 4], align: start }
@@ -402,11 +343,7 @@ notation {
 
   node Attitude {
     shape rect
-    style: {
-      fill: $color.text
-      fillOpacity: 0.05
-      stroke: { color: $color.border, width: 1, dash: [4, 4] }
-    }
+    style: { fill: $color.text fillOpacity: 0.05 stroke: { color: $color.border, width: 1, dash: [4, 4] } }
     placement: {
       system: map
       x: @maturity1
@@ -418,7 +355,11 @@ notation {
     }
     layer: background
     selectable: false
-    label (string(self.attitude)) as kind { position: top-left, editable: false, style: { font: { size: 13, color: $color.text.muted } } }
+    label (string(self.attitude)) as kind {
+      position: { anchor: [0, 0], offset: [6, 16], align: start },
+      editable: false,
+      style: { font: { size: 13, color: $color.text.muted } }
+    }
   }
 
   /// A url definition is not drawn.
@@ -440,15 +381,6 @@ notation {
     line { stroke: { color: $color.text, width: 3 }, routing: straight }
     marker source none
     marker target none
-    selectable: false
-  }
-
-  /// The dashed line from an element to where it is heading.
-  edge Evolution.component {
-    line { routing: straight }
-    marker source none
-    marker target none
-    style: evolveLine
     selectable: false
   }
 
@@ -484,20 +416,19 @@ toolbox {
     /// Free text pinned to a place on the map.
     tool note "Note" { kind: operation, operation: addNote, icon: "mdi-note-outline", mode: drop }
     /// A numbered remark, shown on the map and listed in its own block.
-    tool annotation "Annotation" { kind: operation, operation: addAnnotation, icon: "mdi-comment-text-outline", mode: drop }
+    tool annotation "Annotation" {
+      kind: operation,
+      operation: addAnnotation,
+      icon: "mdi-comment-text-outline",
+      mode: drop
+    }
   }
   /// Component, anchor and submap alike. An evolution and a pipeline belong to the first holder of a name, so a later
   /// holder is offered Evolve to… and Start a pipeline…, which first give it a name of its own.
   context for Positioned when !env.readOnly {
     placement: menu
     standardEntries: false
-    tool "Rename…" {
-      kind: operation
-      operation: rename
-      group: "identity"
-      icon: "mdi-pencil-outline"
-      shortcut: F2
-    }
+    tool "Rename…" { kind: operation operation: rename group: "identity" icon: "mdi-pencil-outline" shortcut: F2 }
     tool "Remove" { kind: delete, group: "identity", icon: "mdi-trash-can-outline", shortcut: Delete }
     tool {
       kind: operation
@@ -541,7 +472,6 @@ toolbox {
       icon: "mdi-arrow-right"
       target: pick
       candidates: (diagram.nodesOfType('Positioned').filter(n, n != self).sortBy(n, upper(n.name)))
-      candidateLabel: (item.name)
       pickerTitle: "Link to"
       emptyText: "This map has no other element to link to."
       args: { gesture: ('link') }
@@ -554,7 +484,6 @@ toolbox {
       icon: "mdi-transfer-right"
       target: pick
       candidates: (diagram.nodesOfType('Positioned').filter(n, n != self).sortBy(n, upper(n.name)))
-      candidateLabel: (item.name)
       pickerTitle: "Flow to"
       emptyText: "This map has no other element to link to."
       args: { gesture: ('flow') }
@@ -617,10 +546,7 @@ form positioned for Positioned {
     item kind "Kind" {
       kind: computed
       value: (self.isA('Anchor') ? 'anchor' : self.isA('Submap') ? 'submap' : 'component')
-      readOnlyReasons: [
-        { reason: "readOnlyFile" },
-        "The kind is which statement declares the element, so changing it is a different statement rather than a different value. Remove it and add the kind you want."
-      ]
+      readOnlyReasons: [{ reason: "readOnlyFile" }, "The kind is which statement declares the element, so changing it is a different statement rather than a different value. Remove it and add the kind you want."]
     }
   }
   section {
@@ -647,19 +573,13 @@ form positioned for Positioned {
       }
     }
     field stage "Evolution stage" {
-      readOnlyReasons: [
-        { reason: "readOnlyFile" },
-        "The evolution stage is derived from the component's maturity, so it is not set directly. Change Maturity instead."
-      ]
+      readOnlyReasons: [{ reason: "readOnlyFile" }, "The evolution stage is derived from the component's maturity, so it is not set directly. Change Maturity instead."]
     }
     field labelOffset "Label offset" {
       id: "labelOffset"
       showAbsent: false
       display: (fixedNumber(value.dx) + ', ' + fixedNumber(value.dy))
-      readOnlyReasons: [
-        { reason: "readOnlyFile" },
-        "A label offset is in pixels rather than on the map's scale, which is a property of the format ADP reproduces rather than edits. Change it where the map was written."
-      ]
+      readOnlyReasons: [{ reason: "readOnlyFile" }, "A label offset is in pixels rather than on the map's scale, which is a property of the format ADP reproduces rather than edits. Change it where the map was written."]
     }
   }
   section {
@@ -671,23 +591,15 @@ form positioned for Positioned {
       readOnlyReasons: [{ reason: "readOnlyFile" }]
       parse: {
         accepts: (value.trim() == '' ? evolutionOf(self).size() > 0 : readsAsFraction(value))
-        write: [
-          {
-            delete: (evolutionOf(self)[0])
-            when: (value.trim() == '' && evolutionOf(self).size() > 0)
-          },
-          {
-            set: { maturity: (double(value.trim())) }
-            target: (evolutionOf(self)[0])
-            when: (value.trim() != '' && evolutionOf(self).size() > 0)
-          },
-          {
-            create: {
-              type: ('Evolution')
-              attributes: { component: (self), maturity: (double(value.trim())) }
-            }
-            when: (value.trim() != '' && evolutionOf(self).size() == 0)
-          }
+        write: [{ delete: (evolutionOf(self)[0]) when: (value.trim() == '' && evolutionOf(self).size() > 0) }, {
+          set: { maturity: (double(value.trim())) }
+          target: (evolutionOf(self)[0])
+          when: (value.trim() != '' && evolutionOf(self).size() > 0)
+        }
+        , {
+          create: { type: ('Evolution') attributes: { component: (self), maturity: (double(value.trim())) } }
+          when: (value.trim() != '' && evolutionOf(self).size() == 0)
+        }
         ]
         refusal: (value.trim() == '' ? "'" + self.name + "' is not evolving." : "An evolution target is a number between 0 and 1.")
         doc: "Empty stops the evolution, and is refused on an element that is not evolving; a number from 0 to 1 sets its target, or starts one. The row is shown only while the element evolves."
@@ -716,13 +628,7 @@ form positioned for Positioned {
       readOnlyReasons: [{ reason: "readOnlyFile" }]
       parse: {
         accepts: (unknownDecorator(value) == '')
-        write: [
-          { set: { market: ('market' in decoratorWords(value).map(w, lower(w))) } },
-          { set: { ecosystem: ('ecosystem' in decoratorWords(value).map(w, lower(w))) } },
-          { set: { build: ('build' in decoratorWords(value).map(w, lower(w))) } },
-          { set: { buy: ('buy' in decoratorWords(value).map(w, lower(w))) } },
-          { set: { outsource: ('outsource' in decoratorWords(value).map(w, lower(w))) } }
-        ]
+        write: [{ set: { decorators: (decoratorWords(value).map(w, lower(w))) } }]
         refusal: ("'" + unknownDecorator(value) + "' is not one of this notation's decorators. They are: market, ecosystem, build, buy, outsource.")
         doc: "The five decorators as one comma list, in any order and case; the row writes exactly the set typed."
       }
@@ -735,10 +641,7 @@ form positioned for Positioned {
       showAbsent: false
       visible: (self.url != '')
       display: (diagram.nodesOfType('Url').exists(u, u.name == self.url) ? self.url + ' (' + diagram.nodesOfType('Url').filter(u, u.name == self.url)[0].address + ')' : self.url)
-      readOnlyReasons: [
-        { reason: "readOnlyFile" },
-        "A url points at a definition elsewhere in the document, and nothing edits those here yet. Change it where the map was written."
-      ]
+      readOnlyReasons: [{ reason: "readOnlyFile" }, "A url points at a definition elsewhere in the document, and nothing edits those here yet. Change it where the map was written."]
     }
   }
 }
@@ -748,18 +651,12 @@ form pipelineComponent for PipelineComponent {
   section {
     label: "Identity"
     field name "Name" {
-      readOnlyReasons: [
-        { reason: "readOnlyFile" },
-        "A pipeline component's name is also the only handle the map has on it, and nothing renames one yet. Remove it from the pipeline and add it under the name you want."
-      ]
+      readOnlyReasons: [{ reason: "readOnlyFile" }, "A pipeline component's name is also the only handle the map has on it, and nothing renames one yet. Remove it from the pipeline and add it under the name you want."]
     }
     item kind "Kind" {
       kind: computed
       value: ('pipeline component')
-      readOnlyReasons: [
-        { reason: "readOnlyFile" },
-        "The kind is which statement declares the element, so changing it is a different statement rather than a different value. Remove it and add the kind you want."
-      ]
+      readOnlyReasons: [{ reason: "readOnlyFile" }, "The kind is which statement declares the element, so changing it is a different statement rather than a different value. Remove it and add the kind you want."]
     }
   }
   section {
@@ -767,11 +664,9 @@ form pipelineComponent for PipelineComponent {
     item visibility "Visibility" {
       kind: computed
       value: (has(self.parent.component) ? fixedNumber(self.parent.component.visibility) : '')
-      readOnlyReasons: [
-        { reason: "readOnlyFile" },
-        {
-          message: ("A pipeline child takes its visibility from its parent, so it is not its own. Change it on '" + writtenEnd(self.parent, 'component') + "'.")
-        }
+      readOnlyReasons: [{ reason: "readOnlyFile" }, {
+        message: ("A pipeline child takes its visibility from its parent, so it is not its own. Change it on '" + writtenEnd(self.parent, 'component') + "'.")
+      }
       ]
     }
     field maturity "Maturity" {
@@ -785,10 +680,7 @@ form pipelineComponent for PipelineComponent {
       }
     }
     field stage "Evolution stage" {
-      readOnlyReasons: [
-        { reason: "readOnlyFile" },
-        "The evolution stage is derived from the component's maturity, so it is not set directly. Change Maturity instead."
-      ]
+      readOnlyReasons: [{ reason: "readOnlyFile" }, "The evolution stage is derived from the component's maturity, so it is not set directly. Change Maturity instead."]
     }
   }
 }
@@ -800,10 +692,7 @@ form pipeline for Pipeline {
     item name "Name" {
       kind: computed
       value: (writtenEnd(self, 'component'))
-      readOnlyReasons: [
-        { reason: "readOnlyFile" },
-        "The kind is which statement declares the element, so changing it is a different statement rather than a different value. Remove it and add the kind you want."
-      ]
+      readOnlyReasons: [{ reason: "readOnlyFile" }, "The kind is which statement declares the element, so changing it is a different statement rather than a different value. Remove it and add the kind you want."]
     }
   }
   section {
@@ -812,21 +701,16 @@ form pipeline for Pipeline {
       kind: computed
       visible: (has(self.component))
       value: (has(self.component) ? fixedNumber(self.component.visibility) : '')
-      readOnlyReasons: [
-        { reason: "readOnlyFile" },
-        {
-          message: ("A pipeline child takes its visibility from its parent, so it is not its own. Change it on '" + writtenEnd(self, 'component') + "'.")
-        }
+      readOnlyReasons: [{ reason: "readOnlyFile" }, {
+        message: ("A pipeline child takes its visibility from its parent, so it is not its own. Change it on '" + writtenEnd(self, 'component') + "'.")
+      }
       ]
     }
     item children "Components" {
       kind: computed
       widget: textarea
       value: (self.children.map(c, c.name + ' (' + fixedNumber(c.maturity) + ')').join(', '))
-      readOnlyReasons: [
-        { reason: "readOnlyFile" },
-        "A pipeline's components are listed here for reading; each one is edited by selecting it."
-      ]
+      readOnlyReasons: [{ reason: "readOnlyFile" }, "A pipeline's components are listed here for reading; each one is edited by selecting it."]
     }
   }
 }
@@ -838,26 +722,17 @@ form link for Link {
     item source "From" {
       kind: computed
       value: (writtenEnd(self, 'source'))
-      readOnlyReasons: [
-        { reason: "readOnlyFile" },
-        "The ends of a link are what it is. Remove this link and draw the one you meant."
-      ]
+      readOnlyReasons: [{ reason: "readOnlyFile" }, "The ends of a link are what it is. Remove this link and draw the one you meant."]
     }
     item target "To" {
       kind: computed
       value: (writtenEnd(self, 'target'))
-      readOnlyReasons: [
-        { reason: "readOnlyFile" },
-        "The ends of a link are what it is. Remove this link and draw the one you meant."
-      ]
+      readOnlyReasons: [{ reason: "readOnlyFile" }, "The ends of a link are what it is. Remove this link and draw the one you meant."]
     }
     item linkKind "Kind" {
       kind: computed
       value: (self.isA('Flow') ? 'flow' : 'dependency')
-      readOnlyReasons: [
-        { reason: "readOnlyFile" },
-        "A dependency and a flow are different claims, written with different arrows. Remove this link and draw the other kind."
-      ]
+      readOnlyReasons: [{ reason: "readOnlyFile" }, "A dependency and a flow are different claims, written with different arrows. Remove this link and draw the other kind."]
     }
     /// Shown only when the link has a context, and then editable.
     field context "Context" {
@@ -884,12 +759,11 @@ form evolveDialog "Evolve element" for Positioned {
   submitLabel: "Save"
   field maturity "Target maturity (0 to 1)" {
     initial: (fixedNumber(evolutionOf(self).size() > 0 ? evolutionOf(self)[0].maturity : self.maturity))
-    validate: [
-      {
-        rule: (readsAsFraction(value))
-        message: "An evolution target is a number between 0 and 1."
-        timing: commit
-      }
+    validate: [{
+      rule: (readsAsFraction(value))
+      message: "An evolution target is a number between 0 and 1."
+      timing: commit
+    }
     ]
   }
 }
@@ -898,7 +772,7 @@ form unlinkDialog "Remove link" for Positioned {
   usage: [popover]
   icon: "mdi-link-variant-off"
   submitLabel: "Remove"
-  field link "Link" { widget: select, options: (linksOf(self).map(l, {'value': l, 'label': linkLabel(l)})) }
+  field link "Link" { widget: select, options: (linksOf(self).map(l, { 'value': l, 'label': linkLabel(l) })) }
 }
 
 form pipelineDialog for Positioned {

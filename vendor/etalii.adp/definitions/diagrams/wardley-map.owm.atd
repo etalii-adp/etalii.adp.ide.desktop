@@ -1,20 +1,287 @@
 atd 0.1
 part of wardley/map
 
-// The Online Wardley Maps text format (definitions/diagrams/wardley-map.dis, wardley-map.md): an `.owm` or `.wm` file
-// body, registered by an .adp file whose origin is wardley/map. No FBL family reads it as the tool does (gaps 1 to 6:
-// a pipeline whose brace is on the line below, decorators in any order, an annotation's positions, the identity file
-// beside the body), so it is read and written by the capability reader.onlineWardleyMaps, named for the format, which
-// delivers the model's own types. A new map is `title {base}` and a line ending.
+// The Online Wardley Maps text format (definitions/diagrams/wardley-map.dis, wardley-map.md), in a part of its own
+// (ATD §5.2, §9): an `.owm` or `.wm` file body, registered by an .adp file whose origin is wardley/map.
 
-binding owm family capability reader.onlineWardleyMaps {
-  label "Online Wardley Maps"
-  claims {
-    extensions: [".owm", ".wm"]
-    origins: ["wardley/map"]
+/// The .owm text, read by the grammar wardley-map.lark beside this part, a copy of `specifications/fbl/wardley-map.lark`:
+/// FBL 0.12's grammar family (section 4.9). A pipeline's { may stand on the line below it, a component's segments stand
+/// in any order, an annotation's positions are structured items, and ids are kept beside the body by kind and natural
+/// key, with an ordinal for each later holder of one key, read from the legacy identities file the tool writes. This
+/// part is `specifications/fbl/wardley-map.fbl` in ATD (ATD §11, Appendix C.3); beyond it, a pipeline reads its `form`.
+/// The statements the tool keeps without modelling them, and a line no statement reads, are text no rule maps, kept byte
+/// for byte. A new map is `title {base}` and a line ending.
+binding owm family grammar {
+  label "Online Wardley Maps text"
+  claims { extensions: [".owm", ".wm"], origins: ["wardley/map"] }
+  body { kind: file, recover: { unit: "unit", sync: ["_NL"], nested: { open: "OPEN", close: "CLOSE" } } }
+  grammar from "wardley-map.lark"
+  text { newline: lf, indent: 2, finalNewline: true }
+  registration { createOnFirstPlacement: false, legacyIdentities: "{base}.identities.json" }
+  element Title as title at "/title" {
+    attribute title from node "text" { empty: keep }
+    doc: "The map's title; of two, each is read, and the tool shows the second."
   }
-  template {
-    text: """title {base}
-"""
+  element Style as style at "/style" {
+    attribute style from node "text"
+    readOnly: true
   }
+  element Size as size at "/size" {
+    attribute width from node "width" { number: "shortest" }
+    attribute height from node "height" { number: "shortest" }
+    readOnly: true
+  }
+  element Component as component at "/component" {
+    id { sidecar: { key: "entry.children[0].text", kind: component, ordinal: "\u001f{n}\t" } }
+    attribute name from node "name" { empty: refuse }
+    attribute visibility from node "coords/visibility" { number: { decimals: 4 } }
+    attribute maturity from node "coords/maturity" { number: { decimals: 4 } }
+    attribute coordinates from node "coords" { readOnly: true }
+    attribute labelOffset from node "label" {
+      match: "[Ll][Aa][Bb][Ee][Ll][ \\t]*\\[[ \\t]*(?<value>[^\\]]*[^ \\t\\]])[ \\t]*\\]"
+      empty: remove
+      create: { emit: " label [{value}]", after: ["coordinates"] }
+    }
+    attribute decorators from node "decorator" {
+      match: "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
+      empty: remove
+      create: { emit: " ({value})", after: ["coordinates"] }
+    }
+    attribute inertia from node "inertia" {
+      map: { inertia: "true", "": "false" }
+      default: "false"
+      empty: remove
+      create: { emit: " {value}", after: ["coordinates"] }
+    }
+    attribute url from node "url_ref" {
+      match: "[Uu][Rr][Ll][ \\t]*\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
+      readOnly: true
+    }
+    insert { place: end-of-document, emit: "component {name} \\[{visibility}, {maturity}\\]" }
+    remove { cascade: ["dependency", "flow", "evolve"] }
+    doc: "A component; its segments after the coordinates stand in any order (section 4.9)."
+  }
+  element Anchor as anchor at "/anchor" {
+    id { sidecar: { key: "entry.children[0].text", kind: component, ordinal: "\u001f{n}\t" } }
+    attribute name from node "name" { empty: refuse }
+    attribute visibility from node "coords/visibility" { number: { decimals: 4 } }
+    attribute maturity from node "coords/maturity" { number: { decimals: 4 } }
+    attribute coordinates from node "coords" { readOnly: true }
+    attribute labelOffset from node "label" {
+      match: "[Ll][Aa][Bb][Ee][Ll][ \\t]*\\[[ \\t]*(?<value>[^\\]]*[^ \\t\\]])[ \\t]*\\]"
+      empty: remove
+      create: { emit: " label [{value}]", after: ["coordinates"] }
+    }
+    attribute decorators from node "decorator" {
+      match: "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
+      empty: remove
+      create: { emit: " ({value})", after: ["coordinates"] }
+    }
+    attribute inertia from node "inertia" {
+      map: { inertia: "true", "": "false" }
+      default: "false"
+      empty: remove
+      create: { emit: " {value}", after: ["coordinates"] }
+    }
+    attribute url from node "url_ref" {
+      match: "[Uu][Rr][Ll][ \\t]*\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
+      readOnly: true
+    }
+    insert { place: end-of-document, emit: "anchor {name} \\[{visibility}, {maturity}\\]" }
+    remove { cascade: ["dependency", "flow", "evolve"] }
+    doc: "An anchor, keyed in the components' key space, as the tool keys it."
+  }
+  element Submap as submap at "/submap" {
+    id { sidecar: { key: "entry.children[0].text", kind: component, ordinal: "\u001f{n}\t" } }
+    attribute name from node "name" { empty: refuse }
+    attribute visibility from node "coords/visibility" { number: { decimals: 4 } }
+    attribute maturity from node "coords/maturity" { number: { decimals: 4 } }
+    attribute coordinates from node "coords" { readOnly: true }
+    attribute labelOffset from node "label" {
+      match: "[Ll][Aa][Bb][Ee][Ll][ \\t]*\\[[ \\t]*(?<value>[^\\]]*[^ \\t\\]])[ \\t]*\\]"
+      empty: remove
+      create: { emit: " label [{value}]", after: ["coordinates"] }
+    }
+    attribute decorators from node "decorator" {
+      match: "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
+      empty: remove
+      create: { emit: " ({value})", after: ["coordinates"] }
+    }
+    attribute inertia from node "inertia" {
+      map: { inertia: "true", "": "false" }
+      default: "false"
+      empty: remove
+      create: { emit: " {value}", after: ["coordinates"] }
+    }
+    attribute url from node "url_ref" {
+      match: "[Uu][Rr][Ll][ \\t]*\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
+      readOnly: true
+    }
+    insert { place: end-of-document, emit: "submap {name} \\[{visibility}, {maturity}\\]" }
+    remove { cascade: ["dependency", "flow", "evolve"] }
+    doc: "A submap, keyed in the components' key space, as the tool keys it."
+  }
+  element Url as url at "/url" {
+    attribute name from node "url_name"
+    attribute address from node "address"
+    readOnly: true
+  }
+  element Evolve as evolve at "/evolve" {
+    attribute component from node "evolved" {
+      references component, anchor, submap by name
+      empty: refuse
+    }
+    attribute becomes from node "becomes" {
+      match: "->[ \\t]*(?<value>.*)"
+      empty: remove
+      create: { emit: "->{value}", after: ["component"] }
+    }
+    attribute maturity from node "maturity" { number: { decimals: 4 } }
+    insert { place: end-of-document, emit: "evolve {component}[->{becomes}] {maturity}" }
+    remove {}
+    doc: "An evolution has no identity kind in the tool, so it has no stored id and takes the one DISL derives."
+  }
+  element Pipeline as pipeline at "/pipeline" {
+    id { sidecar: { key: "entry.children[0].text", kind: pipeline, ordinal: "\u001f{n}\t" } }
+    attribute component from node "name" {
+      references component, anchor, submap by name
+      empty: refuse
+    }
+    attribute form from value('nested') { readOnly: true }
+    insert { place: end-of-document, emit: "pipeline {component}\n{\n}" }
+    remove {}
+    doc: "The nested form, whose { may stand on the line below it; a first component added to a pipeline without a block writes its block with the brace on its own line, as the tool does."
+    opens: { open: "\n{", close: "}" }
+  }
+  element LegacyPipeline as legacyPipeline at "/legacy_pipeline" {
+    id { sidecar: { key: "entry.children[0].text", kind: pipeline, ordinal: "\u001f{n}\t" } }
+    attribute component from node "name" {
+      references component, anchor, submap by name
+    }
+    attribute form from value('legacy') { readOnly: true }
+    doc: "The older form, two numbers on the statement's line; read, never written."
+    readOnly: true
+  }
+  element PipelineComponent as pipelineComponent at "/pipeline/pipeline_component" {
+    id {
+      sidecar: {
+        key: "parent.children[0].text + '\\u001f' + entry.children[0].text",
+        kind: pipeline-child,
+        ordinal: "\u001f{n}\t"
+      }
+    }
+    parent pipeline slot components
+    attribute name from node "name" { empty: refuse }
+    attribute maturity from node "maturity" { number: { decimals: 4 } }
+    insert { place: last-child, emit: "component {name} \\[{maturity}\\]" }
+    remove {}
+  }
+  element Note as note at "/note" {
+    id { sidecar: { key: "entry.children[0].text", kind: note, ordinal: "\u001f{n}\t" } }
+    attribute text from node "note_text" { empty: refuse }
+    attribute visibility from node "coords/visibility" { number: { decimals: 4 } }
+    attribute maturity from node "coords/maturity" { number: { decimals: 4 } }
+    insert { place: end-of-document, emit: "note {text} \\[{visibility}, {maturity}\\]" }
+    remove {}
+  }
+  element Annotation as annotation at "/annotation" {
+    id { sidecar: { key: "entry.children[0].text", kind: annotation, ordinal: "\u001f{n}\t" } }
+    attribute number from node "number" { readOnly: true }
+    attribute positions from node "positions/position" {
+      items: { visibility: { node: "visibility" }, maturity: { node: "maturity" } }
+      separator: ","
+      create: { emit: "[{visibility},{maturity}]" }
+    }
+    attribute text from node "text" { empty: remove create: { emit: " {value}", after: ["positions"] } }
+    insert { place: end-of-document, emit: "annotation {number} \\[{positions}\\][ {text}]" }
+    remove {}
+    doc: "A numbered annotation pinned at one position or more; the positions are one list of structured values (section 5.2)."
+  }
+  element AnnotationsPosition as annotations at "/annotations" {
+    attribute visibility from node "coords/visibility" { number: { decimals: 4 } }
+    attribute maturity from node "coords/maturity" { number: { decimals: 4 } }
+    readOnly: true
+  }
+  element Accelerator as accelerator at "/accelerator" {
+    id { sidecar: { key: "entry.children[0].text + '\\u001fac'", kind: accelerator, ordinal: "\u001f{n}\t" } }
+    attribute name from node "name" { empty: refuse }
+    attribute visibility from node "coords/visibility" { number: { decimals: 4 } }
+    attribute maturity from node "coords/maturity" { number: { decimals: 4 } }
+    attribute deaccelerator from value(false)
+    insert { place: end-of-document, emit: "accelerator {name} \\[{visibility}, {maturity}\\]" }
+    remove {}
+  }
+  element Accelerator as deaccelerator at "/deaccelerator" {
+    id { sidecar: { key: "entry.children[0].text + '\\u001fde'", kind: accelerator, ordinal: "\u001f{n}\t" } }
+    attribute name from node "name" { empty: refuse }
+    attribute visibility from node "coords/visibility" { number: { decimals: 4 } }
+    attribute maturity from node "coords/maturity" { number: { decimals: 4 } }
+    attribute deaccelerator from value(true)
+    insert { place: end-of-document, emit: "deaccelerator {name} \\[{visibility}, {maturity}\\]" }
+    remove {}
+  }
+  element Attitude as attitude at "/attitude" {
+    id {
+      sidecar: {
+        key: "(entry.children[0].text.lowerAscii() == 'pioneers' ? 'Pioneers' : entry.children[0].text.lowerAscii() == 'settlers' ? 'Settlers' : 'TownPlanners') + '\\u001f' + string(double(entry.children[1].text)) + '\\u001f' + string(double(entry.children[2].text))",
+        kind: attitude,
+        ordinal: "\u001f{n}\t"
+      }
+    }
+    attribute attitude from node "ATTITUDE" { readOnly: true }
+    attribute visibility1 from node "visibility" { number: { decimals: 4 } }
+    attribute maturity1 from node "maturity" { number: { decimals: 4 } }
+    attribute visibility2 from node "visibility2" { number: { decimals: 4 } }
+    attribute maturity2 from node "maturity2" { number: { decimals: 4 } }
+    remove {}
+  }
+  element Dependency as dependency at "/dependency" {
+    id {
+      sidecar: {
+        key: "entry.children[0].text + '\\u001f' + entry.children[1].text + '\\u001fDependency'",
+        kind: link,
+        ordinal: "\u001f{n}\t"
+      }
+    }
+    attribute from from node "source" {
+      references component, anchor, submap by name
+      empty: refuse
+    }
+    attribute to from node "target" {
+      references component, anchor, submap by name
+      empty: refuse
+    }
+    attribute context from node "context" {
+      match: ";[ \\t]*(?<value>.*)"
+      empty: remove
+      create: { emit: "; {value}", after: ["to"] }
+    }
+    insert { place: end-of-document, emit: "{from}->{to}[; {context}]" }
+    remove {}
+  }
+  element Flow as flow at "/flow" {
+    id {
+      sidecar: {
+        key: "entry.children[0].text + '\\u001f' + entry.children[1].text + '\\u001fFlow'",
+        kind: link,
+        ordinal: "\u001f{n}\t"
+      }
+    }
+    attribute from from node "source" {
+      references component, anchor, submap by name
+      empty: refuse
+    }
+    attribute to from node "target" {
+      references component, anchor, submap by name
+      empty: refuse
+    }
+    attribute context from node "context" {
+      match: ";[ \\t]*(?<value>.*)"
+      empty: remove
+      create: { emit: "; {value}", after: ["to"] }
+    }
+    insert { place: end-of-document, emit: "{from}+>{to}[; {context}]" }
+    remove {}
+  }
+  template { text: "title {base}\n" }
 }

@@ -44,7 +44,7 @@
     {
       "id": "language-gaps/1",
       "text": "1 to 4. FBL 4.9: what the `.owm` grammar needs, answered",
-      "statedBy": "capability reader.onlineWardleyMaps"
+      "statedBy": "binding owm"
     },
     {
       "id": "language-gaps/2",
@@ -55,7 +55,7 @@
     {
       "id": "language-gaps/3",
       "text": "7 and 8. FBL 8.6 and 8.7: the identity file, answered",
-      "statedBy": "capability reader.onlineWardleyMaps"
+      "statedBy": "binding owm"
     },
     {
       "id": "language-gaps/4",
@@ -116,7 +116,7 @@
       "path": "modules/diagrams/wardley-map/src/parser.rs",
       "lines": "80-530",
       "behaviour": "Reads every statement of the format leniently, a pipeline's block with its brace below, decorators, inertia, label and url anywhere after the coordinates, and reports each line it passes over.",
-      "statedBy": "capability reader.onlineWardleyMaps"
+      "statedBy": "binding owm"
     },
     {
       "host": "desktop",
@@ -125,7 +125,7 @@
       "path": "modules/diagrams/wardley-map/src/writer.rs",
       "lines": "52-259",
       "behaviour": "Rewrites only the lines an edit changes and appends a new statement at the end.",
-      "statedBy": "capability reader.onlineWardleyMaps"
+      "statedBy": "binding owm"
     },
     {
       "host": "desktop",
@@ -134,7 +134,7 @@
       "path": "modules/diagrams/wardley-map/src/identities.rs",
       "lines": "119-350",
       "behaviour": "Keeps every element's id beside the body, keyed by kind and natural key with a later holder's ordinal, and reconciles it on reading.",
-      "statedBy": "capability reader.onlineWardleyMaps"
+      "statedBy": "binding owm"
     },
     {
       "host": "desktop",

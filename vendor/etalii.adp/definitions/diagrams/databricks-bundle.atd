@@ -30,7 +30,6 @@ diagram databricks/bundle version "0.2.0" {
 
   import "databricks-bundle.notation.atd"
   import "databricks-bundle.bundle.atd"
-  requires capability reader.databricksBundle@^1
   requires capability layout.bands@^1
 
   model {
@@ -79,6 +78,17 @@ diagram databricks/bundle version "0.2.0" {
       labelAttribute: "name"
     }
 
+    /// The bundle of a file with no `bundle:` section, or none that can be read: one is drawn whatever the file holds
+    /// (databricks-bundle.md, gap 8), under the id of the bundle it stands for.
+    element AbsentBundle {
+      label "Bundle"
+      derived: {
+        from: (diagram.nodesOfType('Bundle').size() == 0 ? ['bundle'] : [])
+        id: ('bundle')
+        reason: "This file has no bundle section to change."
+      }
+    }
+
     /// One entry under `resources.jobs` or `resources.pipelines`.
     element Resource {
       label "Resource"
@@ -119,9 +129,9 @@ diagram databricks/bundle version "0.2.0" {
     relation Override from Target to Resource {
       label "Overrides"
       /// The resource kind the entry is written under, as written.
-      attribute resourceKind: string required readonly
+      attribute writtenKind: string required readonly
       /// The resource key the entry names, as written.
-      attribute resourceKey: string required readonly
+      attribute writtenKey: string required readonly
       directed: true
       allowSelfLoops: false
       allowParallel: false
@@ -148,10 +158,22 @@ diagram databricks/bundle version "0.2.0" {
   /// Every finding is located at a line of the bundle's YAML: a rule on an element reports the element's `location()`,
   /// which the reader records.
   constraints {
+    builtin std.references {
+      enabled: false
+      doc "An override of a resource this bundle does not declare is the rule `overrideOfUndeclared`'s to report."
+    }
     builtin std.unparseable {
       code: "databricks.unparseable"
       severity: "error"
       message: ('This is not configuration that can be read: ' + detail.reason)
+    }
+
+    /// A relation is drawn between its ends, so moving one is refused in the tool's words.
+    constraint relationStays for Override {
+      rule false
+      message "That element is not something this diagram can move."
+      kind: placement
+      enforcement: prevent
     }
 
     /// Reported at the first target's line, and only when the bundle has targets.
@@ -171,6 +193,8 @@ diagram databricks/bundle version "0.2.0" {
       severity error
       message ('\'' + self.name + '\' is a second default target; only one target may be the default.')
       code: "databricks.multiple-default-targets"
+      location: (self.location().orValue(null))
+      target: ([])
     }
 
     /// Reported at the override entry's line. Quiet while the bundle has `include:` globs, because an included file may
@@ -179,8 +203,10 @@ diagram databricks/bundle version "0.2.0" {
       when diagram.includes.size() == 0
       rule self.target != null
       severity warning
-      message ('Target \'' + self.source.name + '\' overrides ' + self.resourceKind + ' \'' + self.resourceKey + '\', which this bundle does not declare. Declare the resource or drop the override.')
+      message ('Target \'' + self.source.name + '\' overrides ' + self.writtenKind + ' \'' + self.writtenKey + '\', which this bundle does not declare. Declare the resource or drop the override.')
       code: "databricks.override-of-undeclared"
+      location: (self.location().orValue(null))
+      target: ([])
     }
   }
 
@@ -202,13 +228,13 @@ diagram databricks/bundle version "0.2.0" {
     param key: string required { label: "Key" }
     icon: "mdi-transit-connection-horizontal"
     paramsForm: "addResource"
-    if p.key == '' {
+    if p.key.trim() == '' {
       fail 'A resource needs a key.'
     }
-    if diagram.nodesOfType('Resource').exists(r, r.resourceKind == 'jobs' && r.key == p.key) {
-      fail 'A jobs resource named \'' + p.key + '\' is already there.'
+    if diagram.nodesOfType('Resource').exists(r, r.resourceKind == 'jobs' && r.key == p.key.trim()) {
+      fail 'A jobs resource named \'' + p.key.trim() + '\' is already there.'
     }
-    create Resource { resourceKind: 'jobs', key: p.key }
+    create Resource { resourceKind: 'jobs', key: p.key.trim() }
   }
 
   /// Writes a pipeline resource skeleton, complete with a starter library.
@@ -216,13 +242,13 @@ diagram databricks/bundle version "0.2.0" {
     param key: string required { label: "Key" }
     icon: "mdi-pipe"
     paramsForm: "addResource"
-    if p.key == '' {
+    if p.key.trim() == '' {
       fail 'A resource needs a key.'
     }
-    if diagram.nodesOfType('Resource').exists(r, r.resourceKind == 'pipelines' && r.key == p.key) {
-      fail 'A pipelines resource named \'' + p.key + '\' is already there.'
+    if diagram.nodesOfType('Resource').exists(r, r.resourceKind == 'pipelines' && r.key == p.key.trim()) {
+      fail 'A pipelines resource named \'' + p.key.trim() + '\' is already there.'
     }
-    create Resource { resourceKind: 'pipelines', key: p.key }
+    create Resource { resourceKind: 'pipelines', key: p.key.trim() }
   }
 
   /// Runs the job reading's command of the same name, which adds a notebook task to a job of the file; the tool offers
@@ -290,19 +316,27 @@ diagram databricks/bundle version "0.2.0" {
         Unknown: { strategy: derived, expression: ('unknown:' + self.path) }
         Override: {
           strategy: derived
-          expression: ('override:' + self.source.name + '/' + self.resourceKind + '/' + self.resourceKey)
+          expression: ('override:' + self.source.name + '/' + self.writtenKind + '/' + self.writtenKey)
         }
       }
       doc: "`bundle`, `resource:<kind>/<key>`, `unknown:<path>`, `target:<name>` and `override:<target>/<kind>/<key>`."
     }
     view: { store: [bounds], styleOverrides: none }
+    typeMap: {
+      BundleFile: { as: diagram }
+      Override: {
+        as: Override
+        attributes: { from: "source", to: "target" }
+        doc: "Read as an entry with two reference attributes, so that an override of a resource the bundle does not declare is kept with that end unset (DISL 4.9)."
+      }
+    }
   }
 
   plugin net.etalii.adp.databricks.files {
     version: "^0.1.0"
     provides: [persistenceFormat, action]
-    required: true
-    doc "Reads and writes the bundle inside Databricks' own databricks.yml by line splices, so an untouched file saves byte for byte, and keeps positions in the .adp registration's layout: block. As an action it runs the job reading's commands that the tool offers under this reading too. This description states both as the binding `bundle` (databricks-bundle.bundle.atd), whose family is the capability `reader.databricksBundle`, which plans those commands' edits as the job reading does; the plugin stays declared for the hosts that run the JSON files."
+    required: false
+    doc "Reads and writes the bundle inside Databricks' own databricks.yml by line splices, so an untouched file saves byte for byte, and keeps positions in the .adp registration's layout: block. As an action it runs the job reading's commands that the tool offers under this reading too. This description states the reading and the writing as the binding `bundle` (databricks-bundle.bundle.atd), a declared one, and those commands stay the plugin's (spec 067: an operation of one reading writing another's types has no statement of its own yet); the plugin stays declared for the hosts that run the JSON files."
   }
 
   plugin net.etalii.adp.databricks.layout {
