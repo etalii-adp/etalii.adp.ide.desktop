@@ -36,7 +36,7 @@ mod hierarchical_requirement;
 /// of: `sankey-written-text` and `supply-chain-written-text`, which etalii.adp added with the Sankey and supply chain
 /// bindings, and the bullets family's (FBL 0.7 section 4.8, etalii.adp spec 036), with `behavior-tree-read/first-add`,
 /// which etalii.adp holds and the standalone host does not vendor.
-const STANDALONE_FIXTURES: [&str; 23] = [
+const STANDALONE_FIXTURES: [&str; 33] = [
     "behavior-tree-read/first-add",
     "insert-constant-json-read",
     "insert-constant-yaml-read",
@@ -49,6 +49,16 @@ const STANDALONE_FIXTURES: [&str; 23] = [
     "agent-activity-new",
     "agent-activity-read",
     "causal-loop-rename",
+    "causal-loop-flow-default",
+    "causal-loop-flow-legacy/findings",
+    "causal-loop-flow-legacy/on-call",
+    "causal-loop-flow-legacy/reference",
+    "causal-loop-flow-older",
+    "causal-loop-flow-range",
+    "causal-loop-flow-read",
+    "causal-loop-flow-set",
+    "causal-loop-flow-set/lf",
+    "causal-loop-flow-unknown",
     "databricks-job-dependencies",
     "databricks-pipeline-json",
     "dependency-graph-empty-flow-sequence",
@@ -709,6 +719,18 @@ fn read_change(edit: &Json, model: Option<&FblModel>) -> Result<ModelChange, Str
         });
     }
     if let Some(add) = edit.get("add") {
+        // A position after an entry of another type is no index among siblings (etalii.adp spec 074).
+        if let Some(after) = add["position"]["after"].as_str()
+            && model
+                .and_then(|m| m.find(after))
+                .is_some_and(|e| add["type"].as_str() != Some(e.type_name.as_str()))
+        {
+            return Ok(ModelChange::AddAfter {
+                type_name: add["type"].as_str().unwrap_or_default().to_owned(),
+                attributes: attributes(&add["attributes"]),
+                after: after.to_owned(),
+            });
+        }
         return Ok(ModelChange::Add {
             type_name: add["type"].as_str().unwrap_or_default().to_owned(),
             id: add.get("id").and_then(Json::as_str).map(str::to_owned),

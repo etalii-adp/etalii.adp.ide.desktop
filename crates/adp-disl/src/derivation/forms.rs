@@ -58,13 +58,53 @@ pub fn derive(
     };
     let walk = Walk {
         specification,
-        element,
+        subject: Subject::Element(element),
         env,
         cel: env.to_cel(),
         ids,
     };
     walk.items(form, &json::pointer(&pointer, "items"), "", &mut rows);
     rows
+}
+
+/// The rows of the form `for` the diagram itself whose `usage` includes `usage` (DISL section 7.5), read as an element's
+/// are, with `self` the diagram and its attributes those of `metamodel.diagram`; none when no form is for the diagram.
+pub fn derive_diagram(
+    specification: &DislSpecification,
+    diagram: &DislDiagram,
+    env: &DislEnv,
+    ids: &WireIdMap,
+    usage: &str,
+) -> Vec<DerivedRow> {
+    let mut rows = Vec::new();
+    let Some((form, pointer)) = diagram_form_of(specification, usage) else {
+        return rows;
+    };
+    let walk = Walk {
+        specification,
+        subject: Subject::Diagram(diagram),
+        env,
+        cel: env.to_cel(),
+        ids,
+    };
+    walk.items(form, &json::pointer(&pointer, "items"), "", &mut rows);
+    rows
+}
+
+/// The form `for` the diagram itself whose `usage` includes `usage`, the default being `inspector`.
+pub(crate) fn diagram_form_of<'a>(specification: &'a DislSpecification, usage: &str) -> Option<(&'a Json, String)> {
+    for (name, form) in json::members(specification.root(), "forms") {
+        let usages = json::strings_of(form, "usage");
+        let skip = if usages.is_empty() {
+            usage != "inspector"
+        } else {
+            !usages.iter().any(|u| u == usage)
+        };
+        if !skip && json::strings_of(form, "for").iter().any(|t| t == "diagram") {
+            return Some((form, json::pointer("/forms", name)));
+        }
+    }
+    None
 }
 
 /// The form `for` the element's type whose `usage` includes `usage`, the default being `inspector`.
@@ -95,9 +135,62 @@ pub(crate) fn kind_of(item: &Json) -> &str {
     json::string_of(item, "kind").unwrap_or(if json::has(item, "attribute") { "field" } else { "" })
 }
 
+/// What a form is read for: an element or the diagram, as `self`.
+#[derive(Clone, Copy)]
+enum Subject<'a> {
+    Element(&'a DislElement),
+    Diagram(&'a DislDiagram),
+}
+
+impl Subject<'_> {
+    fn to_value(self) -> Value {
+        match self {
+            Subject::Element(element) => element.to_value(),
+            Subject::Diagram(diagram) => diagram.to_value(),
+        }
+    }
+
+    fn diagram_value(self) -> Value {
+        match self {
+            Subject::Element(element) => element.diagram().to_value(),
+            Subject::Diagram(diagram) => diagram.to_value(),
+        }
+    }
+
+    /// The attribute `name` the subject declares.
+    fn declared(self, specification: &DislSpecification, name: &str) -> Option<DislAttribute> {
+        match self {
+            Subject::Element(element) => element.element_type().attributes.get(name).cloned(),
+            Subject::Diagram(_) => specification.metamodel().diagram_attributes.get(name).cloned(),
+        }
+    }
+
+    fn value_of(self, name: &str) -> Value {
+        match self {
+            Subject::Element(element) => element.value_of(name),
+            Subject::Diagram(diagram) => diagram.value_of(name),
+        }
+    }
+
+    fn stores(self, name: &str) -> bool {
+        match self {
+            Subject::Element(element) => element.attributes().contains_key(name),
+            Subject::Diagram(diagram) => diagram.attributes().contains_key(name),
+        }
+    }
+
+    /// The name of the subject's type, which a type item shows.
+    fn type_name(self) -> String {
+        match self {
+            Subject::Element(element) => element.element_type().name.clone(),
+            Subject::Diagram(_) => "diagram".to_owned(),
+        }
+    }
+}
+
 struct Walk<'a> {
     specification: &'a DislSpecification,
-    element: &'a DislElement,
+    subject: Subject<'a>,
     env: &'a DislEnv,
     cel: Map,
     ids: &'a WireIdMap,
@@ -115,9 +208,9 @@ impl Walk<'_> {
 
     fn variables(&self, value: Value) -> Vars {
         evaluation::vars([
-            ("self", self.element.to_value()),
+            ("self", self.subject.to_value()),
             ("value", value),
-            ("diagram", self.element.diagram().to_value()),
+            ("diagram", self.subject.diagram_value()),
             ("env", Value::map(self.cel.clone())),
         ])
     }
@@ -127,7 +220,7 @@ impl Walk<'_> {
         let kind = kind_of(item);
         let attribute = json::string_of(item, "attribute");
         let value = match attribute {
-            Some(a) if self.element.element_type().attributes.contains_key(a) => self.element.value_of(a),
+            Some(a) if self.subject.declared(specification, a).is_some() => self.subject.value_of(a),
             _ => Value::Null,
         };
         let variables = self.variables(value);
@@ -196,9 +289,8 @@ impl Walk<'_> {
         variables: &Vars,
     ) -> DerivedRow {
         let specification = self.specification;
-        let element_type = self.element.element_type();
-        let declared = attribute.and_then(|a| element_type.attributes.get(a));
-        let default_label = match declared {
+        let declared = attribute.and_then(|a| self.subject.declared(specification, a));
+        let default_label = match &declared {
             None => attribute.unwrap_or("").to_owned(),
             Some(d) => json::string_of(&d.json, "label").unwrap_or(&d.name).to_owned(),
         };
@@ -223,7 +315,7 @@ impl Walk<'_> {
                 variables,
             ))
         } else if kind == "type" {
-            self.option_label(item, pointer, variables, Value::String(element_type.name.clone()))
+            self.option_label(item, pointer, variables, Value::String(self.subject.type_name()))
         } else if kind == "computed" {
             match json::get(item, "value") {
                 Some(Json::String(s)) => s.clone(),
@@ -237,7 +329,7 @@ impl Walk<'_> {
                 None => String::new(),
             }
         } else {
-            declared.map(|d| self.attribute_text(d)).unwrap_or_default()
+            declared.as_ref().map(|d| self.attribute_text(d)).unwrap_or_default()
         };
 
         let mut reason = json::get(item, "readOnlyReasons").and_then(|reasons| {
@@ -381,13 +473,10 @@ impl Walk<'_> {
 
     /// An attribute's text: derived, else stored, else its default when it declares one, else empty.
     fn attribute_text(&self, attribute: &DislAttribute) -> String {
-        if !self.element.attributes().contains_key(&attribute.name)
-            && attribute.default.is_none()
-            && !attribute.is_derived()
-        {
+        if !self.subject.stores(&attribute.name) && attribute.default.is_none() && !attribute.is_derived() {
             return String::new();
         }
-        format(&self.element.value_of(&attribute.name), &attribute.type_name)
+        format(&self.subject.value_of(&attribute.name), &attribute.type_name)
     }
 }
 

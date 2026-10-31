@@ -28,18 +28,24 @@ pub struct Grid {
     selection: Vec<String>,
 }
 
-/// Sets property `property_id` of everything selected on `tab` to `value`, as one command.
+/// Sets property `property_id` of everything selected on `tab`, or of the diagram itself with nothing selected, to
+/// `value`, as one command.
 pub fn set(tab: &mut DiagramTab, workspace: &mut DiagramWorkspace, property_id: &str, value: &str) {
     let ids: Vec<&str> = tab.selection.iter().map(String::as_str).collect();
-    let result = tab.session.set_property(workspace, &ids, property_id, value);
+    let result = if ids.is_empty() {
+        tab.session.set_diagram_property(workspace, property_id, value)
+    } else {
+        tab.session.set_property(workspace, &ids, property_id, value)
+    };
     tab.report(result);
 }
 
-/// The rows of what is selected on `tab`.
+/// The rows of what is selected on `tab`; with nothing selected, of the diagram itself, when its form gives it any
+/// (etalii.adp spec 074, FR-025).
 pub fn rows(tab: &DiagramTab, workspace: &DiagramWorkspace) -> Vec<PropertyRow> {
     let ids: Vec<&str> = tab.selection.iter().map(String::as_str).collect();
     if ids.is_empty() {
-        return Vec::new();
+        return tab.session.diagram_properties(workspace.documents());
     }
     tab.session.properties(workspace.documents(), &ids)
 }
@@ -58,12 +64,14 @@ pub fn show(
     }
     let muted = theme::color(theme, &["descriptionForeground"], palette.foreground);
     let small = theme.sizes.workbench_font - 2.0;
-    if tab.selection.is_empty() {
+    let rows = rows(tab, workspace);
+    if tab.selection.is_empty() && rows.is_empty() {
         ui.label(RichText::new("Select an element to see its properties.").color(muted));
         return;
     }
     // The selection chain: the diagram, then what is selected in it.
     let chain = match tab.selection.as_slice() {
+        [] => "This diagram".to_owned(),
         [one] => tab
             .session
             .select(workspace.documents(), one)
@@ -77,7 +85,6 @@ pub fn show(
             .color(muted),
     );
     ui.add_space(4.0);
-    let rows = rows(tab, workspace);
     if rows.is_empty() {
         ui.label(RichText::new("Nothing here can be edited.").color(muted));
         return;

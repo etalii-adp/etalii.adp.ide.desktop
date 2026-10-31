@@ -1,0 +1,116 @@
+{
+  "script": "parity/scripts/systems/causal-loop-diagram/flow/set.json",
+  "tool": "systems/causal-loop-diagram",
+  "fixture": "systems/causal-loop-diagram/reference/reference.cld",
+  "registration": "systems/causal-loop-diagram/reference/reference.adp",
+  "standaloneCommit": "a45e3d3fc2e7b65a1dedb3cae31e95bdbdf1f0c7",
+  "recorderVersion": "1.0.0",
+  "platform": "macos",
+  "recordedAt": "2026-10-31T02:12:04Z",
+  "edits": 13,
+  "changed": [
+    "reference.cld"
+  ],
+  "removed": [],
+  "generated": [],
+  "steps": [
+    {
+      "step": 0,
+      "kind": "select",
+      "rpc": "ContextService.Select",
+      "outcome": "accepted",
+      "detail": "the document"
+    },
+    {
+      "step": 1,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "causal-loop.flow-strength = '4'"
+    },
+    {
+      "step": 2,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "causal-loop.diagram-title = 'Why the population grows'"
+    },
+    {
+      "step": 3,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "causal-loop.flow-heatmap = 'Pressure'"
+    },
+    {
+      "step": 4,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "causal-loop.flow-delay = '6.5'"
+    },
+    {
+      "step": 5,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "causal-loop.flow-inertia = '2'"
+    },
+    {
+      "step": 6,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "causal-loop.flow-speed = '0.5'"
+    },
+    {
+      "step": 7,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "causal-loop.flow-density = '1.5'"
+    },
+    {
+      "step": 8,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "Link strength is 9; it must be between 0.5 and 8."
+    },
+    {
+      "step": 9,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "causal-loop.flow-strength = '5'"
+    },
+    {
+      "step": 10,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "causal-loop.variable-start = '0.7'"
+    },
+    {
+      "step": 11,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "causal-loop.variable-push = '-1.5'"
+    },
+    {
+      "step": 12,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "refused",
+      "detail": "Starting level is 2; it must be between 0 and 1."
+    },
+    {
+      "step": 13,
+      "kind": "property",
+      "rpc": "ContextService.SetProperty",
+      "outcome": "accepted",
+      "detail": "causal-loop.link-weight = '1.5'"
+    }
+  ]
+}

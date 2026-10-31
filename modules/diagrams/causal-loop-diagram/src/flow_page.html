@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/*FLOW_PAGE_TITLE*/</title>
+<style>
+:root {
+  --bg: #0d1117; --panel: #151b23; --panel2: #1c2430; --line: #2a3442;
+  --text: #e6edf3; --muted: #8b98a8; --accent: #58a6ff;
+  --pos: #3dd6c6; --neg: #ff6fae;
+  --node: #1f2a38; --node-border: #3a4a5e; --exo: #6b7a8f;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+  font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+body { display: grid; grid-template-rows: auto 1fr; overflow: hidden; }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 10px 16px;
+  background: var(--panel); border-bottom: 1px solid var(--line); }
+header h1 { font-size: 15px; margin: 0; font-weight: 600; }
+header .sub { color: var(--muted); font-size: 12px; }
+header .spacer { flex: 1; }
+button, select { background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+  border-radius: 6px; padding: 5px 10px; font: inherit; cursor: pointer; }
+button:hover, select:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); color: #0d1117; border-color: var(--accent); font-weight: 600; }
+main { display: grid; grid-template-columns: 1fr 330px; min-height: 0; }
+#stage { position: relative; display: grid; grid-template-rows: 1fr 150px; min-width: 0; min-height: 0; }
+#graphWrap { position: relative; min-height: 0; }
+canvas { display: block; width: 100%; height: 100%; }
+#graph { cursor: grab; touch-action: none; }
+#graph.dragging { cursor: grabbing; }
+#chartWrap { border-top: 1px solid var(--line); background: var(--panel); position: relative; }
+#chartLegend { position: absolute; top: 6px; left: 12px; right: 12px; display: flex; flex-wrap: wrap; gap: 4px 14px;
+  font-size: 11px; color: var(--muted); pointer-events: none; }
+#chartLegend i { display: inline-block; width: 10px; height: 3px; vertical-align: middle; margin-right: 5px; border-radius: 2px; }
+aside { background: var(--panel); border-left: 1px solid var(--line); overflow-y: auto; padding: 4px 14px 20px; }
+aside h2 { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+  margin: 16px 0 8px; font-weight: 600; }
+.row { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; align-items: center; margin-bottom: 8px; }
+.row label { font-size: 12px; }
+.row output { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
+.row input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
+.seg { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; padding: 6px 4px; font-size: 12px; background: transparent; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: var(--accent); color: #0d1117; font-weight: 600; }
+.hint { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
+#legendBar { height: 8px; border-radius: 4px; margin-top: 8px; }
+.legendTicks { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+#sel { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+#sel .title { font-weight: 600; margin-bottom: 4px; }
+#sel .meta { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+#sel .btns { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+.loop { display: grid; grid-template-columns: 30px 1fr 54px; gap: 8px; align-items: center; padding: 5px 6px;
+  border-radius: 6px; cursor: pointer; border: 1px solid transparent; }
+.loop:hover, .loop.on { background: var(--panel2); border-color: var(--line); }
+.loop .tag { font-weight: 700; font-size: 12px; text-align: center; border-radius: 4px; padding: 1px 0; }
+.loop .tag.R { background: rgba(61,214,198,.15); color: var(--pos); }
+.loop .tag.B { background: rgba(255,111,174,.15); color: var(--neg); }
+.loop .name { font-size: 12px; }
+.loop .bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.loop .bar b { display: block; height: 100%; background: var(--accent); }
+#tip { position: absolute; pointer-events: none; background: rgba(21,27,35,.96); border: 1px solid var(--line);
+  border-radius: 6px; padding: 7px 9px; font-size: 12px; max-width: 280px; display: none; z-index: 5; }
+#tip .muted { color: var(--muted); }
+#time { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; min-width: 70px; }
+@media (max-width: 820px) {
+  body { overflow: auto; height: auto; }
+  main { grid-template-columns: 1fr; }
+  #stage { height: 78vh; }
+  aside { border-left: 0; border-top: 1px solid var(--line); }
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>/*FLOW_PAGE_TITLE*/</h1>
+    <div class="sub">Causal loop diagram, animated as flows of influence. Each dot carries influence along a link and lands when it arrives; delayed links are slow, so influence queues on them.</div>
+  </div>
+  <div class="spacer"></div>
+  <button id="play" class="primary">Pause</button>
+  <button id="reset">Reset</button>
+  <button id="fit">Fit</button>
+  <label>Scenario <select id="scenario"></select></label>
+  <span id="time" title="simulated time">t = 0.0</span>
+</header>
+<main>
+  <section id="stage">
+    <div id="graphWrap"><canvas id="graph"></canvas><div id="tip"></div></div>
+    <div id="chartWrap"><canvas id="chart"></canvas><div id="chartLegend"></div></div>
+  </section>
+  <aside>
+    <h2>Heatmap</h2>
+    <div class="seg" id="heatMode">
+      <button data-m="backlog" class="on" title="Influence in transit towards a variable: where it piles up">Backlog</button>
+      <button data-m="pressure" title="Gap between where the inputs push a variable and where it is">Pressure</button>
+      <button data-m="throughput" title="Influence arriving per second">Throughput</button>
+      <button data-m="level" title="The variable's current level">Level</button>
+    </div>
+    <div id="legendBar"></div>
+    <div class="legendTicks"><span id="lgLo">low</span><span id="lgHi">high</span></div>
+    <p class="hint" id="heatHint"></p>
+
+    <h2>External pressures</h2>
+    <div id="exo"></div>
+
+    <h2>Dynamics</h2>
+    <div class="row"><label for="speed">Simulation speed</label><output id="speedO"></output>
+      <input id="speed" type="range" min="0.1" max="4" step="0.1" value="1"></div>
+    <div class="row"><label for="gain">Link strength (gain)</label><output id="gainO"></output>
+      <input id="gain" type="range" min="0.5" max="8" step="0.1" value="3"></div>
+    <div class="row"><label for="delay">Length of a delay</label><output id="delayO"></output>
+      <input id="delay" type="range" min="1" max="12" step="0.5" value="5"></div>
+    <div class="row"><label for="tau">Inertia of a variable</label><output id="tauO"></output>
+      <input id="tau" type="range" min="0.2" max="5" step="0.1" value="1.2"></div>
+    <div class="row"><label for="density">Dot density</label><output id="densityO"></output>
+      <input id="density" type="range" min="0.5" max="8" step="0.5" value="3"></div>
+
+    <h2>Selection</h2>
+    <div id="sel"><div class="meta">Click a variable or a link to change it. Drag a variable to move it, drag the background to pan, scroll to zoom.</div></div>
+
+    <h2>Loops</h2>
+    <div id="loops"></div>
+    <p class="hint">Bar: loop gain, the product of each link's local sensitivity. Above 1 a reinforcing loop runs away; hover a loop to trace it.</p>
+  </aside>
+</main>
+<script>
+"use strict";
+const DATA = /*FLOW_PAGE_DATA*/;
+
+// ---------- model ----------
+const nodes = DATA.v.map(([id, label, x, y]) => ({ id, label, x, y, level: 0.5, bias: 0, target: 0.5, z: 0,
+  exo: false, value: 0.5, arrivals: 0, thr: 0, backlog: 0, heat: 0, lines: [], w: 190, h: 60 }));
+const byId = Object.fromEntries(nodes.map((n, i) => [n.id, i]));
+const links = DATA.l.map(([f, t, s, d, note, w]) => ({ f: byId[f], t: byId[t], sign: s, delayed: !!d, note, w,
+  parts: [], acc: Math.random(), heat: 0, geo: null }));
+nodes.forEach((n, i) => { n.inc = links.filter(l => l.t === i); n.out = links.filter(l => l.f === i); n.exo = n.inc.length === 0; });
+const loops = DATA.o.map(([id, name, ids]) => {
+  const ns = ids.map(x => byId[x]);
+  const ls = ns.map((a, k) => links.find(l => l.f === a && l.t === ns[(k + 1) % ns.length]));
+  return { id, name, ns, ls, kind: ls.reduce((p, l) => p * l.sign, 1) > 0 ? "R" : "B", gain: 0 };
+});
+
+const P = { speed: DATA.p.speed, gain: DATA.p.strength, delay: DATA.p.delayLength, tau: DATA.p.inertia, density: DATA.p.density, base: 1.4 };
+const DT = 1 / 60, HIST = 60 * 40; // 40 s of history at the fixed step
+const hist = new Float32Array(nodes.length * HIST).fill(0.5);
+let head = 0, simT = 0, running = true, heatMode = DATA.p.heatmap;
+const travel = l => P.base * (l.delayed ? P.delay : 1);
+const sig = z => 1 / (1 + Math.exp(-z));
+
+const SCENARIOS = {
+  "Diagram as saved": { exo: Object.fromEntries(DATA.v.map(v => [v[0], v[4]])), bias: Object.fromEntries(DATA.v.map(v => [v[0], v[5]])) },
+};
+function applyScenario(name) {
+  const s = SCENARIOS[name];
+  nodes.forEach(n => { n.bias = s.bias[n.id] || 0; if (n.exo) n.value = s.exo[n.id] ?? 0.5; });
+  buildExo(); renderSel();
+}
+function resetSim() {
+  nodes.forEach(n => { n.level = n.exo ? n.value : 0.5; n.arrivals = 0; n.thr = 0; });
+  links.forEach(l => { l.parts = []; });
+  hist.fill(0.5); nodes.forEach((n, i) => { for (let k = 0; k < HIST; k++) hist[i * HIST + k] = n.level; });
+  simT = 0; head = 0; series.forEach(s => s.data.fill(NaN)); seriesHead = 0;
+}
+function delayedLevel(i, secs) {
+  const back = Math.min(HIST - 1, Math.round(secs / DT));
+  return hist[i * HIST + ((head - back) % HIST + HIST) % HIST];
+}
+function step() {
+  // influence: each link delivers the source level it carried when its dot set off
+  for (let i = 0; i < nodes.length; i++) {
+    const n = nodes[i];
+    if (n.exo) { n.level += (n.value - n.level) * Math.min(1, DT * 4); n.target = n.value; continue; }
+    let sum = 0, pos = 0, neg = 0;
+    for (const l of n.inc) { sum += l.sign * l.w * delayedLevel(l.f, travel(l)); if (l.sign > 0) pos += l.w; else neg += l.w; }
+    const tot = pos + neg || 1, u = sum / tot, theta = 0.5 * (pos - neg) / tot;
+    n.z = P.gain * 2 * (u - theta) + n.bias;
+    n.target = sig(n.z);
+    n.level += (n.target - n.level) * DT / P.tau;
+  }
+  head = (head + 1) % HIST;
+  for (let i = 0; i < nodes.length; i++) hist[i * HIST + head] = nodes[i].level;
+  // dots
+  for (const l of links) {
+    const tt = travel(l);
+    l.acc += P.density * l.w * nodes[l.f].level * DT;
+    while (l.acc >= 1) { l.acc -= 1; l.parts.push({ age: 0, off: (Math.random() - 0.5) * 10, r: nodes[l.f].level }); }
+    for (const p of l.parts) p.age += DT;
+    while (l.parts.length && l.parts[0].age >= tt) { l.parts.shift(); nodes[l.t].arrivals += 1; }
+  }
+  simT += DT;
+}
+function measure(dt) {
+  const k = 1 - Math.exp(-dt / 1.5);
+  for (const n of nodes) { n.thr += (n.arrivals / Math.max(dt, 1e-6) - n.thr) * k; n.arrivals = 0;
+    n.backlog = n.inc.reduce((a, l) => a + l.parts.length, 0); }
+  const maxB = Math.max(1, ...nodes.map(n => n.backlog)), maxT = Math.max(0.1, ...nodes.map(n => n.thr));
+  const maxL = Math.max(1, ...links.map(l => l.parts.length));
+  for (const n of nodes) {
+    const h = heatMode === "backlog" ? n.backlog / maxB : heatMode === "throughput" ? n.thr / maxT
+      : heatMode === "pressure" ? Math.min(1, Math.abs(n.target - n.level) * 4) : n.level;
+    n.heat += (h - n.heat) * Math.min(1, dt * 4);
+  }
+  for (const l of links) {
+    const h = heatMode === "level" ? nodes[l.f].level : heatMode === "pressure" ? nodes[l.t].heat : l.parts.length / maxL;
+    l.heat += (h - l.heat) * Math.min(1, dt * 4);
+  }
+  // loop gain: product of local sensitivities along the loop
+  for (const lp of loops) {
+    let g = 1;
+    for (const l of lp.ls) {
+      const n = nodes[l.t], tot = n.inc.reduce((a, x) => a + x.w, 0) || 1, s = n.target * (1 - n.target);
+      g *= P.gain * 2 * s * l.w / tot;
+    }
+    lp.gain = g;
+  }
+}
+
+// ---------- colour ----------
+const STOPS = [[13, 22, 48], [40, 52, 130], [120, 50, 160], [205, 60, 110], [250, 130, 50], [252, 220, 90]];
+function heatRGB(v) {
+  v = Math.max(0, Math.min(1, v)) * (STOPS.length - 1);
+  const i = Math.min(STOPS.length - 2, Math.floor(v)), f = v - i, a = STOPS[i], b = STOPS[i + 1];
+  return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f];
+}
+const rgb = (c, a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+const css = getComputedStyle(document.documentElement);
+const COL = k => css.getPropertyValue(k).trim();
+const esc = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+// ---------- geometry ----------
+const gc = document.getElementById("graph"), g = gc.getContext("2d");
+const view = { x: 0, y: 0, s: 0.4 };
+const FONT = "600 21px system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
+function layoutNodes() {
+  g.font = FONT;
+  for (const n of nodes) {
+    const words = n.label.split(" "), lines = []; let cur = "";
+    for (const w of words) { const t = cur ? cur + " " + w : w; if (g.measureText(t).width > 205 && cur) { lines.push(cur); cur = w; } else cur = t; }
+    lines.push(cur); n.lines = lines; n.w = 240; n.h = 26 + lines.length * 25 + 12;
+  }
+}
+const inside = (n, x, y, m = 6) => Math.abs(x - n.x) <= n.w / 2 + m && Math.abs(y - n.y) <= n.h / 2 + m;
+function bez(a, c, b, t) { const u = 1 - t; return [u * u * a[0] + 2 * u * t * c[0] + t * t * b[0], u * u * a[1] + 2 * u * t * c[1] + t * t * b[1]]; }
+function linkGeo(l) {
+  const A = nodes[l.f], B = nodes[l.t], a = [A.x, A.y], b = [B.x, B.y];
+  const dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy) || 1;
+  const c = [(a[0] + b[0]) / 2 - dy / len * len * 0.12, (a[1] + b[1]) / 2 + dx / len * len * 0.12];
+  let t0 = 0, t1 = 1;
+  for (let k = 0; k <= 200; k++) { const p = bez(a, c, b, k / 200); if (!inside(A, p[0], p[1])) { t0 = k / 200; break; } }
+  for (let k = 200; k >= 0; k--) { const p = bez(a, c, b, k / 200); if (!inside(B, p[0], p[1], 9)) { t1 = k / 200; break; } }
+  const N = 48, pts = [], cum = [0];
+  for (let k = 0; k <= N; k++) pts.push(bez(a, c, b, t0 + (t1 - t0) * k / N));
+  for (let k = 1; k <= N; k++) cum.push(cum[k - 1] + Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]));
+  l.geo = { pts, cum, L: cum[N] };
+}
+function along(l, f) { // point and tangent at arc-length fraction f
+  const { pts, cum, L } = l.geo, d = f * L; let k = 1;
+  while (k < cum.length - 1 && cum[k] < d) k++;
+  const s = (d - cum[k - 1]) / ((cum[k] - cum[k - 1]) || 1), p = pts[k - 1], q = pts[k];
+  const tx = q[0] - p[0], ty = q[1] - p[1], tl = Math.hypot(tx, ty) || 1;
+  return [p[0] + tx * s, p[1] + ty * s, tx / tl, ty / tl];
+}
+function relayout() { links.forEach(linkGeo); }
+
+// ---------- drawing ----------
+let hoverLoop = null, pinnedLoop = null, selected = null, hover = null;
+function resize(cv) { const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1; cv.width = Math.max(1, r.width * d); cv.height = Math.max(1, r.height * d); }
+function fit() {
+  const r = gc.getBoundingClientRect(); if (!r.width) return;
+  const xs = nodes.map(n => n.x), ys = nodes.map(n => n.y);
+  const x0 = Math.min(...xs) - 140, x1 = Math.max(...xs) + 140, y0 = Math.min(...ys) - 80, y1 = Math.max(...ys) + 80;
+  view.s = Math.min(r.width / (x1 - x0), r.height / (y1 - y0));
+  view.x = r.width / 2 - (x0 + x1) / 2 * view.s; view.y = r.height / 2 - (y0 + y1) / 2 * view.s;
+}
+function activeLoop() { return hoverLoop || pinnedLoop; }
+function drawGraph() {
+  const d = devicePixelRatio || 1;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = COL("--bg"); g.fillRect(0, 0, gc.width, gc.height);
+  g.setTransform(d * view.s, 0, 0, d * view.s, d * view.x, d * view.y);
+  const lp = activeLoop(), inLoop = lp ? new Set(lp.ls) : null, nodeInLoop = lp ? new Set(lp.ns) : null;
+  const sel = selected;
+
+  // links: heat glow underneath, then the stroke
+  for (const l of links) {
+    const dim = inLoop && !inLoop.has(l), { pts } = l.geo, hc = heatRGB(l.heat);
+    g.lineCap = "round"; g.lineJoin = "round";
+    g.beginPath(); g.moveTo(pts[0][0], pts[0][1]); for (const p of pts) g.lineTo(p[0], p[1]);
+    g.strokeStyle = rgb(hc, dim ? 0.05 : 0.18 + l.heat * 0.35); g.lineWidth = 10 + l.heat * 22; g.setLineDash([]); g.stroke();
+    g.strokeStyle = rgb(hc.map(v => Math.min(255, v + 50)), dim ? 0.12 : 0.85);
+    g.lineWidth = (1.6 + l.w * 1.6) * (sel === l ? 2 : 1); g.setLineDash(l.delayed ? [14, 9] : []); g.stroke(); g.setLineDash([]);
+    // arrow head
+    const e = along(l, 1), ax = e[0], ay = e[1], tx = e[2], ty = e[3], s = 14;
+    g.beginPath(); g.moveTo(ax, ay); g.lineTo(ax - tx * s - ty * s * 0.55, ay - ty * s + tx * s * 0.55);
+    g.lineTo(ax - tx * s + ty * s * 0.55, ay - ty * s - tx * s * 0.55); g.closePath();
+    g.fillStyle = rgb(hc.map(v => Math.min(255, v + 50)), dim ? 0.15 : 0.95); g.fill();
+    // polarity
+    const m = along(l, 0.86), pc = l.sign > 0 ? COL("--pos") : COL("--neg");
+    g.globalAlpha = dim ? 0.15 : 1;
+    g.beginPath(); g.arc(m[0] - m[3] * 16, m[1] + m[2] * 16, 10, 0, 7); g.fillStyle = COL("--bg"); g.fill();
+    g.lineWidth = 2; g.strokeStyle = pc; g.stroke();
+    g.fillStyle = pc; g.font = "700 15px system-ui, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillText(l.sign > 0 ? "+" : "−", m[0] - m[3] * 16, m[1] + m[2] * 16 + 1);
+    if (l.delayed) { // the double bar of a delay
+      const c = along(l, 0.5); g.strokeStyle = COL("--text"); g.lineWidth = 3;
+      for (const o of [-4, 4]) { g.beginPath();
+        g.moveTo(c[0] + c[2] * o - c[3] * 13, c[1] + c[3] * o + c[2] * 13); g.lineTo(c[0] + c[2] * o + c[3] * 13, c[1] + c[3] * o - c[2] * 13); g.stroke(); }
+    }
+    g.globalAlpha = 1;
+  }
+  // dots
+  g.globalCompositeOperation = "lighter";
+  for (const l of links) {
+    if (inLoop && !inLoop.has(l)) continue;
+    const tt = travel(l), col = l.sign > 0 ? [61, 214, 198] : [255, 111, 174];
+    for (const p of l.parts) {
+      const q = along(l, p.age / tt), x = q[0] - q[3] * p.off, y = q[1] + q[2] * p.off, r = 2.5 + p.r * 4.5;
+      g.beginPath(); g.arc(x, y, r * 2.2, 0, 7); g.fillStyle = rgb(col, 0.12); g.fill();
+      g.beginPath(); g.arc(x, y, r, 0, 7); g.fillStyle = rgb(col, 0.9); g.fill();
+    }
+  }
+  g.globalCompositeOperation = "source-over";
+  // loop badges
+  for (const lp2 of loops) {
+    const cx = lp2.ns.reduce((a, i) => a + nodes[i].x, 0) / lp2.ns.length, cy = lp2.ns.reduce((a, i) => a + nodes[i].y, 0) / lp2.ns.length;
+    const on = lp2 === lp, c = lp2.kind === "R" ? COL("--pos") : COL("--neg");
+    g.globalAlpha = lp && !on ? 0.25 : 0.9;
+    g.beginPath(); g.arc(cx, cy, 22, 0.4, Math.PI * 1.75); g.strokeStyle = c; g.lineWidth = 3; g.stroke();
+    const ex = cx + 22 * Math.cos(Math.PI * 1.75), ey = cy + 22 * Math.sin(Math.PI * 1.75);
+    g.beginPath(); g.moveTo(ex + 7, ey - 1); g.lineTo(ex - 2, ey - 7); g.lineTo(ex - 1, ey + 5); g.closePath(); g.fillStyle = c; g.fill();
+    g.font = "700 14px system-ui, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(lp2.id, cx, cy + 1);
+    g.globalAlpha = 1;
+  }
+  // nodes
+  for (const n of nodes) {
+    const dim = nodeInLoop && !nodeInLoop.has(nodes.indexOf(n)), hc = heatRGB(n.heat);
+    const x = n.x - n.w / 2, y = n.y - n.h / 2;
+    g.globalAlpha = dim ? 0.3 : 1;
+    g.shadowColor = rgb(hc, 0.9); g.shadowBlur = 8 + n.heat * 40;
+    rr(x, y, n.w, n.h, 12); g.fillStyle = rgb(hc.map((v, k) => v * 0.55 + [31, 42, 56][k] * 0.45)); g.fill();
+    g.shadowBlur = 0;
+    g.lineWidth = sel === n ? 3.5 : 1.5; g.strokeStyle = sel === n ? COL("--accent") : n.exo ? COL("--exo") : rgb(hc.map(v => Math.min(255, v + 60)));
+    g.setLineDash(n.exo ? [7, 5] : []); g.stroke(); g.setLineDash([]);
+    g.fillStyle = n.heat > 0.8 ? "#1a1205" : COL("--text"); g.font = FONT; g.textAlign = "center"; g.textBaseline = "top";
+    n.lines.forEach((t, k) => g.fillText(t, n.x, y + 11 + k * 25));
+    // level bar
+    const bw = n.w - 32, by = y + n.h - 18;
+    rr(n.x - bw / 2, by, bw, 7, 3.5); g.fillStyle = "rgba(0,0,0,.45)"; g.fill();
+    rr(n.x - bw / 2, by, bw * n.level, 7, 3.5); g.fillStyle = n.heat > 0.8 ? "#1a1205" : "#e6edf3"; g.fill();
+    if (!n.exo) { const tx = n.x - bw / 2 + bw * n.target; g.fillStyle = COL("--accent"); g.fillRect(tx - 1.5, by - 3, 3, 12); }
+    if (n.bias) { g.font = "700 12px system-ui, sans-serif"; g.textAlign = "right"; g.textBaseline = "top";
+      g.fillStyle = n.bias > 0 ? COL("--pos") : COL("--neg"); g.fillText((n.bias > 0 ? "▲" : "▼") + Math.abs(n.bias).toFixed(1), x + n.w - 6, y - 16); }
+    g.globalAlpha = 1;
+  }
+}
+function rr(x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+
+// ---------- chart ----------
+const cc = document.getElementById("chart"), c2 = cc.getContext("2d");
+const SER_N = 240; let seriesHead = 0, sampleAcc = 0;
+const series = DATA.c.map((id, k) => [id, ["#58a6ff", "#ff6fae", "#3dd6c6", "#f0883e", "#f85149", "#d2a8ff", "#e3b341"][k]])
+  .map(([id, c]) => ({ i: byId[id], c, data: new Float32Array(SER_N).fill(NaN) }));
+document.getElementById("chartLegend").innerHTML = series.map(s => `<span><i style="background:${s.c}"></i>${esc(nodes[s.i].label)}</span>`).join("")
+  + `<span>last 60 s, level 0 to 1</span>`;
+function sample() { for (const s of series) s.data[seriesHead] = nodes[s.i].level; seriesHead = (seriesHead + 1) % SER_N; }
+function drawChart() {
+  const d = devicePixelRatio || 1, W = cc.width / d, H = cc.height / d;
+  c2.setTransform(d, 0, 0, d, 0, 0); c2.clearRect(0, 0, W, H);
+  const top = 40, bot = H - 12, l = 12, r = W - 12;
+  c2.strokeStyle = COL("--line"); c2.lineWidth = 1;
+  for (const v of [0, 0.5, 1]) { const y = bot - (bot - top) * v; c2.beginPath(); c2.moveTo(l, y); c2.lineTo(r, y); c2.stroke(); }
+  for (const s of series) {
+    const hi = selected && selected.lines && nodes[s.i] === selected;
+    c2.beginPath(); let started = false;
+    for (let k = 0; k < SER_N; k++) {
+      const v = s.data[(seriesHead + k) % SER_N]; if (Number.isNaN(v)) continue;
+      const x = l + (r - l) * k / (SER_N - 1), y = bot - (bot - top) * v;
+      started ? c2.lineTo(x, y) : c2.moveTo(x, y); started = true;
+    }
+    c2.strokeStyle = s.c; c2.lineWidth = hi ? 3 : 1.6; c2.stroke();
+  }
+}
+
+// ---------- panels ----------
+const $ = id => document.getElementById(id);
+function slider(parent, label, min, max, stepv, val, fmt, on) {
+  const row = document.createElement("div"); row.className = "row";
+  row.innerHTML = `<label>${label}</label><output>${fmt(val)}</output><input type="range" min="${min}" max="${max}" step="${stepv}" value="${val}">`;
+  const inp = row.querySelector("input"), out = row.querySelector("output");
+  inp.addEventListener("input", () => { const v = +inp.value; out.textContent = fmt(v); on(v); });
+  parent.appendChild(row); return inp;
+}
+const pct = v => Math.round(v * 100) + "%";
+function buildExo() {
+  const box = $("exo"); box.innerHTML = "";
+  nodes.filter(n => n.exo).forEach(n => slider(box, esc(n.label), 0, 1, 0.01, n.value, pct, v => { n.value = v; }));
+}
+for (const [id, key, fmt] of [["speed", "speed", v => v.toFixed(1) + "×"], ["gain", "gain", v => v.toFixed(1)],
+  ["delay", "delay", v => v.toFixed(1) + "× slower"], ["tau", "tau", v => v.toFixed(1) + " s"], ["density", "density", v => v.toFixed(1)]]) {
+  const el = $(id), o = $(id + "O"); el.value = P[key]; o.textContent = fmt(+el.value);
+  el.addEventListener("input", () => { P[key] = +el.value; o.textContent = fmt(P[key]); });
+}
+const HINTS = {
+  backlog: "Influence in transit towards each variable, relative to the busiest. Delayed links hold their dots longest, so heat gathers where delays feed in: the bottlenecks.",
+  pressure: "How far a variable is from where its inputs push it (the blue tick on its bar). Hot means it is still catching up.",
+  throughput: "Influence arriving per second, relative to the busiest variable.",
+  level: "The variable's own level, from 0 (cold) to 1 (hot). Links show the level of their source."
+};
+$("heatMode").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return; heatMode = b.dataset.m;
+  for (const x of $("heatMode").children) x.classList.toggle("on", x === b);
+  $("heatHint").textContent = HINTS[heatMode];
+  $("lgLo").textContent = heatMode === "level" ? "0" : "low"; $("lgHi").textContent = heatMode === "level" ? "1" : "high";
+});
+for (const x of $("heatMode").children) x.classList.toggle("on", x.dataset.m === heatMode);
+$("heatHint").textContent = HINTS[heatMode];
+$("lgLo").textContent = heatMode === "level" ? "0" : "low"; $("lgHi").textContent = heatMode === "level" ? "1" : "high";
+$("legendBar").style.background = `linear-gradient(90deg, ${STOPS.map((c, k) => rgb(c) + " " + (k * 100 / (STOPS.length - 1)) + "%").join(",")})`;
+
+function renderSel() {
+  const box = $("sel"); box.innerHTML = "";
+  if (!selected) { box.innerHTML = `<div class="meta">Click a variable or a link to change it. Drag a variable to move it, drag the background to pan, scroll to zoom.</div>`; return; }
+  if (selected.lines) {
+    const n = selected;
+    box.insertAdjacentHTML("beforeend", `<div class="title">${esc(n.label)}</div><div class="meta">${n.exo ? "External: nothing in the diagram moves it." :
+      `${n.inc.length} input${n.inc.length > 1 ? "s" : ""}, ${n.out.length} output${n.out.length !== 1 ? "s" : ""}`} &middot; level <span id="selLvl">${pct(n.level)}</span></div>`);
+    if (n.exo) slider(box, "Value", 0, 1, 0.01, n.value, pct, v => { n.value = v; buildExo(); });
+    else slider(box, "Outside push", -4, 4, 0.1, n.bias, v => (v > 0 ? "+" : "") + v.toFixed(1), v => { n.bias = v; });
+    const btns = document.createElement("div"); btns.className = "btns";
+    btns.innerHTML = `<button data-a="up">Shock up</button><button data-a="down">Shock down</button>`;
+    btns.addEventListener("click", e => { const a = e.target.dataset.a; if (!a) return;
+      if (n.exo) { n.value = a === "up" ? 1 : 0; buildExo(); renderSel(); } else n.level = a === "up" ? 1 : 0; });
+    box.appendChild(btns);
+  } else {
+    const l = selected, A = nodes[l.f], B = nodes[l.t];
+    box.insertAdjacentHTML("beforeend", `<div class="title">${esc(A.label)} → ${esc(B.label)}</div><div class="meta">${l.sign > 0 ? "Positive: moves the same way" : "Negative: moves the opposite way"}${l.delayed ? " &middot; delayed" : ""}${l.note ? `<br>“${esc(l.note)}”` : ""}</div>`);
+    slider(box, "Strength", 0, 3, 0.05, l.w, v => v.toFixed(2) + "×", v => { l.w = v; });
+    const btns = document.createElement("div"); btns.className = "btns";
+    btns.innerHTML = `<button data-a="delay">${l.delayed ? "Remove delay" : "Add delay"}</button><button data-a="flip">Flip polarity</button>`;
+    btns.addEventListener("click", e => { const a = e.target.dataset.a; if (!a) return;
+      if (a === "delay") { l.delayed = !l.delayed; l.parts = []; } else l.sign = -l.sign; renderSel(); });
+    box.appendChild(btns);
+  }
+}
+function buildLoops() {
+  $("loops").innerHTML = loops.map((lp, k) => `<div class="loop" data-k="${k}"><span class="tag ${lp.kind}">${esc(lp.id)}</span><span class="name">${esc(lp.name)}</span><span class="bar"><b></b></span></div>`).join("");
+  for (const el of $("loops").children) {
+    const lp = loops[+el.dataset.k];
+    el.addEventListener("mouseenter", () => { hoverLoop = lp; });
+    el.addEventListener("mouseleave", () => { hoverLoop = null; });
+    el.addEventListener("click", () => { pinnedLoop = pinnedLoop === lp ? null : lp; for (const x of $("loops").children) x.classList.toggle("on", loops[+x.dataset.k] === pinnedLoop); });
+  }
+}
+function updateLoops() {
+  const els = $("loops").children;
+  loops.forEach((lp, k) => { const b = els[k].querySelector("b"); b.style.width = Math.min(100, lp.gain / 1.5 * 100) + "%";
+    b.style.background = lp.gain >= 1 ? "#f0883e" : COL("--accent"); els[k].title = "Loop gain " + lp.gain.toFixed(2); });
+}
+const sc = $("scenario"); sc.innerHTML = Object.keys(SCENARIOS).map(k => `<option>${k}</option>`).join("");
+sc.addEventListener("change", () => applyScenario(sc.value));
+$("play").addEventListener("click", () => { running = !running; $("play").textContent = running ? "Pause" : "Play"; });
+$("reset").addEventListener("click", () => resetSim());
+$("fit").addEventListener("click", fit);
+
+// ---------- interaction ----------
+const tip = $("tip");
+function world(e) { const r = gc.getBoundingClientRect(); return [(e.clientX - r.left - view.x) / view.s, (e.clientY - r.top - view.y) / view.s]; }
+function pick(x, y) {
+  for (let i = nodes.length - 1; i >= 0; i--) if (inside(nodes[i], x, y, 0)) return nodes[i];
+  let best = null, bd = 10 / view.s;
+  for (const l of links) for (const p of l.geo.pts) { const d = Math.hypot(p[0] - x, p[1] - y); if (d < bd) { bd = d; best = l; } }
+  return best;
+}
+let drag = null;
+gc.addEventListener("pointerdown", e => {
+  gc.setPointerCapture(e.pointerId); const [x, y] = world(e), h = pick(x, y);
+  drag = { sx: e.clientX, sy: e.clientY, vx: view.x, vy: view.y, node: h && h.lines ? h : null, ox: h && h.lines ? h.x - x : 0, oy: h && h.lines ? h.y - y : 0, moved: false, hit: h };
+  gc.classList.add("dragging");
+});
+gc.addEventListener("pointermove", e => {
+  const [x, y] = world(e);
+  if (drag) {
+    if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 3) drag.moved = true;
+    if (drag.node) { drag.node.x = x + drag.ox; drag.node.y = y + drag.oy; drag.node.inc.concat(drag.node.out).forEach(linkGeo); }
+    else { view.x = drag.vx + e.clientX - drag.sx; view.y = drag.vy + e.clientY - drag.sy; }
+    tip.style.display = "none"; return;
+  }
+  hover = pick(x, y); const r = gc.getBoundingClientRect();
+  if (!hover) { tip.style.display = "none"; return; }
+  tip.style.display = "block"; tip.style.left = Math.min(r.width - 290, e.clientX - r.left + 14) + "px"; tip.style.top = (e.clientY - r.top + 14) + "px";
+  if (hover.lines) tip.innerHTML = `<b>${esc(hover.label)}</b><br>Level ${pct(hover.level)}${hover.exo ? "" : ` &rarr; heading for ${pct(hover.target)}`}<br><span class="muted">In transit towards it: ${hover.backlog} &middot; arriving ${hover.thr.toFixed(1)}/s</span>`;
+  else tip.innerHTML = `<b>${esc(nodes[hover.f].label)} &rarr; ${esc(nodes[hover.t].label)}</b> <span style="color:${hover.sign > 0 ? COL("--pos") : COL("--neg")}">${hover.sign > 0 ? "+" : "−"}</span>${hover.delayed ? " &middot; delayed" : ""}${hover.note ? `<br><i>“${esc(hover.note)}”</i>` : ""}<br><span class="muted">${hover.parts.length} dots in transit</span>`;
+});
+gc.addEventListener("pointerup", () => {
+  if (drag && !drag.moved) { selected = drag.hit || null; renderSel(); }
+  drag = null; gc.classList.remove("dragging");
+});
+gc.addEventListener("pointerleave", () => { tip.style.display = "none"; });
+gc.addEventListener("wheel", e => {
+  e.preventDefault(); const r = gc.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+  const k = Math.exp(-e.deltaY * 0.0015), s = Math.max(0.1, Math.min(3, view.s * k));
+  view.x = mx - (mx - view.x) * s / view.s; view.y = my - (my - view.y) * s / view.s; view.s = s;
+}, { passive: false });
+
+// ---------- loop ----------
+function onResize() { resize(gc); resize(cc); }
+new ResizeObserver(onResize).observe($("graphWrap"));
+new ResizeObserver(() => resize(cc)).observe($("chartWrap"));
+layoutNodes(); relayout(); applyScenario("Diagram as saved"); resetSim(); buildLoops(); onResize(); fit();
+let last = performance.now(), acc = 0, loopTick = 0;
+function frame(now) {
+  const real = Math.min(0.1, (now - last) / 1000); last = now;
+  if (running) {
+    acc += real * P.speed; let n = 0;
+    while (acc >= DT && n++ < 400) { step(); acc -= DT; sampleAcc += DT; if (sampleAcc >= 0.25) { sampleAcc -= 0.25; sample(); } }
+    measure(real * P.speed || 1e-3);
+  }
+  drawGraph(); drawChart();
+  if (++loopTick % 10 === 0) { updateLoops(); $("time").textContent = "t = " + simT.toFixed(1) + " s";
+    const lv = $("selLvl"); if (lv && selected && selected.lines) lv.textContent = pct(selected.level); }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
