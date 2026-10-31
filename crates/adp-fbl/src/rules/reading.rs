@@ -58,6 +58,8 @@ pub struct BodyReading {
     by_entry: HashMap<EntryId, usize>,
     /// The views the body's view blocks define (FBL section 4.7), in document order.
     views: Vec<FblView>,
+    /// *(FBL 0.11)* The entry of the view the reading shows, which `selectedView` rules read inside (FBL section 9.3).
+    selected_view: Option<EntryId>,
     /// The values of the binding's resource capture (FBL section 8.2) in document order.
     resources: Vec<String>,
     resource: Option<String>,
@@ -79,6 +81,7 @@ impl BodyReading {
             claims: HashMap::new(),
             by_entry: HashMap::new(),
             views: Vec::new(),
+            selected_view: None,
             resources: Vec::new(),
             resource: None,
             unreadable: None,
@@ -139,6 +142,7 @@ impl BodyReading {
                 Some(span),
             );
         }
+        reading.read_views();
         reading.claim();
         reading.resolve();
         if options.report_unbound_keys {
@@ -357,6 +361,46 @@ impl BodyReading {
 
     // ---- claiming entries (FBL section 5.1) ----
 
+    /// The views a binding's blocks name by a slot (FBL 0.11 sections 4.9, 9.3), of the block rules that admit the
+    /// reading's origin, in document order, and the one the reading shows: the one the `view` header names, ignoring
+    /// the case of ASCII letters, without it the first.
+    fn read_views(&mut self) {
+        let binding = self.family.binding.clone();
+        let mut views: Vec<(EntryId, FblView)> = Vec::new();
+        for (index, block) in binding.blocks.iter().enumerate() {
+            let Some(slot) = &block.view_slot else { continue };
+            if let Some(origin) = &self.options().origin
+                && !block.origins.is_empty()
+                && !block.origins.contains(origin)
+            {
+                continue;
+            }
+            for candidate in self.family.block_candidates(index) {
+                let read = self.read_slot_unchecked(&candidate, slot, None, 0);
+                if !read.present {
+                    continue;
+                }
+                let own = self.family.entries[candidate.entry].own;
+                views.push((
+                    candidate.entry,
+                    FblView {
+                        name: read.written(),
+                        block: block.name.clone(),
+                        span: own,
+                        line: self.family.text.position(own.start).0,
+                    },
+                ));
+            }
+        }
+        views.sort_by_key(|(_, view)| view.span.start);
+        self.selected_view = match &self.options().view {
+            Some(header) => views.iter().find(|(_, v)| v.name.eq_ignore_ascii_case(header)),
+            None => views.first(),
+        }
+        .map(|(entry, _)| *entry);
+        self.views = views.into_iter().map(|(_, view)| view).collect();
+    }
+
     fn claim(&mut self) {
         let mut offered: HashMap<EntryId, Vec<Candidate>> = HashMap::new();
         for block in 0..self.binding().blocks.len() {
@@ -389,6 +433,13 @@ impl BodyReading {
                 if let Some(rule_index) = candidate.rule {
                     let rule = &binding.rules[rule_index];
                     if !self.selected_resource(candidate) {
+                        continue;
+                    }
+                    if rule.selected_view
+                        && !self
+                            .selected_view
+                            .is_some_and(|view| self.family.enclosing(entry).contains(&view))
+                    {
                         continue;
                     }
                     if let Some(when) = &rule.when {
@@ -626,7 +677,12 @@ impl BodyReading {
         for (name, attribute) in &rule.attributes {
             observe(element, first);
             first = false;
-            let many = attribute.word.is_some() && !attribute.flag && self.options().many(&rule.type_name, name);
+            // A grammar slot that gathers or splits holds a list by its binding (FBL 0.11 section 5.2, 0.13 section 4.9).
+            let many = !attribute.flag
+                && ((attribute.word.is_some() || attribute.node.is_some())
+                    && self.options().many(&rule.type_name, name)
+                    || attribute.split.is_some()
+                    || !attribute.gather.is_empty());
             let read = if many {
                 self.read_many(&element.candidate, attribute, element.rule)
             } else {
@@ -776,7 +832,7 @@ impl BodyReading {
     /// Reads a word slot of an attribute the tool type's specification gives `many` (FBL 0.7 section 4.6): every
     /// word of the group that matches, each an item, read-only as [`Self::read_slot`] says.
     fn read_many(&self, candidate: &Candidate, attribute: &AttributeBinding, rule: usize) -> SlotRead {
-        let mut read = self.family.read_many(candidate, &attribute.slot);
+        let mut read = self.family.read_many(candidate, attribute);
         if read.items.is_none() {
             return self.read_slot(candidate, &attribute.slot, Some(attribute), rule);
         }
@@ -965,12 +1021,14 @@ impl BodyReading {
                     return;
                 }
             }
-            self.family.report(
-                codes::MISSING_ID,
-                FindingSeverity::Warning,
-                format!("This {} has no id; it is addressed by its place.", rule.type_name),
-                Some(self.family.entries[element.entry()].own),
-            );
+            if !self.options().ephemeral_missing_ids {
+                self.family.report(
+                    codes::MISSING_ID,
+                    FindingSeverity::Warning,
+                    format!("This {} has no id; it is addressed by its place.", rule.type_name),
+                    Some(self.family.entries[element.entry()].own),
+                );
+            }
             self.elements[index].id = self.place_id(index);
             return;
         }

@@ -145,6 +145,17 @@ pub struct Recover {
     pub unit: String,
     /// Terminal names, or the text of anonymous string terminals.
     pub sync: Vec<String>,
+    /// *(FBL 0.11)* The two terminals that open and close a block, for reading in part inside blocks.
+    pub nested: Option<NestedRecover>,
+    /// *(FBL 0.11)* Each ignored terminal and the text a token of it must end with, else `fbl.unclosed-comment`.
+    pub unclosed: Vec<(String, String)>,
+}
+
+/// `recover.nested` (FBL 0.11 section 4.9): each a terminal's name, or the text of an anonymous string terminal.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NestedRecover {
+    pub open: String,
+    pub close: String,
 }
 
 #[derive(Debug, Clone)]
@@ -195,6 +206,14 @@ pub struct BlockRule {
     pub within: Option<Vec<String>>,
     pub case_insensitive: bool,
     pub view: Option<String>,
+    /// *(FBL 0.11)* A `grammar` body: the selector of the rule's entries (FBL section 4.9).
+    pub at: Option<String>,
+    /// *(FBL 0.11)* A `grammar` body: the `{node}` or `{value}` slot that names a view.
+    pub view_slot: Option<Slot>,
+    /// *(FBL 0.11)* The readings the rule's entries are views for; empty for every reading.
+    pub origins: Vec<String>,
+    /// *(FBL 0.11)* A `grammar` body: how a new entry of the rule is written.
+    pub insert: Option<InsertSettings>,
 }
 
 /// A section of a `bullets` body (FBL 0.7 section 4.8): its name, and the expression its heading's text matches.
@@ -215,6 +234,10 @@ pub struct Rule {
     pub line: Option<String>,
     pub within: Option<Vec<String>>,
     pub opens: bool,
+    /// *(FBL 0.11)* A `grammar` body: the text of a block written around a first child (FBL section 4.9).
+    pub opens_text: Option<OpensText>,
+    /// *(FBL 0.11)* A `grammar` body: the rule matches only inside the view the reading shows (FBL section 9.3).
+    pub selected_view: bool,
     pub case_insensitive: bool,
     pub files: Vec<String>,
     pub when: Option<String>,
@@ -276,6 +299,14 @@ impl Rule {
     }
 }
 
+/// `opens` in the `grammar` family (FBL 0.11 section 4.9): the text written after an entry's last token, and the
+/// closing line's.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OpensText {
+    pub open: String,
+    pub close: String,
+}
+
 #[derive(Debug, Clone)]
 pub struct IdBinding {
     pub from: Option<Slot>,
@@ -308,6 +339,49 @@ pub struct Slot {
     pub node: Option<String>,
     /// *(FBL 0.9)* With `node`: the regular expression whose group `value` is the value.
     pub node_match: Option<String>,
+    /// *(FBL 0.11)* With `node`: how a value written inside quotes escapes them (FBL section 4.9).
+    pub escape: Option<SlotEscape>,
+    /// *(FBL 0.13)* With `node`: the text a node's value is cut into items at (FBL section 4.9).
+    pub split: Option<String>,
+}
+
+/// A `{node}` slot's `escape` (FBL 0.11 section 4.9): the escape character and the quote it escapes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SlotEscape {
+    pub with: char,
+    pub quote: char,
+}
+
+impl SlotEscape {
+    /// `with` before `quote` or `with` read as that character; `with` before any other character kept as it is.
+    pub fn read(&self, text: &str) -> String {
+        let mut read = String::with_capacity(text.len());
+        let mut chars = text.chars().peekable();
+        while let Some(c) = chars.next() {
+            if c == self.with
+                && let Some(&next) = chars.peek()
+                && (next == self.quote || next == self.with)
+            {
+                read.push(next);
+                chars.next();
+            } else {
+                read.push(c);
+            }
+        }
+        read
+    }
+
+    /// Every `quote` and `with` character written after `with`.
+    pub fn write(&self, text: &str) -> String {
+        let mut written = String::with_capacity(text.len());
+        for c in text.chars() {
+            if c == self.quote || c == self.with {
+                written.push(self.with);
+            }
+            written.push(c);
+        }
+        written
+    }
 }
 
 impl Slot {
@@ -367,6 +441,8 @@ pub struct AttributeBinding {
     pub quoted: Option<String>,
     /// yaml, json (FBL 0.5): what the attribute is when its value does not convert.
     pub fallback: Option<FallbackBinding>,
+    /// *(FBL 0.11)* grammar: further `{node}` slots of the entry, whose values follow the first slot's.
+    pub gather: Vec<Slot>,
 }
 
 impl std::ops::Deref for AttributeBinding {
@@ -402,13 +478,16 @@ pub struct FallbackBinding {
 }
 
 /// How a missing child holding the value is written. xml: the element's text and its place. yaml (FBL 0.4):
-/// `at_end`, each missing level of the mapping `child` reaches created at the end of the level above it.
+/// `at_end`, each missing level of the mapping `child` reaches created at the end of the level above it. grammar
+/// (FBL 0.11): `after`, the attributes whose parts precede this one, nearest first, and whether the part is `pad`ded.
 #[derive(Debug, Clone)]
 pub struct CreateChild {
     pub emit: String,
     pub place: String,
     pub before: Option<String>,
     pub at_end: bool,
+    pub after: Vec<String>,
+    pub pad: bool,
 }
 
 #[derive(Debug, Clone)]

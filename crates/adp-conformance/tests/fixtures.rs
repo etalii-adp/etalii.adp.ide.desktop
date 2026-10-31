@@ -7,6 +7,7 @@
 //! standalone host's harness over the fixtures that host reads.
 
 use std::collections::BTreeMap;
+use std::collections::btree_map::Entry;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -73,7 +74,8 @@ fn replay_files(folder: &Path, fixture: &Value, steps: &[Value]) -> Result<usize
     let input = folder.join(fixture["input"].as_str().unwrap());
     let beside = input.parent().unwrap().to_path_buf();
     let mut files = Files::from([(None, fs::read(&input).map_err(|e| e.to_string())?)]);
-    let (mut done, mut undone): (Vec<(Files, Files)>, Vec<(Files, Files)>) = (Vec::new(), Vec::new());
+    let mut done: Vec<(Files, Files)> = Vec::new();
+    let mut undone: Vec<(Files, Files)> = Vec::new();
     for (index, step) in steps.iter().enumerate() {
         let number = index + 1;
         let expected_files = step["expectFiles"].as_object().cloned().unwrap_or_default();
@@ -83,9 +85,8 @@ fn replay_files(folder: &Path, fixture: &Value, steps: &[Value]) -> Result<usize
             .filter_map(|s| s["file"].as_str())
             .chain(expected_files.keys().map(String::as_str));
         for name in named {
-            if !files.contains_key(&Some(name.to_owned())) {
-                let bytes = fs::read(beside.join(name)).map_err(|e| format!("step {number}: {name}: {e}"))?;
-                files.insert(Some(name.to_owned()), bytes);
+            if let Entry::Vacant(file) = files.entry(Some(name.to_owned())) {
+                file.insert(fs::read(beside.join(name)).map_err(|e| format!("step {number}: {name}: {e}"))?);
             }
         }
         let before = files.clone();

@@ -122,6 +122,9 @@ fn plan_store_id(plan: &mut Plan<'_>, id: &str, new_id: &str) -> Planning {
         xml_attribute: from.xml_attribute.clone(),
         child: from.child.clone(),
         group: from.group.clone(),
+        node: from.node.clone(),
+        node_match: from.node_match.clone(),
+        escape: from.escape,
         ..Slot::default()
     });
     let change = SlotChange {
@@ -150,6 +153,9 @@ fn plan_set(plan: &mut Plan<'_>, id: &str, attributes: &Map) -> Planning {
             child: from.child.clone(),
             group: from.group.clone(),
             capture: from.capture.clone(),
+            node: from.node.clone(),
+            node_match: from.node_match.clone(),
+            escape: from.escape,
             ..Slot::default()
         })
     });
@@ -323,6 +329,7 @@ fn same_slot(a: &Slot, b: &Slot) -> bool {
         && a.child == b.child
         && a.word == b.word
         && a.capture == b.capture
+        && a.node == b.node
 }
 
 /// A rename (FBL section 5.7): every reference to the old value is rewritten in the same edit, one
@@ -401,6 +408,12 @@ fn plan_add(
         })
         .collect();
     if rules.is_empty() {
+        // A block rule that adds entries is named by an add as its type (FBL 0.11 section 4.9, *Views*).
+        if let Some(block) = reading.binding_rc().blocks.iter().position(|b| b.name == type_name)
+            && reading.family.family_name() == "grammar"
+        {
+            return reading.family.grammar_insert_block(plan, block, attributes);
+        }
         return refuse(format!("This file has no place for a {type_name}."));
     }
     // Several rules may write one type. The one meant is a rule the parent given can contain, where any is, and
