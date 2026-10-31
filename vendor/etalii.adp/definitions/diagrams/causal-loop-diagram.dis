@@ -223,7 +223,7 @@
           },
           "start": {
             "type": "number", "default": 0.5, "min": 0, "max": 1, "label": "Starting level", "group": "Flow page", "order": 1,
-            "doc": "The level this variable starts at in a flow page, and the place of its slider when no link points to it. Between 0 and 1; 0.5 when the file states none."
+            "doc": "The level this variable starts at in a flow page, and the place of its slider. It only affects a variable no link points to; one that a link points to starts at 0.5, as the page's Reset puts it back there. Between 0 and 1; 0.5 when the file states none."
           },
           "push": {
             "type": "number", "default": 0, "min": -4, "max": 4, "label": "Outside push", "group": "Flow page", "order": 2,

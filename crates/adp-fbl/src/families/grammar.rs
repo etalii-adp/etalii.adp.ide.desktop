@@ -132,7 +132,14 @@ impl Family {
                 "This block is never closed; it ends at the end of the file.",
                 Some(*open),
             );
-            unclosed.push(self.owner_of(open.start));
+            // A token the grammar names is an entry of its own: the block is the entry that holds it (FBL 0.11 section 4.9).
+            let opening = self.owner_of(open.start);
+            let named = self.binding.body.grammar.as_ref().and_then(|g| g.recover.as_ref());
+            let named = named.and_then(|r| r.nested.as_ref());
+            unclosed.push(match self.entries[opening].parent {
+                Some(block) if named.is_some_and(|n| self.entries[opening].name.as_ref() == Some(&n.open)) => block,
+                _ => opening,
+            });
         }
         if let FamilyKind::Grammar(data) = &mut self.kind {
             data.grammar = Some(built);
