@@ -4,14 +4,17 @@ part of systems/causal-loop-diagram
 // The causal loop diagram's .cld body, in a part of its own (ATD §5.2, §9).
 
 /// The causal loop diagram's .cld body (definitions/diagrams/causal-loop-diagram.dis, causal-loop-diagram.md): the
-/// lines family, as the standalone module reads it. One statement per line. The header is read as an entry of its
-/// own, so a missing or repeated one raises nothing. A link is an element whose ends are reference attributes, so a
-/// link with an end that names nothing is kept and reported rather than dropped; its cause and effect names are read
-/// again as read-only value slots, which the definition keys the link by. A word after a link's arrow is a quoted
-/// run, a weight written as a number, or a bare word without '='; a link with any other word, such as weight=heavy,
-/// is not a link. A name may be quoted, and a quoted name may hold spaces. The last rule takes every statement no
-/// other rule reads, so it is kept byte for byte and reported on its line. Removing a variable removes the links and
-/// loops that name it.
+/// lines family, as the standalone module reads it. One statement per line. The header is read as an entry of its own,
+/// so a missing or repeated one raises nothing. A link is an element whose ends are reference attributes, so a link
+/// with an end that names nothing is kept and reported rather than dropped; its cause and effect names are read again
+/// as read-only value slots, which the definition keys the link by. A word after a link's arrow is a quoted run, a
+/// weight written as a number, or a bare word without '='; a link with any other word, such as weight=heavy, is not a
+/// link. A name may be quoted, and a quoted name may hold spaces. A variable's label is the first word after its name
+/// that is quoted or holds no '=', so that its start= and push= words are never read as its label. The title and flow
+/// statements hold the values an exported flow page starts from (specs/074-desktop-cld-flow-export); the definition
+/// maps them onto the diagram. A flow statement with a word the rule does not read is not a flow statement: the last
+/// rule keeps it and reports it. The last rule takes every statement no other rule reads, so it is kept byte for byte
+/// and reported on its line. Removing a variable removes the links and loops that name it.
 binding cld family lines {
   label "Causal loop diagram"
   claims { extensions: [".cld"], origins: ["systems/causal-loop-diagram"] }
@@ -22,9 +25,28 @@ binding cld family lines {
   element Header as header line "^\\s*causal-loop(\\s.*)?$" {
   }
 
-  element Variable as variable line "^\\s*variable\\s+(?<name>\"[^\"]+\"|[^\\s\"]+)(?:\\s+(?<label>\"[^\"]*\"|[^\\s\"]+))?(?<rest>.*)$" {
+  element Title as title line "^\\s*title\\s+(?<title>\"[^\"\\r\\n]*\")\\s*$" {
+    attribute title from group "title" { word: "^.+$" empty: keep }
+    insert { place: start, emit: "title \"{title}\"" }
+    remove {}
+  }
+
+  element Flow as flow line "^\\s*flow(?<tail>(?:\\s+(?:(?:strength|delay|inertia|speed|density)=[+-]?(?:[0-9]+\\.?[0-9]*|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?|heatmap=(?:backlog|pressure|throughput|level)))*)\\s*$" {
+    attribute strength from group "tail" { word: "^strength=(?<value>[+-]?(?:[0-9]+\\.?[0-9]*|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?)$" number: shortest empty: remove }
+    attribute delayLength from group "tail" { word: "^delay=(?<value>[+-]?(?:[0-9]+\\.?[0-9]*|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?)$" number: shortest empty: remove }
+    attribute inertia from group "tail" { word: "^inertia=(?<value>[+-]?(?:[0-9]+\\.?[0-9]*|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?)$" number: shortest empty: remove }
+    attribute speed from group "tail" { word: "^speed=(?<value>[+-]?(?:[0-9]+\\.?[0-9]*|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?)$" number: shortest empty: remove }
+    attribute density from group "tail" { word: "^density=(?<value>[+-]?(?:[0-9]+\\.?[0-9]*|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?)$" number: shortest empty: remove }
+    attribute heatmap from group "tail" { word: "^heatmap=(?<value>backlog|pressure|throughput|level)$" empty: remove }
+    insert { place: start, emit: "flow[ strength={strength}][ delay={delayLength}][ inertia={inertia}][ speed={speed}][ density={density}][ heatmap={heatmap}]" }
+    remove {}
+  }
+
+  element Variable as variable line "^\\s*variable\\s+(?<name>\"[^\"]+\"|[^\\s\"]+)(?<tail>.*)$" {
     attribute name from group "name" { word: "^.+$" empty: refuse }
-    attribute label from group "label" { word: "^.+$" empty: remove }
+    attribute label from group "tail" { word: "^(?:\"[^\"]*\"|[^\"=]+)$" empty: remove }
+    attribute start from group "tail" { word: "^start=(?<value>[+-]?(?:[0-9]+\\.?[0-9]*|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?)$" number: shortest empty: remove }
+    attribute push from group "tail" { word: "^push=(?<value>[+-]?(?:[0-9]+\\.?[0-9]*|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?)$" number: shortest empty: remove }
     insert { place: after-last, emit: "variable {name}[ \"{label}\"]" }
     remove { cascade: [link, loop] }
   }

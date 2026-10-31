@@ -1,0 +1,274 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "Every flow property set from absent, in a CRLF file (specs/074-desktop-cld-flow-export, contracts/cld-flow-statements.md). Each edit is one splice, and every other byte stays.",
+  "binding": "../../causal-loop-diagram.fbl#cld",
+  "input": "flow-set.cld",
+  "steps": [
+    {
+      "doc": "The title goes on a line of its own right after the header, an add with the position {after} of an entry of another type (FBL 11.2).",
+      "edit": {
+        "add": {
+          "type": "Title",
+          "attributes": {
+            "title": "Why it stays out of sight"
+          },
+          "position": {
+            "after": "header@1"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 15,
+          "end": 15,
+          "text": "title \"Why it stays out of sight\"\r\n"
+        }
+      ],
+      "expect": "causal-loop 1\r\ntitle \"Why it stays out of sight\"\r\n\r\nvariable a \"A\"\r\nvariable b B\r\n\r\n# Reinforcing.\r\nlink a -> b + \"a note\"\r\nlink b -> a + delayed\r\n\r\nloop R1 \"Round\" a b\r\n"
+    },
+    {
+      "doc": "The flow statement goes right after the title, its words from the rule's emit.",
+      "edit": {
+        "add": {
+          "type": "Flow",
+          "attributes": {
+            "strength": 4
+          },
+          "position": {
+            "after": "title@2"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 50,
+          "end": 50,
+          "text": "flow strength=4\r\n"
+        }
+      ],
+      "expect": "causal-loop 1\r\ntitle \"Why it stays out of sight\"\r\nflow strength=4\r\n\r\nvariable a \"A\"\r\nvariable b B\r\n\r\n# Reinforcing.\r\nlink a -> b + \"a note\"\r\nlink b -> a + delayed\r\n\r\nloop R1 \"Round\" a b\r\n"
+    },
+    {
+      "doc": "A word the emit places right after a value the statement has is an insert-key.",
+      "edit": {
+        "set": {
+          "element": "flow@3",
+          "attributes": {
+            "delayLength": 6.5
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 65,
+          "end": 65,
+          "text": " delay=6.5"
+        }
+      ],
+      "expect": "causal-loop 1\r\ntitle \"Why it stays out of sight\"\r\nflow strength=4 delay=6.5\r\n\r\nvariable a \"A\"\r\nvariable b B\r\n\r\n# Reinforcing.\r\nlink a -> b + \"a note\"\r\nlink b -> a + delayed\r\n\r\nloop R1 \"Round\" a b\r\n"
+    },
+    {
+      "doc": "The next.",
+      "edit": {
+        "set": {
+          "element": "flow@3",
+          "attributes": {
+            "inertia": 2
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 75,
+          "end": 75,
+          "text": " inertia=2"
+        }
+      ],
+      "expect": "causal-loop 1\r\ntitle \"Why it stays out of sight\"\r\nflow strength=4 delay=6.5 inertia=2\r\n\r\nvariable a \"A\"\r\nvariable b B\r\n\r\n# Reinforcing.\r\nlink a -> b + \"a note\"\r\nlink b -> a + delayed\r\n\r\nloop R1 \"Round\" a b\r\n"
+    },
+    {
+      "doc": "The next.",
+      "edit": {
+        "set": {
+          "element": "flow@3",
+          "attributes": {
+            "speed": 0.5
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 85,
+          "end": 85,
+          "text": " speed=0.5"
+        }
+      ],
+      "expect": "causal-loop 1\r\ntitle \"Why it stays out of sight\"\r\nflow strength=4 delay=6.5 inertia=2 speed=0.5\r\n\r\nvariable a \"A\"\r\nvariable b B\r\n\r\n# Reinforcing.\r\nlink a -> b + \"a note\"\r\nlink b -> a + delayed\r\n\r\nloop R1 \"Round\" a b\r\n"
+    },
+    {
+      "doc": "The next.",
+      "edit": {
+        "set": {
+          "element": "flow@3",
+          "attributes": {
+            "density": 1.5
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 95,
+          "end": 95,
+          "text": " density=1.5"
+        }
+      ],
+      "expect": "causal-loop 1\r\ntitle \"Why it stays out of sight\"\r\nflow strength=4 delay=6.5 inertia=2 speed=0.5 density=1.5\r\n\r\nvariable a \"A\"\r\nvariable b B\r\n\r\n# Reinforcing.\r\nlink a -> b + \"a note\"\r\nlink b -> a + delayed\r\n\r\nloop R1 \"Round\" a b\r\n"
+    },
+    {
+      "doc": "The heatmap reading is a word too, not a number.",
+      "edit": {
+        "set": {
+          "element": "flow@3",
+          "attributes": {
+            "heatmap": "pressure"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 107,
+          "end": 107,
+          "text": " heatmap=pressure"
+        }
+      ],
+      "expect": "causal-loop 1\r\ntitle \"Why it stays out of sight\"\r\nflow strength=4 delay=6.5 inertia=2 speed=0.5 density=1.5 heatmap=pressure\r\n\r\nvariable a \"A\"\r\nvariable b B\r\n\r\n# Reinforcing.\r\nlink a -> b + \"a note\"\r\nlink b -> a + delayed\r\n\r\nloop R1 \"Round\" a b\r\n"
+    },
+    {
+      "doc": "A changed number replaces its value and nothing else.",
+      "edit": {
+        "set": {
+          "element": "flow@3",
+          "attributes": {
+            "strength": 5
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 64,
+          "end": 65,
+          "text": "5"
+        }
+      ],
+      "expect": "causal-loop 1\r\ntitle \"Why it stays out of sight\"\r\nflow strength=5 delay=6.5 inertia=2 speed=0.5 density=1.5 heatmap=pressure\r\n\r\nvariable a \"A\"\r\nvariable b B\r\n\r\n# Reinforcing.\r\nlink a -> b + \"a note\"\r\nlink b -> a + delayed\r\n\r\nloop R1 \"Round\" a b\r\n"
+    },
+    {
+      "doc": "A changed title replaces its text, between its quotes.",
+      "edit": {
+        "set": {
+          "element": "title@2",
+          "attributes": {
+            "title": "Out of sight"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 21,
+          "end": 48,
+          "text": "\"Out of sight\""
+        }
+      ],
+      "expect": "causal-loop 1\r\ntitle \"Out of sight\"\r\nflow strength=5 delay=6.5 inertia=2 speed=0.5 density=1.5 heatmap=pressure\r\n\r\nvariable a \"A\"\r\nvariable b B\r\n\r\n# Reinforcing.\r\nlink a -> b + \"a note\"\r\nlink b -> a + delayed\r\n\r\nloop R1 \"Round\" a b\r\n"
+    },
+    {
+      "doc": "A variable's word goes after its label: the rule's emit does not place it, so no line is written again.",
+      "edit": {
+        "set": {
+          "element": "variable:a",
+          "attributes": {
+            "start": 0.7
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 129,
+          "end": 129,
+          "text": " start=0.7"
+        }
+      ],
+      "expect": "causal-loop 1\r\ntitle \"Out of sight\"\r\nflow strength=5 delay=6.5 inertia=2 speed=0.5 density=1.5 heatmap=pressure\r\n\r\nvariable a \"A\" start=0.7\r\nvariable b B\r\n\r\n# Reinforcing.\r\nlink a -> b + \"a note\"\r\nlink b -> a + delayed\r\n\r\nloop R1 \"Round\" a b\r\n"
+    },
+    {
+      "doc": "Its second word goes after the first.",
+      "edit": {
+        "set": {
+          "element": "variable:a",
+          "attributes": {
+            "push": -1.5
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 139,
+          "end": 139,
+          "text": " push=-1.5"
+        }
+      ],
+      "expect": "causal-loop 1\r\ntitle \"Out of sight\"\r\nflow strength=5 delay=6.5 inertia=2 speed=0.5 density=1.5 heatmap=pressure\r\n\r\nvariable a \"A\" start=0.7 push=-1.5\r\nvariable b B\r\n\r\n# Reinforcing.\r\nlink a -> b + \"a note\"\r\nlink b -> a + delayed\r\n\r\nloop R1 \"Round\" a b\r\n"
+    },
+    {
+      "doc": "A bare label stays bare.",
+      "edit": {
+        "set": {
+          "element": "variable:b",
+          "attributes": {
+            "start": 0.3
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-key",
+          "start": 163,
+          "end": 163,
+          "text": " start=0.3"
+        }
+      ],
+      "expect": "causal-loop 1\r\ntitle \"Out of sight\"\r\nflow strength=5 delay=6.5 inertia=2 speed=0.5 density=1.5 heatmap=pressure\r\n\r\nvariable a \"A\" start=0.7 push=-1.5\r\nvariable b B start=0.3\r\n\r\n# Reinforcing.\r\nlink a -> b + \"a note\"\r\nlink b -> a + delayed\r\n\r\nloop R1 \"Round\" a b\r\n"
+    },
+    {
+      "doc": "A link's weight is the word it was, written by the rule's emit where the line has no place for it.",
+      "edit": {
+        "set": {
+          "element": "link:a|b",
+          "attributes": {
+            "weight": 1.5
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "re-emit-line",
+          "start": 193,
+          "end": 215,
+          "text": "link a -> b + weight=1.5 \"a note\""
+        }
+      ],
+      "expect": "causal-loop 1\r\ntitle \"Out of sight\"\r\nflow strength=5 delay=6.5 inertia=2 speed=0.5 density=1.5 heatmap=pressure\r\n\r\nvariable a \"A\" start=0.7 push=-1.5\r\nvariable b B start=0.3\r\n\r\n# Reinforcing.\r\nlink a -> b + weight=1.5 \"a note\"\r\nlink b -> a + delayed\r\n\r\nloop R1 \"Round\" a b\r\n"
+    }
+  ]
+}

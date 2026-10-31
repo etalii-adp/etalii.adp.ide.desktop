@@ -34,7 +34,7 @@ mod hierarchical_requirement;
 /// of: `sankey-written-text` and `supply-chain-written-text`, which etalii.adp added with the Sankey and supply chain
 /// bindings, and the bullets family's (FBL 0.7 section 4.8, etalii.adp spec 036), with `behavior-tree-read/first-add`,
 /// which etalii.adp holds and the standalone host does not vendor.
-const STANDALONE_FIXTURES: [&str; 21] = [
+const STANDALONE_FIXTURES: [&str; 31] = [
     "behavior-tree-read/first-add",
     "bullets-edits",
     "bullets-edits/no-section",
@@ -45,6 +45,16 @@ const STANDALONE_FIXTURES: [&str; 21] = [
     "agent-activity-new",
     "agent-activity-read",
     "causal-loop-rename",
+    "causal-loop-flow-default",
+    "causal-loop-flow-legacy/findings",
+    "causal-loop-flow-legacy/on-call",
+    "causal-loop-flow-legacy/reference",
+    "causal-loop-flow-older",
+    "causal-loop-flow-range",
+    "causal-loop-flow-read",
+    "causal-loop-flow-set",
+    "causal-loop-flow-set/lf",
+    "causal-loop-flow-unknown",
     "databricks-job-dependencies",
     "databricks-pipeline-json",
     "dependency-graph-empty-flow-sequence",
@@ -141,7 +151,12 @@ const KNOWLEDGE_STEPS: [(&str, usize, usize); 4] = [
 /// the standalone host does not vendor either. They are out of scope here, not failing: etalii.adp's splice replay
 /// (`fixtures.rs`) still runs every one of them. The hierarchical-requirement tool type's fixtures are run by
 /// [`hierarchical_requirement`], through the stand-in for its DESL interpreter.
-const NOT_SUPPORTED: [&str; 21] = [
+const NOT_SUPPORTED: [&str; 25] = [
+    // FBL 0.14, a new member of a yaml or json mapping named by its key: etalii.adp has them, and this host does not read FBL 0.14 yet.
+    "databricks-resource-add/bundle",
+    "databricks-resource-add/fresh",
+    "databricks-resource-add/no-jobs",
+    "insert-member-json",
     // The standalone host does not vendor this one at a7fdf03 either: its Retry's attempts is read as the text "1",
     // as every value of a lines or bullets group is, and the fixture reads the number 1, which the specification's
     // type gives it above FBL (agent-behavior-modelling.dis, `Retry.attempts: int`).
@@ -622,6 +637,18 @@ fn read_change(edit: &Json, model: Option<&FblModel>) -> Result<ModelChange, Str
         });
     }
     if let Some(add) = edit.get("add") {
+        // A position after an entry of another type is no index among siblings (etalii.adp spec 074).
+        if let Some(after) = add["position"]["after"].as_str()
+            && model
+                .and_then(|m| m.find(after))
+                .is_some_and(|e| add["type"].as_str() != Some(e.type_name.as_str()))
+        {
+            return Ok(ModelChange::AddAfter {
+                type_name: add["type"].as_str().unwrap_or_default().to_owned(),
+                attributes: attributes(&add["attributes"]),
+                after: after.to_owned(),
+            });
+        }
         return Ok(ModelChange::Add {
             type_name: add["type"].as_str().unwrap_or_default().to_owned(),
             id: add.get("id").and_then(Json::as_str).map(str::to_owned),

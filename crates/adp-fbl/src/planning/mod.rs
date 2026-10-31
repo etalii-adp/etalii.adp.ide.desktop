@@ -28,6 +28,13 @@ pub enum ModelChange {
         index: Option<i64>,
         slot: Option<String>,
     },
+    /// Adds an entry on a line of its own right after the entry `after`, whatever that entry's type (FBL section 11.2,
+    /// the position `{after}`; etalii.adp spec 074): a statement that belongs beside a header it is not a sibling of.
+    AddAfter {
+        type_name: String,
+        attributes: Map,
+        after: String,
+    },
     /// Moves an element under `new_parent_id` (the top level when none), before the child now at `index` there,
     /// or after the last when the index is negative or past them. The index counts the new parent's children as
     /// they are before the move, the element itself included.

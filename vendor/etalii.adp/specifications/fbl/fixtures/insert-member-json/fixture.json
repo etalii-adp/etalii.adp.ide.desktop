@@ -1,0 +1,101 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "An insert adds a member to a json object, named by the key the add gives the attribute bound to the capture its rule's at ends in (FBL 0.14, section 6.2; spec 066, FR-039): written after the last member with the separator before it, refused for a key the object holds or none, and removed with one separator. Written here; databricks-resource-add/ shows the same construct in yaml through databricks.fbl.",
+  "binding": "lanes.fbl#lanes",
+  "input": "lanes.json",
+  "steps": [
+    {
+      "doc": "A lane is added as a member of the object lanes after its last member: the separator of the member before it, a line ending, the key as a json string and an object holding the entry's keys, one member per line as its siblings are (FBL 0.14, section 6.2; section 6.3, json values).",
+      "edit": {
+        "add": {
+          "type": "Lane",
+          "attributes": {
+            "key": "done",
+            "title": "Done"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 109,
+          "end": 109,
+          "text": ",\r\n    \"done\": {\r\n      \"title\": \"Done\"\r\n    }"
+        }
+      ],
+      "expect": "{\r\n  \"lanes\": {\r\n    \"todo\": {\r\n      \"title\": \"To do\"\r\n    },\r\n    \"doing\": {\r\n      \"title\": \"Doing\"\r\n    },\r\n    \"done\": {\r\n      \"title\": \"Done\"\r\n    }\r\n  }\r\n}\r\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the add or removal replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 109,
+          "end": 155,
+          "text": ""
+        }
+      ],
+      "expect": "{\r\n  \"lanes\": {\r\n    \"todo\": {\r\n      \"title\": \"To do\"\r\n    },\r\n    \"doing\": {\r\n      \"title\": \"Doing\"\r\n    }\r\n  }\r\n}\r\n"
+    },
+    {
+      "doc": "A key the object already holds is refused with refusals.duplicate.",
+      "edit": {
+        "add": {
+          "type": "Lane",
+          "attributes": {
+            "key": "todo",
+            "title": "Again"
+          }
+        }
+      },
+      "refused": "A lane with that key is already there.",
+      "splices": [],
+      "expect": "{\r\n  \"lanes\": {\r\n    \"todo\": {\r\n      \"title\": \"To do\"\r\n    },\r\n    \"doing\": {\r\n      \"title\": \"Doing\"\r\n    }\r\n  }\r\n}\r\n"
+    },
+    {
+      "doc": "An add that gives no key is refused with refusals.key.",
+      "edit": {
+        "add": {
+          "type": "Lane",
+          "attributes": {
+            "title": "Nameless"
+          }
+        }
+      },
+      "refused": "A lane needs a key.",
+      "splices": [],
+      "expect": "{\r\n  \"lanes\": {\r\n    \"todo\": {\r\n      \"title\": \"To do\"\r\n    },\r\n    \"doing\": {\r\n      \"title\": \"Doing\"\r\n    }\r\n  }\r\n}\r\n"
+    },
+    {
+      "doc": "Removing the first lane removes its line span and the separator after it, as any json entry is removed (section 6.2).",
+      "edit": {
+        "remove": {
+          "element": "todo"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 17,
+          "end": 64,
+          "text": ""
+        }
+      ],
+      "expect": "{\r\n  \"lanes\": {\r\n    \"doing\": {\r\n      \"title\": \"Doing\"\r\n    }\r\n  }\r\n}\r\n"
+    },
+    {
+      "doc": "Undo puts back the bytes the add or removal replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 17,
+          "end": 17,
+          "text": "    \"todo\": {\r\n      \"title\": \"To do\"\r\n    },\r\n"
+        }
+      ],
+      "expect": "{\r\n  \"lanes\": {\r\n    \"todo\": {\r\n      \"title\": \"To do\"\r\n    },\r\n    \"doing\": {\r\n      \"title\": \"Doing\"\r\n    }\r\n  }\r\n}\r\n"
+    }
+  ]
+}

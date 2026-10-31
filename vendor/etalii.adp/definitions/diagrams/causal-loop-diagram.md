@@ -13,6 +13,7 @@ The tool it describes is the standalone module `src/diagrams/causal-loop-diagram
 5. [Other differences a runtime will meet](#other-differences-a-runtime-will-meet)
 6. [Pending with the owner](#pending-with-the-owner)
 7. [What stays code](#what-stays-code)
+8. [The flow properties](#the-flow-properties)
 
 ## How the specification maps the tool
 
@@ -176,3 +177,26 @@ Every class left in the standalone module, `src/diagrams/causal-loop-diagram/`, 
 | `client/CausalLoopCanvas.tsx`, `client/cldBindings.ts` | Host: the canvas compiled from this specification, with what the library cannot read from it (CEL paths, class names, the weight ladder's classes, and gap 4's wavy underline). |
 | `client/causalLoopModel.ts`, `client/useCausalLoopStream.ts`, `client/register.ts` | Host: decoding the payloads, the stream and the module's registration. |
 | `client/causal-loop.css` | Host: the theme's colours. |
+
+## The flow properties
+
+The diagram still simulates nothing itself: no host moves its variables. A flow page exported from it does ([spec 074](../../specs/074-desktop-cld-flow-export/desktop-cld-flow-export.spec.md)), and these are the values it starts from. Each is optional, a file states only what differs from its default, and setting one back to its default removes what held it.
+
+| On | Property | Attribute | Range | Default | In the `.cld` |
+| --- | --- | --- | --- | --- | --- |
+| the diagram | Title | `title` | no quote or line break | none, the page using the file name | `title "<text>"` |
+| the diagram | Link strength | `strength` | 0.5 to 8 | 3 | `flow strength=<n>` |
+| the diagram | Delay length | `delayLength` | 1 to 12 | 5 | `flow delay=<n>` |
+| the diagram | Inertia | `inertia` | 0.2 to 5 seconds | 1.2 | `flow inertia=<n>` |
+| the diagram | Simulation speed | `speed` | 0.1 to 4 | 1 | `flow speed=<n>` |
+| the diagram | Dot density | `density` | 0.5 to 8 | 3 | `flow density=<n>` |
+| the diagram | Heatmap reading | `heatmap` | Backlog, Pressure, Throughput, Level | Backlog | `flow heatmap=<word>` |
+| a variable | Starting level | `start` | 0 to 1 | 0.5 | `start=<n>` in its line |
+| a variable | Outside push | `push` | -4 to 4 | 0 | `push=<n>` in its line |
+| a link | Weight | `weight` | limited to 0 to 3 in a page | 1 in a page, none in the file | `weight=<n>` in its line |
+
+A value out of range is kept as written and reported under `causal-loop.flow-value-out-of-range`, and the page uses the nearest value in range; on a variable the finding stands on its line, and on the diagram it has none, since a finding on the diagram names no line. The property grid refuses such a value with the range. A `flow` statement with a word the rule does not read is no `flow` statement: the last rule keeps it byte for byte and it is reported on its line. Of two `flow` statements the last that states a key wins for that key, and an edit goes there. Nothing tells a person that an earlier statement is overruled, since neither FBL nor DISL can state that and a host adds no finding of its own for it.
+
+A host with the older binding reads a file that holds them and loses nothing: a `title` or `flow` line is its last rule's, kept byte for byte and reported as unread, and a variable's words are its unbound rest, kept byte for byte and not reported (the fixture `causal-loop-flow-older`). A variable whose label is not quoted may not hold `=` from this version on, so that `variable a start=0.7` reads no label.
+
+A diagram attribute is written by the rule its binding type's `typeMap` entry names it under: the last entry that states it, else the last of that type, else a new entry on the line after the entries at the top of the body that are the header or an earlier type of the diagram. No language construct is added for that. It is what FBL section 11.2's position `{after}` says, for an entry of another type (`causal-loop-flow-set`).

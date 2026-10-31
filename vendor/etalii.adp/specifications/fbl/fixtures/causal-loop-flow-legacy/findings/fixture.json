@@ -1,0 +1,16 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A .cld written before the flow properties: read and saved without an edit, it is byte-identical (FR-029).",
+  "binding": "../../../causal-loop-diagram.fbl#cld",
+  "input": "findings.cld",
+  "steps": [
+    {
+      "doc": "Nothing changes on a save.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "causal-loop 1\n\n# Every finding a document can produce, and cycles whose order is the finder's.\nvariable a \"A\"\nvariable b \"B\"\nvariable c \"C\"\nvariable d \"D\"\nvariable e \"E\"\n\nlink a -> b +\nlink b -> c -\nlink c -> d +\nlink d -> a +\nlink a -> c +\nlink c -> a -\nlink b -> d\nlink d -> b +\nlink e -> nowhere +\n\nbogus statement\nlink a b\nlink a -> b weight=heavy\nvariable \"\"\n\nloop R1 \"Says reinforcing\" a b c d\nloop B2 \"Undecidable\" b d\nloop R3 \"Not a cycle\" a e\n"
+    }
+  ]
+}

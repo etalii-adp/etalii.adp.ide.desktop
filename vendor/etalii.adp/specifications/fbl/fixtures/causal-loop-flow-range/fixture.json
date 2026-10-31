@@ -1,0 +1,52 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "Values out of range are kept as written. The binding reads them; the definition's constraints report them and a flow page uses the nearest value in range.",
+  "binding": "../../causal-loop-diagram.fbl#cld",
+  "input": "flow-range.cld",
+  "read": {
+    "elements": [
+      {
+        "id": "header@1",
+        "type": "Header"
+      },
+      {
+        "id": "flow@2",
+        "type": "Flow",
+        "attributes": {
+          "strength": "99",
+          "inertia": "-2"
+        }
+      },
+      {
+        "id": "variable:a",
+        "type": "Variable",
+        "attributes": {
+          "start": "7"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "A value out of range reads as written, and the definition's constraints report it; an edit replaces it.",
+      "edit": {
+        "set": {
+          "element": "flow@2",
+          "attributes": {
+            "strength": 8
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 29,
+          "end": 31,
+          "text": "8"
+        }
+      ],
+      "expect": "causal-loop 1\r\nflow strength=8 inertia=-2\r\nvariable a \"A\" start=7\r\n"
+    }
+  ]
+}

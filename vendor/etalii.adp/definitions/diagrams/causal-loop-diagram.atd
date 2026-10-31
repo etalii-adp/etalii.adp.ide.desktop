@@ -12,14 +12,15 @@ atd 0.1
 /// reported, and every feedback cycle nobody named is reported too. Nothing is ever corrected for the author: the label
 /// may be the intent and an arrow the mistake.
 ///
-/// The diagram states structure and simulates nothing. There are no stocks, flows or equations, and a weight is an
-/// annotation.
+/// The diagram states structure and simulates nothing itself. There are no stocks, flows or equations. Its flow
+/// properties are the values a flow page exported from it starts from, and a weight is its link's starting strength
+/// there.
 ///
 /// The `.cld` body is read and written through the FBL binding the standalone module ships. Every sentence, label and
 /// code below is the standalone tool's, as its parity transcript records them. What DISL 0.3 cannot state is written
 /// down in `causal-loop-diagram.md` beside this file, and the wire ids the standalone client and backend share are
 /// declared under `x-cld`.
-diagram systems/causal-loop-diagram version "2.0.0" {
+diagram systems/causal-loop-diagram version "2.1.0" {
   label "Causal loop diagram"
   id: "net.etalii.adp.systems.causal-loop-diagram"
   defaultLocale: en
@@ -75,6 +76,15 @@ diagram systems/causal-loop-diagram version "2.0.0" {
       "Loop/delete": "causal-loop.remove-loop"
     }
     properties: {
+      diagramTitle: "causal-loop.diagram-title"
+      strength: "causal-loop.flow-strength"
+      delayLength: "causal-loop.flow-delay"
+      inertia: "causal-loop.flow-inertia"
+      speed: "causal-loop.flow-speed"
+      density: "causal-loop.flow-density"
+      heatmap: "causal-loop.flow-heatmap"
+      start: "causal-loop.variable-start"
+      push: "causal-loop.variable-push"
       label: "causal-loop.variable-label"
       name: "causal-loop.variable-id"
       "Cause (from)": "causal-loop.link-from"
@@ -303,6 +313,27 @@ diagram systems/causal-loop-diagram version "2.0.0" {
   /// links form, and whether each reinforces or balances, is computed from these and never stored.
   model {
 
+    /// The diagram's own title and the values a flow page exported from it starts from. Each is optional, and a file
+    /// states only what differs from the default. They are written in the `title` and `flow` statements, right after
+    /// the header.
+    document {
+      /// The diagram's own title, which a flow page exported from it carries; without one the page uses the file name.
+      /// Written in a `title` statement.
+      attribute title: string { pattern: "^[^\"\\r\\n]*$", label: Title, group: Identity, order: 1 }
+      /// How strongly a variable answers its inputs in a flow page. Between 0.5 and 8; 3 when the file states none.
+      attribute strength: number default 3 { min: 0.5, max: 8, label: "Link strength", group: "Flow page", order: 1 }
+      /// How many times slower a delayed link is than a plain one in a flow page. Between 1 and 12; 5 when the file states none.
+      attribute delayLength: number default 5 { min: 1, max: 12, label: "Delay length", group: "Flow page", order: 2 }
+      /// How many seconds a variable takes to answer its inputs in a flow page. Between 0.2 and 5; 1.2 when the file states none.
+      attribute inertia: number default 1.2 { min: 0.2, max: 5, label: "Inertia", group: "Flow page", order: 3 }
+      /// How fast a flow page runs. Between 0.1 and 4; 1 when the file states none.
+      attribute speed: number default 1 { min: 0.1, max: 4, label: "Simulation speed", group: "Flow page", order: 4 }
+      /// How many dots a link of a flow page sends. Between 0.5 and 8; 3 when the file states none.
+      attribute density: number default 3 { min: 0.5, max: 8, label: "Dot density", group: "Flow page", order: 5 }
+      /// The reading a flow page opens on.
+      attribute heatmap: HeatmapReading default backlog { label: "Heatmap reading", group: "Flow page", order: 6 }
+    }
+
     /// A quantity the system has, one that can go up or down. The label is what a reader sees; the name is what links
     /// and loops refer to.
     element Variable {
@@ -318,6 +349,10 @@ diagram systems/causal-loop-diagram version "2.0.0" {
       attribute label: string { pattern: "^[^\"\\r\\n]*$", label: Label, group: Identity, order: 1 }
       /// The text drawn on the variable: its label, or its identifier where no label is written.
       attribute display: string { derived: (self.label != '' ? self.label : self.name) }
+      /// The level this variable starts at in a flow page, and the place of its slider when no link points to it. Between 0 and 1; 0.5 when the file states none.
+      attribute start: number default 0.5 { min: 0, max: 1, label: "Starting level", group: "Flow page", order: 1 }
+      /// What pushes this variable up or down from outside the diagram in a flow page. Between -4 and 4; 0 when the file states none.
+      attribute push: number default 0 { min: -4, max: 4, label: "Outside push", group: "Flow page", order: 2 }
     }
 
     /// A feedback loop the author claims: an identifier, a descriptive name and the cycle of variables it runs through.
@@ -381,13 +416,13 @@ diagram systems/causal-loop-diagram version "2.0.0" {
       /// Bows this link's curve to the other side of its chord, where the automatic side crosses something. The
       /// document's one presentation word; set from the link's menu, not the property grid.
       attribute flipped: bool default false { label: "Flipped curve" }
-      /// An author's annotation of strength. Recorded, never evaluated.
+      /// An author's statement of strength, and this link's starting strength in a flow page. No host evaluates it.
       attribute weight: number {
         label: Weight
         group: Causality
         order: 4
         doc: {
-          rationale: "This diagram states structure and simulates nothing, so the number is an annotation and nothing reads it as a coefficient. Absent and zero differ: an unweighted link is not a link of weight zero."
+          rationale: "This diagram states structure and simulates nothing itself, so only a flow page exported from it reads the number: limited there to 0 to 3, and an absent weight starts at 1. Absent and zero differ: an unweighted link is not a link of weight zero."
         }
       }
       /// An optional note on the link, written between double quotes.
@@ -410,6 +445,14 @@ diagram systems/causal-loop-diagram version "2.0.0" {
       unstated { label: Unstated, doc: "No polarity was written. Every loop through this link is undecidable." }
     }
 
+    /// What the colours of a flow page show.
+    enum HeatmapReading {
+      backlog { label: Backlog, doc: "The influence in transit towards each variable, relative to the busiest." }
+      pressure { label: Pressure, doc: "How far each variable is from where its inputs push it." }
+      throughput { label: Throughput, doc: "The influence arriving at each variable per second, relative to the busiest." }
+      level { label: Level, doc: "Each variable's own level, from 0 to 1." }
+    }
+
     /// What the arrows say a loop is, as opposed to what its identifier claims.
     enum LoopPolarity {
       reinforcing {
@@ -426,7 +469,7 @@ diagram systems/causal-loop-diagram version "2.0.0" {
     }
   }
 
-  /// The seven findings of the standalone tool, with its codes, severities and sentences, and nothing else: the
+  /// The seven findings of the standalone tool, with its codes, severities and sentences, and the flow properties' ranges, and nothing else: the
   /// built-ins that would add a finding the tool does not give are switched off (requirements Q4), and their refusals
   /// are declared gesture rules with the tool's sentences.
   constraints {
@@ -434,6 +477,10 @@ diagram systems/causal-loop-diagram version "2.0.0" {
       feedback: {
         label: Feedback
         doc: "The check this diagram type exists for: loop labels against the arrows, and loops nobody named."
+      }
+      flowPage: {
+        label: "Flow page"
+        doc: "A value a flow page starts from, outside its range. It is kept as written, and the page uses the nearest value in range."
       }
     }
     order: ["causal-loop.unreadable-line", "causal-loop.dangling-link", "causal-loop.cycle-bound-reached"]
@@ -469,6 +516,71 @@ diagram systems/causal-loop-diagram version "2.0.0" {
     builtin std.facets {
       refusal: (violation.attribute == 'identifier' ? 'A name needs at least one character and no whitespace, because a statement is read as words on one line.' : 'A label or loop name cannot hold a double quote, because it is written between double quotes.')
       doc: "The patterns of a label, a note, a loop name and a loop identifier refuse an edit with the tool's sentences. No value the binding reads can break them, so they raise no finding."
+    }
+
+    constraint strengthInRange for diagram {
+      label "Link strength is in range"
+      rule diagram.strength >= 0.5 && diagram.strength <= 8.0
+      severity warning
+      message ('Link strength is ' + string(diagram.strength) + '; it must be between 0.5 and 8.')
+      code: "causal-loop.flow-value-out-of-range"
+      group: flowPage
+    }
+
+    constraint delayLengthInRange for diagram {
+      label "Delay length is in range"
+      rule diagram.delayLength >= 1.0 && diagram.delayLength <= 12.0
+      severity warning
+      message ('Delay length is ' + string(diagram.delayLength) + '; it must be between 1 and 12.')
+      code: "causal-loop.flow-value-out-of-range"
+      group: flowPage
+    }
+
+    constraint inertiaInRange for diagram {
+      label "Inertia is in range"
+      rule diagram.inertia >= 0.2 && diagram.inertia <= 5.0
+      severity warning
+      message ('Inertia is ' + string(diagram.inertia) + '; it must be between 0.2 and 5.')
+      code: "causal-loop.flow-value-out-of-range"
+      group: flowPage
+    }
+
+    constraint speedInRange for diagram {
+      label "Simulation speed is in range"
+      rule diagram.speed >= 0.1 && diagram.speed <= 4.0
+      severity warning
+      message ('Simulation speed is ' + string(diagram.speed) + '; it must be between 0.1 and 4.')
+      code: "causal-loop.flow-value-out-of-range"
+      group: flowPage
+    }
+
+    constraint densityInRange for diagram {
+      label "Dot density is in range"
+      rule diagram.density >= 0.5 && diagram.density <= 8.0
+      severity warning
+      message ('Dot density is ' + string(diagram.density) + '; it must be between 0.5 and 8.')
+      code: "causal-loop.flow-value-out-of-range"
+      group: flowPage
+    }
+
+    constraint startInRange for Variable {
+      label "Starting level is in range"
+      rule self.start >= 0.0 && self.start <= 1.0
+      severity warning
+      message ('Starting level is ' + string(self.start) + '; it must be between 0 and 1.')
+      code: "causal-loop.flow-value-out-of-range"
+      group: flowPage
+      attribute: start
+    }
+
+    constraint pushInRange for Variable {
+      label "Outside push is in range"
+      rule self.push >= -4.0 && self.push <= 4.0
+      severity warning
+      message ('Outside push is ' + string(self.push) + '; it must be between -4 and 4.')
+      code: "causal-loop.flow-value-out-of-range"
+      group: flowPage
+      attribute: push
     }
 
     /// The cycle search is bounded, and says so when the bound stops it.
@@ -727,6 +839,19 @@ diagram systems/causal-loop-diagram version "2.0.0" {
       Header: {
         as: header
         doc: "Every `causal-loop` statement, wherever it stands; a missing or repeated one raises nothing."
+      }
+      Title: { as: diagram, attributes: { title: title }, doc: "The `title` statement." }
+      Flow: {
+        as: diagram
+        attributes: {
+          strength: strength
+          delayLength: delayLength
+          inertia: inertia
+          speed: speed
+          density: density
+          heatmap: heatmap
+        }
+        doc: "A `flow` statement. Of two, the last one that states a key wins for that key."
       }
       Variable: { as: Variable }
       Link: {

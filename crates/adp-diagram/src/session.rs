@@ -24,7 +24,7 @@ use std::rc::Rc;
 
 use adp_cel::{Map, Value};
 use adp_context::{ActionGroup, Prompt, PropertyRow};
-use adp_disl::behavior::{deletion, hooks, operations};
+use adp_disl::behavior::{deletion, hooks, operations, write};
 use adp_disl::derivation::{constraints, form_commit, gestures};
 use adp_disl::model::builder;
 use adp_disl::{
@@ -982,6 +982,54 @@ impl DiagramSession {
             format!("Change {} elements", element_ids.len())
         };
         let edit = document.plan(&label, &changes)?;
+        workspace.execute(edit)
+    }
+
+    /// The property rows of the diagram itself (etalii.adp spec 074, FR-025), which an empty selection shows; none for a
+    /// tool type whose specification gives the diagram no form, or a module's own view.
+    pub fn diagram_properties(&self, documents: &DiagramDocuments) -> Vec<PropertyRow> {
+        if self.view.is_some() {
+            return Vec::new();
+        }
+        let Ok(document) = self.document(documents) else {
+            return Vec::new();
+        };
+        document
+            .tool()
+            .definition
+            .diagram_rows(&document.model().diagram, &self.env)
+    }
+
+    /// Sets property `property_id` of the diagram itself to `value`, as one command and one undo; a value the row
+    /// already shows writes nothing.
+    pub fn set_diagram_property(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        property_id: &str,
+        value: &str,
+    ) -> Result<(), String> {
+        let document = self.document(workspace.documents())?;
+        let definition = &document.tool().definition;
+        let specification = definition.specification();
+        let row = definition.row_key(property_id);
+        let working = builder::from(document.fbl(), specification).diagram;
+        if definition
+            .diagram_rows(&working, &self.env)
+            .iter()
+            .any(|r| r.id == property_id && r.value == value)
+        {
+            return Ok(());
+        }
+        let assigned = form_commit::diagram_row(specification, &working, &row, value, &self.env, "inspector")?;
+        let mut changes = Vec::new();
+        for (attribute, written) in &assigned {
+            changes.extend(
+                write::diagram_set(specification, document.fbl(), attribute, written)?
+                    .into_iter()
+                    .map(DiagramChange::Body),
+            );
+        }
+        let edit = document.plan("Change", &changes)?;
         workspace.execute(edit)
     }
 

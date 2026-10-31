@@ -1,0 +1,57 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "T001: the binding as it was before the flow properties, reading a file that holds them. The title and flow statements are its last rule's, kept byte for byte and reported as unread on their lines; a variable's start= and push= words are its unbound rest, kept byte for byte and not reported.",
+  "binding": "older.fbl#cld",
+  "input": "older.cld",
+  "read": {
+    "elements": [
+      {
+        "id": "header@1",
+        "type": "Header"
+      },
+      {
+        "id": "unreadable@2",
+        "type": "Unreadable"
+      },
+      {
+        "id": "unreadable@3",
+        "type": "Unreadable"
+      },
+      {
+        "id": "variable:a",
+        "type": "Variable",
+        "attributes": {
+          "name": "a",
+          "label": "A"
+        }
+      },
+      {
+        "id": "variable:b",
+        "type": "Variable"
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "A host with the older binding edits the file and keeps every new statement and word: the rule reads the variable with its rest unbound, and takes the line as it stands (research R2).",
+      "edit": {
+        "set": {
+          "element": "variable:a",
+          "attributes": {
+            "label": "Alpha"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 54,
+          "end": 57,
+          "text": "\"Alpha\""
+        }
+      ],
+      "expect": "causal-loop 1\r\ntitle \"T\"\r\nflow strength=4\r\nvariable a \"Alpha\" start=0.7 push=-1.5\r\nvariable b \"B\"\r\n"
+    }
+  ]
+}

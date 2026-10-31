@@ -1,0 +1,84 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "Every flow statement and word as the binding reads it. Of two flow statements each is read; the definition lets the last that states a key win for that key. A variable's words are never its label, with or without one.",
+  "binding": "../../causal-loop-diagram.fbl#cld",
+  "input": "flow-read.cld",
+  "read": {
+    "elements": [
+      {
+        "id": "header@1",
+        "type": "Header"
+      },
+      {
+        "id": "title@2",
+        "type": "Title",
+        "attributes": {
+          "title": "Mental health at work"
+        }
+      },
+      {
+        "id": "flow@3",
+        "type": "Flow",
+        "attributes": {
+          "strength": "4",
+          "delayLength": "2",
+          "inertia": "2",
+          "speed": "0.5",
+          "density": "1.5"
+        }
+      },
+      {
+        "id": "flow@4",
+        "type": "Flow",
+        "attributes": {
+          "strength": "5",
+          "heatmap": "level"
+        }
+      },
+      {
+        "id": "variable:a",
+        "type": "Variable",
+        "attributes": {
+          "name": "a",
+          "label": "A",
+          "start": "0.7",
+          "push": "-1.5"
+        }
+      },
+      {
+        "id": "variable:b",
+        "type": "Variable",
+        "attributes": {
+          "name": "b",
+          "start": "0.25"
+        }
+      },
+      {
+        "id": "variable:c",
+        "type": "Variable",
+        "attributes": {
+          "name": "c",
+          "label": "C"
+        }
+      },
+      {
+        "id": "link:a|b",
+        "type": "Link",
+        "attributes": {
+          "polarity": "positive"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Nothing changes on a save.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "causal-loop 1\r\ntitle \"Mental health at work\"\r\nflow strength=4 delay=2 inertia=2 speed=0.5 density=1.5\r\nflow strength=5 heatmap=level\r\nvariable a \"A\" start=0.7 push=-1.5\r\nvariable b start=0.25\r\nvariable c C\r\nlink a -> b +\r\n"
+    }
+  ]
+}

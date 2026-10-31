@@ -1,0 +1,21 @@
+{
+  "tool": "systems/causal-loop-diagram",
+  "fixture": "systems/causal-loop-diagram/reference/reference.cld",
+  "registration": "systems/causal-loop-diagram/reference/reference.adp",
+  "steps": [
+    { "select": [] },
+    { "property": { "row": "causal-loop.flow-strength", "value": "4" } },
+    { "property": { "row": "causal-loop.diagram-title", "value": "Why the population grows" } },
+    { "property": { "row": "causal-loop.flow-heatmap", "value": "Pressure" } },
+    { "property": { "row": "causal-loop.flow-delay", "value": "6.5" } },
+    { "property": { "row": "causal-loop.flow-inertia", "value": "2" } },
+    { "property": { "row": "causal-loop.flow-speed", "value": "0.5" } },
+    { "property": { "row": "causal-loop.flow-density", "value": "1.5" } },
+    { "property": { "row": "causal-loop.flow-strength", "value": "9" }, "expect": "refused" },
+    { "property": { "row": "causal-loop.flow-strength", "value": "5" } },
+    { "property": { "row": "causal-loop.variable-start", "value": "0.7", "target": "variable:population" } },
+    { "property": { "row": "causal-loop.variable-push", "value": "-1.5", "target": "variable:population" } },
+    { "property": { "row": "causal-loop.variable-start", "value": "2", "target": "variable:births" }, "expect": "refused" },
+    { "property": { "row": "causal-loop.link-weight", "value": "1.5", "target": "link:population|births" } }
+  ]
+}

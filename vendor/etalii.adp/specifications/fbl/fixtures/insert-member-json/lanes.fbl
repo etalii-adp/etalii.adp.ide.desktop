@@ -1,0 +1,57 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.14",
+  "doc": "The binding of this fixture alone (FBL 0.14, section 6.2): the lanes of a board, members of the object lanes, each named by its key, which the capture lane reads; an insert adds a lane as a new member under the key the add gives.",
+  "bindings": {
+    "lanes": {
+      "title": "Lanes, JSON",
+      "claims": {
+        "registrationOnly": true
+      },
+      "body": {
+        "kind": "file",
+        "family": "json"
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "crlf",
+        "indent": 2,
+        "finalNewline": true
+      },
+      "elements": [
+        {
+          "name": "lane",
+          "type": "Lane",
+          "at": "/lanes/{lane}",
+          "id": {
+            "from": {
+              "capture": "lane"
+            }
+          },
+          "attributes": {
+            "key": {
+              "capture": "lane",
+              "readOnly": "A lane is renamed in the file."
+            },
+            "title": {
+              "key": "title",
+              "empty": "keep"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/lanes",
+            "keys": [
+              "title"
+            ],
+            "refusals": {
+              "key": "A lane needs a key.",
+              "duplicate": "A lane with that key is already there."
+            }
+          },
+          "remove": {}
+        }
+      ]
+    }
+  }
+}

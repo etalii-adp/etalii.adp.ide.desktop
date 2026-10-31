@@ -1,0 +1,18 @@
+{
+  "tool": "systems/causal-loop-diagram",
+  "fixture": "systems/causal-loop-diagram/reference/reference.cld",
+  "registration": "systems/causal-loop-diagram/reference/reference.adp",
+  "steps": [
+    { "select": [] },
+    { "property": { "row": "causal-loop.diagram-title", "value": "T" } },
+    { "property": { "row": "causal-loop.flow-strength", "value": "4" } },
+    { "property": { "row": "causal-loop.flow-delay", "value": "6.5" } },
+    { "property": { "row": "causal-loop.variable-start", "value": "0.7", "target": "variable:population" } },
+    { "property": { "row": "causal-loop.flow-strength", "value": "3" } },
+    { "property": { "row": "causal-loop.flow-delay", "value": "" } },
+    { "property": { "row": "causal-loop.diagram-title", "value": "" } },
+    { "property": { "row": "causal-loop.variable-start", "value": "0.5", "target": "variable:population" } },
+    { "property": { "row": "causal-loop.flow-heatmap", "value": "Level" } },
+    { "undo": 1 }
+  ]
+}

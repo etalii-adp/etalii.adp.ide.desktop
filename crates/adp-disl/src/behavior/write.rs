@@ -9,7 +9,7 @@
 //! `source` and `target`, or as `source` and `target` where it maps none.
 
 use adp_cel::{Map, Value};
-use adp_fbl::ModelChange;
+use adp_fbl::{FblModel, ModelChange};
 
 use super::change::DislChange;
 use crate::expressions::year_month;
@@ -103,6 +103,92 @@ pub fn stored_form(specification: &DislSpecification, type_name: &str, attribute
         Some(definition) => stored(specification, &definition.type_name, value),
         None => value.clone(),
     }
+}
+
+/// The stored form of `value` for an attribute of type `type_name`.
+pub fn stored_of_type(specification: &DislSpecification, type_name: &str, value: &Value) -> Value {
+    stored(specification, type_name, value)
+}
+
+/// The FBL changes that set diagram attribute `attribute` to `value` (null to forget it), against `reading` (etalii.adp
+/// spec 074). A diagram attribute lives in an entry of a binding type `persistence.typeMap` maps as `diagram` and whose
+/// `attributes` name it:
+///
+/// - a value goes to the last such entry that states the attribute, else the last such entry, else a new one, which
+///   stands right after the entries at the top of the body that are mapped as the header or as an earlier type of the
+///   diagram, or where its rule's insert says when there are none;
+/// - a forgotten attribute leaves every entry that states it, last first so that no earlier id moves; an entry left with
+///   nothing to state is removed with it.
+pub fn diagram_set(
+    specification: &DislSpecification,
+    reading: &FblModel,
+    attribute: &str,
+    value: &Value,
+) -> Result<Vec<ModelChange>, String> {
+    let map = TypeMap::of(specification);
+    let Some(binding_type) = map.diagram_type_holding(attribute) else {
+        return Err(format!("This file has no place for the diagram's {attribute}."));
+    };
+    let mapping = map.mapping(&binding_type);
+    let name = mapping.binding_name(attribute).to_owned();
+    let states = |element: &adp_fbl::FblElement, name: &str| element.attributes.get(name).is_some_and(|v| !v.is_null());
+    let entries: Vec<&adp_fbl::FblElement> = reading
+        .elements
+        .iter()
+        .filter(|e| e.type_name == binding_type)
+        .collect();
+    if value.is_null() {
+        return Ok(entries
+            .iter()
+            .rev()
+            .filter(|e| states(e, &name))
+            .map(|e| {
+                if mapping
+                    .attributes
+                    .keys()
+                    .any(|other| *other != name && states(e, other))
+                {
+                    let mut attributes = Map::default();
+                    attributes.insert(name.clone(), Value::Null);
+                    ModelChange::Set {
+                        id: e.id.clone(),
+                        attributes,
+                    }
+                } else {
+                    ModelChange::Remove { id: e.id.clone() }
+                }
+            })
+            .collect());
+    }
+    let mut attributes = Map::default();
+    attributes.insert(name.clone(), value.clone());
+    if let Some(entry) = entries.iter().rev().find(|e| states(e, &name)).or(entries.last()) {
+        return Ok(vec![ModelChange::Set {
+            id: entry.id.clone(),
+            attributes,
+        }]);
+    }
+    let before = map.diagram_types_before(&binding_type);
+    let anchor = reading
+        .elements
+        .iter()
+        .take_while(|e| map.mapping(&e.type_name).as_type == "header" || before.contains(&e.type_name))
+        .last();
+    Ok(vec![match anchor {
+        Some(anchor) => ModelChange::AddAfter {
+            type_name: binding_type,
+            attributes,
+            after: anchor.id.clone(),
+        },
+        None => ModelChange::Add {
+            type_name: binding_type,
+            id: None,
+            attributes,
+            parent_id: None,
+            index: None,
+            slot: None,
+        },
+    }])
 }
 
 /// The id `id`, an element of `type_name`, was read with: without the prefix the type's `natural` id rule declares.
