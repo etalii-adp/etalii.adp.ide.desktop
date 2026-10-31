@@ -16,6 +16,7 @@ mod hierarchy;
 mod highlight;
 mod icons;
 mod markdown;
+mod platform_open;
 mod problems;
 mod properties;
 mod ribbon;

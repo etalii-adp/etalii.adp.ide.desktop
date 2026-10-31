@@ -2,7 +2,8 @@
 //! workspace. File's Save and New, the history's Undo and Redo, View's Zoom In, Zoom Out and Fit to View for the open
 //! diagram, and then the contextual groups: the menu of what is selected on the canvas, one group per group of it, an
 //! entry with children a drop-down of them. A button that cannot run now is disabled and says why. The ribbon only says
-//! what was asked; the shell does it.
+//! what was asked; the shell does it. Beside View stands a button per export a tool type's module offers (etalii.adp spec
+//! 074), which the ribbon knows by what the module says of it and not by the tool type.
 
 use adp_context::{Action, ActionGroup, Shortcut};
 use adp_theme::Theme;
@@ -22,6 +23,17 @@ pub enum Command {
     FitToView,
     /// An action of the selection's menu, by its id.
     Run(String),
+    /// A file the active document's module writes, by the export's id (etalii.adp spec 074).
+    Export(String),
+}
+
+/// One export's button: what it is called and says, and why it cannot run now, or none when it can.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ExportButton {
+    pub id: String,
+    pub label: String,
+    pub hint: String,
+    pub unavailable: Option<String>,
 }
 
 /// What the ribbon shows this frame, as the shell knows it.
@@ -36,6 +48,8 @@ pub struct Situation {
     /// What is selected on the canvas, as a key that changes with it, and its menu.
     pub selection: Option<String>,
     pub actions: Vec<ActionGroup>,
+    /// A button per export any tool type offers (etalii.adp spec 074, FR-001, FR-002).
+    pub exports: Vec<ExportButton>,
 }
 
 /// The sentence a View button says with no diagram open (`RibbonViewGroup`).
@@ -88,6 +102,18 @@ impl Ribbon {
             button(ui, "Zoom In", "Zoom In", view, Command::ZoomIn);
             button(ui, "Zoom Out", "Zoom Out", view, Command::ZoomOut);
             button(ui, "Fit to View", "Fit to View", view, Command::FitToView);
+            if !situation.exports.is_empty() {
+                ui.separator();
+            }
+            for export in &situation.exports {
+                button(
+                    ui,
+                    &export.label,
+                    &export.hint,
+                    export.unavailable.as_deref(),
+                    Command::Export(export.id.clone()),
+                );
+            }
             for group in self.shown.iter().filter(|g| !g.actions.is_empty()) {
                 ui.separator();
                 for action in &group.actions {

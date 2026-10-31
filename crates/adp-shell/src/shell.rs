@@ -28,7 +28,9 @@ use crate::documents::OpenText;
 use crate::explorer::{Explorer, Request};
 use crate::hierarchy::HierarchyTab;
 use crate::highlight::Highlighter;
-use crate::ribbon::{Command, Ribbon, Situation};
+use adp_diagram::{DiagramDocument, Export};
+
+use crate::ribbon::{Command, ExportButton, Ribbon, Situation};
 use crate::table::TableTab;
 use crate::theme::{self, Palette};
 use crate::validation::ValidationTab;
@@ -219,6 +221,9 @@ enum Pending {
     Add(Box<AddDialog>),
 }
 
+/// Why an export cannot run for a document with no file yet: its page is written beside the file.
+const UNFILED: &str = "Save the diagram first: its page is written beside its file.";
+
 /// The window's state.
 pub struct Shell {
     workspace: Workspace,
@@ -235,6 +240,8 @@ pub struct Shell {
     active: usize,
     /// The diagram tool types and each project's diagrams, loaded when a file is first opened.
     diagrams: Option<DiagramHost>,
+    /// What asks the platform to open an exported page; the tests give their own.
+    open_page: fn(&Path) -> std::io::Result<()>,
     side_pane: SidePane,
     side_view: SideView,
     ribbon: Ribbon,
@@ -261,6 +268,7 @@ impl Default for Shell {
             tabs: Vec::new(),
             active: 0,
             diagrams: None,
+            open_page: crate::platform_open::open,
             side_pane: SidePane::Toolbox,
             side_view: SideView::Explorer,
             ribbon: Ribbon::default(),
@@ -1314,6 +1322,76 @@ impl Shell {
         }
     }
 
+    /// The buttons of every export a tool type's module offers, each enabled while the active document's module offers it
+    /// and the document has a file to stand beside.
+    fn export_buttons(&mut self) -> Vec<ExportButton> {
+        let exports = self.host().tools.exports();
+        let offered = self.active_exports();
+        let filed = self.active_document_is_filed();
+        exports
+            .into_iter()
+            .map(|export| {
+                let here = offered.iter().any(|o| o.id == export.id);
+                ExportButton {
+                    unavailable: if !here {
+                        Some(export.elsewhere)
+                    } else if !filed {
+                        Some(UNFILED.to_owned())
+                    } else {
+                        None
+                    },
+                    id: export.id,
+                    label: export.label,
+                    hint: export.hint,
+                }
+            })
+            .collect()
+    }
+
+    /// The exports of the active diagram's module, when a diagram is active.
+    fn active_exports(&self) -> Vec<Export> {
+        self.active_document(|document| document.tool().module.as_ref().map(|m| m.exports()).unwrap_or_default())
+            .unwrap_or_default()
+    }
+
+    fn active_document_is_filed(&self) -> bool {
+        self.active_document(|document| document.body_path().exists())
+            .unwrap_or(false)
+    }
+
+    /// `read` of the document of the active diagram tab.
+    fn active_document<T>(&self, read: impl FnOnce(&DiagramDocument) -> T) -> Option<T> {
+        let tab = self.tabs.get(self.active).and_then(Tab::diagram)?;
+        let workspace = self.diagrams.as_ref()?.open_workspace(&tab.root)?;
+        workspace.documents().get(&tab.opened.body_path).map(read)
+    }
+
+    /// Writes export `id` of the active document beside it and asks the platform to open it, and says where it went
+    /// (etalii.adp spec 074, FR-003 to FR-005). Only a file of the same name is replaced; the document and its registration
+    /// are left as they are.
+    fn run_export(&mut self, id: &str) {
+        let Some(export) = self.active_exports().into_iter().find(|e| e.id == id) else {
+            return;
+        };
+        let Some((path, output)) = self.active_document(|document| {
+            let output = (export.write)(document);
+            let folder = document.body_path().parent().map(Path::to_path_buf).unwrap_or_default();
+            (folder.join(&output.file_name), output)
+        }) else {
+            return;
+        };
+        self.notice = Some(match std::fs::write(&path, &output.bytes) {
+            Err(problem) => format!("{} could not be written: {problem}", path.display()),
+            Ok(()) => match (self.open_page)(&path) {
+                Ok(()) => format!("Wrote {} and opened it.", path.display()),
+                Err(problem) => format!(
+                    "Wrote {}. It could not be opened ({problem}), so open it by hand.",
+                    path.display()
+                ),
+            },
+        });
+    }
+
     /// What the ribbon shows for the active tab.
     fn situation(&mut self) -> Situation {
         let mut situation = Situation {
@@ -1323,6 +1401,7 @@ impl Shell {
             diagram: false,
             selection: None,
             actions: Vec::new(),
+            exports: self.export_buttons(),
         };
         match self.tabs.get(self.active) {
             Some(Tab::Text(open)) => {
@@ -1405,6 +1484,7 @@ impl Shell {
                     }
                 }
             }
+            Command::Export(id) => self.run_export(&id),
             Command::Run(action_id) => {
                 if let Some(page) = self.tabs.get_mut(self.active).and_then(Tab::hierarchy_mut) {
                     page.run_action(&action_id);
@@ -2448,6 +2528,148 @@ mod tests {
         let set = shell.project.as_ref().unwrap().problem_set.as_ref().unwrap();
         assert_eq!(set.errors, 1);
         assert_eq!(set.problems[0].finding.file, "broken.json");
+    }
+
+    /// A project holding a causal loop diagram with its registration, and a dependency graph, with an opener that says
+    /// what it was asked and is told to fail or not.
+    fn export_project() -> (tempfile::TempDir, Shell) {
+        let folder = tempfile::tempdir().unwrap();
+        std::fs::write(
+            folder.path().join("loop.cld"),
+            "causal-loop 1\r\nvariable a \"A\"\r\nvariable b \"B\"\r\nlink a -> b +\r\nlink b -> a +\r\n",
+        )
+        .unwrap();
+        std::fs::write(folder.path().join("loop.adp"), "systems/causal-loop-diagram\r\n").unwrap();
+        let fixtures =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../adp-diagram/tests/fixtures/dependency-graph/example-1");
+        for name in ["services.adp", "services.dgr"] {
+            std::fs::copy(fixtures.join(name), folder.path().join(name)).unwrap();
+        }
+        let mut shell = Shell::default();
+        shell.open_path(folder.path());
+        (folder, shell)
+    }
+
+    fn export_button(shell: &mut Shell) -> ExportButton {
+        let situation = shell.situation();
+        assert_eq!(situation.exports.len(), 1, "one export is offered in all");
+        situation.exports[0].clone()
+    }
+
+    fn pages(folder: &Path) -> Vec<String> {
+        let mut pages: Vec<String> = std::fs::read_dir(folder)
+            .unwrap()
+            .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+            .filter(|n| n.ends_with(".html"))
+            .collect();
+        pages.sort();
+        pages
+    }
+
+    fn opens_nothing(_: &Path) -> std::io::Result<()> {
+        Ok(())
+    }
+
+    fn opener_missing(_: &Path) -> std::io::Result<()> {
+        Err(std::io::Error::new(std::io::ErrorKind::NotFound, "no opener"))
+    }
+
+    #[test]
+    fn the_export_button_is_there_for_any_document_and_says_why_it_cannot_run() {
+        let (_folder, mut shell) = export_project();
+        let reason = "Open a causal loop diagram to export its flow page.";
+        let button = export_button(&mut shell);
+        assert_eq!(button.label, "Export flow page");
+        assert_eq!(button.unavailable.as_deref(), Some(reason), "no document open");
+
+        shell.handle(Request::Open("services.dgr".into()));
+        assert_eq!(
+            export_button(&mut shell).unavailable.as_deref(),
+            Some(reason),
+            "another tool type"
+        );
+
+        shell.handle(Request::Open("loop.adp".into()));
+        assert_eq!(export_button(&mut shell).unavailable, None);
+    }
+
+    #[test]
+    fn the_export_writes_the_page_beside_the_diagram_opens_it_and_touches_nothing_else() {
+        let (folder, mut shell) = export_project();
+        shell.open_page = opens_nothing;
+        shell.handle(Request::Open("loop.adp".into()));
+        let body = std::fs::read(folder.path().join("loop.cld")).unwrap();
+        let registration = std::fs::read(folder.path().join("loop.adp")).unwrap();
+        let id = export_button(&mut shell).id;
+        shell.ribbon_command(Command::Export(id));
+
+        let pages = pages(folder.path());
+        assert_eq!(pages.len(), 1, "{pages:?}");
+        assert!(
+            pages[0].starts_with("loop {") && pages[0].ends_with("}.html"),
+            "{pages:?}"
+        );
+        let page = std::fs::read_to_string(folder.path().join(&pages[0])).unwrap();
+        assert!(page.contains("<h1>loop</h1>"));
+        assert_eq!(std::fs::read(folder.path().join("loop.cld")).unwrap(), body);
+        assert_eq!(std::fs::read(folder.path().join("loop.adp")).unwrap(), registration);
+        let notice = shell.notice.clone().unwrap();
+        assert!(notice.contains(&pages[0]) && notice.contains("opened"), "{notice}");
+
+        // Within the same minute the page is replaced, and an unrelated file with another name is left as it is.
+        std::fs::write(folder.path().join("loop {2020-01-01 00.00}.html"), "kept").unwrap();
+        std::fs::write(folder.path().join(&pages[0]), "stale").unwrap();
+        let id = export_button(&mut shell).id;
+        shell.ribbon_command(Command::Export(id));
+        assert_eq!(
+            std::fs::read_to_string(folder.path().join("loop {2020-01-01 00.00}.html")).unwrap(),
+            "kept"
+        );
+        assert!(
+            std::fs::read_dir(folder.path())
+                .unwrap()
+                .map(|e| e.unwrap().path())
+                .any(|p| {
+                    p.extension().is_some_and(|e| e == "html")
+                        && std::fs::read_to_string(&p).unwrap().contains("<h1>loop</h1>")
+                })
+        );
+    }
+
+    #[test]
+    fn an_opener_that_fails_still_leaves_the_page_and_says_where_it_is() {
+        let (folder, mut shell) = export_project();
+        shell.open_page = opener_missing;
+        shell.handle(Request::Open("loop.adp".into()));
+        let id = export_button(&mut shell).id;
+        shell.ribbon_command(Command::Export(id));
+        let pages = pages(folder.path());
+        assert_eq!(pages.len(), 1);
+        let notice = shell.notice.clone().unwrap();
+        assert!(notice.contains(&pages[0]) && notice.contains("by hand"), "{notice}");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_folder_that_cannot_be_written_writes_nothing_and_says_why() {
+        use std::os::unix::fs::PermissionsExt;
+        let (folder, mut shell) = export_project();
+        shell.open_page = opens_nothing;
+        shell.handle(Request::Open("loop.adp".into()));
+        let id = export_button(&mut shell).id;
+        std::fs::set_permissions(folder.path(), std::fs::Permissions::from_mode(0o555)).unwrap();
+        shell.ribbon_command(Command::Export(id));
+        std::fs::set_permissions(folder.path(), std::fs::Permissions::from_mode(0o755)).unwrap();
+        assert!(pages(folder.path()).is_empty());
+        assert!(shell.notice.clone().unwrap().contains("could not be written"));
+    }
+
+    #[test]
+    fn a_diagram_whose_file_is_gone_cannot_be_exported() {
+        let (folder, mut shell) = export_project();
+        shell.handle(Request::Open("loop.adp".into()));
+        std::fs::remove_file(folder.path().join("loop.cld")).unwrap();
+        assert_eq!(export_button(&mut shell).unavailable.as_deref(), Some(UNFILED));
     }
 
     #[test]

@@ -20,7 +20,7 @@ use adp_fbl::plugins::PersistencePlugin;
 
 use crate::definition::DiagramDefinition;
 use crate::disl_definition::DislDiagramDefinition;
-use crate::module::DiagramModule;
+use crate::module::{DiagramModule, Export};
 
 /// A diagram tool type whose specification and binding are loaded.
 #[derive(Debug)]
@@ -214,6 +214,13 @@ impl DiagramTools {
             }
         }
         origins
+    }
+
+    /// Every export a registered module offers, by its id, so that the ribbon can show one on any document.
+    pub fn exports(&self) -> Vec<Export> {
+        let mut exports: Vec<Export> = self.modules.values().flat_map(|m| m.exports()).collect();
+        exports.sort_by(|a, b| a.id.cmp(&b.id));
+        exports
     }
 
     /// The module registered for `origin`, when it has one.

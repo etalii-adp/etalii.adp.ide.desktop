@@ -108,6 +108,11 @@ pub struct DiagramHost {
 }
 
 impl DiagramHost {
+    /// The workspace of the project at `root`, when one has been opened.
+    pub fn open_workspace(&self, root: &Path) -> Option<&DiagramWorkspace> {
+        self.workspaces.get(root)
+    }
+
     /// The tool types the vendored catalogue at `vendor` knows.
     pub fn with_vendor(vendor: &Path) -> Self {
         DiagramHost {
