@@ -161,20 +161,6 @@ const C4_DIFFERENCES: &[&str] = &[
     "+ /elements/16/attributes/targetWritten",
     // A relationship written inside an element's block has that element as its source, as FBL's example says in words.
     "+ /elements/9/attributes/from/secondary",
-    // A reading of any tool type shows a view of any kind, the first in the body unless its registration names another,
-    // as the module does; FBL's example says each kind of view is for the reading of its tool type.
-    "- /blocks/0/origins",
-    "- /blocks/1/origins",
-    "- /blocks/2/origins",
-    "- /blocks/3/origins",
-    "- /blocks/4/origins",
-    "- /blocks/5/origins",
-    "- /blocks/6/origins",
-    "- /blocks/7/origins",
-    "- /blocks/8/origins",
-    "- /blocks/9/origins",
-    "- /blocks/10/origins",
-    "- /blocks/11/origins",
     // An element's parent is the element whose block it is in, of any kind, and `misplacedElement` says so.
     "~ /elements/3/parent/rules",
     "~ /elements/4/parent/rules",
