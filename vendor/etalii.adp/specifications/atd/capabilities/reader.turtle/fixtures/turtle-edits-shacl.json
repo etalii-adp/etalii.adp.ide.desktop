@@ -1,0 +1,183 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/shacl/turtle-edits-shacl.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "# Inserts and removals through the reader, in a shapes graph.\n@prefix : <http://example.org/s#> .\n@prefix sh: <http://www.w3.org/ns/shacl#> .\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\n:PersonShape a sh:NodeShape ;\n    sh:name \"Person\" ;\n    sh:targetClass :Person .\n:CityShape a sh:NodeShape ;\n    sh:targetClass :City ; sh:name \"City\" .\n:Lone a sh:NodeShape .\n",
+    "files": {
+      "turtle-edits-shacl.adp": "w3c/shacl\nbody: turtle-edits-shacl.ttl\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "prefix:",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "",
+          "iri": "http://example.org/s#",
+          "line": 2
+        }
+      },
+      {
+        "id": "prefix:sh",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "sh",
+          "iri": "http://www.w3.org/ns/shacl#",
+          "line": 3
+        }
+      },
+      {
+        "id": "prefix:xsd",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "xsd",
+          "iri": "http://www.w3.org/2001/XMLSchema#",
+          "line": 4
+        }
+      },
+      {
+        "id": "triple:http://example.org/s#PersonShape|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/ns/shacl#NodeShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/s#PersonShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":PersonShape",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/ns/shacl#NodeShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 6
+        }
+      },
+      {
+        "id": "triple:http://example.org/s#PersonShape|http://www.w3.org/ns/shacl#name|Person",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/s#PersonShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":PersonShape",
+          "p": "http://www.w3.org/ns/shacl#name",
+          "o": "Person",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 7
+        }
+      },
+      {
+        "id": "triple:http://example.org/s#PersonShape|http://www.w3.org/ns/shacl#targetClass|http://example.org/s#Person",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/s#PersonShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":PersonShape",
+          "p": "http://www.w3.org/ns/shacl#targetClass",
+          "o": "http://example.org/s#Person",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 8
+        }
+      },
+      {
+        "id": "triple:http://example.org/s#CityShape|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/ns/shacl#NodeShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/s#CityShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":CityShape",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/ns/shacl#NodeShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 9
+        }
+      },
+      {
+        "id": "triple:http://example.org/s#CityShape|http://www.w3.org/ns/shacl#targetClass|http://example.org/s#City",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/s#CityShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":CityShape",
+          "p": "http://www.w3.org/ns/shacl#targetClass",
+          "o": "http://example.org/s#City",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 10
+        }
+      },
+      {
+        "id": "triple:http://example.org/s#CityShape|http://www.w3.org/ns/shacl#name|City",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/s#CityShape",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":CityShape",
+          "p": "http://www.w3.org/ns/shacl#name",
+          "o": "City",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 10
+        }
+      },
+      {
+        "id": "triple:http://example.org/s#Lone|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/ns/shacl#NodeShape",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/s#Lone",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":Lone",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/ns/shacl#NodeShape",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 11
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

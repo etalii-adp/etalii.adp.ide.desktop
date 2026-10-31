@@ -8,6 +8,8 @@
 
 use std::collections::{BTreeMap, HashMap};
 
+use adp_atd_runtime::capabilities::banded_grid::{BandedGridArguments, place_banded};
+
 use crate::model::{BlankTerm, LiteralTerm, RdfModel, RdfTerm};
 use crate::vocabulary::rdf;
 use crate::writer;
@@ -293,29 +295,21 @@ const BAND_GAP: f64 = 80.0;
 const COLUMNS: usize = 4;
 
 /// The computed layout: bands by first type badge, ordered by name with the untyped band last, grid-placed within a
-/// band in projection order (`RdfLayout.Positions`).
+/// band in projection order (`RdfLayout.Positions`): the capability `layout.bandedGrid`.
 pub fn positions(result: &RdfProjection) -> BTreeMap<String, (f64, f64)> {
-    let mut bands: Vec<(String, Vec<&RdfNode>)> = Vec::new();
-    for node in &result.nodes {
-        let key = node.types.first().cloned().unwrap_or_default();
-        match bands.iter_mut().find(|(k, _)| *k == key) {
-            Some((_, members)) => members.push(node),
-            None => bands.push((key, vec![node])),
-        }
-    }
-    bands.sort_by(|(a, _), (b, _)| {
-        a.is_empty()
-            .cmp(&b.is_empty())
-            .then_with(|| a.as_bytes().cmp(b.as_bytes()))
-    });
-    let mut positions = BTreeMap::new();
-    let mut y = 0.0;
-    for (_, members) in &bands {
-        for (index, node) in members.iter().enumerate() {
-            let (x, down) = adp_layout::grid_packer::cell(index, COLUMNS, CELL_WIDTH, CELL_HEIGHT);
-            positions.insert(node.id.clone(), (x, y + down));
-        }
-        y += adp_layout::grid_packer::rows(members.len(), COLUMNS) as f64 * CELL_HEIGHT + BAND_GAP;
-    }
-    positions
+    let nodes: Vec<(String, String)> = result
+        .nodes
+        .iter()
+        .map(|node| (node.id.clone(), node.types.first().cloned().unwrap_or_default()))
+        .collect();
+    let arguments = BandedGridArguments {
+        columns: COLUMNS,
+        column_width: CELL_WIDTH,
+        row_height: CELL_HEIGHT,
+        band_gap: BAND_GAP,
+    };
+    place_banded(&nodes, &arguments)
+        .into_iter()
+        .map(|(id, x, y)| (id, (x, y)))
+        .collect()
 }

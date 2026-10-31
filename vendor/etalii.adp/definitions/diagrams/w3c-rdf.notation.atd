@@ -53,7 +53,7 @@ notation {
       overflow: grow
     }
     style: "card"
-    size: { default: [220, 40], resizable: false, autoSize: fitHeight }
+    size: { width: 220, height: (40 + (size(self.types) > 0 ? 16 : 0) + size(self.rows) * 16), resizable: false }
     anchors: { mode: fixed, points: [{ id: "w", x: 0, y: 0.5 }, { id: "e", x: 1, y: 0.5 }] }
     tooltip: (self.iri)
     copyable: false
@@ -86,7 +86,7 @@ notation {
       overflow: grow
     }
     style: ["card", { stroke: { dash: [5, 3], dashScale: absolute }, opacity: 0.75 }]
-    size: { default: [220, 40], resizable: false, autoSize: fitHeight }
+    size: { width: 220, height: (40 + (size(self.types) > 0 ? 16 : 0) + size(self.rows) * 16), resizable: false }
     anchors: { mode: outline }
     tooltip: "Blank node"
     copyable: false
@@ -252,6 +252,7 @@ layout {
     rowHeight: 160
     bandGap: 80
     band: (self.band)
+    sequence: (rdfCardOrder(self.id))
   }
   /// The declarative approximation of typeBands, for a runtime without the capability: one lane per `band` value.
   algorithm fallback {

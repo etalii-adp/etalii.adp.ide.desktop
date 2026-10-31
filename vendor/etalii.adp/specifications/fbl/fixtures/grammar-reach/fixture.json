@@ -1,0 +1,122 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.15, section 4.9 (A value above the entry, Further slots, A node's name, The order of a reading), spec 067, FR-008: one statement holding a list, a property list nested in it, and every fact reaching what it shares. The nested fact comes before the fact that holds it, since the body reads in the order its entries close. A set of a verb two facts share is one splice, and an undo restores it.",
+  "binding": "reach.fbl#reach",
+  "input": "facts.txt",
+  "read": {
+    "elements": [
+      {
+        "id": "bob",
+        "type": "Fact",
+        "attributes": {
+          "subject": "ann",
+          "verb": "knows",
+          "kind": "NAME",
+          "value": "bob",
+          "follows": "cat"
+        }
+      },
+      {
+        "id": "cat",
+        "type": "Fact",
+        "attributes": {
+          "subject": "ann",
+          "verb": "knows",
+          "kind": "NAME",
+          "value": "cat",
+          "follows": "none"
+        }
+      },
+      {
+        "id": "42",
+        "type": "Fact",
+        "attributes": {
+          "subject": "ann",
+          "verb": "age",
+          "kind": "NUMBER",
+          "value": "42",
+          "follows": "none"
+        }
+      },
+      {
+        "id": "7",
+        "type": "Fact",
+        "attributes": {
+          "subject": "block",
+          "verb": "size",
+          "kind": "NUMBER",
+          "value": "7",
+          "follows": "none"
+        }
+      },
+      {
+        "id": "[ size 7 ]",
+        "type": "Fact",
+        "attributes": {
+          "subject": "ann",
+          "verb": "owns",
+          "kind": "block",
+          "value": "block",
+          "follows": "none"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "ann knows bob , cat ;\n  age 42 ;\n  owns [ size 7 ] .\n"
+    },
+    {
+      "doc": "The verb stands once for both facts: setting it on one is one replace-value of its span, and both read it (sections 4.9, 6.4).",
+      "edit": {
+        "set": {
+          "element": "bob",
+          "attributes": {
+            "verb": "likes"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 4,
+          "end": 9,
+          "text": "likes"
+        }
+      ],
+      "expect": "ann likes bob , cat ;\n  age 42 ;\n  owns [ size 7 ] .\n"
+    },
+    {
+      "doc": "Undo restores the verb.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 4,
+          "end": 9,
+          "text": "knows"
+        }
+      ],
+      "expect": "ann knows bob , cat ;\n  age 42 ;\n  owns [ size 7 ] .\n"
+    },
+    {
+      "doc": "A value read from a name is read-only.",
+      "edit": {
+        "set": {
+          "element": "bob",
+          "attributes": {
+            "kind": "NUMBER"
+          }
+        }
+      },
+      "refused": "A node's name is not written in the file.",
+      "splices": [],
+      "expect": "ann knows bob , cat ;\n  age 42 ;\n  owns [ size 7 ] .\n"
+    }
+  ]
+}

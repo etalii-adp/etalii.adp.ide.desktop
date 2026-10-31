@@ -1,0 +1,103 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "res:http://example.org/s#CityShape",
+      "type": "w3c/shacl+shape",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 260,
+        "h": 78
+      },
+      "labels": [
+        {
+          "id": "targets",
+          "text": "targets class :City",
+          "font": "11 400 italic",
+          "position": {
+            "x": 8,
+            "y": 46
+          }
+        },
+        {
+          "id": "title",
+          "text": ":CityShape — Town",
+          "font": "13 600",
+          "position": {
+            "x": 130,
+            "y": 20
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/s#Lone",
+      "type": "w3c/shacl+shape",
+      "shape": "path",
+      "bounds": {
+        "x": 320,
+        "y": 0,
+        "w": 260,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "title",
+          "text": ":Lone",
+          "font": "13 600",
+          "position": {
+            "x": 450,
+            "y": 20
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/s#NewShape",
+      "type": "w3c/shacl+shape",
+      "shape": "path",
+      "bounds": {
+        "x": 640,
+        "y": 0,
+        "w": 260,
+        "h": 56
+      },
+      "labels": [
+        {
+          "id": "title",
+          "text": ":NewShape",
+          "font": "13 600",
+          "position": {
+            "x": 770,
+            "y": 20
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [],
+  "chrome": [],
+  "order": [
+    "res:http://example.org/s#CityShape",
+    "res:http://example.org/s#Lone",
+    "res:http://example.org/s#NewShape"
+  ]
+}

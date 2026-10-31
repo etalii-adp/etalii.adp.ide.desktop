@@ -16,8 +16,8 @@ use super::evaluation::{self, Vars};
 use super::forms::{diagram_form_of, form_of, kind_of};
 use crate::behavior::actions::ActionRunner;
 use crate::behavior::change::{DislChange, DislTransaction};
-use crate::behavior::ids;
 use crate::behavior::write;
+use crate::behavior::{ids, operations};
 use crate::expressions::contexts;
 use crate::json::{self, Json};
 use crate::loading::specification::DislSpecification;
@@ -99,6 +99,14 @@ pub fn row(
             &current,
             "This diagram is read-only.",
         ));
+    }
+
+    // A derived element's attribute is written by the operation its type names for it (section 4.11.4).
+    if let Some(declared) = declared
+        && let Some(transaction) =
+            operations::derived_attribute(specification, element, &declared.name, value, Some(env))
+    {
+        return transaction;
     }
 
     let chosen = chosen(specification, item, &pointer, &current, value);

@@ -2,11 +2,13 @@
 // of w3c-turtle-grammar.fbl: FBL 0.9's grammar family (FBL section 4.9). The productions are the recommendation's,
 // renamed to Lark's lower case, with two narrowings: a name holds only characters of the Basic Multilingual Plane
 // and neither U+200C nor U+200D, and a keyword of SPARQL's form (PREFIX, BASE) is matched without regard to case by
-// its pattern, since the notation has no flags. A body that steps outside them is read in part (FBL section 7.4).
+// its pattern, since the notation has no flags. A body that steps outside them is read in part (FBL section 7.4). One
+// widening: a language tag is any run of letters and hyphens, so that a malformed tag is read and reported, not refused.
 //
 // The tree is shaped for the binding's selectors (ATD section 4.5): a statement of triples is the node
 // `triples_statement`, a directive the node `statement` holding it, and each predicate with its objects one
-// `predicate_object`.
+// `predicate_object`. *(FBL 0.15)* A subject is a `subject`, or a `subject_list` for a property list that stands first,
+// and a collection with no member is `empty_collection`, so that a slot can tell them by their names.
 
 turtle_doc: statement*
 
@@ -20,17 +22,19 @@ sparql_prefix: SPARQL_PREFIX PNAME_NS IRIREF
 sparql_base: SPARQL_BASE IRIREF
 
 triples: subject predicate_object_list
-       | blank_node_property_list [predicate_object_list]
+       | subject_list [predicate_object_list]
+subject_list: blank_node_property_list
 predicate_object_list: predicate_object (";" [predicate_object])*
 predicate_object: verb object_list
 object_list: object ("," object)*
 verb: iri
     | "a"
-subject: iri | blank_node | collection
-object: iri | blank_node | collection | blank_node_property_list | literal
+subject: iri | blank_node | collection | empty_collection
+object: iri | blank_node | collection | empty_collection | blank_node_property_list | literal
 ?literal: rdf_literal | numeric_literal | boolean_literal
 blank_node_property_list: "[" predicate_object_list "]"
-collection: "(" object* ")"
+collection: "(" object+ ")"
+empty_collection: "(" ")"
 numeric_literal: INTEGER | DECIMAL | DOUBLE
 rdf_literal: string [LANGTAG | "^^" iri]
 boolean_literal: "true" | "false"
@@ -44,7 +48,7 @@ IRIREF: /<([^<>"{}|^`\\ \t\n\r]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*>/
 PNAME_NS: PN_PREFIX? ":"
 PNAME_LN: PNAME_NS PN_LOCAL
 BLANK_NODE_LABEL: "_:" (PN_CHARS_U | /[0-9]/) ((PN_CHARS | ".")* PN_CHARS)?
-LANGTAG: /@[a-zA-Z]+(-[a-zA-Z0-9]+)*/
+LANGTAG: /@[a-zA-Z-]+/
 INTEGER: /[+-]?[0-9]+/
 DECIMAL: /[+-]?[0-9]*\.[0-9]+/
 DOUBLE: /[+-]?([0-9]+\.[0-9]*[eE][+-]?[0-9]+|\.[0-9]+[eE][+-]?[0-9]+|[0-9]+[eE][+-]?[0-9]+)/

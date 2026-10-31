@@ -458,7 +458,18 @@ impl DiagramModule for RuntimeModule {
                 (y2.canvas(element) - placement.y.canvas(element)).abs(),
             ));
         }
-        Self::fitted(document.tool().definition.specification(), element)
+        let specification = document.tool().definition.specification();
+        // A size bound to the element's values, or fixed (DISL section 6.6).
+        let bound = &specification.root()["notation"]["nodes"][element.type_name()]["size"];
+        let sized = self
+            .layout
+            .as_ref()
+            .and_then(|layout| self.capabilities.layout(&layout.capability))
+            .is_some_and(|capability| capability.draws_its_sizes());
+        Self::fitted(specification, element).or_else(|| {
+            let stated = bound.get("width").is_some() || bound.get("height").is_some() || bound.get("fixed").is_some();
+            (sized && stated).then(|| Self::stated_size(element))
+        })
     }
 
     /// A node on an axis with a `scale`: its values in the axis's canvas units (ATD §8.1).
@@ -597,7 +608,7 @@ impl DiagramModule for RuntimeModule {
             .collect();
         // The order the description gives them, else the model's.
         if let Some(sequence) = layout.arguments.get("sequence") {
-            placed.sort_by_key(|element| {
+            placed.sort_by_cached_key(|element| {
                 Self::evaluate(specification, element, sequence).and_then(|value| value.as_number().map(|n| n as i64))
             });
         }
@@ -618,6 +629,8 @@ impl DiagramModule for RuntimeModule {
             let boundary = boundaries.contains(&element.id());
             let (width, height) = if boundary {
                 (0.0, 0.0)
+            } else if capability.draws_its_sizes() {
+                Self::stated_size(&element)
             } else {
                 Self::size(specification, &element)
             };
@@ -632,7 +645,16 @@ impl DiagramModule for RuntimeModule {
                     if let Some(evaluated) = Self::evaluate(specification, &element, value)
                         && !evaluated.is_null()
                     {
-                        attributes.insert(key.clone(), json!(evaluated.to_string()));
+                        // A list stays one, as a capability's query reads it (ATD §13.3).
+                        attributes.insert(
+                            key.clone(),
+                            match &evaluated {
+                                Value::List(items) => {
+                                    Json::Array(items.iter().map(|item| json!(item.to_string())).collect())
+                                }
+                                other => json!(other.to_string()),
+                            },
+                        );
                     }
                 } else {
                     args.insert(key.clone(), value.clone());

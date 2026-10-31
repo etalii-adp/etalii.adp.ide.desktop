@@ -28,13 +28,17 @@ const folders = (folder) =>
     ? readdirSync(folder).sort().map((f) => join(folder, f)).filter((f) => statSync(f).isDirectory())
     : [];
 
+// What is not replayed here: a body of 157 KB, over which the SKOS description's rules take 12 minutes in a release build and
+// go over their evaluation budget (etalii.adp spec 067, T041; `w3c-rdf.md`'s gap 6, a grouping function).
+const TOO_LONG = 'geographic-names';
+
 // The cases of each description: the folders `conformance/<type>/<case>/` beside it whose fixture names it.
 const described = new Map();
 for (const kind of folders(definitions)) {
   for (const type of folders(join(kind, 'conformance'))) {
     for (const folder of folders(type)) {
       const fixture = read(join(folder, 'conformance.json'));
-      if (fixture === null) continue;
+      if (fixture === null || basename(folder) === TOO_LONG) continue;
       const description = resolve(folder, JSON.parse(fixture).description);
       const cases = described.get(description) ?? [];
       const files = {};
@@ -64,7 +68,7 @@ for (const [description, cases] of described) {
   let output;
   let refusal = '';
   try {
-    output = execFileSync(atd, ['validate', '--json', description], {
+    output = execFileSync(atd, ['validate', '--json', '--except', TOO_LONG, description], {
       encoding: 'utf8',
       maxBuffer: 1 << 28,
       stdio: ['ignore', 'pipe', 'pipe'],

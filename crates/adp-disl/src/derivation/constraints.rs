@@ -688,14 +688,17 @@ fn located_at(
     let Some(map) = value.as_map() else {
         return target();
     };
-    let Some(Value::String(file)) = map.get("file") else {
-        return target();
+    let file = match map.get("file") {
+        Some(Value::String(file)) => Some(file.clone()),
+        // A line alone is in the document the finding is about.
+        None if map.get("line").is_some() => None,
+        _ => return target(),
     };
     let line = match map.get("line") {
         Some(Value::Int(line)) if *line >= 1 && *line <= i64::from(i32::MAX) => Some(*line as i32),
         _ => None,
     };
-    (Some(file.clone()), line)
+    (file, line)
 }
 
 fn unwrapped(value: &Value) -> Option<DislElement> {

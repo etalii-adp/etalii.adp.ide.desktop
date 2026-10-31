@@ -348,7 +348,14 @@ impl DiagramSession {
             .into_iter()
             .map(|finding| DiagramProblem {
                 severity: DislDiagramDefinition::severity_of(&finding),
-                location: match (finding.element_ids.first(), finding.line) {
+                // A finding is at an element the reader can be shown, else at its line: a stored element no notation
+                // draws is no place to go to.
+                location: match (
+                    finding.element_ids.first().filter(|id| {
+                        finding.line.is_none() || document.tool().definition.draws(&document.model().diagram, id)
+                    }),
+                    finding.line,
+                ) {
                     (Some(id), _) => Some(DiagramProblemLocation::Element(id.clone())),
                     (None, Some(line)) => Some(DiagramProblemLocation::Line(line.max(1) as u32)),
                     (None, None) => None,

@@ -1,0 +1,48 @@
+{
+  "tool": "w3c/owl",
+  "fixture": "w3c/owl/turtle-edits-owl/turtle-edits-owl.ttl",
+  "registration": "w3c/owl/turtle-edits-owl/turtle-edits-owl.adp",
+  "steps": [
+    {
+      "action": "owl.add-class",
+      "args": {
+        "target": "new:0,0",
+        "value": ":E"
+      }
+    },
+    {
+      "action": "owl.subclass",
+      "args": {
+        "target": "rel:res:http://example.org/o#B->res:http://example.org/o#C"
+      }
+    },
+    {
+      "select": [
+        "res:http://example.org/o#A"
+      ]
+    },
+    {
+      "property": {
+        "row": "Label",
+        "value": "Ay"
+      }
+    },
+    {
+      "action": "rdf.remove-resource",
+      "args": {
+        "target": "res:http://example.org/o#D",
+        "confirm": true
+      }
+    },
+    {
+      "undo": 1
+    },
+    {
+      "action": "rdf.rename-resource",
+      "args": {
+        "target": "res:http://example.org/o#C",
+        "value": ":Cee"
+      }
+    }
+  ]
+}

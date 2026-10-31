@@ -1,0 +1,188 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/shacl` from parity/cases/w3c/shacl/turtle-edits-shacl.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/shacl",
+  "description": "../../../w3c-shacl.atd",
+  "inputs": {
+    "body": "turtle-edits-shacl.ttl",
+    "registration": "turtle-edits-shacl.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/s#PersonShape",
+        "type": "w3c/shacl+shape",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/s#PersonShape",
+          "display": ":PersonShape",
+          "blank": "false",
+          "deactivated": "false",
+          "closed": "false",
+          "name": "Person",
+          "targets.0.kind": "SHACL_TARGET_KIND_PROTO_CLASS",
+          "targets.0.termDisplay": ":Person",
+          "targets.0.termIri": "http://example.org/s#Person",
+          "targets.0.describedInFile": "false",
+          "targets.0.shapeIri": "http://example.org/s#PersonShape",
+          "targets.0.predicateIri": "http://www.w3.org/ns/shacl#targetClass"
+        }
+      },
+      {
+        "id": "res:http://example.org/s#CityShape",
+        "type": "w3c/shacl+shape",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/s#CityShape",
+          "display": ":CityShape",
+          "blank": "false",
+          "deactivated": "false",
+          "closed": "false",
+          "name": "City",
+          "targets.0.kind": "SHACL_TARGET_KIND_PROTO_CLASS",
+          "targets.0.termDisplay": ":City",
+          "targets.0.termIri": "http://example.org/s#City",
+          "targets.0.describedInFile": "false",
+          "targets.0.shapeIri": "http://example.org/s#CityShape",
+          "targets.0.predicateIri": "http://www.w3.org/ns/shacl#targetClass"
+        }
+      },
+      {
+        "id": "res:http://example.org/s#Lone",
+        "type": "w3c/shacl+shape",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/s#Lone",
+          "display": ":Lone",
+          "blank": "false",
+          "deactivated": "false",
+          "closed": "false"
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "create": {
+        "type": "shacl.toolbox.node-shape",
+        "at": {
+          "x": 0,
+          "y": 0
+        }
+      },
+      "args": {
+        "value": ":NewShape"
+      },
+      "expectFile": "after-1.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "shacl.name",
+        "value": "Town"
+      },
+      "select": [
+        "res:http://example.org/s#CityShape"
+      ],
+      "expectFile": "after-2.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "action": "rdf.remove-resource",
+      "select": [
+        "res:http://example.org/s#Lone"
+      ],
+      "expectFile": "after-3.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-2.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "action": "rdf.remove-resource",
+      "args": {
+        "confirm": true
+      },
+      "select": [
+        "res:http://example.org/s#PersonShape"
+      ],
+      "expectFile": "after-4.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-2.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "action": "rdf.rename-resource",
+      "args": {
+        "value": ":TownShape"
+      },
+      "select": [
+        "res:http://example.org/s#CityShape"
+      ],
+      "expectFile": "after-5.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "0f2b9d5",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "0f2b9d5",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "0f2b9d5",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "0f2b9d5",
+      "source": "atd record (drawing)"
+    }
+  },
+  "recordedFrom": "module"
+}

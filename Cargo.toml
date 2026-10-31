@@ -84,6 +84,16 @@ all = { level = "warn", priority = -1 }
 # The layouts run optimised in debug builds too: a canvas laid out by the unoptimised force layout lags, and its at-size
 # test holds a pass to a multiple of a reference workload timed beside it, which only means something when both are
 # compiled alike (adp-layout `tests/tiered_force_layout.rs`).
+# The W3C descriptions' rules are quadratic in a file's triples: unoptimised, their cases take most of an hour (spec 067, T041).
+[profile.dev.package.adp-cel]
+opt-level = 3
+
+[profile.dev.package.adp-disl]
+opt-level = 3
+
+[profile.dev.package.adp-atd-script]
+opt-level = 3
+
 [profile.dev.package.adp-layout]
 opt-level = 3
 

@@ -1,0 +1,69 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.15",
+  "doc": "The binding of the fixture grammar-string-sequences (FBL 0.15, sections 4.9 and 6.3): a slot's `escape` with the sequences of Turtle's strings, read under one `match` across its quoting forms and written back in one quote.",
+  "bindings": {
+    "strings": {
+      "title": "Strings with sequences",
+      "claims": {
+        "extensions": [
+          ".strings"
+        ],
+        "origins": [
+          "example/strings"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "grammar",
+        "grammar": "start: item*\nitem: NAME STRING \".\"\nNAME: /[a-z]+/\nSTRING: /\\\"\\\"\\\"((\\\"|\\\"\\\")?([^\\\"\\\\]|\\\\[^\\n\\r]))*\\\"\\\"\\\"|\\\"([^\\\"\\\\\\n\\r]|\\\\[^\\n\\r])*\\\"|'([^'\\\\\\n\\r]|\\\\[^\\n\\r])*'/\nWS: /[ \\n]+/\n%ignore WS\n"
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "lf",
+        "indent": 2,
+        "finalNewline": true
+      },
+      "elements": [
+        {
+          "name": "item",
+          "type": "Item",
+          "at": "/item",
+          "id": {
+            "from": {
+              "node": "NAME"
+            }
+          },
+          "attributes": {
+            "text": {
+              "node": "STRING",
+              "match": "(?:\"\"\"|\"|')(?<value>(?s:.*?))(?:\"\"\"|\"|')",
+              "escape": {
+                "with": "\\",
+                "quote": "\"",
+                "sequences": {
+                  "t": "\t",
+                  "b": "\b",
+                  "n": "\n",
+                  "r": "\r",
+                  "f": "\f",
+                  "'": "'"
+                },
+                "unicode": {
+                  "u": 4,
+                  "U": 8
+                },
+                "writes": [
+                  "\n",
+                  "\r",
+                  "\t"
+                ],
+                "requote": "\""
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -185,7 +185,11 @@ fn a_comment_before_an_entry_on_its_line_is_trivia() {
 
 #[test]
 fn escapes_are_resolved_read_and_written_only_on_a_quote_or_the_escape() {
-    let escape = SlotEscape { with: '\\', quote: '"' };
+    let escape = SlotEscape {
+        with: '\\',
+        quote: '"',
+        ..SlotEscape::default()
+    };
     assert_eq!(escape.read(r#"Jo \"the\" C:\temp \\"#), r#"Jo "the" C:\temp \"#);
     assert_eq!(escape.write(r#"Jo "the" C:\temp"#), r#"Jo \"the\" C:\\temp"#);
     assert_eq!(escape.read(&escape.write(r#"a\"b\\"#)), r#"a\"b\\"#);

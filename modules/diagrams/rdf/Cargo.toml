@@ -8,9 +8,13 @@ repository.workspace = true
 publish = false
 
 [dependencies]
+# The layouts every W3C reading is drawn by (spec 067, T040).
+adp-atd-runtime = { path = "../../../crates/adp-atd-runtime" }
 adp-context = { path = "../../../crates/adp-context" }
 adp-diagram = { path = "../../../crates/adp-diagram" }
 adp-documents = { path = "../../../crates/adp-documents" }
+# Where the RDF module and the grammar family resolve an IRI (FBL 0.15 section 4.9).
+adp-fbl = { path = "../../../crates/adp-fbl" }
 adp-history = { path = "../../../crates/adp-history" }
 adp-layout = { path = "../../../crates/adp-layout" }
 # The active theme a tool's colours are chosen for (spec 030, FR-045).

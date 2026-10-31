@@ -1,0 +1,281 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/skos/turtle-edits-skos.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "# Inserts and removals through the reader, in a concept scheme.\n@prefix : <http://example.org/k#> .\n@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n\n:s a skos:ConceptScheme ;\n    skos:prefLabel \"Scheme\"@en ;\n    skos:hasTopConcept :a .\n:a a skos:Concept ;\n    skos:prefLabel \"A\"@en ;\n    skos:topConceptOf :s .\n:b a skos:Concept ;\n    skos:prefLabel \"B\"@en ;\n    skos:broader :a , :c .\n:c a skos:Concept ; skos:prefLabel \"C\"@en ; skos:inScheme :s .\n",
+    "files": {
+      "turtle-edits-skos.adp": "w3c/skos\nbody: turtle-edits-skos.ttl\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "prefix:",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "",
+          "iri": "http://example.org/k#",
+          "line": 2
+        }
+      },
+      {
+        "id": "prefix:skos",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "skos",
+          "iri": "http://www.w3.org/2004/02/skos/core#",
+          "line": 3
+        }
+      },
+      {
+        "id": "triple:http://example.org/k#s|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2004/02/skos/core#ConceptScheme",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/k#s",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":s",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2004/02/skos/core#ConceptScheme",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 5
+        }
+      },
+      {
+        "id": "triple:http://example.org/k#s|http://www.w3.org/2004/02/skos/core#prefLabel|Scheme",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/k#s",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":s",
+          "p": "http://www.w3.org/2004/02/skos/core#prefLabel",
+          "o": "Scheme",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "en",
+          "datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+          "line": 6
+        }
+      },
+      {
+        "id": "triple:http://example.org/k#s|http://www.w3.org/2004/02/skos/core#hasTopConcept|http://example.org/k#a",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/k#s",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":s",
+          "p": "http://www.w3.org/2004/02/skos/core#hasTopConcept",
+          "o": "http://example.org/k#a",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 7
+        }
+      },
+      {
+        "id": "triple:http://example.org/k#a|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2004/02/skos/core#Concept",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/k#a",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":a",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2004/02/skos/core#Concept",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 8
+        }
+      },
+      {
+        "id": "triple:http://example.org/k#a|http://www.w3.org/2004/02/skos/core#prefLabel|A",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/k#a",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":a",
+          "p": "http://www.w3.org/2004/02/skos/core#prefLabel",
+          "o": "A",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "en",
+          "datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+          "line": 9
+        }
+      },
+      {
+        "id": "triple:http://example.org/k#a|http://www.w3.org/2004/02/skos/core#topConceptOf|http://example.org/k#s",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/k#a",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":a",
+          "p": "http://www.w3.org/2004/02/skos/core#topConceptOf",
+          "o": "http://example.org/k#s",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 10
+        }
+      },
+      {
+        "id": "triple:http://example.org/k#b|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2004/02/skos/core#Concept",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/k#b",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":b",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2004/02/skos/core#Concept",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 11
+        }
+      },
+      {
+        "id": "triple:http://example.org/k#b|http://www.w3.org/2004/02/skos/core#prefLabel|B",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/k#b",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":b",
+          "p": "http://www.w3.org/2004/02/skos/core#prefLabel",
+          "o": "B",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "en",
+          "datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+          "line": 12
+        }
+      },
+      {
+        "id": "triple:http://example.org/k#b|http://www.w3.org/2004/02/skos/core#broader|http://example.org/k#a",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/k#b",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":b",
+          "p": "http://www.w3.org/2004/02/skos/core#broader",
+          "o": "http://example.org/k#a",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 13
+        }
+      },
+      {
+        "id": "triple:http://example.org/k#b|http://www.w3.org/2004/02/skos/core#broader|http://example.org/k#c",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/k#b",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":b",
+          "p": "http://www.w3.org/2004/02/skos/core#broader",
+          "o": "http://example.org/k#c",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 13
+        }
+      },
+      {
+        "id": "triple:http://example.org/k#c|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://www.w3.org/2004/02/skos/core#Concept",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/k#c",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":c",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://www.w3.org/2004/02/skos/core#Concept",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 14
+        }
+      },
+      {
+        "id": "triple:http://example.org/k#c|http://www.w3.org/2004/02/skos/core#prefLabel|C",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/k#c",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":c",
+          "p": "http://www.w3.org/2004/02/skos/core#prefLabel",
+          "o": "C",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "en",
+          "datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+          "line": 14
+        }
+      },
+      {
+        "id": "triple:http://example.org/k#c|http://www.w3.org/2004/02/skos/core#inScheme|http://example.org/k#s",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/k#c",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": ":c",
+          "p": "http://www.w3.org/2004/02/skos/core#inScheme",
+          "o": "http://example.org/k#s",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 14
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

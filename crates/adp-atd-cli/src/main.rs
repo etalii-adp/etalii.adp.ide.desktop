@@ -24,7 +24,7 @@ const USAGE: &str = "usage: atd [--spec-dir <dir>] <command> …
   tables [--grammar <file.lark>]             print the normalized parse tables
   new --kind <kind> --origin <vendor/type> --name <name> [--out <dir>]
                                              write a new description of a kind from its template
-  validate [--json] [--case <name>] <root.atd>
+  validate [--json] [--case <name>] [--except <name>] <root.atd>
                                              replay the description's conformance cases through its runtime
   record <origin> --cases <dir> [--description <path>]
                                              record a tool type's conformance cases from its parity scripts
@@ -423,10 +423,21 @@ fn validate_command(args: &[String]) -> ExitCode {
         return usage("--case needs a case's name");
     }
     let case = case.flatten();
+    let except: Vec<&String> = args
+        .iter()
+        .enumerate()
+        .filter(|(i, _)| i.checked_sub(1).is_some_and(|before| args[before] == "--except"))
+        .map(|(_, name)| name)
+        .collect();
     let Some(root) = args
         .iter()
         .enumerate()
-        .find(|(i, a)| !a.starts_with("--") && args.get(i.wrapping_sub(1)).is_none_or(|p| p != "--case"))
+        .find(|(i, a)| {
+            !a.starts_with("--")
+                && args
+                    .get(i.wrapping_sub(1))
+                    .is_none_or(|p| p != "--case" && p != "--except")
+        })
         .map(|(_, a)| Path::new(a))
     else {
         return usage("validate needs a description's root");
@@ -434,6 +445,7 @@ fn validate_command(args: &[String]) -> ExitCode {
     let folders: Vec<PathBuf> = adp_atd_validate::cases_of(root)
         .into_iter()
         .filter(|f| case.is_none_or(|c| f.file_name().is_some_and(|n| n == c.as_str())))
+        .filter(|f| !except.iter().any(|c| f.file_name().is_some_and(|n| n == c.as_str())))
         .collect();
     if folders.is_empty() {
         return usage(&match case {

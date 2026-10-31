@@ -1,0 +1,67 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.15",
+  "doc": "The binding of the fixture grammar-ordinals (FBL 0.15, section 4.9): nodes numbered by `body.ordinals`, a label taking the number of its first appearance.",
+  "bindings": {
+    "ordinals": {
+      "title": "Numbered nodes",
+      "claims": {
+        "extensions": [
+          ".ordinals"
+        ],
+        "origins": [
+          "example/ordinals"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "grammar",
+        "grammar": "start: statement*\nstatement: node \".\"\nnode: LABEL | ANON | group | list\ngroup: \"[\" node* \"]\"\nlist: \"(\" item* \")\"\nitem: node\nLABEL: /_:[a-z]+/\nANON: /\\[ *\\]/\nWS: /[ \\n]+/\n%ignore WS\n",
+        "ordinals": {
+          "blank": {
+            "at": [
+              "/**/node/LABEL",
+              "/**/node/ANON",
+              "/**/node/group",
+              "/**/list/item"
+            ],
+            "same": "LABEL"
+          }
+        }
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "lf",
+        "indent": 2,
+        "finalNewline": true
+      },
+      "elements": [
+        {
+          "name": "cell",
+          "type": "Cell",
+          "at": "/**/list/item",
+          "attributes": {
+            "number": {
+              "node": ".",
+              "ordinal": "blank"
+            }
+          }
+        },
+        {
+          "name": "node",
+          "type": "Node",
+          "at": "/**/node",
+          "attributes": {
+            "number": {
+              "node": "*",
+              "ordinal": "blank"
+            },
+            "written": {
+              "node": "."
+            }
+          }
+        }
+      ]
+    }
+  }
+}

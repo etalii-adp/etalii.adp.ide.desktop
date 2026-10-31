@@ -1,0 +1,237 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "res:http://example.org/o",
+      "type": "w3c/owl+node",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 220,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "display",
+          "text": "o",
+          "font": "13 400",
+          "position": {
+            "x": 110,
+            "y": 20
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/o#A",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 120,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Ay",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 159.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/o#B",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 530,
+        "y": 120,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":B",
+          "font": "13 400",
+          "position": {
+            "x": 625,
+            "y": 159.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/o#Cee",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 250,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":Cee",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 289.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/o#D",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 530,
+        "y": 250,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":D",
+          "font": "13 400",
+          "position": {
+            "x": 625,
+            "y": 289.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/o#E",
+      "type": "w3c/owl+node",
+      "shape": "ellipse",
+      "bounds": {
+        "x": 0,
+        "y": 380,
+        "w": 190,
+        "h": 70
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": ":E",
+          "font": "13 400",
+          "position": {
+            "x": 95,
+            "y": 419.33
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#e2e8f0",
+        "strokeWidth": 1
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:res:http://example.org/o#B|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/o#Cee",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/o#B",
+      "target": "res:http://example.org/o#Cee",
+      "route": [
+        {
+          "x": 545.92,
+          "y": 174.4
+        },
+        {
+          "x": 174.08,
+          "y": 265.6
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/o#D|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/o#Cee",
+      "type": "w3c/owl+edge",
+      "source": "res:http://example.org/o#D",
+      "target": "res:http://example.org/o#Cee",
+      "route": [
+        {
+          "x": 530,
+          "y": 285
+        },
+        {
+          "x": 190,
+          "y": 285
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "arrow"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "dash": [
+          6,
+          4
+        ]
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "edge:res:http://example.org/o#B|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/o#Cee",
+    "edge:res:http://example.org/o#D|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/o#Cee",
+    "res:http://example.org/o",
+    "res:http://example.org/o#A",
+    "res:http://example.org/o#B",
+    "res:http://example.org/o#Cee",
+    "res:http://example.org/o#D",
+    "res:http://example.org/o#E"
+  ]
+}

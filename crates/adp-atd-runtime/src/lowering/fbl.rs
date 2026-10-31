@@ -6,8 +6,8 @@ use serde_json::{Map, Value as Json, json};
 
 use super::values::{settings_of, text, value};
 
-/// The FBL version the lowered document states (ATD §11: a binding is FBL 0.14's in ATD 0.1).
-const FBL: &str = "0.14";
+/// The FBL version the lowered document states (ATD §11: a binding is FBL 0.15's in ATD 0.1).
+const FBL: &str = "0.15";
 
 /// The FBL document of the bindings among `members`, none when there are none.
 pub fn lower(members: &[&Json]) -> Option<Json> {

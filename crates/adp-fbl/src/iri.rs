@@ -1,4 +1,5 @@
-//! Relative IRIs resolved against a base (etalii.adp spec 030, task T083), as the standalone host's parser and writer
+//! Relative IRIs resolved against a base (etalii.adp spec 030, task T083; moved here from the RDF module for FBL 0.15's
+//! `expand`, spec 067, T038), as the standalone host's parser and writer
 //! did with .NET's `Uri.TryCreate(Uri, string, out Uri)` and `AbsoluteUri` at `8b6ccfc`: RFC 3986's reference
 //! resolution, with the base's scheme and host lowercased as `Uri` writes them and a bare authority given its `/`.
 

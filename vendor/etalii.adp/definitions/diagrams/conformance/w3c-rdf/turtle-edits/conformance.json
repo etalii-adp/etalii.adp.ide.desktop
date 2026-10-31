@@ -1,0 +1,322 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/rdf` from parity/cases/w3c/rdf/turtle-edits.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/rdf",
+  "description": "../../../w3c-rdf.atd",
+  "inputs": {
+    "body": "turtle-edits.ttl",
+    "registration": "turtle-edits.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/a",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/a",
+          "display": "ex:a",
+          "typeBadges.0": "ex:T",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "A",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/b",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/b",
+          "display": "ex:b",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "B",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/c",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/c",
+          "display": "ex:c",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "C",
+          "blank": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/d",
+        "type": "w3c/rdf+resource",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/d",
+          "display": "ex:d",
+          "blank": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:res:http://example.org/a|http://example.org/knows|res:http://example.org/b",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/a",
+        "target": "res:http://example.org/b",
+        "attributes": {
+          "fromElementId": "res:http://example.org/a",
+          "toElementId": "res:http://example.org/b",
+          "predicate": "ex:knows",
+          "predicateIri": "http://example.org/knows"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/a|http://example.org/knows|res:http://example.org/c",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/a",
+        "target": "res:http://example.org/c",
+        "attributes": {
+          "fromElementId": "res:http://example.org/a",
+          "toElementId": "res:http://example.org/c",
+          "predicate": "ex:knows",
+          "predicateIri": "http://example.org/knows"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/a|http://example.org/likes|res:http://example.org/c",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/a",
+        "target": "res:http://example.org/c",
+        "attributes": {
+          "fromElementId": "res:http://example.org/a",
+          "toElementId": "res:http://example.org/c",
+          "predicate": "ex:likes",
+          "predicateIri": "http://example.org/likes"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/b|http://example.org/knows|res:http://example.org/c",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/b",
+        "target": "res:http://example.org/c",
+        "attributes": {
+          "fromElementId": "res:http://example.org/b",
+          "toElementId": "res:http://example.org/c",
+          "predicate": "ex:knows",
+          "predicateIri": "http://example.org/knows"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/d|http://example.org/knows|res:http://example.org/a",
+        "type": "w3c/rdf+edge",
+        "source": "res:http://example.org/d",
+        "target": "res:http://example.org/a",
+        "attributes": {
+          "fromElementId": "res:http://example.org/d",
+          "toElementId": "res:http://example.org/a",
+          "predicate": "ex:knows",
+          "predicateIri": "http://example.org/knows"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "create": {
+        "type": "rdf.toolbox.resource",
+        "at": {
+          "x": 0,
+          "y": 0
+        }
+      },
+      "args": {
+        "value": "ex:new"
+      },
+      "expectFile": "after-1.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "connect": {
+        "type": "rdf.connect",
+        "source": "res:http://example.org/b",
+        "target": "res:http://example.org/a"
+      },
+      "args": {
+        "value": "ex:likes"
+      },
+      "expectFile": "after-2.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "Label",
+        "value": "See \"C\"\tnow"
+      },
+      "select": [
+        "res:http://example.org/c"
+      ],
+      "expectFile": "after-3.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "property": {
+        "element": "res:http://example.org/a",
+        "attribute": "rdf.comment",
+        "value": "A new comment."
+      },
+      "expectFile": "after-4.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "action": "rdf.remove-edge",
+      "select": [
+        "edge:res:http://example.org/a|http://example.org/knows|res:http://example.org/b"
+      ],
+      "expectFile": "after-5.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-4.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "action": "rdf.remove-edge",
+      "select": [
+        "edge:res:http://example.org/a|http://example.org/likes|res:http://example.org/c"
+      ],
+      "expectFile": "after-6.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    },
+    {
+      "action": "rdf.remove-edge",
+      "select": [
+        "edge:res:http://example.org/b|http://example.org/knows|res:http://example.org/c"
+      ],
+      "expectFile": "after-7.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.8.json"
+      }
+    },
+    {
+      "action": "rdf.remove-edge",
+      "select": [
+        "edge:res:http://example.org/d|http://example.org/knows|res:http://example.org/a"
+      ],
+      "expectFile": "after-8.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.9.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-7.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.10.json"
+      }
+    },
+    {
+      "redo": true,
+      "expectFile": "after-8.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.11.json"
+      }
+    },
+    {
+      "action": "rdf.remove-resource",
+      "args": {
+        "confirm": true
+      },
+      "select": [
+        "res:http://example.org/c"
+      ],
+      "expectFile": "after-9.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.12.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-8.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.13.json"
+      }
+    },
+    {
+      "action": "rdf.rename-resource",
+      "args": {
+        "value": "ex:cc"
+      },
+      "select": [
+        "res:http://example.org/c"
+      ],
+      "expectFile": "after-10.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.14.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "0f2b9d5",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "0f2b9d5",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "0f2b9d5",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "0f2b9d5",
+      "source": "atd record (drawing)"
+    }
+  },
+  "recordedFrom": "module"
+}

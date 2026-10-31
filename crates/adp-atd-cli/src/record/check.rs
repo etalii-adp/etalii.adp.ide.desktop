@@ -104,6 +104,20 @@ fn recorded_with_of(fixture: &Json) -> Option<String> {
     found
 }
 
+/// A file's bytes, each line that states the commit it was recorded with left out: a folder's cases may have been recorded
+/// with different commits, and what they record is what is compared.
+fn recording_of(file: &Path) -> Option<Vec<Vec<u8>>> {
+    let bytes = fs::read(file).ok()?;
+    let stated = b"\"recordedWith\":";
+    Some(
+        bytes
+            .split_inclusive(|byte| *byte == b'\n')
+            .filter(|line| !line.windows(stated.len()).any(|window| window == stated))
+            .map(<[u8]>::to_vec)
+            .collect(),
+    )
+}
+
 /// Every file that is in one folder and not the other, or differs between them.
 fn compare(vendored: &Path, recorded: &Path, vendor: &Path, differences: &mut Vec<String>) {
     let files = |root: &Path| -> BTreeSet<String> {
@@ -124,7 +138,7 @@ fn compare(vendored: &Path, recorded: &Path, vendor: &Path, differences: &mut Ve
             (true, false) => differences.push(format!("{}: vendored, no longer recorded", shown(file))),
             (false, true) => differences.push(format!("{}: recorded, not vendored", shown(file))),
             _ => {
-                if fs::read(vendored.join(file)).ok() != fs::read(recorded.join(file)).ok() {
+                if recording_of(&vendored.join(file)) != recording_of(&recorded.join(file)) {
                     differences.push(format!("{}: recorded differently", shown(file)));
                 }
             }

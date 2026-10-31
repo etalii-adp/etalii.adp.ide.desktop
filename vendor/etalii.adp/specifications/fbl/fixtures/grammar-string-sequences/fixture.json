@@ -1,0 +1,114 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.15, section 4.9 (The sequences of a string) and 6.3 (A string), spec 067, FR-008: a named sequence, an escaped quote of either kind, a long string holding a line ending, code points of four and eight digits, and `\\` before what is no sequence, kept. A set writes the whole node in `requote`, a line ending and a tab by their sequences, and an undo restores the bytes.",
+  "binding": "strings.fbl#strings",
+  "input": "strings.txt",
+  "read": {
+    "elements": [
+      {
+        "id": "a",
+        "type": "Item",
+        "attributes": {
+          "text": "x\ty \"q\""
+        }
+      },
+      {
+        "id": "b",
+        "type": "Item",
+        "attributes": {
+          "text": "it's"
+        }
+      },
+      {
+        "id": "c",
+        "type": "Item",
+        "attributes": {
+          "text": "two\nlines"
+        }
+      },
+      {
+        "id": "d",
+        "type": "Item",
+        "attributes": {
+          "text": "é😀\\q\\u00"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "a \"x\\ty \\\"q\\\"\" .\nb 'it\\'s' .\nc \"\"\"two\nlines\"\"\" .\nd \"\\u00e9\\U0001F600\\q\\u00\" .\n"
+    },
+    {
+      "doc": "A set of a string in another quote writes the node in `requote`.",
+      "edit": {
+        "set": {
+          "element": "b",
+          "attributes": {
+            "text": "a\tb\n\"c\\"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 19,
+          "end": 26,
+          "text": "\"a\\tb\\n\\\"c\\\\\""
+        }
+      ],
+      "expect": "a \"x\\ty \\\"q\\\"\" .\nb \"a\\tb\\n\\\"c\\\\\" .\nc \"\"\"two\nlines\"\"\" .\nd \"\\u00e9\\U0001F600\\q\\u00\" .\n"
+    },
+    {
+      "doc": "Undo restores the string.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 19,
+          "end": 32,
+          "text": "'it\\'s'"
+        }
+      ],
+      "expect": "a \"x\\ty \\\"q\\\"\" .\nb 'it\\'s' .\nc \"\"\"two\nlines\"\"\" .\nd \"\\u00e9\\U0001F600\\q\\u00\" .\n"
+    },
+    {
+      "doc": "A long string is written in `requote` too.",
+      "edit": {
+        "set": {
+          "element": "c",
+          "attributes": {
+            "text": "one"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 31,
+          "end": 46,
+          "text": "\"one\""
+        }
+      ],
+      "expect": "a \"x\\ty \\\"q\\\"\" .\nb 'it\\'s' .\nc \"one\" .\nd \"\\u00e9\\U0001F600\\q\\u00\" .\n"
+    },
+    {
+      "doc": "Undo restores it.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 31,
+          "end": 36,
+          "text": "\"\"\"two\nlines\"\"\""
+        }
+      ],
+      "expect": "a \"x\\ty \\\"q\\\"\" .\nb 'it\\'s' .\nc \"\"\"two\nlines\"\"\" .\nd \"\\u00e9\\U0001F600\\q\\u00\" .\n"
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "tool": "w3c/skos",
+  "fixture": "w3c/skos/turtle-edits-skos/turtle-edits-skos.ttl",
+  "registration": "w3c/skos/turtle-edits-skos/turtle-edits-skos.adp",
+  "steps": [
+    {
+      "action": "skos.add-concept",
+      "args": {
+        "target": "new:0,0",
+        "value": "Dee"
+      }
+    },
+    {
+      "action": "skos.file-under",
+      "args": {
+        "target": "rel:res:http://example.org/k#c->res:http://example.org/k#a"
+      }
+    },
+    {
+      "select": [
+        "res:http://example.org/k#a"
+      ]
+    },
+    {
+      "property": {
+        "row": "skos.label:prefLabel:en",
+        "value": "Ay"
+      }
+    },
+    {
+      "action": "skos.disconnect",
+      "args": {
+        "target": "edge:res:http://example.org/k#b|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/k#c"
+      }
+    },
+    {
+      "undo": 1
+    },
+    {
+      "action": "skos.disconnect",
+      "args": {
+        "target": "edge:res:http://example.org/k#b|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/k#a"
+      }
+    },
+    {
+      "action": "rdf.rename-resource",
+      "args": {
+        "target": "res:http://example.org/k#c",
+        "value": ":cee"
+      }
+    }
+  ]
+}

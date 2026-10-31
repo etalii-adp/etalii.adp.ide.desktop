@@ -1,0 +1,91 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.layeredRegions` from the RDF module's layout of the reading that parity/cases/w3c/skos/turtle-edits-skos.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "res:http://example.org/k#s",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "region",
+          "key": "http://example.org/k#s"
+        }
+      },
+      {
+        "id": "res:http://example.org/k#a",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/k#s"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/k#c",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": [
+            "http://example.org/k#s"
+          ]
+        }
+      },
+      {
+        "id": "res:http://example.org/k#b",
+        "width": 240.0,
+        "height": 110.0,
+        "attributes": {
+          "role": "member",
+          "regions": []
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:res:http://example.org/k#b|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/k#a",
+        "source": "res:http://example.org/k#a",
+        "target": "res:http://example.org/k#b"
+      },
+      {
+        "id": "edge:res:http://example.org/k#b|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/k#c",
+        "source": "res:http://example.org/k#c",
+        "target": "res:http://example.org/k#b"
+      }
+    ]
+  },
+  "args": {
+    "columnWidth": 240,
+    "rowHeight": 110,
+    "regionGap": 90,
+    "regionHeader": 60,
+    "layerGap": 50,
+    "minimumColumns": 8,
+    "role": "self.role",
+    "key": "self.key",
+    "regions": "self.regions"
+  },
+  "output": {
+    "positions": {
+      "res:http://example.org/k#a": {
+        "x": 0.0,
+        "y": 60.0
+      },
+      "res:http://example.org/k#b": {
+        "x": 0.0,
+        "y": 260.0
+      },
+      "res:http://example.org/k#c": {
+        "x": 240.0,
+        "y": 60.0
+      },
+      "res:http://example.org/k#s": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    }
+  }
+}

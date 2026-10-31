@@ -1,0 +1,19 @@
+# Inserts and removals through the reader, in a concept scheme.
+@prefix : <http://example.org/k#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+:s a skos:ConceptScheme ;
+    skos:prefLabel "Scheme"@en ;
+    skos:hasTopConcept :a .
+:a a skos:Concept ;
+    skos:prefLabel "Ay"@en ;
+    skos:topConceptOf :s .
+:b a skos:Concept ;
+    skos:prefLabel "B"@en ;
+    skos:broader :a , :c .
+:c a skos:Concept ; skos:prefLabel "C"@en ; skos:inScheme :s ;
+    skos:broader :a .
+
+:Dee a skos:Concept ;
+    skos:prefLabel "Dee"@en ;
+    skos:inScheme :s .

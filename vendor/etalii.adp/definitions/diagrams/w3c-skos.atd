@@ -48,7 +48,6 @@ diagram w3c/skos version "1.0.0" {
 
   import "w3c-skos.notation.atd"
   import "w3c-skos.turtle.atd"
-  requires capability reader.turtle@^1
   requires capability layout.layeredRegions@^1
 
   /// Only resources the file types `skos:ConceptScheme`, `skos:Concept`, `skos:Collection` or `skos:OrderedCollection`
@@ -150,7 +149,7 @@ diagram w3c/skos version "1.0.0" {
       /// Rename through the context menu, so every reference follows the name.
       attribute iri: uri readonly { label: "IRI", group: "Identity" }
       /// The resource is a blank node: drawn, but never positioned or edited.
-      attribute blank: bool readonly default false
+      attribute blank: bool { derived: (self.id.startsWith('blank:')) }
       /// `skos:prefLabel` literals. Editable per language.
       attribute prefLabel: LangString many { label: "Preferred", group: "Labels" }
       /// `skos:altLabel` literals. Alternate and hidden labels are edited as triples.
@@ -198,7 +197,6 @@ diagram w3c/skos version "1.0.0" {
         id: (item)
         attributes: {
           iri: (skosNode(item))
-          blank: (item.startsWith('blank:'))
           prefLabel: (skosLabels(item, 'http://www.w3.org/2004/02/skos/core#prefLabel'))
           altLabel: (skosLabels(item, 'http://www.w3.org/2004/02/skos/core#altLabel'))
           hiddenLabel: (skosLabels(item, 'http://www.w3.org/2004/02/skos/core#hiddenLabel'))
@@ -251,7 +249,6 @@ diagram w3c/skos version "1.0.0" {
         id: (item)
         attributes: {
           iri: (skosNode(item))
-          blank: (item.startsWith('blank:'))
           prefLabel: (skosLabels(item, 'http://www.w3.org/2004/02/skos/core#prefLabel'))
           altLabel: (skosLabels(item, 'http://www.w3.org/2004/02/skos/core#altLabel'))
           hiddenLabel: (skosLabels(item, 'http://www.w3.org/2004/02/skos/core#hiddenLabel'))
@@ -291,7 +288,6 @@ diagram w3c/skos version "1.0.0" {
         id: (item)
         attributes: {
           iri: (skosNode(item))
-          blank: (item.startsWith('blank:'))
           prefLabel: (skosLabels(item, 'http://www.w3.org/2004/02/skos/core#prefLabel'))
           altLabel: (skosLabels(item, 'http://www.w3.org/2004/02/skos/core#altLabel'))
           hiddenLabel: (skosLabels(item, 'http://www.w3.org/2004/02/skos/core#hiddenLabel'))
@@ -331,15 +327,15 @@ diagram w3c/skos version "1.0.0" {
         from: (skosPairs().filter(p, skosDrawable(p[0]) && skosDrawable(p[1])).map(p, [p[1], p[0], p[2]]))
         key: ([item[0], item[1]])
         id: ('edge:' + item[0] + '|http://www.w3.org/2004/02/skos/core#broader|' + item[1])
-        source: (diagram.elementById(item[0]))
-        target: (diagram.elementById(item[1]))
+        source: (diagram.elementById(item[1]))
+        target: (diagram.elementById(item[0]))
         sources: (group.map(g, g[2]))
         reason: "A hierarchy or related link is stated by triples; disconnect it from its menu."
         edits: { delete: "disconnect" }
         attributes: {
           assertedBothWays: (group.map(g, g[2].p).distinct().size() > 1 || group.map(g, cardId(g[2].s, g[2].sKind)).distinct().size() > 1)
         }
-        doc: "One edge per pair, keyed `[narrower, broader]` and drawn under the id of the broader-direction triple whichever directions the file asserts, every stating triple among its sources."
+        doc: "One edge per pair, from the broader to the narrower, keyed `[narrower, broader]` and drawn under the id of the broader-direction triple whichever directions the file asserts, every stating triple among its sources."
       }
       source: { ports: ["file"], role: "narrower" }
       target: { role: "broader" }
@@ -358,8 +354,8 @@ diagram w3c/skos version "1.0.0" {
         from: (diagram.nodesOfType('Triple').filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#related' && t.oKind != 'literal' && skosDrawable(cardId(t.s, t.sKind)) && skosDrawable(cardId(t.o, t.oKind))).map(t, cel.bind(a, cardId(t.s, t.sKind), cel.bind(b, cardId(t.o, t.oKind), a <= b ? [a, b, t] : [b, a, t]))))
         key: ([item[0], item[1]])
         id: ('edge:' + item[0] + '|http://www.w3.org/2004/02/skos/core#related|' + item[1])
-        source: (diagram.elementById(item[0]))
-        target: (diagram.elementById(item[1]))
+        source: (diagram.elementById(item[1]))
+        target: (diagram.elementById(item[0]))
         sources: (group.map(g, g[2]))
         reason: "A hierarchy or related link is stated by triples; disconnect it from its menu."
         edits: { delete: "disconnect" }
@@ -579,6 +575,46 @@ diagram w3c/skos version "1.0.0" {
   constraints {
     builtin std.unparseable { code: "rdf.unparseable", message: ('This is not RDF that can be read: ' + detail.reason) }
 
+    /// A prefix declared twice: every declaration after its first, grouped in order of first declaration.
+    constraint duplicatePrefix for diagram {
+      label "Duplicate prefix"
+      severity warning
+      message ('The prefix \'' + item.name + ':\' is declared more than once; from here on it means ' + item.iri + ', which changes what every earlier-styled use would say.')
+      code: "rdf.duplicate-prefix"
+      forEach: (diagram.nodesOfType('Prefix').map(d, d.name).distinct().map(n, diagram.nodesOfType('Prefix').filter(d, d.name == n)).map(g, g.filter(d, g.indexOf(d) > 0)).flatten())
+      location: ({ 'line': item.line })
+    }
+
+    /// The first triple naming a relative IRI, when the file declares no base.
+    constraint relativeIri for diagram {
+      label "Relative IRI"
+      severity warning
+      message "This document uses relative IRIs but declares no base, so their meaning depends on where the file happens to sit. Declare an @base."
+      code: "rdf.relative-iri"
+      forEach: (size(diagram.nodesOfType('Base')) > 0 ? [] : cel.bind(r, diagram.nodesOfType('Triple').filter(t, (t.sKind == 'iri' && !rdfAbsolute(t.s)) || !rdfAbsolute(t.p) || (t.oKind == 'iri' && !rdfAbsolute(t.o))), r.size() > 0 ? [r[0]] : []))
+      location: ({ 'line': item.line })
+    }
+
+    /// A language tag no speaker could have meant.
+    constraint languageTag for Triple {
+      label "Malformed language tag"
+      severity warning
+      rule self.language == '' || self.language.matches('^[A-Za-z]+(-[A-Za-z0-9]+)*$')
+      message ('\'@' + self.language + '\' is not a well-formed language tag (letters, then optional \'-\' groups of letters and digits).')
+      code: "rdf.language-tag"
+      location: ({ 'line': self.line })
+    }
+
+    /// A datatype in the XSD namespace that XSD does not define.
+    constraint unknownDatatype for Triple {
+      label "Unknown XSD datatype"
+      severity warning
+      rule !self.datatype.startsWith('http://www.w3.org/2001/XMLSchema#') || self.datatype.substring(size('http://www.w3.org/2001/XMLSchema#')) in ['string', 'boolean', 'decimal', 'integer', 'double', 'float', 'date', 'time', 'dateTime', 'dateTimeStamp', 'duration', 'gYear', 'gMonth', 'gDay', 'gYearMonth', 'gMonthDay', 'hexBinary', 'base64Binary', 'anyURI', 'language', 'normalizedString', 'token', 'long', 'int', 'short', 'byte', 'nonNegativeInteger', 'positiveInteger', 'negativeInteger', 'nonPositiveInteger', 'unsignedLong', 'unsignedInt', 'unsignedShort', 'unsignedByte']
+      message ('xsd:' + self.datatype.substring(size('http://www.w3.org/2001/XMLSchema#')) + ' is not a datatype XSD defines; tools that check will refuse the value.')
+      code: "rdf.unknown-datatype"
+      location: ({ 'line': self.line })
+    }
+
     /// One finding per knot of the drawn hierarchy, its members named in id order, at the first triple stating one of
     /// its edges.
     constraint hierarchyCycle for diagram {
@@ -589,7 +625,7 @@ diagram w3c/skos version "1.0.0" {
       forEach: (diagram.knots('Broader'))
       cost: expensive
       location: ({
-        'line': diagram.relationsOfType('Broader').filter(r, r.source in item && r.target in item)[0].sources[0].line
+        'line': diagram.nodesOfType('Triple').filter(t, t.p in ['http://www.w3.org/2004/02/skos/core#broader', 'http://www.w3.org/2004/02/skos/core#narrower'] && item.exists(c, c.id == cardId(t.s, t.sKind)) && item.exists(c, c.id == cardId(t.o, t.oKind)))[0].line
       }
       )
     }
@@ -624,12 +660,12 @@ diagram w3c/skos version "1.0.0" {
       location: ({ 'line': self.sources[0].line })
     }
 
-    constraint unfiledConcept for Concept {
+    constraint unfiledConcept for diagram {
       label "Unfiled concept"
-      rule size(self.inScheme) > 0 || self.id in skosReached(diagram.nodesOfType('ConceptScheme').map(s, skosTops(s.id)).flatten(), [])
       severity info
-      message (skosShort(self.iri) + ' is in no concept scheme and under no top concept - legal SKOS, and usually a mistake. It draws in the unfiled band.')
+      message (skosShort(item) + ' is in no concept scheme and under no top concept - legal SKOS, and usually a mistake. It draws in the unfiled band.')
       code: "skos.unfiled-concept"
+      forEach: (cel.bind(reached, skosReached(diagram.nodesOfType('ConceptScheme').map(s, skosTops(s.id)).flatten(), []), diagram.nodesOfType('Concept').filter(c, !(size(c.inScheme) > 0 || c.id in reached)).map(c, c.iri)))
     }
 
     constraint nonConceptTarget for diagram {
@@ -933,7 +969,7 @@ diagram w3c/skos version "1.0.0" {
     required: true
     provides: [persistenceFormat, celFunctions, action]
     plans: [add, set, remove]
-    doc "The RDF family's engine: it reads a `.ttl` or `.nt` body into the stored `Triple`, `Prefix` and `Base` elements and the five `rdf.*` findings, plans the splices of an added, set or removed triple, carries out the two edits that are not a change of one triple (renaming a term everywhere it is written, declaring a prefix; gap 2 of `w3c-rdf.md`), and provides the naming functions. Every function is called by its bare name. This description states the reading and the planning as the binding `turtle` (w3c-skos.turtle.atd), whose family is the capability `reader.turtle`, the two edits as model changes the binding writes, and the functions as the script functions of the same names; the plugin stays declared for the hosts that run the JSON files."
+    doc "The RDF family's engine: it reads a `.ttl` or `.nt` body into the stored `Triple`, `Prefix` and `Base` elements and the five `rdf.*` findings, plans the splices of an added, set or removed triple, carries out the two edits that are not a change of one triple (renaming a term everywhere it is written, declaring a prefix; gap 2 of `w3c-rdf.md`), and provides the naming functions. Every function is called by its bare name. This description reads and writes with the binding `turtle` (w3c-skos.turtle.atd), FBL 0.15's grammar family, with no plugin (spec 067, T039); it states the five findings as rules and the functions as the script functions of the same names; the plugin stays declared for the hosts that run the JSON files."
   }
 
   x-skos: {

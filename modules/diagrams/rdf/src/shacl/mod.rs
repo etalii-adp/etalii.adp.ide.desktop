@@ -50,13 +50,14 @@ pub fn card_height(card: &projection::ShaclCard) -> f64 {
 /// The computed layout: cards grid-placed in discovery order, each grid row as tall as its tallest card
 /// (`ShaclLayout.Positions`).
 pub fn positions(result: &projection::ShaclProjectionResult) -> BTreeMap<String, (f64, f64)> {
-    let sizes: Vec<(f64, f64)> = result.cards.iter().map(|c| (COLUMN_WIDTH, card_height(c))).collect();
-    let grid = adp_layout::grid_packer::pack(&sizes, COLUMNS, 0.0, ROW_GAP);
-    result
+    let nodes: Vec<(String, f64, f64)> = result
         .cards
         .iter()
-        .zip(grid.cells.iter())
-        .map(|(card, cell)| (card.id.clone(), (cell.x, cell.y)))
+        .map(|card| (card.id.clone(), COLUMN_WIDTH, card_height(card)))
+        .collect();
+    adp_atd_runtime::capabilities::grid::place_grid(&nodes, COLUMNS, 0.0, ROW_GAP)
+        .into_iter()
+        .map(|(id, x, y)| (id, (x, y)))
         .collect()
 }
 

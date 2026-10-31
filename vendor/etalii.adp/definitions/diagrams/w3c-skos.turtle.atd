@@ -3,19 +3,42 @@ part of w3c/skos
 
 // The body of a W3C reading and the naming functions every reading shares, in a part of its own (ATD §5.2, §9, §12).
 
-/// A Turtle or N-Triples file, read and written by the capability `reader.turtle` as the stored `Base`, `Prefix` and
-/// `Triple` elements every reading of the file shares, and the five `rdf.*` findings: the persistence plugin's contract
-/// (FBL §11) as a binding's family, since FBL's families cannot write a group of triples as one construct (gaps 1 to 5 of `w3c-rdf.md`:
-/// gap 1), a value written once for several triples (gap 3), a separator or a terminator (gap 4), nor tell an `.nt`
-/// body from a `.ttl` one (gap 5). How an edit is written - a pair appended as a `;` continuation, a removal taking its
-/// stranded separator, a literal requoted in place, a renamed term rewritten in every token naming it, a new prefix
-/// after the last declaration, the dominant line ending kept, a byte order mark kept - is the reader's, as its contract
-/// says. The registration's `language:` header and its `layout:` block of positions keyed by element id are read
-/// with the body.
-binding turtle family capability reader.turtle {
+/// A Turtle or N-Triples file, read and written through a declared binding on `w3c-turtle.lark` beside this part, a copy
+/// of `specifications/fbl/w3c-turtle.lark`: FBL 0.15's grammar family (section 4.9), with no persistence plugin (spec 067,
+/// T039, FR-009). One stored `Triple` per triple, one `Prefix` per directive and the `Base`, which every reading of the
+/// file shares. A triple reaches up to the subject of the statement or property list around it, its terms read through
+/// the file's prefix directives, a blank node by the order of first appearance and a literal unescaped, in the order a
+/// construct closes, a member's cell and its `rdf:first` and `rdf:rest` standing in for a collection. Every byte no rule
+/// maps is kept. A new triple is written as a statement of its own at the end of the body; FBL 0.15 cannot write a `;`
+/// continuation, take a removed triple's separator with it, nor remove a part of a shared statement, so a triple is not
+/// removed through this binding and those differences from today's tool are listed with the cases (spec 067).
+binding turtle family grammar {
   label "SKOS concept scheme in Turtle or N-Triples"
   claims { extensions: [".ttl", ".nt"], origins: ["w3c/skos"] }
-  body { kind: file }
+  body {
+    kind: file
+    start: turtle_doc
+    order: closed
+    prefixes: {
+      declarations: [
+        { at: "/statement/prefix_id", name: { node: "PNAME_NS", match: "(?<value>[^:]*):" }, iri: { node: "IRIREF" } },
+        { at: "/statement/sparql_prefix", name: { node: "PNAME_NS", match: "(?<value>[^:]*):" }, iri: { node: "IRIREF" } }
+      ]
+      bases: [{ at: "/statement/base", iri: { node: "IRIREF" } }, { at: "/statement/sparql_base", iri: { node: "IRIREF" } }]
+      absolute: "<(?<value>[^>]*)>"
+      prefixed: "(?<prefix>[^:<]*):(?<local>.*)"
+      local: "(?:[\\pL\\pN_-][\\pL\\pN_.-]*)?[\\pL\\pN_-]"
+      terminals: ["PNAME_LN", "PNAME_NS"]
+    }
+    ordinals: {
+      blank: {
+        at: ["/**/blank_node/*", "/**/blank_node_property_list", "/**/collection/object"]
+        same: BLANK_NODE_LABEL
+      }
+    }
+  }
+  grammar from "w3c-turtle.lark"
+  text { newline: crlf, indent: 4, finalNewline: true }
   registration {
     headers: {
       language: {
@@ -23,7 +46,223 @@ binding turtle family capability reader.turtle {
       }
     }
   }
-  args: { prefixes: keep }
+  element Base as base at "/statement/base" {
+    attribute iri from node "IRIREF" { expand: true }
+    readOnly: "The base is written in the file; change it there."
+  }
+  element Base as sparql-base at "/statement/sparql_base" {
+    attribute iri from node "IRIREF" { expand: true }
+    readOnly: "The base is written in the file; change it there."
+  }
+  element Prefix as prefix at "/statement/prefix_id" {
+    attribute name from node "PNAME_NS" { match: "(?<value>[^:]*):" }
+    attribute iri from node "IRIREF" { match: "<(?<value>[^>]*)>" }
+    attribute form from value ('turtle')
+    attribute line from value (line)
+    insert { place: after-last, container: "/", emit: "@prefix {name}: <{iri}> ." }
+    doc: "A directive: its name without its colon, its IRI; written after the last declaration."
+  }
+  element Prefix as sparql-prefix at "/statement/sparql_prefix" {
+    attribute name from node "PNAME_NS" { match: "(?<value>[^:]*):" }
+    attribute iri from node "IRIREF" { match: "<(?<value>[^>]*)>" }
+    attribute form from value ('sparql')
+    attribute line from value (line)
+  }
+  element Triple as literal at "/**/triples/predicate_object_list/predicate_object/object_list/object" {
+    when entry.children[0].type in ['rdf_literal', 'numeric_literal', 'boolean_literal']
+    attribute s from node "../../../../subject/iri" {
+      expand: true
+      map: { empty_collection: "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" }
+      or: [
+        { node: "../../../../subject/blank_node/*", ordinal: blank },
+        { node: "../../../../subject/collection/object", ordinal: blank },
+        { node: "../../../../subject_list/blank_node_property_list", ordinal: blank },
+        { node: "../../../../subject/empty_collection", name: true }
+      ]
+    }
+    attribute sKind from node "../../../../*/*" { name: true, map: { iri: "iri", blank_node: "blank", collection: "blank", blank_node_property_list: "blank", empty_collection: "iri" } }
+    attribute sLabel from node "../../../../subject/blank_node/BLANK_NODE_LABEL" { match: "_:(?<value>.*)"}
+    attribute sWritten from node "../../../../subject/iri"
+    attribute p from node "../../verb" { expand: { keywords: { a: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" } } }
+    attribute o from node "rdf_literal/string" {
+      match: "(?:\"\"\"|'''|\"|')(?<value>(?s:.*?))(?:\"\"\"|'''|\"|')"
+      escape: {
+        with: "\\"
+        quote: "\""
+        sequences: { t: "\t", b: "\b", n: "\n", r: "\r", f: "\f", "'": "'" }
+        unicode: { u: 4, U: 8 }
+        writes: ["\n", "\r", "\t"]
+        requote: "\""
+      }
+      or: [{ node: "numeric_literal" }, { node: "boolean_literal" }]
+    }
+    attribute oKind from value ('literal')
+    attribute language from node "rdf_literal/LANGTAG" { match: "@(?<value>.*)"}
+    attribute datatype from node "rdf_literal/iri" {
+      expand: true
+      map: {
+        INTEGER: "http://www.w3.org/2001/XMLSchema#integer"
+        DECIMAL: "http://www.w3.org/2001/XMLSchema#decimal"
+        DOUBLE: "http://www.w3.org/2001/XMLSchema#double"
+        boolean_literal: "http://www.w3.org/2001/XMLSchema#boolean"
+      }
+      or: [{ node: "numeric_literal/*", name: true }, { node: "boolean_literal", name: true }]
+    }
+    attribute line from value (line)
+    insert {
+      when: "attributes.oKind == 'literal'"
+      place: end-of-document
+      emit: "\n{s} {p} {o}[@{language}][^^{datatype}] ."
+    }
+    doc: "A literal object in a statement: `s` reaches up to the statement's subject (FBL 0.15, section 4.9)."
+  }
+  element Triple as term at "/**/triples/predicate_object_list/predicate_object/object_list/object" {
+    when !(entry.children[0].type in ['rdf_literal', 'numeric_literal', 'boolean_literal'])
+    attribute s from node "../../../../subject/iri" {
+      expand: true
+      map: { empty_collection: "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" }
+      or: [
+        { node: "../../../../subject/blank_node/*", ordinal: blank },
+        { node: "../../../../subject/collection/object", ordinal: blank },
+        { node: "../../../../subject_list/blank_node_property_list", ordinal: blank },
+        { node: "../../../../subject/empty_collection", name: true }
+      ]
+    }
+    attribute sKind from node "../../../../*/*" { name: true, map: { iri: "iri", blank_node: "blank", collection: "blank", blank_node_property_list: "blank", empty_collection: "iri" } }
+    attribute sLabel from node "../../../../subject/blank_node/BLANK_NODE_LABEL" { match: "_:(?<value>.*)"}
+    attribute sWritten from node "../../../../subject/iri"
+    attribute p from node "../../verb" { expand: { keywords: { a: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" } } }
+    attribute o from node "iri" {
+      expand: true
+      map: { empty_collection: "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" }
+      or: [
+        { node: "blank_node/*", ordinal: blank },
+        { node: "collection/object", ordinal: blank },
+        { node: "blank_node_property_list", ordinal: blank },
+        { node: "empty_collection", name: true }
+      ]
+    }
+    attribute oKind from node "*" { name: true, map: { iri: "iri", blank_node: "blank", collection: "blank", blank_node_property_list: "blank", empty_collection: "iri" } }
+    attribute oLabel from node "blank_node/BLANK_NODE_LABEL" { match: "_:(?<value>.*)"}
+    attribute line from value (line)
+    insert { place: end-of-document, emit: "\n{s} {p} {o} ." }
+    doc: "An IRI or blank object in a statement. A blank node is written nowhere: an edit naming one is refused."
+  }
+  element Triple as nested-literal at "/**/blank_node_property_list/predicate_object_list/predicate_object/object_list/object" {
+    when entry.children[0].type in ['rdf_literal', 'numeric_literal', 'boolean_literal']
+    attribute s from node "../../../.." { ordinal: blank }
+    attribute sKind from value ('blank')
+    attribute p from node "../../verb" { expand: { keywords: { a: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" } } }
+    attribute o from node "rdf_literal/string" {
+      match: "(?:\"\"\"|'''|\"|')(?<value>(?s:.*?))(?:\"\"\"|'''|\"|')"
+      escape: {
+        with: "\\"
+        quote: "\""
+        sequences: { t: "\t", b: "\b", n: "\n", r: "\r", f: "\f", "'": "'" }
+        unicode: { u: 4, U: 8 }
+        writes: ["\n", "\r", "\t"]
+        requote: "\""
+      }
+      or: [{ node: "numeric_literal" }, { node: "boolean_literal" }]
+    }
+    attribute oKind from value ('literal')
+    attribute language from node "rdf_literal/LANGTAG" { match: "@(?<value>.*)"}
+    attribute datatype from node "rdf_literal/iri" {
+      expand: true
+      map: {
+        INTEGER: "http://www.w3.org/2001/XMLSchema#integer"
+        DECIMAL: "http://www.w3.org/2001/XMLSchema#decimal"
+        DOUBLE: "http://www.w3.org/2001/XMLSchema#double"
+        boolean_literal: "http://www.w3.org/2001/XMLSchema#boolean"
+      }
+      or: [{ node: "numeric_literal/*", name: true }, { node: "boolean_literal", name: true }]
+    }
+    attribute line from value (line)
+  }
+  element Triple as nested-term at "/**/blank_node_property_list/predicate_object_list/predicate_object/object_list/object" {
+    when !(entry.children[0].type in ['rdf_literal', 'numeric_literal', 'boolean_literal'])
+    attribute s from node "../../../.." { ordinal: blank }
+    attribute sKind from value ('blank')
+    attribute p from node "../../verb" { expand: { keywords: { a: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" } } }
+    attribute o from node "iri" {
+      expand: true
+      map: { empty_collection: "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" }
+      or: [
+        { node: "blank_node/*", ordinal: blank },
+        { node: "collection/object", ordinal: blank },
+        { node: "blank_node_property_list", ordinal: blank },
+        { node: "empty_collection", name: true }
+      ]
+    }
+    attribute oKind from node "*" { name: true, map: { iri: "iri", blank_node: "blank", collection: "blank", blank_node_property_list: "blank", empty_collection: "iri" } }
+    attribute oLabel from node "blank_node/BLANK_NODE_LABEL" { match: "_:(?<value>.*)"}
+    attribute line from value (line)
+  }
+  element Triple as first-literal at "/**/collection/object" {
+    when entry.children[0].type in ['rdf_literal', 'numeric_literal', 'boolean_literal']
+    attribute s from node "." { ordinal: blank }
+    attribute sKind from value ('blank')
+    attribute p from value ('http://www.w3.org/1999/02/22-rdf-syntax-ns#first')
+    attribute o from node "rdf_literal/string" {
+      match: "(?:\"\"\"|'''|\"|')(?<value>(?s:.*?))(?:\"\"\"|'''|\"|')"
+      escape: {
+        with: "\\"
+        quote: "\""
+        sequences: { t: "\t", b: "\b", n: "\n", r: "\r", f: "\f", "'": "'" }
+        unicode: { u: 4, U: 8 }
+        writes: ["\n", "\r", "\t"]
+        requote: "\""
+      }
+      or: [{ node: "numeric_literal" }, { node: "boolean_literal" }]
+    }
+    attribute oKind from value ('literal')
+    attribute language from node "rdf_literal/LANGTAG" { match: "@(?<value>.*)"}
+    attribute datatype from node "rdf_literal/iri" {
+      expand: true
+      map: {
+        INTEGER: "http://www.w3.org/2001/XMLSchema#integer"
+        DECIMAL: "http://www.w3.org/2001/XMLSchema#decimal"
+        DOUBLE: "http://www.w3.org/2001/XMLSchema#double"
+        boolean_literal: "http://www.w3.org/2001/XMLSchema#boolean"
+      }
+      or: [{ node: "numeric_literal/*", name: true }, { node: "boolean_literal", name: true }]
+    }
+    attribute line from value (line)
+  }
+  element Triple as first-term at "/**/collection/object" {
+    when !(entry.children[0].type in ['rdf_literal', 'numeric_literal', 'boolean_literal'])
+    attribute s from node "." { ordinal: blank }
+    attribute sKind from value ('blank')
+    attribute p from value ('http://www.w3.org/1999/02/22-rdf-syntax-ns#first')
+    attribute o from node "iri" {
+      expand: true
+      map: { empty_collection: "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" }
+      or: [
+        { node: "blank_node/*", ordinal: blank },
+        { node: "collection/object", ordinal: blank },
+        { node: "blank_node_property_list", ordinal: blank },
+        { node: "empty_collection", name: true }
+      ]
+    }
+    attribute oKind from node "*" { name: true, map: { iri: "iri", blank_node: "blank", collection: "blank", blank_node_property_list: "blank", empty_collection: "iri" } }
+    attribute oLabel from node "blank_node/BLANK_NODE_LABEL" { match: "_:(?<value>.*)"}
+    attribute line from value (line)
+  }
+  element Triple as rest at "/**/collection/object/*" {
+    attribute s from node ".." { ordinal: blank }
+    attribute sKind from value ('blank')
+    attribute p from value ('http://www.w3.org/1999/02/22-rdf-syntax-ns#rest')
+    attribute o from node "../+" { ordinal: blank, or: [{ value: "'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil'" }] }
+    attribute oKind from node "../+" { name: true, map: { object: "blank" }, or: [{ value: "'iri'" }] }
+    attribute line from value (line)
+    doc: "A collection's rest: each member's entry holds one more, the child of its `object`."
+  }
+  template "@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\r\n@prefix ex: <http://example.org/> .\r\n\r\nex:{key} a skos:ConceptScheme ;\r\n    skos:prefLabel \"{base}\"@en ;\r\n    skos:hasTopConcept ex:{key}_top .\r\n\r\nex:{key}_top a skos:Concept ;\r\n    skos:prefLabel \"Top concept\"@en ;\r\n    skos:topConceptOf ex:{key} .\r\n"
+}
+
+/// Whether an IRI is absolute: a letter, then letters, digits, `+`, `-` or `.`, up to a `:`.
+fn rdfAbsolute(iri: string) -> bool {
+  return iri.matches('^[A-Za-z][A-Za-z0-9+.-]*:')
 }
 
 /// The part of an IRI after its last '#' or '/', or the whole IRI when nothing follows either.

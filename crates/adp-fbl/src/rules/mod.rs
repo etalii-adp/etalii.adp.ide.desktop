@@ -119,6 +119,8 @@ impl IdentityKey {
 /// What reading one slot of one entry gave.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct SlotRead {
+    /// *(FBL 0.15)* Which of the attribute's `or` slots was read; none for its own.
+    pub alternative: Option<usize>,
     pub value: Value,
     pub span: Option<Span>,
     pub present: bool,

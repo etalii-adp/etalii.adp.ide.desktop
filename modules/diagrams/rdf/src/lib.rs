@@ -25,7 +25,7 @@ pub mod actions;
 pub mod commands;
 pub mod family;
 pub mod graph;
-pub mod iri;
+pub use adp_fbl::iri;
 pub mod lines;
 pub mod model;
 pub mod owl;

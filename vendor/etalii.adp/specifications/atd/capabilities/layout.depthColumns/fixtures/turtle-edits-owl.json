@@ -1,0 +1,107 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.depthColumns` from the RDF module's layout of the reading that parity/cases/w3c/owl/turtle-edits-owl.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "res:http://example.org/o",
+        "width": 220.0,
+        "height": 40.0,
+        "attributes": {
+          "role": "header",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://example.org/o#A",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://example.org/o#B",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://example.org/o#C",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": []
+        }
+      },
+      {
+        "id": "res:http://example.org/o#D",
+        "width": 190.0,
+        "height": 70.0,
+        "attributes": {
+          "role": "class",
+          "owner": "",
+          "supers": [
+            "res:http://example.org/o#C"
+          ]
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:res:http://example.org/o#D|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/o#C",
+        "source": "res:http://example.org/o#D",
+        "target": "res:http://example.org/o#C"
+      }
+    ]
+  },
+  "args": {
+    "columnWidth": 530,
+    "laneOffset": 250,
+    "slotHeight": 130,
+    "satelliteHeight": 110,
+    "satelliteOffset": 10,
+    "headerGap": 80,
+    "bandGap": 140,
+    "bandColumns": 5,
+    "bandColumnGap": 60,
+    "bandRowGap": 50,
+    "role": "self.role",
+    "supers": "self.supers",
+    "owner": "self.owner",
+    "pinnable": "self.id.startsWith('res:') || self.id.startsWith('ind:')"
+  },
+  "output": {
+    "positions": {
+      "res:http://example.org/o": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "res:http://example.org/o#A": {
+        "x": 0.0,
+        "y": 120.0
+      },
+      "res:http://example.org/o#B": {
+        "x": 0.0,
+        "y": 250.0
+      },
+      "res:http://example.org/o#C": {
+        "x": 0.0,
+        "y": 380.0
+      },
+      "res:http://example.org/o#D": {
+        "x": 530.0,
+        "y": 120.0
+      }
+    }
+  }
+}

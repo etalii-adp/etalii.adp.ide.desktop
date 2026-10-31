@@ -3,7 +3,8 @@
 //! `match`, with its escapes resolved (FBL 0.11), or several items, each a node, a structured value (FBL 0.12) or a piece
 //! of a node's value (FBL 0.13), of which a set writes the difference; new entries are written from `emit` and removed
 //! with their lines, an absent part from its binding's `create`, a block around a first child from its rule's `opens`,
-//! and every write is read again before it is made.
+//! and every write is read again before it is made. *(FBL 0.15)* A slot may reach up and across the tree, and read a term
+//! through the body's prefix directives, a node's number or its name.
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -12,8 +13,11 @@ use adp_cel::{Map, Value};
 
 use super::lines::common_subsequence;
 use super::{Entry, EntryId, EntryKind, Family, FamilyKind};
-use crate::documents::types::{AttributeBinding, HeaderSettings, InsertSettings, OpensText, Slot};
+use crate::documents::types::{
+    AttributeBinding, HeaderSettings, InsertSettings, OpensText, PrefixSettings, Slot, SlotEscape, SlotExpand,
+};
 use crate::grammar::{self, Grammar, Reading};
+use crate::iri;
 use crate::model::{FindingSeverity, codes};
 use crate::planning::new_text;
 use crate::planning::plan::{Plan, Planning, refuse};
@@ -48,6 +52,12 @@ pub(crate) struct GrammarData {
     pub unclosed: Vec<EntryId>,
     /// How many pieces of text do not parse.
     pub unparsed: usize,
+    /// *(FBL 0.15)* Each prefix declared, in document order: where it takes force, its name and its IRI.
+    pub declarations: Vec<(usize, String, String)>,
+    /// *(FBL 0.15)* Each base declared, in document order: where it takes force and its IRI.
+    pub bases: Vec<(usize, String)>,
+    /// *(FBL 0.15)* The number of each node in each numbering of `body.ordinals`.
+    pub ordinals: HashMap<(String, EntryId), usize>,
 }
 
 impl std::fmt::Debug for GrammarData {
@@ -78,7 +88,9 @@ impl Family {
                 return;
             }
         };
-        let text = self.text.text(0, self.text.len()).to_owned();
+        // A byte-order mark belongs to no node, and offsets count it (FBL section 2.6).
+        let mut text = self.text.text(0, self.text.len()).to_owned();
+        text.replace_range(..self.text.bom_length(), &" ".repeat(self.text.bom_length()));
         let reading = match built.read(&text) {
             Ok(reading) => reading,
             Err(unreadable) => {
@@ -145,6 +157,217 @@ impl Family {
             data.grammar = Some(built);
             data.root = Some(0);
             data.unclosed = unclosed;
+        }
+        self.grammar_directives();
+        self.grammar_ordinals();
+    }
+
+    /// The prefixes and bases the directives of `body.prefixes` declare, each in force from the end of its directive,
+    /// and the first term under a prefix none is in force for, which makes the body unreadable (FBL 0.15 section 4.9).
+    fn grammar_directives(&mut self) {
+        let Some(settings) = self.binding.body.prefixes.clone() else {
+            return;
+        };
+        let root = 0;
+        let mut bases: Vec<(usize, String)> = Vec::new();
+        let mut directives: Vec<(usize, Option<&Slot>, &Slot)> = Vec::new();
+        for directive in settings.declarations.iter().chain(&settings.bases) {
+            for (entry, _) in selector::matches(&self.entries, root, &directive.at, None) {
+                directives.push((entry, directive.name.as_ref(), &directive.iri));
+            }
+        }
+        directives.sort_by_key(|(entry, ..)| self.entries[*entry].own.start);
+        let mut declarations: Vec<(usize, String, String)> = Vec::new();
+        for (entry, name, iri) in directives {
+            let own = self.entries[entry].own;
+            let written = self.directive_value(entry, iri).unwrap_or_default();
+            let value = self.resolved(&settings, &written, bases.last().map(|(_, base)| base.as_str()));
+            match name.and_then(|slot| self.directive_value(entry, slot)) {
+                Some(name) => declarations.push((own.end, name, value)),
+                None => bases.push((own.end, value)),
+            }
+        }
+        // A name inside a directive declares; it is no use of a prefix.
+        let declaring: Vec<Span> = settings
+            .declarations
+            .iter()
+            .flat_map(|directive| selector::matches(&self.entries, root, &directive.at, None))
+            .map(|(entry, _)| self.entries[entry].own)
+            .collect();
+        let prefixed = self.regex(&format!(r"\A(?:{})\z", settings.prefixed), false);
+        let mut undeclared = None;
+        for index in 1..self.entries.len() {
+            let entry = &self.entries[index];
+            if !entry
+                .name
+                .as_ref()
+                .is_some_and(|name| settings.terminals.contains(name))
+            {
+                continue;
+            }
+            let text = self.text.text_of(entry.own);
+            let Some(prefix) = prefixed
+                .regex
+                .captures(text)
+                .and_then(|c| c.name("prefix").map(|p| p.as_str().to_owned()))
+            else {
+                continue;
+            };
+            let start = entry.own.start;
+            if !declarations.iter().any(|(at, name, _)| *at <= start && *name == prefix)
+                && undeclared.as_ref().is_none_or(|(at, _)| start < *at)
+                && !declaring.iter().any(|own| own.start <= start && start < own.end)
+            {
+                undeclared = Some((start, prefix));
+            }
+        }
+        if let Some((offset, prefix)) = undeclared {
+            self.unreadable = Some((offset, format!("The prefix '{prefix}:' is not declared.")));
+        }
+        if let FamilyKind::Grammar(data) = &mut self.kind {
+            data.declarations = declarations;
+            data.bases = bases;
+        }
+    }
+
+    /// How many nodes hold this one: of two with one span, the one that holds the other has the smaller depth.
+    pub(crate) fn depth_of(&self, entry: EntryId) -> usize {
+        std::iter::successors(self.entries[entry].parent, |&parent| self.entries[parent].parent).count()
+    }
+
+    /// A directive's name or IRI, as its slot reads it from the directive.
+    fn directive_value(&self, entry: EntryId, slot: &Slot) -> Option<String> {
+        let target = self.grammar_reach(entry, slot.node.as_deref()?)?;
+        Some(self.node_value(target, slot)?.0)
+    }
+
+    /// A term written whole: without what `absolute` leaves out, its numeric escapes read, resolved against `base`.
+    fn resolved(&self, settings: &PrefixSettings, written: &str, base: Option<&str>) -> String {
+        let regex = self.regex(&format!(r"\A(?:{})\z", settings.absolute), false);
+        let inner = regex
+            .regex
+            .captures(written)
+            .and_then(|c| c.name("value"))
+            .map_or(written, |value| value.as_str());
+        let value = SlotEscape {
+            with: '\\',
+            quote: '\\',
+            unicode: vec![('u', 4), ('U', 8)],
+            ..SlotEscape::default()
+        }
+        .read(inner);
+        match base {
+            None => value,
+            Some(base) if value.is_empty() => base.to_owned(),
+            Some(_) if iri::is_absolute(&value) => value,
+            Some(base) => iri::resolve(base, &value).unwrap_or(value),
+        }
+    }
+
+    /// A term, as a slot with `expand` reads it (FBL 0.15 section 4.9): a keyword's IRI, the IRI of a prefixed name under
+    /// the last declaration in force where it stands, or the IRI written whole, against the base in force there.
+    fn expanded(&self, target: EntryId, expand: &SlotExpand) -> String {
+        let text = self.node_text(target);
+        if let Some((_, iri)) = expand.keywords.iter().find(|(word, _)| word == text) {
+            return iri.clone();
+        }
+        let Some(settings) = &self.binding.body.prefixes else {
+            return text.to_owned();
+        };
+        let start = self.entries[target].own.start;
+        let data = self.grammar_data();
+        let prefixed = self.regex(&format!(r"\A(?:{})\z", settings.prefixed), false);
+        if let Some(captures) = prefixed.regex.captures(text) {
+            let prefix = captures.name("prefix").map_or("", |p| p.as_str());
+            let local = captures.name("local").map_or("", |l| l.as_str());
+            if let Some((_, _, iri)) = data
+                .declarations
+                .iter()
+                .rev()
+                .find(|(at, name, _)| *at <= start && name == prefix)
+            {
+                let mut read = iri.clone();
+                let mut chars = local.chars();
+                while let Some(c) = chars.next() {
+                    read.push(if c == '\\' { chars.next().unwrap_or(c) } else { c });
+                }
+                return read;
+            }
+            return text.to_owned();
+        }
+        let base = data.bases.iter().rev().find(|(at, _)| *at <= start);
+        self.resolved(settings, text, base.map(|(_, base)| base.as_str()))
+    }
+
+    /// A term as a set or an add writes it (FBL 0.15 section 6.3): its keyword, else under the longest declared prefix
+    /// that leaves a local name `local` admits, a later declaration winning a tie, else written whole.
+    fn compressed(&self, iri: &str, expand: &SlotExpand) -> String {
+        if let Some((word, _)) = expand.keywords.iter().find(|(_, stands)| stands == iri) {
+            return word.clone();
+        }
+        let whole = format!("<{iri}>");
+        let Some(settings) = &self.binding.body.prefixes else {
+            return whole;
+        };
+        let mut best: Option<&(usize, String, String)> = None;
+        for declaration in &self.grammar_data().declarations {
+            if iri.starts_with(declaration.2.as_str())
+                && iri.len() != declaration.2.len()
+                && best.is_none_or(|b| declaration.2.len() >= b.2.len())
+            {
+                best = Some(declaration);
+            }
+        }
+        let Some((_, prefix, namespace)) = best else {
+            return whole;
+        };
+        let local = &iri[namespace.len()..];
+        if self
+            .regex(&format!(r"\A(?:{})\z", settings.local), false)
+            .regex
+            .is_match(local)
+        {
+            format!("{prefix}:{local}")
+        } else {
+            whole
+        }
+    }
+
+    /// The numberings of `body.ordinals` (FBL 0.15 section 4.9): the nodes each selects numbered from 0, in document
+    /// order with a node before the nodes it holds, and a node of the terminal `same` taking the number of an earlier one
+    /// with its text.
+    fn grammar_ordinals(&mut self) {
+        let mut numbered = HashMap::new();
+        for (name, numbering) in &self.binding.body.ordinals {
+            let mut nodes: Vec<EntryId> = numbering
+                .at
+                .iter()
+                .flat_map(|at| selector::matches(&self.entries, 0, at, None))
+                .map(|(entry, _)| entry)
+                .collect();
+            nodes.sort_by_key(|&entry| {
+                let own = self.entries[entry].own;
+                (own.start, std::cmp::Reverse(own.end), self.depth_of(entry))
+            });
+            nodes.dedup();
+            let mut next = 0;
+            let mut seen: HashMap<&str, usize> = HashMap::new();
+            for entry in nodes {
+                let same = numbering.same.as_deref() == self.entries[entry].name.as_deref();
+                let number = if same {
+                    *seen.entry(self.node_text(entry)).or_insert_with(|| {
+                        next += 1;
+                        next - 1
+                    })
+                } else {
+                    next += 1;
+                    next - 1
+                };
+                numbered.insert((name.clone(), entry), number);
+            }
+        }
+        if let FamilyKind::Grammar(data) = &mut self.kind {
+            data.ordinals = numbered;
         }
     }
 
@@ -379,6 +602,27 @@ impl Family {
         let Some(target) = self.grammar_reach(candidate.entry, node) else {
             return SlotRead::absent();
         };
+        let own = self.entries[target].own;
+        // A node's number or its name is no text of the body, and is not written (FBL 0.15 section 4.9).
+        if let Some(numbering) = &slot.ordinal {
+            let number = self.grammar_data().ordinals.get(&(numbering.clone(), target));
+            return match number {
+                Some(number) => SlotRead::new(Value::from(number.to_string().as_str()), Some(own), true, false)
+                    .with_reason("A number the reading gives a node is not written in the file."),
+                None => SlotRead::absent(),
+            };
+        }
+        if slot.node_name {
+            let name = self.entries[target].name.clone().unwrap_or_default();
+            return SlotRead::new(Value::from(name.as_str()), Some(own), true, false)
+                .with_reason("A node's name is not written in the file.");
+        }
+        if let Some(expand) = &slot.expand {
+            let value = self.expanded(target, expand);
+            let mut read = SlotRead::new(Value::from(value.as_str()), Some(own), true, true);
+            read.wire = Some(value);
+            return read;
+        }
         let Some((value, span)) = self.node_value(target, slot) else {
             let text = self.node_text(target);
             return SlotRead::read_only_absent(format!("'{text}' does not match the slot's match."));
@@ -526,10 +770,24 @@ impl Family {
             let items: Vec<String> = items.iter().map(|item| self.new_item(binding, item)).collect();
             return items.join(separator(&binding.slot));
         }
-        let text = grammar_value(binding, value);
-        match binding.and_then(|b| b.slot.escape.as_ref()) {
-            Some(escape) => escape.write(&text),
-            None => text,
+        self.slot_format(binding.map(|b| &b.slot), &grammar_value(binding, value))
+    }
+
+    /// A value's text as a slot writes it: a term by its `expand` (FBL 0.15 section 6.3), else by its `escape`, between
+    /// its `requote` where it has one (FBL 0.11, 0.15 section 6.3).
+    fn slot_format(&self, slot: Option<&Slot>, text: &str) -> String {
+        if let Some(expand) = slot.and_then(|s| s.expand.as_ref()) {
+            return self.compressed(text, expand);
+        }
+        match slot.and_then(|s| s.escape.as_ref()) {
+            Some(escape) => {
+                let written = escape.write(text);
+                match escape.requote {
+                    Some(quote) => format!("{quote}{written}{quote}"),
+                    None => written,
+                }
+            }
+            None => text.to_owned(),
         }
     }
 
@@ -581,10 +839,14 @@ impl Family {
                     change.attribute
                 ));
             };
-            let slot = &change.binding.slot;
+            // What was read is written: the attribute's own slot, or the one of its `or` (FBL 0.15 section 4.9).
+            let slot = match change.read.alternative {
+                Some(at) => &change.binding.or[at],
+                None => &change.binding.slot,
+            };
             if change.is_empty && change.binding.empty.as_deref() == Some("remove") {
                 let part = self.part_span(element.entry(), slot, span);
-                if !self.reads_back(element, change, part.start, part.end, "", None) {
+                if !self.reads_back(element, slot, (part, ""), None) {
                     return refuse(format!(
                         "The {} would not read back from the text without its {}.",
                         self.rule(change.rule).type_name,
@@ -594,9 +856,18 @@ impl Family {
                 plan.add_span(Operation::RemoveKey, part, "");
                 continue;
             }
-            let written = self.grammar_format(Some(change.binding), &change.value);
             let value = grammar_value(Some(change.binding), &change.value);
-            if !self.reads_back(element, change, span.start, span.end, &written, Some(&value)) {
+            let written = self.slot_format(Some(slot), &value);
+            // A string written in another quote replaces the whole node (FBL 0.15 section 6.3).
+            let span = match slot.escape.as_ref().and_then(|e| e.requote) {
+                Some(_) => slot
+                    .node
+                    .as_deref()
+                    .and_then(|node| self.grammar_reach(element.entry(), node))
+                    .map_or(span, |node| self.entries[node].own),
+                None => span,
+            };
+            if !self.reads_back(element, slot, (span, &written), Some(&value)) {
                 return refuse(format!(
                     "The new {} would not read back from the text.",
                     change.attribute
@@ -864,7 +1135,8 @@ impl Family {
         let written = self.grammar_format(Some(change.binding), &change.value);
         text.push_str(&create_text(&create.emit, &written));
         let value = grammar_value(Some(change.binding), &change.value);
-        if !self.reads_back(element, change, offset, offset, &text, Some(&value)) {
+        let slot = &change.binding.slot;
+        if !self.reads_back(element, slot, (Span::new(offset, offset), &text), Some(&value)) {
             return refuse(format!(
                 "The new {} would not read back from the text.",
                 change.attribute
@@ -911,10 +1183,8 @@ impl Family {
     fn reads_back(
         &self,
         element: &ReadElement,
-        change: &SlotChange<'_>,
-        start: usize,
-        end: usize,
-        written: &str,
+        slot: &Slot,
+        (span, written): (Span, &str),
         value: Option<&str>,
     ) -> bool {
         let candidates = self.candidates(element.rule);
@@ -922,7 +1192,7 @@ impl Family {
             return false;
         };
         let body = self.text.text(0, self.text.len());
-        let changed = format!("{}{written}{}", &body[..start], &body[end..]);
+        let changed = format!("{}{written}{}", &body[..span.start], &body[span.end..]);
         let Some(after) = self.grammar_read_again(changed) else {
             return false;
         };
@@ -930,7 +1200,7 @@ impl Family {
         if again.len() != candidates.len() {
             return false;
         }
-        let read = after.grammar_read(&again[place], &change.binding.slot);
+        let read = after.grammar_read(&again[place], slot);
         match value {
             Some(value) => read.present && read.value.as_str() == Some(value),
             None => !read.present,
@@ -1031,7 +1301,7 @@ impl Family {
                 let text = new_text::plain(v, None);
                 match view
                     .filter(|slot| slot.node.as_deref() == Some(name))
-                    .and_then(|slot| slot.escape)
+                    .and_then(|slot| slot.escape.as_ref())
                 {
                     Some(escape) => escape.write(&text),
                     None => text,

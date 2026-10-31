@@ -1,0 +1,209 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.turtle` from the RDF module's parser and family findings on the body that parity/cases/w3c/rdf/turtle-edits.json of etalii.adp.ide.desktop opens; never edited by hand.",
+  "input": {
+    "body": "# Inserts and removals through the reader: a shared statement, a list, a line of its own and a whole statement.\n@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\nex:a a ex:T ;\n    rdfs:label \"A\" ;\n    ex:knows ex:b , ex:c ;\n    ex:likes ex:c .\nex:b rdfs:label \"B\" ; ex:knows ex:c .\nex:c rdfs:label \"C\" .  # kept\nex:d ex:knows ex:a .\n",
+    "files": {
+      "turtle-edits.adp": "w3c/rdf\nbody: turtle-edits.ttl\n"
+    }
+  },
+  "args": {
+    "prefixes": "keep"
+  },
+  "output": {
+    "elements": [
+      {
+        "id": "document",
+        "type": "document",
+        "parent": null,
+        "attributes": {
+          "languageLine": 0
+        }
+      },
+      {
+        "id": "prefix:ex",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "ex",
+          "iri": "http://example.org/",
+          "line": 2
+        }
+      },
+      {
+        "id": "prefix:rdfs",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "name": "rdfs",
+          "iri": "http://www.w3.org/2000/01/rdf-schema#",
+          "line": 3
+        }
+      },
+      {
+        "id": "triple:http://example.org/a|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://example.org/T",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/a",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:a",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://example.org/T",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 5
+        }
+      },
+      {
+        "id": "triple:http://example.org/a|http://www.w3.org/2000/01/rdf-schema#label|A",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/a",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:a",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "A",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 6
+        }
+      },
+      {
+        "id": "triple:http://example.org/a|http://example.org/knows|http://example.org/b",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/a",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:a",
+          "p": "http://example.org/knows",
+          "o": "http://example.org/b",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 7
+        }
+      },
+      {
+        "id": "triple:http://example.org/a|http://example.org/knows|http://example.org/c",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/a",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:a",
+          "p": "http://example.org/knows",
+          "o": "http://example.org/c",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 7
+        }
+      },
+      {
+        "id": "triple:http://example.org/a|http://example.org/likes|http://example.org/c",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/a",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:a",
+          "p": "http://example.org/likes",
+          "o": "http://example.org/c",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 8
+        }
+      },
+      {
+        "id": "triple:http://example.org/b|http://www.w3.org/2000/01/rdf-schema#label|B",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/b",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:b",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "B",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 9
+        }
+      },
+      {
+        "id": "triple:http://example.org/b|http://example.org/knows|http://example.org/c",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/b",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:b",
+          "p": "http://example.org/knows",
+          "o": "http://example.org/c",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 9
+        }
+      },
+      {
+        "id": "triple:http://example.org/c|http://www.w3.org/2000/01/rdf-schema#label|C",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/c",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:c",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "C",
+          "oKind": "literal",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 10
+        }
+      },
+      {
+        "id": "triple:http://example.org/d|http://example.org/knows|http://example.org/a",
+        "type": "Triple",
+        "parent": null,
+        "attributes": {
+          "s": "http://example.org/d",
+          "sKind": "iri",
+          "sLabel": "",
+          "sWritten": "ex:d",
+          "p": "http://example.org/knows",
+          "o": "http://example.org/a",
+          "oKind": "iri",
+          "oLabel": "",
+          "language": "",
+          "datatype": "",
+          "line": 11
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

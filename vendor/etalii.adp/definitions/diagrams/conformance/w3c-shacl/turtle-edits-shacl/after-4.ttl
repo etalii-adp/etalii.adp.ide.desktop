@@ -1,0 +1,10 @@
+# Inserts and removals through the reader, in a shapes graph.
+@prefix : <http://example.org/s#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+:CityShape a sh:NodeShape ;
+    sh:targetClass :City ; sh:name "Town" .
+:Lone a sh:NodeShape .
+
+:NewShape a sh:NodeShape .

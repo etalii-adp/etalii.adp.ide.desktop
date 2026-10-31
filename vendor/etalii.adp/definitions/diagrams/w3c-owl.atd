@@ -22,6 +22,7 @@ diagram w3c/owl version "2.0.0" {
   homepage: "https://www.w3.org/TR/owl2-overview/"
   authors: [{ name: "Peter Vrenken" }]
   limits: {
+    celCost: 100000000
     maxElements: 1000
     budgets: {
       elements: {
@@ -57,7 +58,6 @@ diagram w3c/owl version "2.0.0" {
 
   import "w3c-owl.notation.atd"
   import "w3c-owl.turtle.atd"
-  requires capability reader.turtle@^1
   requires capability layout.depthColumns@^1
 
   /// Only what the file asserts, classified by OWL's own vocabulary and never inferred. One IRI can play several roles
@@ -195,7 +195,11 @@ diagram w3c/owl version "2.0.0" {
       attribute display: string readonly
       /// The first `rdfs:label` literal. Editing rewrites only its lexical form; language and datatype are kept. With
       /// none, the first edit adds a plain `rdfs:label` triple.
-      attribute label: string { label: "Label", group: "Documentation" }
+      attribute label: string {
+        label: "Label"
+        group: "Documentation"
+        derived: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == self.iri && t.p == 'http://www.w3.org/2000/01/rdf-schema#label' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+      }
       /// The first `rdfs:comment` literal, edited the same way.
       attribute comment: text { label: "Comment", group: "Documentation" }
       /// Every literal-valued triple about this IRI, in document order.
@@ -236,7 +240,6 @@ diagram w3c/owl version "2.0.0" {
           iri: (item)
           types: (diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == item && typeTriple(t)).map(t, rdfDisplayName(t.o)))
           display: (owlDisplay(item))
-          label: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == item && t.p == 'http://www.w3.org/2000/01/rdf-schema#label' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
           comment: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == item && t.p == 'http://www.w3.org/2000/01/rdf-schema#comment' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
           deprecated: (owlDeprecated(item))
           axioms: (owlAxioms(item))
@@ -271,8 +274,8 @@ diagram w3c/owl version "2.0.0" {
           iri: (item)
           types: (diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == item && typeTriple(t)).map(t, rdfDisplayName(t.o)))
           display: (owlDisplay(item))
-          label: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == item && t.p == 'http://www.w3.org/2000/01/rdf-schema#label' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
           comment: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == item && t.p == 'http://www.w3.org/2000/01/rdf-schema#comment' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          external: (false)
           deprecated: (owlDeprecated(item))
           axioms: (owlAxioms(item))
           rows: (owlRows(item))
@@ -302,8 +305,8 @@ diagram w3c/owl version "2.0.0" {
           iri: (item)
           types: (diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == item && typeTriple(t)).map(t, rdfDisplayName(t.o)))
           display: (owlDisplay(item))
-          label: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == item && t.p == 'http://www.w3.org/2000/01/rdf-schema#label' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
           comment: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == item && t.p == 'http://www.w3.org/2000/01/rdf-schema#comment' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          external: (false)
           deprecated: (owlDeprecated(item))
           axioms: (owlAxioms(item))
           rows: (owlIndividual(item) || item == owlOntologyIri() ? [] : owlRows(item))
@@ -334,7 +337,6 @@ diagram w3c/owl version "2.0.0" {
           iri: (item)
           types: (diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == item && typeTriple(t)).map(t, rdfDisplayName(t.o)))
           display: (owlDisplay(item))
-          label: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == item && t.p == 'http://www.w3.org/2000/01/rdf-schema#label' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
           comment: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == item && t.p == 'http://www.w3.org/2000/01/rdf-schema#comment' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
           deprecated: (owlDeprecated(item))
           axioms: (owlAxioms(item))
@@ -368,8 +370,8 @@ diagram w3c/owl version "2.0.0" {
           iri: (item)
           types: (diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == item && typeTriple(t)).map(t, rdfDisplayName(t.o)))
           display: (owlDisplay(item))
-          label: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == item && t.p == 'http://www.w3.org/2000/01/rdf-schema#label' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
           comment: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == item && t.p == 'http://www.w3.org/2000/01/rdf-schema#comment' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          external: (false)
           deprecated: (owlDeprecated(item))
           axioms: (owlAxioms(item))
           rows: (owlRows(item) + owlObjects(item, 'http://www.w3.org/2002/07/owl#imports').map(i, {
@@ -408,7 +410,8 @@ diagram w3c/owl version "2.0.0" {
         id: (item)
         attributes: {
           property: (item.substring(6, item.lastIndexOf('|'))),
-          side: (item.endsWith('|domain') ? 'domain' : 'range')
+          side: (item.endsWith('|domain') ? 'domain' : 'range'),
+          display: ('Thing')
         }
         reason: "That element is drawn where its property needs it and cannot be arranged on its own."
         doc: "One anchor per side of a property that states no usable domain or range, object properties first."
@@ -425,7 +428,7 @@ diagram w3c/owl version "2.0.0" {
         from: (owlProperties(['http://www.w3.org/2002/07/owl#DatatypeProperty']).map(p, owlDatatypeRangeIds(p).filter(r, r.startsWith('dt:'))).flatten())
         key: (item)
         id: (item)
-        attributes: { property: (item.substring(3)) }
+        attributes: { property: (item.substring(3)), display: ('Literal') }
         reason: "That element is drawn where its property needs it and cannot be arranged on its own."
       }
     }
@@ -438,7 +441,7 @@ diagram w3c/owl version "2.0.0" {
       attribute axiomOwner: Term readonly
       attribute axiom: AxiomKind readonly
       /// The rendering capped at two levels of nesting; deeper structure reads as `…`.
-      attribute display: string readonly
+      attribute rendered: string readonly
       /// The full rendering, uncapped.
       ///
       /// That is an anonymous class expression, whose identity does not survive an edit to the file, so nothing about
@@ -454,7 +457,7 @@ diagram w3c/owl version "2.0.0" {
       /// The line of the first triple about the expression's blank node.
       attribute line: int readonly
       abstract: true
-      labelAttribute: "display"
+      labelAttribute: "rendered"
       doc {
         rationale: "Its identity is structural and deterministic within one parse but deliberately unstable across edits, so it is drawn and selectable, and nothing about it is stored or edited from the diagram."
       }
@@ -474,7 +477,7 @@ diagram w3c/owl version "2.0.0" {
             'http://www.w3.org/2002/07/owl#disjointWith': 'disjointWith'
           }
           [item[2]])
-          display: (owlText(item[3], 'blank', 1, [], 2))
+          rendered: (owlText(item[3], 'blank', 1, [], 2))
           text: (owlText(item[3], 'blank', 1, [], 1000))
           elided: (owlFlag(item[3], 'blank', 1, [], 2, 'elided'))
           malformed: (owlMalformed(item[3]))
@@ -502,7 +505,7 @@ diagram w3c/owl version "2.0.0" {
             'http://www.w3.org/2002/07/owl#disjointWith': 'disjointWith'
           }
           [item[2]])
-          display: (owlText(item[3], 'blank', 1, [], 2))
+          rendered: (owlText(item[3], 'blank', 1, [], 2))
           text: (owlText(item[3], 'blank', 1, [], 1000))
           elided: (owlFlag(item[3], 'blank', 1, [], 2, 'elided'))
           malformed: (owlMalformed(item[3]))
@@ -533,11 +536,14 @@ diagram w3c/owl version "2.0.0" {
       directed: true
       allowSelfLoops: true
       allowParallel: true
+      /// The axiom's predicate.
+      attribute propertyIri: uri readonly
       derived: {
-        from: (owlEdges(diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.p == 'http://www.w3.org/2000/01/rdf-schema#subClassOf' && t.oKind == 'iri').map(t, ['res:' + t.s, t.p, 'res:' + t.o, t]) + owlExpressions().filter(e, e[2] == 'http://www.w3.org/2000/01/rdf-schema#subClassOf' && e[0].indexOf('/') < 0 && owlHasNode(e[1].substring(4))).map(e, [e[1], e[2], e[0], null])))
+        from: (owlEdges(diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.p == 'http://www.w3.org/2000/01/rdf-schema#subClassOf' && t.oKind == 'iri').map(t, ['res:' + t.s, t.p, 'res:' + t.o, t]) + owlExpressions().filter(e, e[2] == 'http://www.w3.org/2000/01/rdf-schema#subClassOf' && e[0].substring(e[0].lastIndexOf('|')).indexOf('/') < 0 && owlHasNode(e[1].substring(4))).map(e, [e[1], e[2], e[0], null])))
         id: ('edge:' + item[0] + (item[5] > 0 ? '|' + string(item[5]) : ''))
         source: (diagram.elementById(item[1]))
         target: (diagram.elementById(item[3]))
+        attributes: { propertyIri: (item[2]) }
         sources: (item[4] == null ? [] : [item[4]])
         reason: "An axiom is a triple of the file; remove it as a statement, or draw a subclass relation between two classes."
         edits: { delete: "removeStatement", connect: "subclass" }
@@ -557,11 +563,14 @@ diagram w3c/owl version "2.0.0" {
       directed: true
       allowSelfLoops: true
       allowParallel: true
+      /// The axiom's predicate.
+      attribute propertyIri: uri readonly
       derived: {
-        from: (owlEdges(diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.p == 'http://www.w3.org/2002/07/owl#equivalentClass' && t.oKind == 'iri' && owlClass(t.s)).map(t, ['res:' + t.s, t.p, 'res:' + t.o, t]) + owlExpressions().filter(e, e[2] == 'http://www.w3.org/2002/07/owl#equivalentClass' && e[0].indexOf('/') < 0 && owlHasNode(e[1].substring(4))).map(e, [e[1], e[2], e[0], null])))
+        from: (owlEdges(diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.p == 'http://www.w3.org/2002/07/owl#equivalentClass' && t.oKind == 'iri' && owlClass(t.s)).map(t, ['res:' + t.s, t.p, 'res:' + t.o, t]) + owlExpressions().filter(e, e[2] == 'http://www.w3.org/2002/07/owl#equivalentClass' && e[0].substring(e[0].lastIndexOf('|')).indexOf('/') < 0 && owlHasNode(e[1].substring(4))).map(e, [e[1], e[2], e[0], null])))
         id: ('edge:' + item[0] + (item[5] > 0 ? '|' + string(item[5]) : ''))
         source: (diagram.elementById(item[1]))
         target: (diagram.elementById(item[3]))
+        attributes: { propertyIri: (item[2]) }
         sources: (item[4] == null ? [] : [item[4]])
         reason: "An axiom is a triple of the file; remove it as a statement, or draw a subclass relation between two classes."
         edits: { delete: "removeStatement" }
@@ -582,15 +591,17 @@ diagram w3c/owl version "2.0.0" {
       directed: true
       allowSelfLoops: true
       allowParallel: true
+      /// The axiom's predicate.
+      attribute propertyIri: uri readonly
       derived: {
-        from: (owlEdges(diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.p == 'http://www.w3.org/2002/07/owl#disjointWith' && t.oKind == 'iri').map(t, ['res:' + t.s, t.p, 'res:' + t.o, t]) + owlExpressions().filter(e, e[2] == 'http://www.w3.org/2002/07/owl#disjointWith' && e[0].indexOf('/') < 0 && owlHasNode(e[1].substring(4))).map(e, [e[1], e[2], e[0], null]) + diagram.nodesOfType('Triple').filter(g, g.sKind == 'blank' && typeTriple(g) && g.o == 'http://www.w3.org/2002/07/owl#AllDisjointClasses').map(g, g.s).distinct().map(g, cel.bind(ms, cel.bind(mt, diagram.nodesOfType('Triple').filter(m, m.sKind == 'blank' && m.s == g && m.p == 'http://www.w3.org/2002/07/owl#members'), mt.size() > 0 && mt[0].oKind == 'blank' ? collectionMembers(mt[0].o).filter(x, x.oKind == 'iri').map(x, x.o) : []), lists.range(ms.size()).map(i, lists.range(ms.size()).filter(j, j > i).map(j, ['res:' + ms[i], 'http://www.w3.org/2002/07/owl#AllDisjointClasses', 'res:' + ms[j], null])).flatten())).flatten()))
+        from: (owlEdges(diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.p == 'http://www.w3.org/2002/07/owl#disjointWith' && t.oKind == 'iri').map(t, ['res:' + t.s, t.p, 'res:' + t.o, t]) + owlExpressions().filter(e, e[2] == 'http://www.w3.org/2002/07/owl#disjointWith' && e[0].substring(e[0].lastIndexOf('|')).indexOf('/') < 0 && owlHasNode(e[1].substring(4))).map(e, [e[1], e[2], e[0], null]) + diagram.nodesOfType('Triple').filter(g, g.sKind == 'blank' && typeTriple(g) && g.o == 'http://www.w3.org/2002/07/owl#AllDisjointClasses').map(g, g.s).distinct().map(g, cel.bind(ms, cel.bind(mt, diagram.nodesOfType('Triple').filter(m, m.sKind == 'blank' && m.s == g && m.p == 'http://www.w3.org/2002/07/owl#members'), mt.size() > 0 && mt[0].oKind == 'blank' ? collectionMembers(mt[0].o).filter(x, x.oKind == 'iri').map(x, x.o) : []), lists.range(ms.size()).map(i, lists.range(ms.size()).filter(j, j > i).map(j, ['res:' + ms[i], 'http://www.w3.org/2002/07/owl#AllDisjointClasses', 'res:' + ms[j], null])).flatten())).flatten()))
         id: ('edge:' + item[0] + (item[5] > 0 ? '|' + string(item[5]) : ''))
         source: (diagram.elementById(item[1]))
         target: (diagram.elementById(item[3]))
         sources: (item[4] == null ? [] : [item[4]])
         reason: "An axiom is a triple of the file; remove it as a statement, or draw a subclass relation between two classes."
         edits: { delete: "removeStatement" }
-        attributes: { fromGroup: (item[2] == 'http://www.w3.org/2002/07/owl#AllDisjointClasses') }
+        attributes: { fromGroup: (item[2] == 'http://www.w3.org/2002/07/owl#AllDisjointClasses'), propertyIri: (item[2]) }
       }
     }
 
@@ -713,7 +724,7 @@ diagram w3c/owl version "2.0.0" {
     /// From an expression to what it mentions: a filler of `owl:someValuesFrom`, `owl:allValuesFrom`, `owl:onClass`,
     /// `owl:onDataRange` or `owl:hasValue`, the object of `owl:complementOf`, or a member of a set-operator list.
     /// `owl:onProperty` is not a reference; the property shows only in the label.
-    relation References from Expression to Class, Thing, Datatype, Expression {
+    relation References from Expression to Class, Thing, Datatype, Individual, Expression {
       label "Expression reference"
       directed: true
       allowSelfLoops: false
@@ -942,10 +953,11 @@ diagram w3c/owl version "2.0.0" {
   }
 
   /// The expression rooted at `blank` and every blank expression nested in it, depth first, each with its structural
-  /// id: the parent's id and `/` and its position among the parent's blank references.
-  fn owlExpressionNodes(id: string, owner: string, axiom: string, blank: string) -> list recursion 64 {
+  /// id: the parent's id and `/` and its position among the parent's blank references. An expression that holds itself
+  /// is not walked again.
+  fn owlExpressionNodes(id: string, owner: string, axiom: string, blank: string, seen: list) -> list recursion 64 {
     // uses: ["diagram"]
-    return cel.bind(kids, owlReferences(blank).filter(c, c[1] == 'blank'), [[id, owner, axiom, blank]] + lists.range(kids.size()).map(i, owlExpressionNodes(id + '/' + string(i), owner, axiom, kids[i][0])).flatten())
+    return cel.bind(kids, owlReferences(blank).filter(c, c[1] == 'blank'), [[id, owner, axiom, blank]] + lists.range(kids.size()).filter(i, !(kids[i][0] in seen + [blank])).map(i, owlExpressionNodes(id + '/' + string(i), owner, axiom, kids[i][0], seen + [blank])).flatten())
   }
 
   /// Every drawn class expression: a blank object of `rdfs:subClassOf`, `owl:equivalentClass` or `owl:disjointWith`
@@ -953,7 +965,7 @@ diagram w3c/owl version "2.0.0" {
   /// everything nested in it.
   fn owlExpressions() -> list {
     // uses: ["diagram"]
-    return cel.bind(xs, diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.p in ['http://www.w3.org/2000/01/rdf-schema#subClassOf', 'http://www.w3.org/2002/07/owl#equivalentClass', 'http://www.w3.org/2002/07/owl#disjointWith']), lists.range(xs.size()).filter(i, xs[i].oKind == 'blank').map(i, owlExpressionNodes('expr:' + xs[i].s + '|' + xs[i].p + '|' + string(lists.range(i).filter(j, xs[j].s == xs[i].s && xs[j].p == xs[i].p).size()), 'res:' + xs[i].s, xs[i].p, xs[i].o)).flatten())
+    return cel.bind(xs, diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.p in ['http://www.w3.org/2000/01/rdf-schema#subClassOf', 'http://www.w3.org/2002/07/owl#equivalentClass', 'http://www.w3.org/2002/07/owl#disjointWith']), lists.range(xs.size()).filter(i, xs[i].oKind == 'blank').map(i, owlExpressionNodes('expr:' + xs[i].s + '|' + xs[i].p + '|' + string(lists.range(i).filter(j, xs[j].s == xs[i].s && xs[j].p == xs[i].p).size()), 'res:' + xs[i].s, xs[i].p, xs[i].o, [])).flatten())
   }
 
   /// Whether the expression is a set operator rather than a restriction.
@@ -1076,6 +1088,46 @@ diagram w3c/owl version "2.0.0" {
   constraints {
     builtin std.unparseable { code: "rdf.unparseable", message: ('This is not RDF that can be read: ' + detail.reason) }
 
+    /// A prefix declared twice: every declaration after its first, grouped in order of first declaration.
+    constraint duplicatePrefix for diagram {
+      label "Duplicate prefix"
+      severity warning
+      message ('The prefix \'' + item.name + ':\' is declared more than once; from here on it means ' + item.iri + ', which changes what every earlier-styled use would say.')
+      code: "rdf.duplicate-prefix"
+      forEach: (diagram.nodesOfType('Prefix').map(d, d.name).distinct().map(n, diagram.nodesOfType('Prefix').filter(d, d.name == n)).map(g, g.filter(d, g.indexOf(d) > 0)).flatten())
+      location: ({ 'line': item.line })
+    }
+
+    /// The first triple naming a relative IRI, when the file declares no base.
+    constraint relativeIri for diagram {
+      label "Relative IRI"
+      severity warning
+      message "This document uses relative IRIs but declares no base, so their meaning depends on where the file happens to sit. Declare an @base."
+      code: "rdf.relative-iri"
+      forEach: (size(diagram.nodesOfType('Base')) > 0 ? [] : cel.bind(r, diagram.nodesOfType('Triple').filter(t, (t.sKind == 'iri' && !rdfAbsolute(t.s)) || !rdfAbsolute(t.p) || (t.oKind == 'iri' && !rdfAbsolute(t.o))), r.size() > 0 ? [r[0]] : []))
+      location: ({ 'line': item.line })
+    }
+
+    /// A language tag no speaker could have meant.
+    constraint languageTag for Triple {
+      label "Malformed language tag"
+      severity warning
+      rule self.language == '' || self.language.matches('^[A-Za-z]+(-[A-Za-z0-9]+)*$')
+      message ('\'@' + self.language + '\' is not a well-formed language tag (letters, then optional \'-\' groups of letters and digits).')
+      code: "rdf.language-tag"
+      location: ({ 'line': self.line })
+    }
+
+    /// A datatype in the XSD namespace that XSD does not define.
+    constraint unknownDatatype for Triple {
+      label "Unknown XSD datatype"
+      severity warning
+      rule !self.datatype.startsWith('http://www.w3.org/2001/XMLSchema#') || self.datatype.substring(size('http://www.w3.org/2001/XMLSchema#')) in ['string', 'boolean', 'decimal', 'integer', 'double', 'float', 'date', 'time', 'dateTime', 'dateTimeStamp', 'duration', 'gYear', 'gMonth', 'gDay', 'gYearMonth', 'gMonthDay', 'hexBinary', 'base64Binary', 'anyURI', 'language', 'normalizedString', 'token', 'long', 'int', 'short', 'byte', 'nonNegativeInteger', 'positiveInteger', 'negativeInteger', 'nonPositiveInteger', 'unsignedLong', 'unsignedInt', 'unsignedShort', 'unsignedByte']
+      message ('xsd:' + self.datatype.substring(size('http://www.w3.org/2001/XMLSchema#')) + ' is not a datatype XSD defines; tools that check will refuse the value.')
+      code: "rdf.unknown-datatype"
+      location: ({ 'line': self.line })
+    }
+
     /// One finding per cycle, at the first `rdfs:subClassOf` triple whose subject is in it. A cycle is legal OWL and
     /// almost always an authoring mistake, which is what a warning is for.
     constraint subclassCycle for diagram {
@@ -1091,13 +1143,13 @@ diagram w3c/owl version "2.0.0" {
       )
     }
 
-    constraint malformedExpression for Expression {
+    constraint malformedExpression for diagram {
       label "Malformed class expression"
-      rule !self.malformed
       severity error
-      message ("This class expression is not well-formed: it renders as '" + self.display + "', with ? standing for what the structure is missing.")
+      message ("This class expression is not well-formed: it renders as '" + item['rendered'] + "', with ? standing for what the structure is missing.")
       code: "owl.malformed-expression"
-      location: ({ 'line': self.line })
+      forEach: (diagram.nodesOfType('Expression').filter(e, e.malformed).map(e, { 'rendered': e.rendered, 'line': e.line }))
+      location: ({ 'line': item['line'] })
     }
 
     constraint undeclaredProperty for diagram {
@@ -1407,7 +1459,7 @@ diagram w3c/owl version "2.0.0" {
     required: true
     provides: [persistenceFormat, celFunctions, action]
     plans: [add, set, remove]
-    doc "The RDF family's engine: it reads a `.ttl` or `.nt` body into the stored `Triple`, `Prefix` and `Base` elements and the five `rdf.*` findings, plans the splices of an added, set or removed triple, carries out the two edits that are not a change of one triple (renaming a term everywhere it is written, declaring a prefix; gap 2 of `w3c-rdf.md`), and provides the naming functions. Every function is called by its bare name. This description states the reading and the planning as the binding `turtle` (w3c-owl.turtle.atd), whose family is the capability `reader.turtle`, the two edits as model changes the binding writes, and the functions as the script functions of the same names; the plugin stays declared for the hosts that run the JSON files."
+    doc "The RDF family's engine: it reads a `.ttl` or `.nt` body into the stored `Triple`, `Prefix` and `Base` elements and the five `rdf.*` findings, plans the splices of an added, set or removed triple, carries out the two edits that are not a change of one triple (renaming a term everywhere it is written, declaring a prefix; gap 2 of `w3c-rdf.md`), and provides the naming functions. Every function is called by its bare name. This description reads and writes with the binding `turtle` (w3c-owl.turtle.atd), FBL 0.15's grammar family, with no plugin (spec 067, T039); it states the five findings as rules and the functions as the script functions of the same names; the plugin stays declared for the hosts that run the JSON files."
   }
 
   x-owl: {

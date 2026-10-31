@@ -16,6 +16,7 @@ pub mod expressions;
 pub(crate) mod families;
 pub(crate) mod grammar;
 pub mod history;
+pub mod iri;
 pub mod model;
 pub mod planning;
 pub mod plugins;
