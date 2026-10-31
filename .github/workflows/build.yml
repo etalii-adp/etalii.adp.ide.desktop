@@ -52,7 +52,8 @@ jobs:
   # The flow page's behaviour is JavaScript, so only a browser can show it (etalii.adp spec 074, R6). The desktop host
   # itself runs and exports without one.
   flow-page:
-    runs-on: ubuntu-latest
+    # Playwright's browsers are not published for every release of the hosted image, so the release is named.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - name: Install the toolchain rust-toolchain.toml names
