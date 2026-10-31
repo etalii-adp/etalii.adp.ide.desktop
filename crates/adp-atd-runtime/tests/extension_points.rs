@@ -50,6 +50,7 @@ impl PersistencePlugin for LinesAsResources {
                     parent_slot: None,
                     source: None,
                     target: None,
+                    referenced: Vec::new(),
                     own_span: Span::new(start, start + line.len()),
                     line: number + 1,
                     file: None,

@@ -82,7 +82,7 @@ notation {
 
   node Notifications {
     shape rect
-    label (self.entries.map(e, e.recipients.join(', ')).filter(r, r != '').join(', ')) as recipients {
+    label @recipients as recipients {
       position: { anchor: [0, 0.5], offset: [8, -4], align: start },
       editable: false,
       overflow: ellipsis

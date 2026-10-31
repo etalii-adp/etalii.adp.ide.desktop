@@ -73,6 +73,18 @@ pub fn placement(
     )
 }
 
+/// A deletion of `element`, in a selection of it alone.
+pub fn delete(specification: &DislSpecification, element: &DislElement, env: Option<&DislEnv>) -> Vec<DislFinding> {
+    refusals(
+        specification,
+        "delete",
+        element,
+        None,
+        evaluation::vars([("selection", Value::list(vec![element.to_value()]))]),
+        env,
+    )
+}
+
 /// A connect gesture drawing a relation of `relation_type` from `source` to `target`, before the relation exists:
 /// `self` is the source, and a rule's `scope` names the relation type or one it inherits from.
 pub fn connect(

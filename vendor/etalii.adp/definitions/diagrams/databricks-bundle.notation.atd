@@ -10,6 +10,20 @@ notation {
   style simRunning { stroke: { color: "limegreen", width: 2.5 } }
   style simSucceeded { stroke: { color: "#15803d", width: 2 } }
 
+  /// The bundle of a file with no `bundle:` section, drawn as the bundle is.
+  node AbsentBundle {
+    shape rect
+    label ('bundle') as name {
+      position: { anchor: [0, 0.5], offset: [8, -4], align: start }
+      editable: false
+      overflow: ellipsis
+    }
+    style: "box"
+    size: { fixed: [200, 56] }
+    connectable: false
+    deletable: false
+  }
+
   node Bundle {
     shape rect
     label @name as name {
@@ -64,7 +78,11 @@ notation {
 
   node Target {
     shape rect
-    label @name as name { position: outside-top, editable: false, style: { font: { size: 12, color: "#5a6376" } } }
+    label @name as name {
+      position: { anchor: [0, 0], offset: [0, -14], align: start },
+      editable: false,
+      style: { font: { size: 12, color: "#5a6376" } }
+    }
     label (cel.bind(n, self.outgoingOf('Override').size(), [has(self.mode) ? self.mode : '', self.isDefault ? 'default' : '', n == 1 ? '1 override' : (n > 1 ? string(n) + ' overrides' : '')].filter(s, s != '').join(' · '))) as summary {
       position: { anchor: [0, 0], offset: [12, 18], align: start },
       style: "badges"

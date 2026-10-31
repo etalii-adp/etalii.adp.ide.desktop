@@ -64,227 +64,227 @@
     {
       "id": "the-gaps/11",
       "text": "3. FBL 4.1.5 and 5.2: a YAML scalar as written (B4)",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/12",
       "text": "**Construct.** FBL 0.2 typed a plain scalar by the YAML core schema, and a value that did not convert made its entry unreadable: a task key `01`, a",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/13",
       "text": "**Shown by.** `typed-scalars.yml`, `variables-in-typed-places.yml`.",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/14",
       "text": "**Answered.** FBL 0.5, by etalii.adp's feature `015-fbl-scalar-as-written`, gives every scalar its written text (4.1.5) and a slot `read: \"text\"`,",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/15",
       "text": "**Meanwhile.** Nothing stands in: the binding reads the module's slots as the text they were written with (task 11).",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/16",
       "text": "4. FBL 4.3 and 6.2: writing into an empty or one-line flow collection (B12)",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/17",
       "text": "**Construct.** A YAML flow collection is one value whose only writable span is the whole collection (4.3), and no splice opens one into block form or",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/18",
       "text": "**Shown by.** `flow-collections.yml`, `flow-dependencies.yml`, `settings-one-line.json`.",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/19",
       "text": "**Answered.** FBL 0.10, 4.3 and 6.2 (*Flow sequences*): an insert into an empty flow sequence opens it into a block sequence and its undo restores `[]",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/20",
       "text": "**Meanwhile.** Nothing stands in for the edit: the commands write into a flow sequence as FBL 0.10 says (task 12). The sentence ruled on 2026-10-19, \"",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/21",
       "text": "5. FBL 5.2 and 6.2: a refusal's sentence (B19)",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/22",
       "text": "**Construct.** An attribute's `empty: \"refuse\"` and `absent: { \"json\": \"refuse\" }`, an insert's `when` and a missing container refuse with a sentence",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/23",
       "text": "**Shown by.** `bundle.yml` (the transcript's task added to a file without `tasks:`), `legacy-target.json` (the transcript's schema rewrite).",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/24",
       "text": "**Answered.** FBL 0.10: an attribute binding's `refusals` (`empty`, `absent`) and an insert's (`when`, `container`) give the sentence a host shows, as",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/25",
       "text": "**Meanwhile.** The commands refuse in their own words before the plan, as the definitions' checks do, and the binding's `refusals` give the rest (task",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/26",
       "text": "6. FBL 6.2 and 6.3: which rule plans an add, two containers in one insert, a nested mapping for a YAML item (B17)",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/27",
       "text": "**Construct.** A dropped task's skeleton depends on its type (three types are reachable from the palette, seven are known to the writer); a resource",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/28",
       "text": "**Shown by.** `every-task-type.yml`, `no-resources.yml`, and the libraries of `examples/lakehouse/databricks.yml`.",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/29",
       "text": "**Answered in part.** An add is planned by the first rule of its type whose insert's `when` holds (6.2), so a rule per task type carries that type's",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/30",
       "text": "**Answered, the rest.** FBL 0.10, 6.2 (`keys`): an add writes an attribute bound with `child` under the levels of `child`, as a set creates them, so a",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/31",
       "text": "**Meanwhile.** Nothing stands in for a library or a resource: both are planned through the binding (task 12), a resource as FBL 0.14's member insert o",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/32",
       "text": "7. FBL 5.2 and 13: a slot read when another is absent, and a lowercased key placeholder (B18, B20)",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/33",
       "text": "**Construct.** A pipeline's schema is read from `schema`, else from the legacy `target`, and written to `schema`; `override` is the reverse, a second",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/34",
       "text": "**Shown by.** `legacy-target.yml`, `legacy-target.json`; the transcript's `newDocuments` section.",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/35",
       "text": "**Answered.** FBL 0.10: an attribute binding's `secondary`, a slot read only when the attribute's own is absent and removed when the attribute is writ",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/36",
       "text": "**Meanwhile.** The binding reads and writes the schema (tasks 11 and 12); `ServiceCollectionAddDatabricksExtension.EmptyDocument` still writes the thr",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/37",
       "text": "8. DISL 4.11 and 6.10: a placeholder node, and an element without an entry (A9, A10)",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/38",
       "text": "**Construct.** A9: a `depends_on` naming no task draws one movable node per missing key, with a stored position, where DISL keeps a relation without",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/39",
       "text": "**Shown by.** `missing-upstream.yml` (A9); `no-bundle-key.yml`, `empty.yml`, `broken.yml` (A10).",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/40",
       "text": "**Would resolve it.** A relation end that names nothing drawn as a placeholder node of a declared type, built from the written key, with view data",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/41",
       "text": "**Meanwhile.** `DatabricksElementMapper` draws the missing task's stub; `DatabricksReadings.FixedBundle` and `FixedPipeline` emit the elements the fil",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/42",
       "text": "9. DISL 8.6 and 11.5: the order of findings, and the first free name (A7, A8, A11)",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/43",
       "text": "**Construct.** A7 and A8: the tool reports the findings of the whole file, every job's, then the bundle's, then every pipeline's, whichever reading",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/44",
       "text": "**Shown by.** `finding-order.yml`, on which none of the 120 orders `constraints.order` can be given yields the tool's order",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/45",
       "text": "**Would resolve it.** An order key per finding, such as its element's place in reading order before the rule's, and the findings of the readings of",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/46",
       "text": "**Meanwhile.** `DatabricksFindings` joins and orders; `DatabricksFreeKey` is the function `freeTaskKey` of the job definition's plugin",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/47",
       "text": "10. FBL 6.2: a new member with a skeleton in a body written as JSON (task 12)",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/48",
       "text": "**Construct.** An insert's `skeleton` is fixed text written with the entry after its keys (6.2), with no form per family. The rules `newJobResource`",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/49",
       "text": "**Shown by.** `bundle.json`, whose two resource adds the transcript records as refused;",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/50",
       "text": "**Would resolve it.** A skeleton given per family, or as a structure that a host writes in the body's own family, as it writes `keys` and `constant`.",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/51",
       "text": "**Meanwhile.** Nothing stands in: a resource added to a file written as JSON is refused with nothing written, with the library's sentence \"A new",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/52",
       "text": "Found while implementing, and not a gap",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/53",
       "text": "**A relation from the second holder of a key.** A model built from records whose natural ids repeat matches a relation's ends by key, so the",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/54",
       "text": "**A library of a bare settings file is added through `databricks-pipeline.fbl`.** `databricks.fbl` reads a bare settings file's libraries as the",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "id": "the-gaps/55",
       "text": "**A missing level of a member insert in a body written as JSON is the standalone library's, not the language's.** FBL 0.4 creates a missing json",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     }
   ],
   "hostCode": [
@@ -295,7 +295,7 @@
       "path": "modules/diagrams/databricks/src/parser.rs",
       "lines": "50-76",
       "behaviour": "The body is read under the three readings at once; a text that is not YAML reads as the empty model with the reader's sentence on the line it names as the reason nothing is written.",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "host": "desktop",
@@ -304,7 +304,7 @@
       "path": "modules/diagrams/databricks/src/rules.rs",
       "lines": "49-75",
       "behaviour": "The findings are the whole file's, every job's, then the bundle's, then every pipeline's, and within a job task by task, whichever reading asked.",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     },
     {
       "host": "desktop",
@@ -340,7 +340,7 @@
       "path": "modules/diagrams/databricks/src/mapper.rs",
       "lines": "192-258",
       "behaviour": "The bundle node is drawn under the id `bundle` whether or not the file declares `bundle:`; a resource of a kind the reader does not model is drawn as an unknown node; a target's overrides are drawn as edges to the resources they name.",
-      "statedBy": "capability reader.databricksBundle"
+      "statedBy": "binding bundle"
     }
   ]
 }

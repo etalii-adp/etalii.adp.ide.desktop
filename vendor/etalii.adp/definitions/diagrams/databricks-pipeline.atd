@@ -31,7 +31,6 @@ diagram databricks/pipeline version "0.2.0" {
 
   import "databricks-pipeline.notation.atd"
   import "databricks-pipeline.bundle.atd"
-  requires capability reader.databricksBundle@^1
   requires capability layout.layeredColumns@^1
 
   model {
@@ -39,14 +38,6 @@ diagram databricks/pipeline version "0.2.0" {
       /// The key under `resources.pipelines` when the pipeline lives in a bundle; empty for a bare settings file.
       /// Chosen by the `.adp` registration's `resource:` header when a file declares several.
       attribute pipelineKey: string readonly
-    }
-
-    datatype Notification {
-      label: "Notification"
-      fields: {
-        recipients: { type: "string", many: true, doc: "`email_recipients`." }
-        alerts: { type: "string", many: true, doc: "`alerts`, the events that send it." }
-      }
     }
 
     enum LibraryKind {
@@ -79,6 +70,9 @@ diagram databricks/pipeline version "0.2.0" {
       attribute libraryKind: LibraryKind required readonly
       /// `path`, or `include` for a glob; empty for an `other` entry.
       attribute path: string required readonly { key: true }
+      /// Whether it stands in a pipeline resource of a bundle, rather than in a bare settings file: which of the
+      /// binding's rules adds a library is said by what the add gives (FBL 6.2).
+      attribute keyed: bool readonly default false
       attribute simulated: SimulatedState readonly { transient: viewer }
       labelAttribute: "path"
     }
@@ -97,6 +91,12 @@ diagram databricks/pipeline version "0.2.0" {
       attribute development: bool readonly default false
       /// `channel`.
       attribute channel: Channel
+      /// Whether it is a resource of a bundle, rather than a bare settings file.
+      attribute keyed: bool readonly default false
+      /// Whether the settings hold a `notifications` list, from which the `Notifications` element is drawn.
+      attribute notified: bool readonly default false
+      /// Who the `notifications` list sends to, `email_recipients` of every entry, comma-separated.
+      attribute recipients: string readonly
       attribute simulated: SimulatedState readonly { transient: viewer }
       multiplicity: { min: 1, max: 1 }
       labelAttribute: "name"
@@ -106,22 +106,27 @@ diagram databricks/pipeline version "0.2.0" {
     /// entry of its own (see databricks-pipeline.md).
     element Destination {
       label "Target"
+      derived: { from: (diagram.nodesOfType('Pipeline')) id: ('target') sources: ([item]) }
       attribute simulated: SimulatedState readonly { transient: viewer }
-      multiplicity: { min: 1, max: 1 }
     }
 
     /// What the pipeline runs on: serverless, or clusters. Drawn from `serverless`, always, with no entry of its own
     /// (see databricks-pipeline.md).
     element Compute {
       label "Compute"
-      multiplicity: { min: 1, max: 1 }
+      derived: { from: (diagram.nodesOfType('Pipeline')) id: ('compute') sources: ([item]) }
     }
 
     /// The `notifications` list. Present only when the pipeline has notifications.
     element Notifications {
       label "Notifications"
-      attribute entries: Notification many readonly { minItems: 1 }
-      multiplicity: { min: 0, max: 1 }
+      derived: {
+        from: (diagram.nodesOfType('Pipeline').filter(p, p.notified))
+        id: ('notifications')
+        attributes: { recipients: (item.recipients) }
+        sources: ([item])
+      }
+      attribute recipients: string readonly
     }
 
     /// From every library into the pipeline, and from the pipeline into its target. Not stored: it follows from the
@@ -170,11 +175,21 @@ diagram databricks/pipeline version "0.2.0" {
       message: ('This is not configuration that can be read: ' + detail.reason)
     }
 
+    /// A relation is drawn between its ends, so moving one is refused in the tool's words.
+    constraint relationStays for Flow {
+      rule false
+      message "That element is not something this diagram can move."
+      kind: placement
+      enforcement: prevent
+    }
+
     constraint noLibraries for Pipeline {
       rule diagram.nodesOfType('Library').size() > 0
       severity error
       message ('The pipeline' + (has(self.name) && self.name != '' ? ' \'' + self.name + '\'' : '') + ' has no libraries, so it has nothing to run. Add at least one notebook, file or glob.')
       code: "databricks.no-libraries"
+      location: (self.location().orValue({ 'line': 1 }))
+      target: ([])
     }
 
     constraint schemaWithoutCatalog for Pipeline {
@@ -182,6 +197,8 @@ diagram databricks/pipeline version "0.2.0" {
       severity warning
       message ('The pipeline' + (has(self.name) && self.name != '' ? ' \'' + self.name + '\'' : '') + ' sets a schema but no catalog, so the schema has nowhere to live. Set catalog too.')
       code: "databricks.schema-without-catalog"
+      location: (self.location().orValue({ 'line': 1 }))
+      target: ([])
     }
 
     constraint keepOneLibrary for Library {
@@ -198,26 +215,34 @@ diagram databricks/pipeline version "0.2.0" {
     param path: string required { label: "Path" }
     icon: "mdi-notebook-outline"
     paramsForm: "addLibrary"
-    if p.path == '' {
+    if p.path.trim() == '' {
       fail 'A library needs a path.'
     }
-    if diagram.nodesOfType('Library').exists(l, l.libraryKind == 'notebook' && l.path == p.path) {
-      fail 'The notebook library \'' + p.path + '\' is already there.'
+    if diagram.nodesOfType('Library').exists(l, l.libraryKind == 'notebook' && l.path == p.path.trim()) {
+      fail 'The notebook library \'' + p.path.trim() + '\' is already there.'
     }
-    create Library { libraryKind: 'notebook', path: p.path }
+    create Library {
+      libraryKind: 'notebook',
+      path: p.path.trim(),
+      keyed: diagram.nodesOfType('Pipeline').exists(q, q.keyed)
+    }
   }
 
   operation addFileLibrary "Add file library…" for diagram {
     param path: string required { label: "Path" }
     icon: "mdi-file-code-outline"
     paramsForm: "addLibrary"
-    if p.path == '' {
+    if p.path.trim() == '' {
       fail 'A library needs a path.'
     }
-    if diagram.nodesOfType('Library').exists(l, l.libraryKind == 'file' && l.path == p.path) {
-      fail 'The file library \'' + p.path + '\' is already there.'
+    if diagram.nodesOfType('Library').exists(l, l.libraryKind == 'file' && l.path == p.path.trim()) {
+      fail 'The file library \'' + p.path.trim() + '\' is already there.'
     }
-    create Library { libraryKind: 'file', path: p.path }
+    create Library {
+      libraryKind: 'file',
+      path: p.path.trim(),
+      keyed: diagram.nodesOfType('Pipeline').exists(q, q.keyed)
+    }
   }
 
   /// Runs the job reading's command of the same name, which adds a notebook task to a job of the file; the tool offers
@@ -277,9 +302,9 @@ diagram databricks/pipeline version "0.2.0" {
     }
     ids: {
       strategy: natural
-      prefix: { Library: "library:" }
       pattern: "^[^\\r\\n]{1,512}$"
       types: {
+        Library: { strategy: derived, expression: ('library:' + self.path) }
         Pipeline: { strategy: derived, expression: ('pipeline') }
         Destination: { strategy: derived, expression: ('target') }
         Compute: { strategy: derived, expression: ('compute') }
@@ -293,8 +318,8 @@ diagram databricks/pipeline version "0.2.0" {
   plugin net.etalii.adp.databricks.files {
     version: "^0.1.0"
     provides: [persistenceFormat, action]
-    required: true
-    doc "Reads and writes the pipeline inside Databricks' own settings file (JSON or YAML) by line splices, so an untouched file saves byte for byte, and keeps positions in the .adp registration's layout: block. As an action it runs the job reading's commands that the tool offers under this reading too. This description states both as the binding `bundle` (databricks-pipeline.bundle.atd), whose family is the capability `reader.databricksBundle`, which plans those commands' edits as the job reading does; the plugin stays declared for the hosts that run the JSON files."
+    required: false
+    doc "Reads and writes the pipeline inside Databricks' own settings file (JSON or YAML) by line splices, so an untouched file saves byte for byte, and keeps positions in the .adp registration's layout: block. As an action it runs the job reading's commands that the tool offers under this reading too. This description states the reading and the writing as the binding `bundle` (databricks-pipeline.bundle.atd), a declared one, and those commands stay the plugin's (spec 067: an operation of one reading writing another's types has no statement of its own yet); the plugin stays declared for the hosts that run the JSON files."
   }
 
   plugin net.etalii.adp.databricks.layout {

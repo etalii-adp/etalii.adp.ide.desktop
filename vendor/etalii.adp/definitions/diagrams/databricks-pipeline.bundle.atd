@@ -1,24 +1,177 @@
 atd 0.1
 part of databricks/pipeline
 
-// The Databricks pipeline's body, in a part of its own (ATD §5.2, §9).
+// The Databricks pipeline reading's body, in a part of its own (ATD §5.2, §9).
 
-/// One pipeline of a Databricks Asset Bundle configuration, or a pipeline's own settings file in JSON or YAML, read and
-/// written by the capability `reader.databricksBundle` as its `pipeline` reading (databricks-pipeline.md): the
-/// persistence plugin's contract (FBL §11) as a binding's family, since one FBL binding cannot give three readings of
-/// one body different metamodels nor select a resource per reading. Every scalar is kept as written, every byte no
-/// element maps is kept, and every edit is a minimal line splice; an edit into a list written on one line is refused
-/// before any splice. The schema is read from `schema`, else from the legacy `target`, and written to `schema`; a
-/// library is written as its own nested lines. The `pipeline`, `target` and `compute` nodes exist under their fixed ids
-/// whether or not the file declares them, and a body that is not YAML or JSON reads as the empty reading with the
-/// reader's sentence as its finding.
-///
-/// The `.adp` registration names the pipeline: `resource: <key>` selects `resources.pipelines.<key>`, else the first
-/// pipeline is read. Positions are kept in the registration's `layout:` block, never in the file. The findings are the
-/// whole file's, every job's, then the bundle's, then every pipeline's, whichever reading asked.
-binding bundle family capability reader.databricksBundle {
-  label "Databricks pipeline"
-  claims { extensions: [".yml", ".yaml", ".json"], origins: ["databricks/pipeline"] }
-  body { kind: file }
-  args: { reading: pipeline }
+/// One Databricks Asset Bundle configuration, read and written through a declared binding (spec 067, T030): this
+/// reading's rules of `specifications/fbl/databricks.fbl`, whose types the other two readings' models do not have, in
+/// ATD (ATD §11, Appendix C.3). One open body serves the three readings (FBL 9.1), so the origins, the resource by
+/// origin and the template are the whole binding's. The YAML stays Databricks' own: every scalar is kept as written,
+/// every byte no element maps is kept, and every edit is a minimal splice. Beyond `databricks.fbl`, as the cases, recorded
+/// from the module, ask: a new library goes at the end of the list, whichever kind it follows; a library of a bare
+/// settings file is added here too, the add saying by `keyed` which rule plans it (FBL 6.2: an insert's `when` sees what
+/// the add gives); and the settings say whether notifications exist and who they go to, from which `Notifications` is
+/// derived.
+binding bundle family json {
+  label "Databricks configuration"
+  claims {
+    extensions: [".yml", ".yaml", ".json"],
+    shared: true,
+    registrationOnly: true,
+    origins: ["databricks/bundle", "databricks/job", "databricks/pipeline"],
+    suggest: { contains: ["bundle:", "resources:"] }
+  }
+  body { kind: file, alsoRead: ["yaml"] }
+  text { newline: crlf, indent: 2, sequenceIndent: indented, finalNewline: true, quote: double }
+  registration {
+    resource: {
+      byOrigin: {
+        "databricks/job": { capture: "job" },
+        "databricks/pipeline": { capture: "pipeline" },
+        "databricks/bundle": null
+      }
+    }
+    ,
+    createOnFirstPlacement: false
+  }
+  element Pipeline as pipeline at "/resources/pipelines/{pipeline}" {
+    attribute name from key "name" { read: text empty: refuse refusals: { empty: "A pipeline needs a name." } }
+    attribute catalog from key "catalog" { read: text empty: remove }
+    attribute schema from key "schema" { read: text empty: remove secondary: { key: "target" } }
+    attribute channel from key "channel" { read: text empty: remove }
+    attribute serverless from key "serverless" {
+      default: false
+      fallback: { value: false, report: false }
+      readOnly: true
+    }
+    attribute continuous from key "continuous" {
+      default: false
+      fallback: { value: false, report: false }
+      readOnly: true
+    }
+    attribute development from key "development" {
+      default: false
+      fallback: { value: false, report: false }
+      readOnly: true
+    }
+    attribute notified from value(has(entry.notifications) && size(entry.notifications) > 0) { readOnly: true }
+    attribute recipients from value(has(entry.notifications) ? entry.notifications.filter(n, has(n.email_recipients)).map(n, n.email_recipients.join(', ')).join(', ') : '') {
+      readOnly: true
+    }
+    attribute keyed from value(true) { readOnly: true }
+    origins: ["databricks/pipeline"]
+  }
+  element Pipeline as settings at "/" {
+    when !has(entry.resources) && (has(entry.name) || has(entry.libraries))
+    attribute name from key "name" { read: text empty: refuse refusals: { empty: "A pipeline needs a name." } }
+    attribute catalog from key "catalog" {
+      read: text
+      empty: remove
+      absent: { json: refuse }
+      refusals: { absent: "The settings file has no \"catalog\" to rewrite." }
+    }
+    attribute schema from key "schema" {
+      read: text
+      empty: remove
+      absent: { json: refuse }
+      secondary: { key: "target" }
+      refusals: { absent: "The settings file has no \"schema\" to rewrite." }
+    }
+    attribute channel from key "channel" {
+      read: text
+      empty: remove
+      absent: { json: refuse }
+      refusals: { absent: "The settings file has no \"channel\" to rewrite." }
+    }
+    attribute serverless from key "serverless" {
+      default: false
+      fallback: { value: false, report: false }
+      readOnly: true
+    }
+    attribute continuous from key "continuous" {
+      default: false
+      fallback: { value: false, report: false }
+      readOnly: true
+    }
+    attribute development from key "development" {
+      default: false
+      fallback: { value: false, report: false }
+      readOnly: true
+    }
+    attribute notified from value(has(entry.notifications) && size(entry.notifications) > 0) { readOnly: true }
+    attribute recipients from value(has(entry.notifications) ? entry.notifications.filter(n, has(n.email_recipients)).map(n, n.email_recipients.join(', ')).join(', ') : '') {
+      readOnly: true
+    }
+    attribute keyed from value(false) { readOnly: true }
+    origins: ["databricks/pipeline"]
+  }
+  element Library as notebookLibrary at "/resources/pipelines/{pipeline}/libraries/*" {
+    when has(entry.notebook)
+    attribute libraryKind from value('notebook')
+    attribute path from key "path" {
+      child: "notebook"
+      read: text
+      empty: refuse
+      refusals: { empty: "A library needs a path." }
+    }
+    attribute keyed from value(true) { readOnly: true }
+    insert {
+      place: end,
+      container: "/resources/pipelines/{pipeline}/libraries",
+      when: "attributes.libraryKind == 'notebook' && attributes.keyed"
+    }
+    remove { container: "keep" }
+    origins: ["databricks/pipeline"]
+  }
+  element Library as fileLibrary at "/resources/pipelines/{pipeline}/libraries/*" {
+    when has(entry.file)
+    attribute libraryKind from value('file')
+    attribute path from key "path" {
+      child: "file"
+      read: text
+      empty: refuse
+      refusals: { empty: "A library needs a path." }
+    }
+    attribute keyed from value(true) { readOnly: true }
+    insert {
+      place: end,
+      container: "/resources/pipelines/{pipeline}/libraries",
+      when: "attributes.libraryKind == 'file' && attributes.keyed"
+    }
+    remove { container: "keep" }
+    origins: ["databricks/pipeline"]
+  }
+  element Library as globLibrary at "/resources/pipelines/{pipeline}/libraries/*" {
+    when has(entry.glob)
+    attribute libraryKind from value('glob')
+    attribute path from key "include" { child: "glob" read: text readOnly: "A glob library is edited in the file." }
+    attribute keyed from value(true) { readOnly: true }
+    remove { container: "keep" }
+    origins: ["databricks/pipeline"]
+  }
+  element Library as settingsLibrary at "/libraries/*" {
+    attribute libraryKind from value(has(entry.notebook) ? 'notebook' : has(entry.file) ? 'file' : has(entry.glob) ? 'glob' : 'other') {
+      readOnly: "The kind is which mapping the library entry carries."
+    }
+    attribute path from value(has(entry.notebook) ? entry.notebook.path : has(entry.file) ? entry.file.path : has(entry.glob) ? entry.glob.include : '') {
+      readOnly: "A library's path is changed by removing it and adding another."
+    }
+    attribute keyed from value(false) { readOnly: true }
+    insert {
+      place: after-last,
+      container: "/libraries",
+      when: "(attributes.libraryKind == 'notebook' || attributes.libraryKind == 'file') && !attributes.keyed",
+      emit: "{ \"{libraryKind}\": { \"path\": \"{path}\" } }"
+    }
+    remove { container: "keep" }
+    origins: ["databricks/pipeline"]
+  }
+  template {
+    text: "bundle:\r\n  name: {key:lower}\r\ntargets:\r\n  dev:\r\n    mode: development\r\n    default: true\r\n",
+    byOrigin: {
+      "databricks/bundle": "bundle:\r\n  name: {key:lower}\r\ntargets:\r\n  dev:\r\n    mode: development\r\n    default: true\r\n",
+      "databricks/job": "resources:\r\n  jobs:\r\n    {key:lower}:\r\n      name: {base}\r\n      tasks:\r\n        - task_key: main\r\n          notebook_task:\r\n            notebook_path: notebooks/{key:lower}\r\n",
+      "databricks/pipeline": "{\r\n  \"name\": \"{key:lower}\",\r\n  \"libraries\": [\r\n    { \"notebook\": { \"path\": \"transformations/{key:lower}\" } }\r\n  ]\r\n}\r\n"
+    }
+  }
 }

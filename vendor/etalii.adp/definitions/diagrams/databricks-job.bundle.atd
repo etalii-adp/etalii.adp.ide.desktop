@@ -1,24 +1,201 @@
 atd 0.1
 part of databricks/job
 
-// The Databricks job's body, in a part of its own (ATD §5.2, §9).
+// The Databricks job reading's body, in a part of its own (ATD §5.2, §9).
 
-/// One job of a Databricks Asset Bundle configuration, read and written by the capability `reader.databricksBundle` as
-/// its `job` reading (databricks-job.md, gaps 1 to 9): the persistence plugin's contract (FBL §11) as a binding's
-/// family, since one FBL binding cannot give three readings of one body different metamodels (gap 1) nor select a
-/// resource per reading (gap 2). The YAML stays Databricks' own: every scalar is kept as written (gap 3), every byte no
-/// element maps is kept, and every edit is a minimal line splice. An edit into a list written on one line is refused
-/// before any splice with "This list is written on one line, which this diagram cannot change yet; edit it in the text
-/// editor." (gap 4), and the reader refuses in its own words where FBL's planner would build a sentence from type names
-/// (gap 5). A dropped task's skeleton follows its type (gap 6).
-///
-/// The `.adp` registration names the job: `resource: <key>` selects `resources.jobs.<key>`, else the first job is read.
-/// Positions are kept in the registration's `layout:` block, never in the YAML. A placeholder task stands for a key a
-/// `depends_on` entry names and no task declares (gap 8). The findings are the whole file's, every job's, then the
-/// bundle's, then every pipeline's, and within a job task by task, whichever reading asked (gap 9).
-binding bundle family capability reader.databricksBundle {
-  label "Databricks job"
-  claims { extensions: [".yml", ".yaml", ".json"], origins: ["databricks/job"] }
-  body { kind: file }
-  args: { reading: job }
+/// One Databricks Asset Bundle configuration, read and written through a declared binding (spec 067, T030): this
+/// reading's rules of `specifications/fbl/databricks.fbl`, whose types the other two readings' models do not have, in
+/// ATD (ATD §11, Appendix C.3). One open body serves the three readings (FBL 9.1), so the origins, the resource by
+/// origin and the template are the whole binding's. The YAML stays Databricks' own: every scalar is kept as written,
+/// every byte no element maps is kept, and every edit is a minimal splice. Beyond `databricks.fbl`, as the cases, recorded
+/// from the module, ask: a rule per task type carries that type's skeleton (databricks-job.md, gap 6), with new keys
+/// right after `task_key` and a new task at the end of the list; a task's source is read as `taskSource`; a task with
+/// no `task_key` is unreadable (`std.unreadableEntry`); and a dependency is read as an entry with two ends
+/// (`DependencyEntry`), so that one on a task the job does not declare is kept with that end unset, a relation rule
+/// reading nothing being the one that adds one.
+binding bundle family json {
+  label "Databricks configuration"
+  claims {
+    extensions: [".yml", ".yaml", ".json"],
+    shared: true,
+    registrationOnly: true,
+    origins: ["databricks/bundle", "databricks/job", "databricks/pipeline"],
+    suggest: { contains: ["bundle:", "resources:"] }
+  }
+  body { kind: file, alsoRead: ["yaml"] }
+  text { newline: crlf, indent: 2, sequenceIndent: indented, finalNewline: true, quote: double }
+  registration {
+    resource: {
+      byOrigin: {
+        "databricks/job": { capture: "job" },
+        "databricks/pipeline": { capture: "pipeline" },
+        "databricks/bundle": null
+      }
+    }
+    ,
+    createOnFirstPlacement: false
+  }
+  element Job as job at "/resources/jobs/{job}" {
+    attribute jobKey from capture "job" { readOnly: true }
+    attribute name from key "name" { read: text }
+    attribute schedule from key "quartz_cron_expression" {
+      child: "schedule"
+      read: text
+      readOnly: "The schedule is edited in the file."
+    }
+    attribute continuous from value(has(entry.continuous))
+    origins: ["databricks/job"]
+  }
+  element Task as pythonTask at "/resources/jobs/{job}/tasks/*" {
+    when has(entry.task_key) && has(entry.spark_python_task)
+    attribute key from key "task_key" {
+      references pythonTask, conditionTask, task by key
+      read: text
+      empty: refuse
+      refusals: { empty: "A task needs a key." }
+    }
+    attribute taskType from value(has(entry.notebook_task) ? 'notebook' : has(entry.spark_python_task) ? 'python' : has(entry.python_wheel_task) ? 'wheel' : has(entry.sql_task) ? 'sql' : has(entry.dbt_task) ? 'dbt' : has(entry.pipeline_task) ? 'pipeline' : has(entry.run_job_task) ? 'run-job' : has(entry.condition_task) ? 'condition' : has(entry.for_each_task) ? 'for-each' : has(entry.spark_jar_task) ? 'jar' : 'other') {
+      readOnly: "The type is which *_task mapping the file carries; change it in the file."
+    }
+    attribute clusterKey from key "job_cluster_key" {
+      references cluster by key
+      read: text
+      empty: remove
+    }
+    attribute runIf from key "run_if" { read: text empty: remove }
+    attribute unresolved from value(false) { readOnly: true }
+    attribute taskSource from value(has(entry.notebook_task) ? entry.notebook_task.notebook_path : has(entry.spark_python_task) ? entry.spark_python_task.python_file : has(entry.python_wheel_task) ? entry.python_wheel_task.entry_point : has(entry.sql_task) ? (has(entry.sql_task.query) ? entry.sql_task.query.query_id : has(entry.sql_task.dashboard) ? entry.sql_task.dashboard.dashboard_id : has(entry.sql_task.alert) ? entry.sql_task.alert.alert_id : has(entry.sql_task.file) ? entry.sql_task.file.path : '') : has(entry.dbt_task) ? entry.dbt_task.project_directory : has(entry.pipeline_task) ? entry.pipeline_task.pipeline_id : has(entry.run_job_task) ? string(entry.run_job_task.job_id) : has(entry.condition_task) ? entry.condition_task.op : has(entry.for_each_task) ? entry.for_each_task.inputs : has(entry.spark_jar_task) ? entry.spark_jar_task.main_class_name : '') {
+      readOnly: true
+    }
+    insert {
+      place: end,
+      container: "/resources/jobs/{job}/tasks",
+      keys: ["task_key", "job_cluster_key", "run_if", "depends_on"],
+      skeleton: "spark_python_task:\n  python_file: scripts/{key}.py\n",
+      refusals: { container: "The job has no tasks section to add into." },
+      when: "attributes.taskType == 'python'"
+    }
+    remove { cascade: ["dependency"] }
+    origins: ["databricks/job"]
+  }
+  element Task as conditionTask at "/resources/jobs/{job}/tasks/*" {
+    when has(entry.task_key) && has(entry.condition_task)
+    attribute key from key "task_key" {
+      references pythonTask, conditionTask, task by key
+      read: text
+      empty: refuse
+      refusals: { empty: "A task needs a key." }
+    }
+    attribute taskType from value(has(entry.notebook_task) ? 'notebook' : has(entry.spark_python_task) ? 'python' : has(entry.python_wheel_task) ? 'wheel' : has(entry.sql_task) ? 'sql' : has(entry.dbt_task) ? 'dbt' : has(entry.pipeline_task) ? 'pipeline' : has(entry.run_job_task) ? 'run-job' : has(entry.condition_task) ? 'condition' : has(entry.for_each_task) ? 'for-each' : has(entry.spark_jar_task) ? 'jar' : 'other') {
+      readOnly: "The type is which *_task mapping the file carries; change it in the file."
+    }
+    attribute clusterKey from key "job_cluster_key" {
+      references cluster by key
+      read: text
+      empty: remove
+    }
+    attribute runIf from key "run_if" { read: text empty: remove }
+    attribute unresolved from value(false) { readOnly: true }
+    attribute taskSource from value(has(entry.notebook_task) ? entry.notebook_task.notebook_path : has(entry.spark_python_task) ? entry.spark_python_task.python_file : has(entry.python_wheel_task) ? entry.python_wheel_task.entry_point : has(entry.sql_task) ? (has(entry.sql_task.query) ? entry.sql_task.query.query_id : has(entry.sql_task.dashboard) ? entry.sql_task.dashboard.dashboard_id : has(entry.sql_task.alert) ? entry.sql_task.alert.alert_id : has(entry.sql_task.file) ? entry.sql_task.file.path : '') : has(entry.dbt_task) ? entry.dbt_task.project_directory : has(entry.pipeline_task) ? entry.pipeline_task.pipeline_id : has(entry.run_job_task) ? string(entry.run_job_task.job_id) : has(entry.condition_task) ? entry.condition_task.op : has(entry.for_each_task) ? entry.for_each_task.inputs : has(entry.spark_jar_task) ? entry.spark_jar_task.main_class_name : '') {
+      readOnly: true
+    }
+    insert {
+      place: end,
+      container: "/resources/jobs/{job}/tasks",
+      keys: ["task_key", "job_cluster_key", "run_if", "depends_on"],
+      skeleton: "condition_task:\n  op: EQUAL_TO\n  left: \"{key}\"\n  right: \"true\"\n",
+      refusals: { container: "The job has no tasks section to add into." },
+      when: "attributes.taskType == 'condition'"
+    }
+    remove { cascade: ["dependency"] }
+    origins: ["databricks/job"]
+  }
+  element Task as task at "/resources/jobs/{job}/tasks/*" {
+    when has(entry.task_key)
+    attribute key from key "task_key" {
+      references pythonTask, conditionTask, task by key
+      read: text
+      empty: refuse
+      refusals: { empty: "A task needs a key." }
+    }
+    attribute taskType from value(has(entry.notebook_task) ? 'notebook' : has(entry.spark_python_task) ? 'python' : has(entry.python_wheel_task) ? 'wheel' : has(entry.sql_task) ? 'sql' : has(entry.dbt_task) ? 'dbt' : has(entry.pipeline_task) ? 'pipeline' : has(entry.run_job_task) ? 'run-job' : has(entry.condition_task) ? 'condition' : has(entry.for_each_task) ? 'for-each' : has(entry.spark_jar_task) ? 'jar' : 'other') {
+      readOnly: "The type is which *_task mapping the file carries; change it in the file."
+    }
+    attribute clusterKey from key "job_cluster_key" {
+      references cluster by key
+      read: text
+      empty: remove
+    }
+    attribute runIf from key "run_if" { read: text empty: remove }
+    attribute unresolved from value(false) { readOnly: true }
+    attribute taskSource from value(has(entry.notebook_task) ? entry.notebook_task.notebook_path : has(entry.spark_python_task) ? entry.spark_python_task.python_file : has(entry.python_wheel_task) ? entry.python_wheel_task.entry_point : has(entry.sql_task) ? (has(entry.sql_task.query) ? entry.sql_task.query.query_id : has(entry.sql_task.dashboard) ? entry.sql_task.dashboard.dashboard_id : has(entry.sql_task.alert) ? entry.sql_task.alert.alert_id : has(entry.sql_task.file) ? entry.sql_task.file.path : '') : has(entry.dbt_task) ? entry.dbt_task.project_directory : has(entry.pipeline_task) ? entry.pipeline_task.pipeline_id : has(entry.run_job_task) ? string(entry.run_job_task.job_id) : has(entry.condition_task) ? entry.condition_task.op : has(entry.for_each_task) ? entry.for_each_task.inputs : has(entry.spark_jar_task) ? entry.spark_jar_task.main_class_name : '') {
+      readOnly: true
+    }
+    insert {
+      place: end,
+      container: "/resources/jobs/{job}/tasks",
+      keys: ["task_key", "job_cluster_key", "run_if", "depends_on"],
+      skeleton: "notebook_task:\n  notebook_path: notebooks/{key}\n",
+      refusals: { container: "The job has no tasks section to add into." },
+      when: "attributes.taskType == 'notebook'"
+    }
+    remove { cascade: ["dependency"] }
+    origins: ["databricks/job"]
+  }
+  element KeylessTask as keylessTask at "/resources/jobs/{job}/tasks/*" {
+    when !has(entry.task_key)
+    readOnly: true
+  }
+  element JobCluster as cluster at "/resources/jobs/{job}/job_clusters/*" {
+    when has(entry.job_cluster_key)
+    attribute key from key "job_cluster_key" {
+      references cluster by key
+      read: text
+    }
+    attribute sparkVersion from key "spark_version" { child: "new_cluster" read: text }
+    attribute nodeType from key "node_type_id" { child: "new_cluster" read: text }
+    attribute workers from key "num_workers" { child: "new_cluster" fallback: { value: 0, report: false } }
+    origins: ["databricks/job"]
+    readOnly: "Job clusters are edited in the file."
+  }
+  element DependencyEntry as dependency at "/resources/jobs/{job}/tasks/*/depends_on/*" {
+    when has(entry.task_key)
+    parent pythonTask, conditionTask, task
+    attribute from from key "task_key" {
+      references pythonTask, conditionTask, task by key
+      read: text
+      readOnly: true
+    }
+    attribute to from parent "key" {
+      references pythonTask, conditionTask, task by key
+      readOnly: true
+    }
+    attribute upstreamKey from key "task_key" { read: text readOnly: true }
+    attribute outcome from key "outcome" { read: text empty: remove }
+    remove { container: "remove-when-empty" }
+    origins: ["databricks/job"]
+  }
+  relation Dependency as newDependency at "/resources/jobs/{job}/tasks/*/depends_on/*" {
+    when false
+    source from key "task_key"
+    target from parent "key"
+    attribute upstreamKey from key "task_key" { read: text readOnly: true }
+    attribute outcome from key "outcome" { read: text empty: remove }
+    insert {
+      place: after-last,
+      container: "depends_on",
+      create: { at: { after: "task_key" } },
+      keys: ["task_key", "outcome"]
+    }
+    remove { container: "remove-when-empty" }
+    origins: ["databricks/job"]
+  }
+  template {
+    text: "bundle:\r\n  name: {key:lower}\r\ntargets:\r\n  dev:\r\n    mode: development\r\n    default: true\r\n",
+    byOrigin: {
+      "databricks/bundle": "bundle:\r\n  name: {key:lower}\r\ntargets:\r\n  dev:\r\n    mode: development\r\n    default: true\r\n",
+      "databricks/job": "resources:\r\n  jobs:\r\n    {key:lower}:\r\n      name: {base}\r\n      tasks:\r\n        - task_key: main\r\n          notebook_task:\r\n            notebook_path: notebooks/{key:lower}\r\n",
+      "databricks/pipeline": "{\r\n  \"name\": \"{key:lower}\",\r\n  \"libraries\": [\r\n    { \"notebook\": { \"path\": \"transformations/{key:lower}\" } }\r\n  ]\r\n}\r\n"
+    }
+  }
 }

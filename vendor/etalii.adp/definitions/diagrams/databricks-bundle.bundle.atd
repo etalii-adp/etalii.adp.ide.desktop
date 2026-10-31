@@ -1,22 +1,107 @@
 atd 0.1
 part of databricks/bundle
 
-// The Databricks bundle's body, in a part of its own (ATD §5.2, §9).
+// The Databricks bundle reading's body, in a part of its own (ATD §5.2, §9).
 
-/// A Databricks Asset Bundle's `databricks.yml`, read and written by the capability `reader.databricksBundle` as its
-/// `bundle` reading (databricks-bundle.md): the persistence plugin's contract (FBL §11) as a binding's family, since
-/// one FBL binding cannot give three readings of one body different metamodels. The YAML stays Databricks' own: every
-/// scalar is kept as written, every byte no element maps is kept, and every edit is a minimal line splice; a resource
-/// added to a file without `resources:` creates both levels in one edit. Configuration the reader does not model is
-/// read as an `Unknown` node and never rewritten. The bundle node exists under the id `bundle` whether or not the file
-/// declares `bundle:`, and a body that is not YAML reads as the empty reading with the reader's sentence as its finding.
-///
-/// Positions are kept in the `.adp` registration's `layout:` block, never in the YAML. The findings are the whole
-/// file's, every job's, then the bundle's, then every pipeline's, whichever reading asked. The job reading's task and
-/// connect commands, which this reading offers too, are planned by the same capability as under the job reading.
-binding bundle family capability reader.databricksBundle {
-  label "Databricks bundle"
-  claims { extensions: [".yml", ".yaml"], origins: ["databricks/bundle"] }
-  body { kind: file }
-  args: { reading: bundle }
+/// One Databricks Asset Bundle configuration, read and written through a declared binding (spec 067, T030): this
+/// reading's rules of `specifications/fbl/databricks.fbl`, whose types the other two readings' models do not have, in
+/// ATD (ATD §11, Appendix C.3). One open body serves the three readings (FBL 9.1), so the origins, the resource by
+/// origin and the template are the whole binding's. The YAML stays Databricks' own: every scalar is kept as written,
+/// every byte no element maps is kept, and every edit is a minimal splice. Beyond `databricks.fbl`, as the cases, recorded
+/// from the module, ask: a new job goes before the pipelines; the file's `include:` globs are read onto the diagram; a
+/// root key or a resource kind the model does not know is read as `Unknown`; and an override is read as an entry with
+/// two ends, so that one of a resource the bundle does not declare is kept with that end unset.
+binding bundle family json {
+  label "Databricks configuration"
+  claims {
+    extensions: [".yml", ".yaml", ".json"],
+    shared: true,
+    registrationOnly: true,
+    origins: ["databricks/bundle", "databricks/job", "databricks/pipeline"],
+    suggest: { contains: ["bundle:", "resources:"] }
+  }
+  body { kind: file, alsoRead: ["yaml"] }
+  text { newline: crlf, indent: 2, sequenceIndent: indented, finalNewline: true, quote: double }
+  registration {
+    resource: {
+      byOrigin: {
+        "databricks/job": { capture: "job" },
+        "databricks/pipeline": { capture: "pipeline" },
+        "databricks/bundle": null
+      }
+    }
+    ,
+    createOnFirstPlacement: false
+  }
+  element BundleFile as file at "/" {
+    attribute includes from value(has(entry.include) ? entry.include : [])
+    readOnly: true
+  }
+  element Bundle as bundle at "/bundle" {
+    attribute name from key "name" { read: text empty: refuse refusals: { empty: "A bundle needs a name." } }
+    origins: ["databricks/bundle"]
+  }
+  element Resource as jobResource at "/resources/jobs/{job}" {
+    id from value('resource:jobs/' + path.job)
+    attribute resourceKind from value('jobs')
+    attribute key from capture "job" { readOnly: "A resource is renamed in the file." }
+    insert {
+      place: after-last,
+      container: "/resources/jobs",
+      when: "attributes.resourceKind == 'jobs'",
+      create: { at: { before: "pipelines" } },
+      skeleton: "name: {key}\ntasks:\n  - task_key: main\n    notebook_task:\n      notebook_path: notebooks/{key}\n",
+      refusals: { key: "A resource needs a key.", duplicate: "A job with that key is already there." }
+    }
+    remove { container: "remove-empty-levels" }
+    origins: ["databricks/bundle"]
+  }
+  element Resource as pipelineResource at "/resources/pipelines/{pipeline}" {
+    id from value('resource:pipelines/' + path.pipeline)
+    attribute resourceKind from value('pipelines')
+    attribute key from capture "pipeline" { readOnly: "A resource is renamed in the file." }
+    insert {
+      place: after-last,
+      container: "/resources/pipelines",
+      when: "attributes.resourceKind == 'pipelines'",
+      create: { at: "end" },
+      skeleton: "name: {key}\nlibraries:\n  - notebook:\n      path: transformations/{key}\n",
+      refusals: { key: "A resource needs a key.", duplicate: "A pipeline with that key is already there." }
+    }
+    remove { container: "remove-empty-levels" }
+    origins: ["databricks/bundle"]
+  }
+  element Unknown as unknownResource at "/resources/{resourceKind}" {
+    when !(path.resourceKind in ['jobs', 'pipelines'])
+    attribute path from value('resources.' + path.resourceKind)
+    attribute key from capture "resourceKind"
+    readOnly: true
+  }
+  element Unknown as unknownRoot at "/{rootKey}" {
+    when !(path.rootKey in ['bundle', 'include', 'variables', 'resources', 'targets'])
+    attribute path from capture "rootKey"
+    attribute key from capture "rootKey"
+    readOnly: true
+  }
+  element Target as target at "/targets/{target}" {
+    attribute name from capture "target" { readOnly: "A target is renamed in the file." }
+    attribute mode from key "mode" { read: text empty: remove }
+    attribute isDefault from key "default" { default: false empty: remove }
+    origins: ["databricks/bundle"]
+  }
+  element Override as override at "/targets/{target}/resources/{resourceKind}/{resourceKey}" {
+    attribute from from value('target:' + path.target)
+    attribute to from value('resource:' + path.resourceKind + '/' + path.resourceKey)
+    attribute writtenKind from capture "resourceKind"
+    attribute writtenKey from capture "resourceKey"
+    readOnly: true
+  }
+  template {
+    text: "bundle:\r\n  name: {key:lower}\r\ntargets:\r\n  dev:\r\n    mode: development\r\n    default: true\r\n",
+    byOrigin: {
+      "databricks/bundle": "bundle:\r\n  name: {key:lower}\r\ntargets:\r\n  dev:\r\n    mode: development\r\n    default: true\r\n",
+      "databricks/job": "resources:\r\n  jobs:\r\n    {key:lower}:\r\n      name: {base}\r\n      tasks:\r\n        - task_key: main\r\n          notebook_task:\r\n            notebook_path: notebooks/{key:lower}\r\n",
+      "databricks/pipeline": "{\r\n  \"name\": \"{key:lower}\",\r\n  \"libraries\": [\r\n    { \"notebook\": { \"path\": \"transformations/{key:lower}\" } }\r\n  ]\r\n}\r\n"
+    }
+  }
 }

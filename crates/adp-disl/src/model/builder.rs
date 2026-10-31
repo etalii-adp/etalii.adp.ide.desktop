@@ -77,6 +77,8 @@ pub fn from(reading: &FblModel, specification: &DislSpecification) -> DislModel 
     let mut header = Vec::new();
     let mut unreadable = Vec::new();
     if reading.unreadable {
+        // A body that does not parse has no stored elements; what is derived from nothing is still computed (4.11.5).
+        findings.extend(complete(&diagram));
         return DislModel {
             diagram,
             findings,
@@ -320,6 +322,20 @@ fn attributes(
     let mut ends = HashMap::new();
     for (name, raw) in element.attributes.iter() {
         let target = mapping.renamed(name);
+        // What a reference by a value names is known by the id it was read with (FBL section 5.7).
+        let referenced = element
+            .referenced
+            .iter()
+            .find(|(n, _)| n == name)
+            .map(|(_, id)| Value::String(id.clone()));
+        let is_reference = t
+            .attributes
+            .get(target)
+            .is_some_and(|attribute| metamodel.type_of(&attribute.type_name).is_some());
+        let raw = referenced
+            .as_ref()
+            .filter(|_| is_reference || t.is_relation)
+            .unwrap_or(raw);
         if t.is_relation && matches!(target, "source" | "target") {
             let id = match raw {
                 Value::Null => None,
@@ -353,6 +369,7 @@ fn viewpoint_env(specification: &DislSpecification) -> Value {
 pub fn complete(diagram: &DislDiagram) -> Vec<Finding> {
     let mut findings = Vec::new();
     derived_ids(diagram, &diagram.nodes(), &mut findings);
+    derived_nodes(diagram, &mut findings);
     derived_relations(diagram, &mut findings);
     let stored: Vec<DislElement> = diagram.relations().into_iter().filter(|r| !r.is_derived()).collect();
     derived_ids(diagram, &stored, &mut findings);
@@ -438,6 +455,157 @@ fn allows(end: Option<&DislRelationEnd>, value: &Value) -> Option<DislElement> {
     (types_ok && not_excluded).then_some(element)
 }
 
+/// The groups of a derived type's items (section 4.11.2): items with equal keys yield one element, the first of them its
+/// `item`, all of them its `group`; an item whose key fails is dropped, with its message.
+fn groups_of(
+    specification: &DislSpecification,
+    derived: &serde_json::Value,
+    pointer: &str,
+    base: &HashMap<String, Value>,
+    items: &[Value],
+    fail: &mut dyn FnMut(String),
+) -> Vec<(Option<Value>, Vec<Value>)> {
+    let mut groups: Vec<(Option<Value>, Vec<Value>)> = Vec::new();
+    for (index, item) in items.iter().enumerate() {
+        let mut key = None;
+        if json::has(derived, "key") {
+            let mut variables = base.clone();
+            variables.insert("item".to_owned(), item.clone());
+            variables.insert("group".to_owned(), Value::list(vec![item.clone()]));
+            variables.insert("index".to_owned(), Value::Int(index as i64));
+            match evaluate(specification, &json::pointer(pointer, "key"), &variables) {
+                Ok(value) => key = Some(value),
+                Err(e) => {
+                    fail(e);
+                    continue;
+                }
+            }
+        }
+        match groups.iter_mut().find(|(k, _)| key.is_some() && *k == key) {
+            Some((_, group)) => group.push(item.clone()),
+            None => groups.push((key, vec![item.clone()])),
+        }
+    }
+    groups
+}
+
+/// The derived node types (section 4.11.2), in the order of `metamodel.types`, each `from` seeing the stored elements and
+/// the derived elements of every type computed before it (section 4.11.5).
+fn derived_nodes(diagram: &DislDiagram, findings: &mut Vec<Finding>) {
+    let specification = diagram.specification();
+    for t in specification.metamodel().types.values() {
+        let Some(derived) = t.derived().filter(|d| d.is_object()) else {
+            continue;
+        };
+        let pointer = json::pointer(&json::pointer("/metamodel/types", &t.name), "derived");
+        let base: HashMap<String, Value> = [
+            ("diagram".to_owned(), diagram.to_value()),
+            ("env".to_owned(), viewpoint_env(&specification)),
+        ]
+        .into_iter()
+        .collect();
+        let items = match evaluate(&specification, &json::pointer(&pointer, "from"), &base) {
+            Ok(Value::List(items)) => items,
+            _ => {
+                findings.push(finding(
+                    DERIVED_FAILED,
+                    format!("The items of {} could not be computed, so there are none.", t.name),
+                ));
+                continue;
+            }
+        };
+        let mut failures: Vec<String> = Vec::new();
+        let mut fail = |message: String| {
+            if !failures.contains(&message) {
+                failures.push(message);
+            }
+        };
+        for (index, (_, group)) in groups_of(&specification, derived, &pointer, &base, &items, &mut fail)
+            .iter()
+            .enumerate()
+        {
+            let item = &group[0];
+            let mut variables = base.clone();
+            variables.insert("item".to_owned(), item.clone());
+            variables.insert("group".to_owned(), Value::list(group.clone()));
+            variables.insert("index".to_owned(), Value::Int(index as i64));
+            let id = match evaluate(&specification, &json::pointer(&pointer, "id"), &variables) {
+                Ok(Value::String(id)) => id,
+                Ok(_) => {
+                    fail("the id of an item is not a string".to_owned());
+                    continue;
+                }
+                Err(e) => {
+                    fail(e);
+                    continue;
+                }
+            };
+            // The provenance: `sources`, else `group` when the items are elements.
+            let sources = if json::has(derived, "sources") {
+                match evaluate(&specification, &json::pointer(&pointer, "sources"), &variables) {
+                    Ok(Value::List(listed)) => listed.iter().filter_map(DislElement::from_value).collect(),
+                    _ => {
+                        fail("the sources of an item are not a list".to_owned());
+                        continue;
+                    }
+                }
+            } else {
+                group.iter().filter_map(DislElement::from_value).collect()
+            };
+            let parent = if json::has(derived, "parent") {
+                match evaluate(&specification, &json::pointer(&pointer, "parent"), &variables) {
+                    Ok(value) => DislElement::from_value(&value),
+                    Err(e) => {
+                        fail(e);
+                        continue;
+                    }
+                }
+            } else {
+                None
+            };
+            let mut attributes = Map::default();
+            for (name, _) in json::members(derived, "attributes") {
+                let value = evaluate(
+                    &specification,
+                    &json::pointer(&json::pointer(&pointer, "attributes"), name),
+                    &variables,
+                );
+                match value {
+                    Ok(value) => {
+                        attributes.insert(name.clone(), value);
+                    }
+                    Err(e) => fail(e),
+                }
+            }
+            if let Some(taken) = diagram.element_by_id(&id) {
+                findings.push(finding(
+                    DERIVED_ID,
+                    format!("{} '{id}' has the id of {taken}; it is not drawn.", t.name),
+                ));
+                continue;
+            }
+            let mut new = NewElement::new(&t.name, &id);
+            new.attributes = attributes;
+            new.parent = parent;
+            new.is_derived = true;
+            new.sources = sources;
+            new.id_is_stored = false;
+            match DislElement::make(diagram, &new, t.clone()) {
+                Ok(made) => {
+                    let _ = diagram.add_made(made);
+                }
+                Err(e) => fail(e),
+            }
+        }
+        for failure in failures {
+            findings.push(finding(
+                DERIVED_FAILED,
+                format!("Items of {} were dropped: {failure}", t.name),
+            ));
+        }
+    }
+}
+
 /// The derived relation types (section 4.11.3), in the order of `metamodel.relations`.
 fn derived_relations(diagram: &DislDiagram, findings: &mut Vec<Finding>) {
     let specification = diagram.specification();
@@ -475,28 +643,7 @@ fn derived_relations(diagram: &DislDiagram, findings: &mut Vec<Finding>) {
             None => bad_ends.push((end, 1)),
         };
         let mut repeats: HashMap<String, usize> = HashMap::new();
-        // Items with equal keys yield one element, the first of them its `item`, all of them its `group`.
-        let mut groups: Vec<(Option<Value>, Vec<Value>)> = Vec::new();
-        for (index, item) in items.iter().enumerate() {
-            let mut key = None;
-            if json::has(derived, "key") {
-                let mut variables = base.clone();
-                variables.insert("item".to_owned(), item.clone());
-                variables.insert("group".to_owned(), Value::list(vec![item.clone()]));
-                variables.insert("index".to_owned(), Value::Int(index as i64));
-                match evaluate(&specification, &json::pointer(&pointer, "key"), &variables) {
-                    Ok(value) => key = Some(value),
-                    Err(e) => {
-                        fail(e);
-                        continue;
-                    }
-                }
-            }
-            match groups.iter_mut().find(|(k, _)| key.is_some() && *k == key) {
-                Some((_, group)) => group.push(item.clone()),
-                None => groups.push((key, vec![item.clone()])),
-            }
-        }
+        let groups = groups_of(&specification, derived, &pointer, &base, &items, &mut fail);
         for (index, (_, group)) in groups.iter().enumerate() {
             let item = &group[0];
             let mut variables = base.clone();

@@ -81,6 +81,7 @@ impl MindmapFreeplanePlugin {
                     parent_id: parent,
                     source: None,
                     target: None,
+                    referenced: Vec::new(),
                     own_span: Span::new(0, 0),
                     line: document.xml().line(node),
                     file: None,

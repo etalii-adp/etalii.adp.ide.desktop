@@ -67,6 +67,7 @@ pub fn fbl(
         parent_slot: parent.map(|_| "children".to_owned()),
         source: source.map(str::to_owned),
         target: target.map(str::to_owned),
+        referenced: Vec::new(),
         own_span: Span::new(0, 0),
         line: 1,
         file: None,

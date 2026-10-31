@@ -13,33 +13,27 @@ atd 0.1
 /// **annotations**, **accelerators** and **attitudes** (pioneers, settlers, town planners) comment on the map.
 ///
 /// Maps are stored in the Online Wardley Maps text format (`.owm`), which onlinewardleymaps.com and the tools that read
-/// it can open, read and written by the reader the persistence names. What this specification cannot express - the
+/// it can open, read and written by the declared binding `owm` (wardley-map.owm.atd). What this specification cannot express - the
 /// format's grammar, the identities of repeated names, the rules that need the project's files, and the places where
 /// DISL 0.3 and FBL 0.2 fall short - is in `wardley-map.md` beside this file. What the standalone tool calls each
 /// palette entry, menu entry, property row and element type is in the `x-wardley` block.
 diagram wardley/map version "0.2.0" {
   doc {
     rationale: "The evolution axis puts each component where it is in its life cycle, which is the point of a Wardley map and what a generic diagram leaves out."
-    tags: [
-      "wardley map",
-      "strategy",
-      "value chain",
-      "evolution",
-      "technology assessment",
-      "planning and roadmapping"
-    ]
+    tags: ["wardley map", "strategy", "value chain", "evolution", "technology assessment", "planning and roadmapping"]
     audience: [user, author]
-    seeAlso: [
-      {
-        title: "What DISL and FBL cannot express about this diagram type"
-        href: "https://github.com/etalii-adp/etalii.adp/blob/develop/definitions/diagrams/wardley-map.md"
-      },
-      {
-        title: "The standalone implementation"
-        href: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/wardley-map"
-      },
-      { title: "Learn Wardley Mapping", href: "https://learnwardleymapping.com/" },
-      { title: "Online Wardley Maps", href: "https://onlinewardleymaps.com/" }
+    seeAlso: [{
+      title: "What DISL and FBL cannot express about this diagram type"
+      href: "https://github.com/etalii-adp/etalii.adp/blob/develop/definitions/diagrams/wardley-map.md"
+    }
+    , {
+      title: "The standalone implementation"
+      href: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/wardley-map"
+    }
+    , { title: "Learn Wardley Mapping", href: "https://learnwardleymapping.com/" }, {
+      title: "Online Wardley Maps",
+      href: "https://onlinewardleymaps.com/"
+    }
     ]
   }
   label "Wardley map"
@@ -54,7 +48,6 @@ diagram wardley/map version "0.2.0" {
 
   import "wardley-map.notation.atd"
   import "wardley-map.owm.atd"
-  requires capability reader.onlineWardleyMaps@^1
 
   /// Components, anchors and submaps are the positioned elements a map is about; dependencies and flows connect them by
   /// name. Evolutions, pipelines, notes, annotations, accelerators, attitudes and url definitions are statements of
@@ -70,10 +63,12 @@ diagram wardley/map version "0.2.0" {
       attribute style: string default "" { label: "Style" }
       /// The map's `size [width, height]` statement, in pixels of the reference renderer. Kept and written back; the
       /// canvas is stretched to its pane instead.
-      attribute size: MapSize { label: "Size" }
+      attribute width: number { label: "Width", unit: px }
+      attribute height: number { label: "Height", unit: px }
       /// The `annotations [visibility, maturity]` statement: where the reference renderer lists the annotations. Kept
       /// and written back, and neither checked nor drawn.
-      attribute annotationsPosition: MapPosition { label: "Annotations" }
+      attribute annotationsVisibility: number { label: "Annotations' visibility" }
+      attribute annotationsMaturity: number { label: "Annotations' maturity" }
     }
 
     /// An element of the value chain with a name and a position: a component, an anchor or a submap. Links, evolutions
@@ -86,7 +81,9 @@ diagram wardley/map version "0.2.0" {
       attribute name: string default "" { label: "Name", group: "Identity", order: 0 }
       /// How visible the element is to the user: 1 at the user need, 0 at the invisible end. The first number of its
       /// coordinates.
-      attribute visibility: Fraction {
+      attribute visibility: number {
+        min: 0
+        max: 1
         label: "Visibility"
         group: "Position"
         order: 1
@@ -98,7 +95,9 @@ diagram wardley/map version "0.2.0" {
         }
       }
       /// How far the element has evolved: 0 at genesis, 1 at commodity. The second number of its coordinates.
-      attribute maturity: Fraction {
+      attribute maturity: number {
+        min: 0
+        max: 1
         label: "Maturity"
         group: "Position"
         order: 2
@@ -115,39 +114,37 @@ diagram wardley/map version "0.2.0" {
         derived: (stageLabel(self.maturity))
         group: "Position"
         order: 3
-        readOnlyReasons: [
-          "The evolution stage is derived from the component's maturity, so it is not set directly. Change Maturity instead."
-        ]
+        readOnlyReasons: ["The evolution stage is derived from the component's maturity, so it is not set directly. Change Maturity instead."]
       }
       /// Where the name is drawn, when the statement says (`label [-30, 12]`); absent otherwise.
       attribute labelOffset: LabelOffset readonly {
         label: "Label offset"
         group: "Position"
         order: 4
-        readOnlyReasons: [
-          "A label offset is in pixels rather than on the map's scale, which is a property of the format ADP reproduces rather than edits. Change it where the map was written."
-        ]
+        readOnlyReasons: ["A label offset is in pixels rather than on the map's scale, which is a property of the format ADP reproduces rather than edits. Change it where the map was written."]
       }
       /// The bare word `inertia` after the coordinates: the element resists change.
       attribute inertia: bool default false { label: "Inertia", group: "Strategy", order: 5 }
+      /// The statement's decorators, in the order it writes them: `(outsource) (market)`.
+      attribute decorators: string many { label: "Decorators" }
+      /// The text of the statement's coordinates, which an absent part is written after.
+      attribute coordinates: string readonly
       /// The decorator `(market)`: supplied by a market rather than by one supplier.
-      attribute market: bool default false { label: "Market" }
+      attribute market: bool { label: "Market", derived: ('market' in self.decorators) }
       /// The decorator `(ecosystem)`: an ecosystem of others is built around it.
-      attribute ecosystem: bool default false { label: "Ecosystem" }
+      attribute ecosystem: bool { label: "Ecosystem", derived: ('ecosystem' in self.decorators) }
       /// The decorator `(build)`.
-      attribute build: bool default false { label: "Build" }
+      attribute build: bool { label: "Build", derived: ('build' in self.decorators) }
       /// The decorator `(buy)`.
-      attribute buy: bool default false { label: "Buy" }
+      attribute buy: bool { label: "Buy", derived: ('buy' in self.decorators) }
       /// The decorator `(outsource)`.
-      attribute outsource: bool default false { label: "Outsource" }
+      attribute outsource: bool { label: "Outsource", derived: ('outsource' in self.decorators) }
       /// The name of a `url` definition, written `url(name)`; empty when the statement names none.
       attribute url: string readonly default "" {
         label: "Url"
         group: "Links"
         order: 7
-        readOnlyReasons: [
-          "A url points at a definition elsewhere in the document, and nothing edits those here yet. Change it where the map was written."
-        ]
+        readOnlyReasons: ["A url points at a definition elsewhere in the document, and nothing edits those here yet. Change it where the map was written."]
       }
     }
 
@@ -177,7 +174,7 @@ diagram wardley/map version "0.2.0" {
       /// The element named after `evolve`; null when the name is on no element, which is reported.
       attribute component: Positioned { label: "Element" }
       /// Where the element is heading.
-      attribute maturity: Fraction { label: "Target maturity" }
+      attribute maturity: number { min: 0, max: 1, label: "Target maturity" }
       /// The name after `->`: what the element is called once it has evolved.
       attribute renamedTo: string default "" { label: "Becomes" }
     }
@@ -190,8 +187,6 @@ diagram wardley/map version "0.2.0" {
       /// The element named after `pipeline`; null when the name is on no element, which is reported.
       attribute component: Positioned { label: "Parent" }
       attribute form: PipelineForm readonly default nested { label: "Form" }
-      /// Present only on the legacy form.
-      attribute legacyExtent: LegacyExtent readonly { label: "Extent" }
       /// Whether the block's closing brace was found. The components of a block that never closes are kept and drawn.
       attribute closed: bool readonly default true { label: "Closed" }
       contains PipelineComponent ordered { doc: "A legacy pipeline has none. A pipeline may be empty." }
@@ -205,12 +200,12 @@ diagram wardley/map version "0.2.0" {
         label: "Name"
         group: "Identity"
         order: 0
-        readOnlyReasons: [
-          "A pipeline component's name is also the only handle the map has on it, and nothing renames one yet. Remove it from the pipeline and add it under the name you want."
-        ]
+        readOnlyReasons: ["A pipeline component's name is also the only handle the map has on it, and nothing renames one yet. Remove it from the pipeline and add it under the name you want."]
       }
       /// How far this choice has evolved.
-      attribute maturity: Fraction {
+      attribute maturity: number {
+        min: 0
+        max: 1
         label: "Maturity"
         group: "Position"
         order: 1
@@ -221,14 +216,16 @@ diagram wardley/map version "0.2.0" {
           doc: "A drag stops at the edge of the map; a typed value past it is refused."
         }
       }
+      /// The visibility of the pipeline's parent, at which this choice is drawn.
+      attribute parentVisibility: number {
+        derived: (has(self.parent.component) ? self.parent.component.visibility : 0.0)
+      }
       attribute stage: string {
         label: "Evolution stage"
         derived: (stageLabel(self.maturity))
         group: "Position"
         order: 2
-        readOnlyReasons: [
-          "The evolution stage is derived from the component's maturity, so it is not set directly. Change Maturity instead."
-        ]
+        readOnlyReasons: ["The evolution stage is derived from the component's maturity, so it is not set directly. Change Maturity instead."]
       }
     }
 
@@ -239,9 +236,9 @@ diagram wardley/map version "0.2.0" {
       labelAttribute: text
       attribute text: string default "" { label: "Text" }
       /// Where the note sits.
-      attribute visibility: Fraction { label: "Visibility", group: "Position", order: 1 }
+      attribute atVisibility: number { min: 0, max: 1, label: "Visibility", group: "Position", order: 1 }
       /// Where the note sits.
-      attribute maturity: Fraction { label: "Maturity", group: "Position", order: 2 }
+      attribute atMaturity: number { min: 0, max: 1, label: "Maturity", group: "Position", order: 2 }
     }
 
     /// A numbered remark, shown on the map and listed in its own block: `annotation N [visibility, maturity] text`, or
@@ -251,8 +248,8 @@ diagram wardley/map version "0.2.0" {
       icon: "mdi-comment-text-outline"
       labelAttribute: text
       attribute number: int { label: "Number" }
-      /// The text between the statement's outer brackets, which `positions()` reads as a list of pairs (gap 6).
-      attribute positions: string readonly { label: "Positions" }
+      /// Where it is pinned, one structured value per occurrence (FBL 0.12, `items`).
+      attribute positions: AnnotationPosition many { label: "Positions" }
       attribute text: string default "" { label: "Text" }
     }
 
@@ -261,12 +258,7 @@ diagram wardley/map version "0.2.0" {
       derived: {
         from: (diagram.nodesOfType('Annotation').map(a, positions(a.positions).map(p, [a, p])).flatten())
         id: (item[0].id + '#' + string(index))
-        attributes: {
-          number: (item[0].number)
-          text: (item[0].text)
-          visibility: (item[1][0])
-          maturity: (item[1][1])
-        }
+        attributes: { number: (item[0].number) text: (item[0].text) visibility: (item[1][0]) maturity: (item[1][1]) }
         sources: ([item[0]])
         doc: "One pin per occurrence of an annotation, which the canvas draws. Derived, because the occurrences are numbers inside one statement and not entries of their own (gap 6)."
       }
@@ -276,6 +268,12 @@ diagram wardley/map version "0.2.0" {
       attribute maturity: number
     }
 
+    /// One occurrence of an annotation.
+    datatype AnnotationPosition {
+      fields: { visibility: { type: number, required: true }, maturity: { type: number, required: true } }
+      display: (fixedNumber(value.visibility) + ', ' + fixedNumber(value.maturity))
+    }
+
     /// `accelerator Name [visibility, maturity]` or `deaccelerator Name [visibility, maturity]`: a force that speeds
     /// evolution up or slows it down.
     element Accelerator {
@@ -283,9 +281,9 @@ diagram wardley/map version "0.2.0" {
       labelAttribute: name
       attribute name: string default "" { label: "Name" }
       /// Where it sits.
-      attribute visibility: Fraction { label: "Visibility", group: "Position", order: 1 }
+      attribute atVisibility: number { min: 0, max: 1, label: "Visibility", group: "Position", order: 1 }
       /// Where it sits.
-      attribute maturity: Fraction { label: "Maturity", group: "Position", order: 2 }
+      attribute atMaturity: number { min: 0, max: 1, label: "Maturity", group: "Position", order: 2 }
       attribute deaccelerator: bool default false { label: "Deaccelerator" }
     }
 
@@ -295,13 +293,13 @@ diagram wardley/map version "0.2.0" {
       label "Attitude"
       attribute attitude: AttitudeKind { label: "Attitude" }
       /// One corner.
-      attribute visibility1: Fraction { label: "Visibility", group: "Position", order: 1 }
+      attribute visibility1: number { min: 0, max: 1, label: "Visibility", group: "Position", order: 1 }
       /// One corner.
-      attribute maturity1: Fraction { label: "Maturity", group: "Position", order: 2 }
+      attribute maturity1: number { min: 0, max: 1, label: "Maturity", group: "Position", order: 2 }
       /// The other corner.
-      attribute visibility2: Fraction { label: "Visibility", group: "Position", order: 3 }
+      attribute visibility2: number { min: 0, max: 1, label: "Visibility", group: "Position", order: 3 }
       /// The other corner.
-      attribute maturity2: Fraction { label: "Maturity", group: "Position", order: 4 }
+      attribute maturity2: number { min: 0, max: 1, label: "Maturity", group: "Position", order: 4 }
     }
 
     /// A `url name [address]` statement, which components and submaps name with `url(name)`. Not drawn and not on the
@@ -349,38 +347,9 @@ diagram wardley/map version "0.2.0" {
       legacy { label: "Legacy" }
     }
 
-    /// A position on one axis of the map. A value outside 0 to 1 is kept as written, drawn at the edge and reported
-    /// (`wardley.coordinate-out-of-range`).
-    datatype Fraction: number { min: 0, max: 1 }
-
-    datatype MapPosition {
-      fields: { visibility: { type: number, required: true }, maturity: { type: number, required: true } }
-      display: (fixedNumber(value.visibility) + ', ' + fixedNumber(value.maturity))
-    }
-
-    datatype MapSize {
-      fields: {
-        width: { type: number, required: true, unit: px }
-        height: { type: number, required: true, unit: px }
-      }
-      display: (fixedNumber(value.width) + ' × ' + fixedNumber(value.height))
-    }
-
-    /// The two numbers of a legacy `pipeline Name [a, b]` statement, kept as written and read, as every pair of this
-    /// format is, as a visibility and a maturity.
-    datatype LegacyExtent {
-      fields: {
-        visibility: { type: Fraction, required: true }
-        maturity: { type: Fraction, required: true }
-      }
-    }
-
     /// A `label [dx, dy]` after an element's coordinates: where its name is drawn, in pixels from its mark.
     datatype LabelOffset {
-      fields: {
-        dx: { type: number, required: true, unit: px }
-        dy: { type: number, required: true, unit: px }
-      }
+      fields: { dx: { type: number, required: true, unit: px } dy: { type: number, required: true, unit: px } }
       display: (fixedNumber(value.dx) + ', ' + fixedNumber(value.dy))
     }
   }
@@ -401,16 +370,14 @@ diagram wardley/map version "0.2.0" {
     return formatNumber(value, '0.####')
   }
 
-  /// An annotation's occurrences, each as [visibility, maturity], from the text between the outer brackets of its
-  /// statement: `0.4,0.5` is one, `[0.43,0.49],[0.08,0.79]` two (gap 6). Only well-formed text reads.
-  fn positions(text: string) -> list<list<double>> {
-    return text.contains('[') ? text.split(']').filter(s, s.contains('[')).map(s, s.split('[')[s.split('[').size() - 1].split(',').map(n, double(n.trim()))) : [text.split(',').map(n, double(n.trim()))]
+  /// An annotation's occurrences, each as [visibility, maturity].
+  fn positions(listed: list<AnnotationPosition>) -> list<list<double>> {
+    return listed.map(p, [double(p.visibility), double(p.maturity)])
   }
 
-  /// The decorators an element carries, joined by `, `, in this notation's order: market, ecosystem, build, buy,
-  /// outsource. The model's five booleans have no order, so the order the statement writes them in is not read (gap 5).
+  /// The decorators an element carries, joined by `, `, in the order the statement writes them (gap 5).
   fn writtenDecorators(e: Element) -> string {
-    return ['market', 'ecosystem', 'build', 'buy', 'outsource'].filter(d, d == 'market' ? e.market : d == 'ecosystem' ? e.ecosystem : d == 'build' ? e.build : d == 'buy' ? e.buy : e.outsource).join(', ')
+    return e.decorators.join(', ')
   }
 
   /// Whether the element is the first, in document order, to carry its name: the one every link, `evolve` and
@@ -451,6 +418,11 @@ diagram wardley/map version "0.2.0" {
     return isFirstHolder(n) ? diagram.relationsOfType('Link').filter(l, writtenEnd(l, 'source') == n.name || writtenEnd(l, 'target') == n.name) : []
   }
 
+  /// A link as its menu's picker names it: its two ends and its kind, each after a separator no name can hold.
+  fn linkKey(l: Element) -> string {
+    return writtenEnd(l, 'source') + '\u001f' + writtenEnd(l, 'target') + '\u001f' + (l.isA('Flow') ? 'Flow' : 'Dependency')
+  }
+
   /// A link as a person reads it: `A -> B` for a dependency, `A +> B` for a flow.
   fn linkLabel(l: Element) -> string {
     return writtenEnd(l, 'source') + (l.isA('Flow') ? ' +> ' : ' -> ') + writtenEnd(l, 'target')
@@ -458,7 +430,7 @@ diagram wardley/map version "0.2.0" {
 
   /// Whether the element carries the decorator named.
   fn decorated(n: Element, d: string) -> bool {
-    return d == 'market' ? n.market : d == 'ecosystem' ? n.ecosystem : d == 'build' ? n.build : d == 'buy' ? n.buy : d == 'outsource' && n.outsource
+    return d in n.decorators
   }
 
   /// This notation's five decorators, in the order the tool lists them.
@@ -518,12 +490,12 @@ diagram wardley/map version "0.2.0" {
 
   /// The value of the coordinate std.facets reports, by the attribute it names.
   fn coordinateOf(e: Element, attribute: string) -> double {
-    return attribute == 'visibility' ? e.visibility : attribute == 'maturity' ? e.maturity : attribute == 'legacyExtent.visibility' ? e.legacyExtent.visibility : attribute == 'legacyExtent.maturity' ? e.legacyExtent.maturity : attribute == 'visibility1' ? e.visibility1 : attribute == 'maturity1' ? e.maturity1 : attribute == 'visibility2' ? e.visibility2 : e.maturity2
+    return attribute == 'visibility' ? e.visibility : attribute == 'maturity' ? e.maturity : attribute == 'atVisibility' ? e.atVisibility : attribute == 'atMaturity' ? e.atMaturity : attribute == 'visibility1' ? e.visibility1 : attribute == 'maturity1' ? e.maturity1 : attribute == 'visibility2' ? e.visibility2 : e.maturity2
   }
 
   /// Which axis a coordinate attribute is on.
   fn axisOf(attribute: string) -> string {
-    return attribute.contains('visibility') ? 'visibility' : 'maturity'
+    return attribute.contains('isibility') ? 'visibility' : 'maturity'
   }
 
   /// The sentence of `wardley.coordinate-out-of-range`.
@@ -538,17 +510,7 @@ diagram wardley/map version "0.2.0" {
   constraints {
     defaults: { severity: error, timing: [live] }
     blockSaveOn: never
-    order: [
-      "wardley.duplicate-name",
-      "wardley.link-target-missing",
-      "wardley.evolve-target-missing",
-      "wardley.pipeline-parent-missing",
-      "wardley.coordinate-out-of-range",
-      "wardley.url-undefined",
-      "wardley.anchor-missing",
-      "wardley.submap-missing",
-      "wardley.line-passed-over"
-    ]
+    order: ["wardley.duplicate-name", "wardley.link-target-missing", "wardley.evolve-target-missing", "wardley.pipeline-parent-missing", "wardley.coordinate-out-of-range", "wardley.url-undefined", "wardley.anchor-missing", "wardley.submap-missing", "wardley.line-passed-over"]
     builtin std.facets {
       severity: error
       code: "wardley.coordinate-out-of-range"
@@ -557,7 +519,7 @@ diagram wardley/map version "0.2.0" {
     }
     builtin std.axisBounds {
       enabled: false
-      doc: "A position off the map is reported once, by std.facets on Fraction; the axes' outOfRange still stops a drag at the edge and refuses a typed value."
+      doc: "A position off the map is reported once, by std.facets on the coordinates; the axes' outOfRange still stops a drag at the edge and refuses a typed value."
     }
     builtin std.unreadableEntry {
       severity: warning
@@ -593,7 +555,10 @@ diagram wardley/map version "0.2.0" {
     /// per element.
     constraint duplicateName for diagram {
       rule holdersOf(item).size() == 1
-      message ("'" + item.name + "' is declared more than once (lines " + holdersOf(item).map(n, string(n.location().orValue({'line': 0})['line'])).join(', ') + "), so every link, evolve and pipeline that names it is ambiguous.")
+      message ("'" + item.name + "' is declared more than once (lines " + holdersOf(item).map(n, string(n.location().orValue({
+        'line': 0
+      }
+      )['line'])).join(', ') + "), so every link, evolve and pipeline that names it is ambiguous.")
       code: "wardley.duplicate-name"
       forEach: (cel.bind(holders, diagram.nodesOfType('Positioned'), holders.map(n, n.name).distinct().size() == holders.size() ? [] : holders.filter(n, isFirstHolder(n))))
     }
@@ -714,7 +679,7 @@ diagram wardley/map version "0.2.0" {
     if diagram.nodesOfType('Positioned').exists(n, n.name == p.name.trim()) {
       fail "This map already has an element called '" + p.name.trim() + "'."
     }
-    create Component { name: p.name.trim(), visibility: 0.5, maturity: 0.5, market: true }
+    create Component { name: p.name.trim(), visibility: 0.5, maturity: 0.5, decorators: ['market'] }
   }
 
   operation addEcosystem "Add ecosystem…" for diagram {
@@ -730,7 +695,7 @@ diagram wardley/map version "0.2.0" {
     if diagram.nodesOfType('Positioned').exists(n, n.name == p.name.trim()) {
       fail "This map already has an element called '" + p.name.trim() + "'."
     }
-    create Component { name: p.name.trim(), visibility: 0.5, maturity: 0.5, ecosystem: true }
+    create Component { name: p.name.trim(), visibility: 0.5, maturity: 0.5, decorators: ['ecosystem'] }
   }
 
   operation addNote "Add note…" for diagram {
@@ -740,7 +705,7 @@ diagram wardley/map version "0.2.0" {
     if p.name.trim() == '' {
       fail 'A note needs something to say.'
     }
-    create Note { text: p.name.trim(), visibility: 0.5, maturity: 0.5 }
+    create Note { text: p.name.trim(), atVisibility: 0.5, atMaturity: 0.5 }
   }
 
   operation addAnnotation "Add annotation…" for diagram {
@@ -750,7 +715,11 @@ diagram wardley/map version "0.2.0" {
     if p.name.trim() == '' {
       fail 'A note needs something to say.'
     }
-    create Annotation { number: nextAnnotationNumber(), positions: '0.5,0.5', text: p.name.trim() }
+    create Annotation {
+      number: nextAnnotationNumber(),
+      positions: [{ 'visibility': 0.5, 'maturity': 0.5 }],
+      text: p.name.trim()
+    }
   }
 
   /// Renames the selected holder only. Renaming the first holder rewrites every link, evolution and pipeline that names
@@ -807,42 +776,27 @@ diagram wardley/map version "0.2.0" {
     label ((decorated(self, p.decorator) ? 'Clear ' : 'Mark as ') + p.decorator)
     param decorator: string { label: "Decorator" }
     icon: "mdi-tag-outline"
-    if p.decorator == 'market' {
-      set market = !self.market
-    }
-    if p.decorator == 'ecosystem' {
-      set ecosystem = !self.ecosystem
-    }
-    if p.decorator == 'build' {
-      set build = !self.build
-    }
-    if p.decorator == 'buy' {
-      set buy = !self.buy
-    }
-    if p.decorator == 'outsource' {
-      set outsource = !self.outsource
-    }
+    set decorators = decorated(self, p.decorator) ? self.decorators.filter(d, d != p.decorator) : self.decorators + [p.decorator]
   }
 
   /// Removes one of the links the element is an end of, chosen by `A -> B` or `A +> B`. With one link the tool removes
   /// it without asking (gap 11).
   operation unlink "Remove link…" for Positioned {
     unavailable [{ when: (linksOf(self).size() == 0), message: "This element has no link to remove." }]
-    param link: Link { label: "Link" }
+    param link: string { label: "Link" }
     icon: "mdi-link-variant-off"
     paramsForm: unlinkDialog
-    delete p.link
+    delete linksOf(self).filter(l, linkKey(l) == p.link)[0]
   }
 
   /// Starts the element's pipeline, written in the nested form, or adds a component at the end of it, at maturity 0.5.
   /// A later holder is first given a name of its own.
   operation addToPipeline for Positioned {
     label (pipelineOf(self).size() > 0 ? 'Add to pipeline…' : 'Start a pipeline…')
-    unavailable [
-      {
-        when: (pipelineOf(self).exists(q, q.form == 'legacy'))
-        message: ("'" + self.name + "' has a pipeline written in the older two-coordinate form, which holds no components. Rewrite it as a nested pipeline first.")
-      }
+    unavailable [{
+      when: (pipelineOf(self).exists(q, q.form == 'legacy'))
+      message: ("'" + self.name + "' has a pipeline written in the older two-coordinate form, which holds no components. Rewrite it as a nested pipeline first.")
+    }
     ]
     param name: string { label: "Name" }
     icon: "mdi-pipe"
@@ -895,10 +849,9 @@ diagram wardley/map version "0.2.0" {
 
   // ---------------------------------------------------------------- Persistence
 
-  /// The Online Wardley Maps text format, `.owm`, read and written by the binding `owm` through the capability
-  /// reader.onlineWardleyMaps, which stands where the specification names the plugin `net.etalii.adp.wardley.owm`,
-  /// the standalone module's parser and writer, until FBL reads a pipeline whose brace is on the line below it
-  /// (gap 1). A new map is `title {base}` and a line ending.
+  /// The Online Wardley Maps text format, `.owm`, read and written by the binding `owm` (wardley-map.owm.atd),
+  /// `specifications/fbl/wardley-map.fbl` in ATD, which reads a pipeline whose brace is on the line below it (gap 1). A
+  /// new map is `title {base}` and a line ending.
   persistence {
     format: fbl
     encoding: utf-8
@@ -911,17 +864,42 @@ diagram wardley/map version "0.2.0" {
       strategy: uuid-v4
       encoding: base36
       stable: true
+      types: {
+        Evolution: {
+          strategy: derived
+          expression: ('evolve:' + (has(self.component) ? self.component.id : '') + '@' + string(self.location().orValue({
+            'line': 0
+          }
+          ).line))
+          doc: "An evolution has no identity kind in the tool, so it has no stored id, and takes the one derived here."
+        }
+      }
       doc: "A new element gets a ShortGuid: a version 4 GUID written as 25 characters of base 36. Ids are never written in the body; each element is known by its kind, its key and its place among the elements of that kind and key, and keeps its id across edits and openings (wardley-map.md, 'Identities')."
     }
     view: { store: [] }
     collaboration: { mode: none }
+    typeMap: {
+      Title: { as: diagram }
+      Style: { as: diagram }
+      Size: { as: diagram }
+      AnnotationsPosition: {
+        as: diagram,
+        attributes: { visibility: "annotationsVisibility", maturity: "annotationsMaturity" }
+      }
+      Evolve: { as: Evolution, attributes: { becomes: "renamedTo" } }
+      LegacyPipeline: { as: Pipeline }
+      Note: { as: Note, attributes: { visibility: "atVisibility", maturity: "atMaturity" } }
+      Accelerator: { as: Accelerator, attributes: { visibility: "atVisibility", maturity: "atMaturity" } }
+      Dependency: { as: Dependency, attributes: { from: "source", to: "target" } }
+      Flow: { as: Flow, attributes: { from: "source", to: "target" } }
+    }
   }
 
   plugin net.etalii.adp.wardley.owm {
     version: "^0.2.0"
     provides: [persistenceFormat]
-    required: true
-    doc: "Reads and writes the Online Wardley Maps text format, `.owm` (and `.wm`), as the standalone module's parser and writer do (`WardleyParser.cs`, `WardleyWriter.cs`). It stands in for an FBL binding until FBL can read a pipeline whose brace is on the line below it (wardley-map.md, gap 1). A document ADP did not change is written back byte for byte, an edit rewrites only the lines it changes, and every statement it does not model and every `//` comment is kept. A link, an `evolve` and a `pipeline` name an element by its name; one that names a name two elements carry attaches to the first of them in document order. It reports every line it passes over (std.unreadableEntry), and it refuses, with its own sentences, a name a link to or from could not be read back with (\"A link to or from 'X' could not be read back, so the map cannot hold that name.\"), a pipeline component on a pipeline in the older two-coordinate form (\"'X' has a pipeline written in the older two-coordinate form, which holds no components. Rewrite it as a nested pipeline first.\") and one on a pipeline whose block never closes (\"'X' has a pipeline that is missing its closing brace.\"). Ids are kept beside the body in `{base}.identities.json` (wardley-map.md, gaps 7 and 8)."
+    required: false
+    doc: "This description reads and writes the format with the binding `owm`; the plugin stays declared for the hosts that run the JSON files. Reads and writes the Online Wardley Maps text format, `.owm` (and `.wm`), as the standalone module's parser and writer do (`WardleyParser.cs`, `WardleyWriter.cs`). A document ADP did not change is written back byte for byte, an edit rewrites only the lines it changes, and every statement it does not model and every `//` comment is kept. A link, an `evolve` and a `pipeline` name an element by its name; one that names a name two elements carry attaches to the first of them in document order. It reports every line it passes over (std.unreadableEntry), and it refuses, with its own sentences, a name a link to or from could not be read back with (\"A link to or from 'X' could not be read back, so the map cannot hold that name.\"), a pipeline component on a pipeline in the older two-coordinate form (\"'X' has a pipeline written in the older two-coordinate form, which holds no components. Rewrite it as a nested pipeline first.\") and one on a pipeline whose block never closes (\"'X' has a pipeline that is missing its closing brace.\"). Ids are kept beside the body in `{base}.identities.json` (wardley-map.md, gaps 7 and 8)."
     source: {
       url: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/wardley-map/backend"
     }
@@ -931,39 +909,38 @@ diagram wardley/map version "0.2.0" {
     provides: [celFunctions]
     required: false
     doc: "What this specification needs and DISL's CEL cannot do: an end as it was written, a number in the format's own invariant form, an annotation's positions, and the decorators in the order they are written. The standalone module implements them over its own reading (`WardleyFunctions`)."
-    celFunctions: [
-      {
-        name: "writtenEnd"
-        params: [{ name: "element", type: dyn }, { name: "end", type: string }]
-        returns: string
-        cost: 1
-        fallback: (end == 'source' ? (has(element.source) ? element.source.name : '') : end == 'target' ? (has(element.target) ? element.target.name : '') : (has(element.component) ? element.component.name : ''))
-        doc: "The name a link's `source` or `target` end, or an evolution's or a pipeline's `component`, is written with in the map, also when it names no element and the reference is null in the model (wardley-map.md, 'What DISL cannot express'); the empty text when nothing is written."
-      },
-      {
-        name: "fixedNumber"
-        params: [{ name: "value", type: double }]
-        returns: string
-        cost: 1
-        fallback: (formatNumber(value, '0.####'))
-        doc: "A number as the format writes it and every row and sentence of this tool shows it: at most four decimals, none when whole, no grouping, in the invariant culture whatever the user's locale (gap 10). The fallback follows the locale."
-      },
-      {
-        name: "positions"
-        params: [{ name: "text", type: string }]
-        returns: "list(list(double))"
-        cost: 10
-        fallback: (text.contains('[') ? text.split(']').filter(s, s.contains('[')).map(s, s.split('[')[s.split('[').size() - 1].split(',').map(n, double(n.trim()))) : [text.split(',').map(n, double(n.trim()))])
-        doc: "An annotation's occurrences, each as [visibility, maturity], from the text between the outer brackets of its statement: `0.4,0.5` is one, `[0.43,0.49],[0.08,0.79]` two (gap 6). The fallback reads well-formed text only."
-      },
-      {
-        name: "writtenDecorators"
-        params: [{ name: "element", type: dyn }]
-        returns: string
-        cost: 1
-        fallback: (['market', 'ecosystem', 'build', 'buy', 'outsource'].filter(d, d == 'market' ? element.market : d == 'ecosystem' ? element.ecosystem : d == 'build' ? element.build : d == 'buy' ? element.buy : element.outsource).join(', '))
-        doc: "The decorators an element carries in the order its statement writes them, joined by `, `: `outsource, market` for `(outsource) (market)`. The model's five booleans have no order (gap 5). The fallback lists them in this notation's order."
-      }
+    celFunctions: [{
+      name: "writtenEnd"
+      params: [{ name: "element", type: dyn }, { name: "end", type: string }]
+      returns: string
+      cost: 1
+      fallback: (end == 'source' ? (has(element.source) ? element.source.name : '') : end == 'target' ? (has(element.target) ? element.target.name : '') : (has(element.component) ? element.component.name : ''))
+      doc: "The name a link's `source` or `target` end, or an evolution's or a pipeline's `component`, is written with in the map, also when it names no element and the reference is null in the model (wardley-map.md, 'What DISL cannot express'); the empty text when nothing is written."
+    }
+    , {
+      name: "fixedNumber"
+      params: [{ name: "value", type: double }]
+      returns: string
+      cost: 1
+      fallback: (formatNumber(value, '0.####'))
+      doc: "A number as the format writes it and every row and sentence of this tool shows it: at most four decimals, none when whole, no grouping, in the invariant culture whatever the user's locale (gap 10). The fallback follows the locale."
+    }
+    , {
+      name: "positions"
+      params: [{ name: "text", type: string }]
+      returns: "list(list(double))"
+      cost: 10
+      fallback: (text.contains('[') ? text.split(']').filter(s, s.contains('[')).map(s, s.split('[')[s.split('[').size() - 1].split(',').map(n, double(n.trim()))) : [text.split(',').map(n, double(n.trim()))])
+      doc: "An annotation's occurrences, each as [visibility, maturity], from the text between the outer brackets of its statement: `0.4,0.5` is one, `[0.43,0.49],[0.08,0.79]` two (gap 6). The fallback reads well-formed text only."
+    }
+    , {
+      name: "writtenDecorators"
+      params: [{ name: "element", type: dyn }]
+      returns: string
+      cost: 1
+      fallback: (['market', 'ecosystem', 'build', 'buy', 'outsource'].filter(d, d == 'market' ? element.market : d == 'ecosystem' ? element.ecosystem : d == 'build' ? element.build : d == 'buy' ? element.buy : element.outsource).join(', '))
+      doc: "The decorators an element carries in the order its statement writes them, joined by `, `: `outsource, market` for `(outsource) (market)`. The model's five booleans have no order (gap 5). The fallback lists them in this notation's order."
+    }
     ]
   }
 

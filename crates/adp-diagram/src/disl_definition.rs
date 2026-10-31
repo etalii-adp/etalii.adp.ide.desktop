@@ -236,6 +236,7 @@ mod tests {
             available,
             unavailable_reason: reason.into(),
             arguments: Map::default(),
+            via: None,
         }
     }
 

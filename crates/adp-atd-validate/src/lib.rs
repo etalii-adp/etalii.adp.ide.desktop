@@ -14,7 +14,7 @@ pub mod cases;
 pub mod meaning;
 pub mod parts;
 
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::collections::{BTreeMap, VecDeque};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
@@ -82,14 +82,27 @@ const ROOT: &str = "/case";
 #[derive(Default)]
 struct StepIds {
     ids: RefCell<VecDeque<String>>,
+    /// The strategy of the description's ids, by type (DISL section 11.5.1): a case gives no id for what a tool creates
+    /// under one that reads it back from the keys its binding writes (`natural`) or computes it (`derived`), since no
+    /// host generated one and none is ever written.
+    tool: Option<Rc<DiagramTool>>,
+    stood_in: Cell<usize>,
 }
 
 impl IdSource for StepIds {
-    fn next(&self, _type_name: &str) -> Result<String, String> {
-        self.ids
-            .borrow_mut()
-            .pop_front()
-            .ok_or_else(|| "The case gives no further id for this step.".to_owned())
+    fn next(&self, type_name: &str) -> Result<String, String> {
+        if let Some(id) = self.ids.borrow_mut().pop_front() {
+            return Ok(id);
+        }
+        let computed = self.tool.as_ref().is_some_and(|tool| {
+            let rule = tool.definition.specification().id_rule_of(type_name);
+            matches!(rule.strategy.as_str(), "natural" | "derived")
+        });
+        if !computed {
+            return Err("The case gives no further id for this step.".to_owned());
+        }
+        self.stood_in.set(self.stood_in.get() + 1);
+        Ok(format!("{type_name}:stands-in-{}", self.stood_in.get()))
     }
 }
 
@@ -130,7 +143,10 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
         workspace,
         session,
         body_path,
-        ids: StepIds::default(),
+        ids: StepIds {
+            tool: Some(runtime.tool.clone()),
+            ..StepIds::default()
+        },
         selection: None,
     };
 

@@ -1,0 +1,189 @@
+// The Online Wardley Maps text format (.owm) in ATD grammar notation (ATD section 4), for the binding of
+// wardley-map.fbl: FBL 0.12's grammar family (FBL section 4.9). It reads what the Wardley map tool type reads of a map
+// (definitions/diagrams/wardley-map.md, "The document on disk"): the title, style and size; components, anchors and
+// submaps with the segments after their coordinates; url definitions; evolutions; pipelines in both forms, with their
+// components; notes, annotations and the annotations' position; accelerators and deaccelerators; the three
+// attitudes; links and flows; and the statements the tool keeps without modelling them. A line that is none of them
+// does not parse, and recover keeps it and reports it.
+//
+// - Line ends are tokens (_NL), as in structurizr.lark: a statement is one line, and holds no line end of its own, so
+//   that `unit*` reads a statement or a line end at a time and a last line without its line ending reads too. Horizontal whitespace and `//`
+//   comments are ignored. An address of a url definition is a URL token, which starts before the `//` of `https://`
+//   and runs past it, so the comment terminal is never a candidate there (ATD section 3.6); free text keeps a `://`
+//   for the same reason, and ends before any other `//`.
+// - Free text runs to the line's end (TEXT): a title, a style, a link's context, an annotation's text and the rest of
+//   a statement the tool keeps unmodelled. `title A map {` is one TEXT token and opens nothing (FBL section 4.9).
+// - A name is one or more words (WORD): a component's, a link's ends, an evolution's, a pipeline's. A word holds no
+//   brace, parenthesis or `;`, no `->` or `+>`, no `//`, and starts with `[` only before a letter, so that
+//   `Tea [hot]` is a name and `[0.5, 0.3]` its coordinates. A note's text is words that may hold braces (NOTE_WORD).
+//   A link's first word is a SOURCE_WORD, which matches what WORD matches at a lower priority: a statement that ends
+//   in a name is then followed, in the grammar, by a statement that starts with a terminal of its own, and LALR(1)
+//   knows where the name ends.
+// - Keywords are matched in any case by their patterns, at a priority above WORD, so that a keyword wins where the
+//   parser's state can shift it and is a WORD elsewhere (ATD section 3.6).
+// - A pipeline's block opens with OPEN, a `{` that the line ends before it may precede, so that `pipeline Kettle` with
+//   `{` on the line below and `pipeline Kettle {` read alike; OPEN wins over the line end by being longer. Nothing
+//   else opens a block: a `{` alone where a statement may start is a lone_brace, which the tool passes over without a
+//   word, and CLOSE, a `}`, wins over free text so that a `}` alone on a line is a CLOSE token, which recover reports
+//   as unmatched outside a block, as the tool reports that line.
+// - What follows a component's coordinates is segments in any order, each a node of its own: `label [dx, dy]`,
+//   `(decorator)`, `inertia`, `url(name)`, and any other word.
+// - An annotation's positions are `position` nodes of two numbers, inside outer brackets or as one bare pair.
+
+start: unit*
+
+?unit: statement
+     | lone_brace
+     | _NL
+
+// A `{` alone where a statement may start, which the tool passes over: it opens nothing, as no statement before it
+// opens a block, and no rule maps it, so it is kept as written without a finding (FBL section 4.9).
+lone_brace: "{"
+
+?statement: title
+          | style
+          | size
+          | component
+          | anchor
+          | submap
+          | url
+          | evolve
+          | pipeline
+          | legacy_pipeline
+          | note
+          | annotation
+          | annotations
+          | accelerator
+          | deaccelerator
+          | attitude
+          | dependency
+          | flow
+          | unmodelled
+
+title: _TITLE [text]
+style: _STYLE [text]
+size: _SIZE "[" width "," height "]"
+
+component: _COMPONENT name coords _segment*
+anchor: _ANCHOR name coords _segment*
+submap: _SUBMAP name coords _segment*
+
+coords: "[" visibility "," maturity "]"
+
+_segment: label
+        | decorator
+        | inertia
+        | url_ref
+        | other
+label: _LABEL "[" NUMBER "," NUMBER "]"
+decorator: "(" WORD ")"
+inertia: _INERTIA
+url_ref: _URL_REF "(" WORD ")"
+other: WORD
+
+url: _URL url_name "[" address "]"
+url_name: WORD
+address: URL
+
+// What follows the arrow, the arrow included, is one node, so that a new name is written and removed with its arrow.
+evolve: _EVOLVE evolved [becomes] maturity
+becomes: _ARROW renamed
+
+// The nested form, with or without its block, and the older form with two numbers on the statement's line.
+pipeline: _PIPELINE name [_pipeline_block]
+legacy_pipeline: _PIPELINE name coords
+_pipeline_block: OPEN _pipeline_item* CLOSE
+_pipeline_item: pipeline_component
+              | _NL
+pipeline_component: _COMPONENT name "[" maturity "]"
+
+note: _NOTE note_text coords
+note_text: _note_words
+_note_words: NOTE_WORD
+           | _note_words NOTE_WORD
+
+annotation: _ANNOTATION number positions [text]
+positions: "[" position ("," position)* "]"
+         | bare_position
+position: "[" visibility "," maturity "]"
+bare_position: "[" visibility "," maturity "]" -> position
+annotations: _ANNOTATIONS coords
+
+accelerator: _ACCELERATOR name coords
+deaccelerator: _DEACCELERATOR name coords
+attitude: ATTITUDE "[" visibility "," maturity "," visibility2 "," maturity2 "]"
+
+// A link's context is a node with its `;`, so that a context is written and removed with it.
+dependency: source _ARROW target [context]
+flow: source _FLOW target [context]
+context: ";" [text]
+
+unmodelled: UNMODELLED [text]
+
+// Each name is a rule of its own, with words of its own, so that what may follow one kind of name is not what may
+// follow another (the number after an evolution's name is no word of a component's).
+name: _name_words
+_name_words: WORD
+           | _name_words WORD
+evolved: _evolved_words
+_evolved_words: WORD
+              | _evolved_words WORD
+renamed: _renamed_words
+_renamed_words: WORD
+              | _renamed_words WORD
+source: SOURCE_WORD
+      | SOURCE_WORD _source_rest
+_source_rest: WORD
+            | _source_rest WORD
+target: _target_words
+_target_words: WORD
+             | _target_words WORD
+text: TEXT
+number: NUMBER
+visibility: NUMBER
+maturity: NUMBER
+visibility2: NUMBER
+maturity2: NUMBER
+width: NUMBER
+height: NUMBER
+
+// --------------------------------------------------------------------------------------------------------- terminals
+
+_TITLE.3: /[Tt][Ii][Tt][Ll][Ee]/
+_STYLE.3: /[Ss][Tt][Yy][Ll][Ee]/
+_SIZE.3: /[Ss][Ii][Zz][Ee]/
+_COMPONENT.3: /[Cc][Oo][Mm][Pp][Oo][Nn][Ee][Nn][Tt]/
+_ANCHOR.3: /[Aa][Nn][Cc][Hh][Oo][Rr]/
+_SUBMAP.3: /[Ss][Uu][Bb][Mm][Aa][Pp]/
+_URL.3: /[Uu][Rr][Ll]/
+_URL_REF.4: /[Uu][Rr][Ll]/
+_EVOLVE.3: /[Ee][Vv][Oo][Ll][Vv][Ee]/
+_PIPELINE.3: /[Pp][Ii][Pp][Ee][Ll][Ii][Nn][Ee]/
+_NOTE.3: /[Nn][Oo][Tt][Ee]/
+_ANNOTATION.3: /[Aa][Nn][Nn][Oo][Tt][Aa][Tt][Ii][Oo][Nn]/
+_ANNOTATIONS.3: /[Aa][Nn][Nn][Oo][Tt][Aa][Tt][Ii][Oo][Nn][Ss]/
+_ACCELERATOR.3: /[Aa][Cc][Cc][Ee][Ll][Ee][Rr][Aa][Tt][Oo][Rr]/
+_DEACCELERATOR.3: /[Dd][Ee][Aa][Cc][Cc][Ee][Ll][Ee][Rr][Aa][Tt][Oo][Rr]/
+_LABEL.3: /[Ll][Aa][Bb][Ee][Ll]/
+_INERTIA.3: /[Ii][Nn][Ee][Rr][Tt][Ii][Aa]/
+ATTITUDE.3: /[Pp][Ii][Oo][Nn][Ee][Ee][Rr][Ss]|[Ss][Ee][Tt][Tt][Ll][Ee][Rr][Ss]|[Tt][Oo][Ww][Nn][Pp][Ll][Aa][Nn][Nn][Ee][Rr][Ss]/
+UNMODELLED.3: /[Yy]_[Aa][Xx][Ii][Ss]|[Xx]_[Aa][Xx][Ii][Ss]|[Ee][Vv][Oo][Ll][Uu][Tt][Ii][Oo][Nn]|[Pp][Rr][Ee][Ss][Ee][Nn][Tt][Aa][Tt][Ii][Oo][Nn]/
+
+_ARROW: "->"
+_FLOW: "+>"
+CLOSE.4: "}"
+OPEN.4: /((\r\n|\r|\n)[ \t]*)*\{/
+NUMBER.2: /-?([0-9]+(\.[0-9]*)?|\.[0-9]+)/
+URL: /[^ \t\r\n\[\]\/][^ \t\r\n\[\]]*/
+WORD.1: /([^ \t\r\n\[\](){};\/\-+]|\[[A-Za-z]|[\-+][^ \t\r\n>(){}\[\];\/])([^ \t\r\n\[\](){};\/\-+]|\[[A-Za-z]|\]|[\-+][^ \t\r\n>(){}\[\];\/]|\/[^ \t\r\n(){};\/])*/
+// The first word of a link, a WORD where a statement starts.
+SOURCE_WORD: /([^ \t\r\n\[\](){};\/\-+]|\[[A-Za-z]|[\-+][^ \t\r\n>(){}\[\];\/])([^ \t\r\n\[\](){};\/\-+]|\[[A-Za-z]|\]|[\-+][^ \t\r\n>(){}\[\];\/]|\/[^ \t\r\n(){};\/])*/
+NOTE_WORD: /([^ \t\r\n\[\]();\/]|\[[A-Za-z])([^ \t\r\n\[\]();\/]|\[[A-Za-z]|\]|\/[^ \t\r\n();\/])*/
+TEXT.1: /([^ \t\r\n\/:]|:\/\/|:|\/[^ \t\r\n\/]|\/[ \t]+[^ \t\r\n\/])+([ \t]+([^ \t\r\n\/:]|:\/\/|:|\/[^ \t\r\n\/]|\/[ \t]+[^ \t\r\n\/])+)*/
+
+_NL: /((\r\n|\r|\n)[ \t]*)+/
+WHITESPACE: /[ \t]+/
+COMMENT: /\/\/[^\r\n]*/
+
+%ignore WHITESPACE
+%ignore COMMENT

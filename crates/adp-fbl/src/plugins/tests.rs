@@ -62,6 +62,7 @@ fn element(id: &str, type_name: &str, rule: &str, attributes: Map, span: Span, l
         parent_slot: None,
         source: None,
         target: None,
+        referenced: Vec::new(),
         own_span: span,
         line,
         file: None,

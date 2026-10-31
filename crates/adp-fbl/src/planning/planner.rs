@@ -190,6 +190,7 @@ fn plan_set(plan: &mut Plan<'_>, id: &str, attributes: &Map) -> Planning {
         } else {
             let (r, b) = binding_of(reading, index, attribute);
             rule = r;
+            value = referenced_value(reading, reading.family.rule(r), attribute, &value);
             binding = b.or(if attribute == "id" { id_binding.as_ref() } else { None });
             read = match b {
                 None if binding.is_some() => element.id_read.as_deref().cloned().unwrap_or_else(SlotRead::absent),
@@ -434,6 +435,31 @@ fn rewrite(plan: &mut Plan<'_>, read: Option<&SlotRead>, old_key: &str, new_key:
 
 // ---- add ----
 
+/// What attribute `name` of `rule` writes for `value`: a reference by a value is written as that value of what it names,
+/// the model knowing it by its id (FBL section 5.7).
+fn referenced_value(reading: &BodyReading, rule: &crate::documents::types::Rule, name: &str, value: &Value) -> Value {
+    let Some(reference) = rule.attribute(name).and_then(|binding| binding.reference.as_ref()) else {
+        return value.clone();
+    };
+    let Value::String(id) = value else {
+        return value.clone();
+    };
+    if reference.by == "id" {
+        return value.clone();
+    }
+    match reading.find(id).map(|found| reading.element(found)) {
+        Some(element) => {
+            let named = reading.family.rule(element.rule);
+            if reference.to.contains(&named.name) {
+                Value::String(element.text_of(named, &reference.by))
+            } else {
+                value.clone()
+            }
+        }
+        None => value.clone(),
+    }
+}
+
 fn plan_add(
     plan: &mut Plan<'_>,
     type_name: &str,
@@ -487,7 +513,7 @@ fn plan_add(
         attributes
             .iter()
             .filter(|(name, _)| !(all[r].is_relation && (*name == "source" || *name == "target")))
-            .map(|(name, value)| (name.clone(), value.clone()))
+            .map(|(name, value)| (name.clone(), referenced_value(reading, &all[r], name, value)))
             .collect()
     };
     // An add is planned by a rule whose `insert.when` holds (FBL section 6.2).

@@ -2258,6 +2258,50 @@ mod tests {
         ctx.run_ui(input, |ui| shell.show(ui)).textures_delta.clear();
     }
 
+    /// A person who opens a document keeps today's tool (etalii.adp spec 067, FR-010): the Databricks and Wardley map
+    /// descriptions read on declared bindings, and the documents they read still open on the modules, whatever the
+    /// descriptions say, and validating is no part of opening.
+    #[test]
+    fn a_persons_document_keeps_todays_tool_whatever_its_description_binds() {
+        let vendored = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../vendor/etalii.adp/definitions/diagrams/conformance");
+        for (origin, case, registration) in [
+            ("databricks/bundle", "databricks-bundle/lakehouse", "databricks.adp"),
+            ("databricks/job", "databricks-job/nightly-ingest", "nightly-ingest.adp"),
+            (
+                "databricks/pipeline",
+                "databricks-pipeline/lakehouse",
+                "databricks.pipeline.adp",
+            ),
+            (
+                "wardley/map",
+                "wardley-map/strategy-vocabulary",
+                "strategy-vocabulary.adp",
+            ),
+        ] {
+            let folder = tempfile::tempdir().unwrap();
+            for entry in std::fs::read_dir(vendored.join(case)).unwrap().flatten() {
+                let name = entry.file_name();
+                let name = name.to_string_lossy();
+                if entry.path().is_file() && !name.starts_with("after-") && !name.ends_with(".json")
+                    || name.ends_with(".identities.json")
+                {
+                    std::fs::copy(entry.path(), folder.path().join(&*name)).unwrap();
+                }
+            }
+            let mut shell = Shell::default();
+            shell.open_path(folder.path());
+            shell.handle(Request::Open(registration.into()));
+            let tab = shell
+                .tabs
+                .first()
+                .and_then(Tab::diagram)
+                .expect("the document opens on its canvas");
+            assert_eq!(tab.opened.origin, origin);
+            assert!(tab.session.module_view().is_some(), "{origin} opens on its module");
+        }
+    }
+
     #[test]
     fn a_frame_draws_and_drains_the_cores_events_in_order() {
         let ctx = egui::Context::default();

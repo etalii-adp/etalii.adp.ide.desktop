@@ -124,6 +124,7 @@ fn element(
         parent_slot: None,
         source: ends.0,
         target: ends.1,
+        referenced: Vec::new(),
         own_span: Span::default(),
         line: line as usize,
         file: Some(file.to_owned()),

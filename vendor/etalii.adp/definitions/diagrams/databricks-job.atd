@@ -29,7 +29,6 @@ diagram databricks/job version "0.2.0" {
 
   import "databricks-job.notation.atd"
   import "databricks-job.bundle.atd"
-  requires capability reader.databricksBundle@^1
   requires capability layout.layeredColumns@^1
 
   model {
@@ -116,11 +115,25 @@ diagram databricks/job version "0.2.0" {
       attribute runIf: RunIf
       /// Set only by a simulated run; never written.
       attribute simulated: SimulatedState readonly { transient: viewer }
-      /// True for the placeholder the reader `reader.databricksBundle` draws for a key a `depends_on` entry names and
+      /// True for the placeholder (`UnresolvedTask`) drawn for a key a `depends_on` entry names and
       /// no task declares (databricks-job.md, A9): one movable node per missing key, with a stored position under
       /// `task:<key>`, and never written to the file.
       attribute unresolved: bool readonly default false
       labelAttribute: "key"
+    }
+
+    /// The placeholder drawn for a key a `depends_on` entry names and no task declares (databricks-job.md, A9): one
+    /// per missing key, under the id a task of that key would have, computed from the dependencies that name it.
+    element UnresolvedTask extends Task {
+      label "Task"
+      derived: {
+        from: (diagram.relationsOfType('Dependency').filter(d, !has(d.source)))
+        key: (item.upstreamKey)
+        id: ('task:' + item.upstreamKey)
+        attributes: { key: (item.upstreamKey), taskType: ('other'), unresolved: (true) }
+        sources: (group)
+        reason: "This task is not declared in the file; declare it there, or remove the dependency."
+      }
     }
 
     /// One entry of the job's `job_clusters` list, drawn in a band beneath the tasks.
@@ -195,10 +208,8 @@ diagram databricks/job version "0.2.0" {
       doc "A task written without task_key is not drawn at all, so the reader reports it at its line."
     }
     builtin std.references {
-      code: "databricks.missing-task"
-      severity: "error"
-      message: ('\'' + self.target.key + '\' depends on \'' + self.upstreamKey + '\', which is not a task in this job. Fix the key or remove the dependency.')
-      doc "A `depends_on` entry naming a key no task of this job has: the relation is kept without a source and reported at the entry's line."
+      enabled: false
+      doc "A `depends_on` entry naming a key no task of this job has is the rule `missingTask`'s to report."
     }
     builtin std.duplicateId {
       enabled: false,
@@ -210,12 +221,25 @@ diagram databricks/job version "0.2.0" {
       message: ('This is not configuration that can be read: ' + detail.reason)
     }
 
+    /// A `depends_on` entry naming a key no task of this job has: the relation is kept without a source and reported at
+    /// the entry's line.
+    constraint missingTask for Dependency {
+      rule has(self.source)
+      severity error
+      message ('\'' + self.target.key + '\' depends on \'' + self.upstreamKey + '\', which is not a task in this job. Fix the key or remove the dependency.')
+      code: "databricks.missing-task"
+      location: (self.location().orValue(null))
+      target: ([])
+    }
+
     constraint danglingCluster for Task {
       when has(self.clusterKey) && self.clusterKey != ''
       rule diagram.nodesOfType('JobCluster').exists(c, c.key == self.clusterKey)
       severity error
       message ('\'' + self.key + '\' runs on cluster \'' + self.clusterKey + '\', which this job does not declare. Declare it under job_clusters, or clear the binding for serverless.')
       code: "databricks.dangling-cluster"
+      location: (self.location().orValue(null))
+      target: ([])
     }
 
     /// Reported on the second and later tasks with the key, not the first, each at its own line.
@@ -224,6 +248,8 @@ diagram databricks/job version "0.2.0" {
       severity error
       message ('The task key \'' + self.key + '\' is used more than once. Every task needs its own.')
       code: "databricks.duplicate-task-key"
+      location: (self.location().orValue(null))
+      target: ([])
     }
 
     /// A task on a circle, and a task downstream of one, can never run: both are reported, the first holder of a key
@@ -234,6 +260,8 @@ diagram databricks/job version "0.2.0" {
       severity error
       message ('\'' + self.key + '\' is part of a dependency circle, so it can never run. Break the circle.')
       code: "databricks.cycle"
+      location: (self.location().orValue(null))
+      target: ([])
     }
   }
 
@@ -248,10 +276,10 @@ diagram databricks/job version "0.2.0" {
     if p.newKey.trim() == '' {
       fail 'A task needs a key.'
     }
-    if diagram.nodesOfType('Task').exists(t, t.key == p.newKey) {
-      fail 'A task named \'' + p.newKey + '\' is already there.'
+    if diagram.nodesOfType('Task').exists(t, t.key == p.newKey.trim()) {
+      fail 'A task named \'' + p.newKey.trim() + '\' is already there.'
     }
-    set key = p.newKey
+    set key = p.newKey.trim()
   }
 
   operation setRunIf "Set run if…" for Task {
@@ -325,7 +353,7 @@ diagram databricks/job version "0.2.0" {
     if diagram.nodesOfType('Task').exists(t, t.key == p.key) {
       fail 'A task named \'' + p.key + '\' is already there.'
     }
-    create Task { key: p.key, taskType: 'notebook', taskSource: 'notebooks/' + p.key } at position
+    create Task { key: p.key, taskType: 'notebook', taskSource: 'notebooks/' + p.key }
   }
 
   /// From a drop or the canvas menu the key is the first free `python_<n>` (`freeTaskKey`) and no dialog opens; from a
@@ -340,7 +368,7 @@ diagram databricks/job version "0.2.0" {
     if diagram.nodesOfType('Task').exists(t, t.key == p.key) {
       fail 'A task named \'' + p.key + '\' is already there.'
     }
-    create Task { key: p.key, taskType: 'python', taskSource: 'scripts/' + p.key + '.py' } at position
+    create Task { key: p.key, taskType: 'python', taskSource: 'scripts/' + p.key + '.py' }
   }
 
   /// From a drop or the canvas menu the key is the first free `condition_<n>` (`freeTaskKey`) and no dialog opens; from
@@ -355,7 +383,7 @@ diagram databricks/job version "0.2.0" {
     if diagram.nodesOfType('Task').exists(t, t.key == p.key) {
       fail 'A task named \'' + p.key + '\' is already there.'
     }
-    create Task { key: p.key, taskType: 'condition', taskSource: 'EQUAL_TO' } at position
+    create Task { key: p.key, taskType: 'condition', taskSource: 'EQUAL_TO' }
   }
 
   operation simulateRun "Run job (simulated)" for Task {
@@ -413,13 +441,23 @@ diagram databricks/job version "0.2.0" {
       doc: "`task:<task_key>`, `cluster:<job_cluster_key>` and `edge:<from>-><to>`: renaming a task changes its id, which is intended."
     }
     view: { store: [bounds], styleOverrides: none }
+    typeMap: {
+      Job: { as: diagram }
+      KeylessTask: { as: unreadable, doc: "A task with no `task_key`, reported by std.unreadableEntry at its line." }
+      Dependency: { as: Dependency }
+      DependencyEntry: {
+        as: Dependency
+        attributes: { from: "source", to: "target" }
+        doc: "Read as an entry with two reference attributes, so that a dependency on a task the job does not declare is kept with that end unset (DISL 4.9, as the C4 descriptions read a relationship)."
+      }
+    }
   }
 
   plugin net.etalii.adp.databricks.files {
     version: "^0.1.0"
     provides: [persistenceFormat]
-    required: true
-    doc "Reads and writes the job inside Databricks' own resource YAML by line splices, so an untouched file saves byte for byte, and keeps positions in the .adp registration's layout: block. This description states it as the binding `bundle` (databricks-job.bundle.atd), whose family is the capability `reader.databricksBundle`; the plugin stays declared for the hosts that run the JSON files."
+    required: false
+    doc "Reads and writes the job inside Databricks' own resource YAML by line splices, so an untouched file saves byte for byte, and keeps positions in the .adp registration's layout: block. This description states it as the binding `bundle` (databricks-job.bundle.atd), a declared one; the plugin stays declared for the hosts that run the JSON files."
   }
 
   plugin net.etalii.adp.databricks.taskKeys {

@@ -121,6 +121,8 @@ pub struct DerivedMenuEntry {
     pub unavailable_reason: String,
     /// Its `args`, evaluated, and the name a `forEach` binds; empty for most entries.
     pub arguments: Map,
+    /// The relation type a `connect` entry draws (`via`).
+    pub via: Option<String>,
 }
 
 /// One group of a context menu: consecutive entries with one `group` name (none when they state none).
@@ -301,6 +303,7 @@ pub fn operation_entry(
         available: reason.is_none(),
         unavailable_reason: reason.unwrap_or_default(),
         arguments: Map::default(),
+        via: None,
     })
 }
 
@@ -498,6 +501,7 @@ impl Menu<'_> {
             available,
             unavailable_reason: reason.unwrap_or_default(),
             arguments,
+            via: json::string_of(tool, "via").map(str::to_owned),
         })
     }
 
@@ -694,6 +698,7 @@ fn connect_edit(
             available: reason.is_none(),
             unavailable_reason: reason.unwrap_or_default(),
             arguments: Map::default(),
+            via: None,
         }],
     });
 }
