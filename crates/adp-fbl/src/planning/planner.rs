@@ -49,6 +49,11 @@ pub(crate) fn plan(reading: &BodyReading, change: &ModelChange) -> PlanResult {
             *index,
             slot.as_deref(),
         ),
+        ModelChange::AddAfter {
+            type_name,
+            attributes,
+            after,
+        } => plan_add_after(&mut plan, type_name, attributes, after),
         ModelChange::Remove { id } => plan_remove(&mut plan, id),
         ModelChange::Move {
             id,
@@ -577,6 +582,32 @@ fn plan_add(
     if rule.snapshot_undo {
         plan.snapshot = true;
     }
+    Ok(())
+}
+
+/// An add planned as its rule's insert says, and then put on a line of its own right after the entry `after`. Only an
+/// entry of lines of its own can be put after another; one that cannot is refused.
+fn plan_add_after(plan: &mut Plan<'_>, type_name: &str, attributes: &Map, after: &str) -> Planning {
+    let reading = plan.reading;
+    let anchor = element(reading, after)?;
+    let mark = plan.mark();
+    plan_add(plan, type_name, None, attributes, None, None, None)?;
+    let family = &reading.family;
+    let offset = family.entries[reading.element(anchor).entry()].line_span.map(|l| l.end);
+    let added = plan.take_since(mark);
+    let lines = match (offset, added.as_slice()) {
+        (Some(_), [splice]) if splice.operation == Operation::InsertEntry && splice.start == splice.end => {
+            family.as_lines(splice.start, &splice.text)
+        }
+        _ => None,
+    };
+    let (Some(offset), Some(lines)) = (offset, lines) else {
+        return refuse(format!(
+            "This file's binding cannot add a {type_name} at that position."
+        ));
+    };
+    let text = family.lines_at(offset, &lines);
+    plan.add(Operation::InsertEntry, offset, offset, text);
     Ok(())
 }
 

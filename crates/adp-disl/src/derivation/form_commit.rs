@@ -13,7 +13,7 @@ use adp_cel::{Map, Value};
 
 use super::env::DislEnv;
 use super::evaluation::{self, Vars};
-use super::forms::{form_of, kind_of};
+use super::forms::{diagram_form_of, form_of, kind_of};
 use crate::behavior::actions::ActionRunner;
 use crate::behavior::change::{DislChange, DislTransaction};
 use crate::behavior::ids;
@@ -130,6 +130,113 @@ pub fn row(
         return DislTransaction::refused(format!("'{row}' cannot be edited here."));
     };
     set(specification, element, declared, &chosen, value)
+}
+
+/// What committing `value` to the row `row` of the diagram's own form does: refused with the sentence the definition
+/// gives, or the attributes to assign, each to its stored form or to null where it is forgotten. A diagram is no element
+/// a `set` can name, so a row's `write` here holds only `set` and `unset`, and assigns on the diagram itself.
+pub fn diagram_row(
+    specification: &DislSpecification,
+    diagram: &DislDiagram,
+    row: &str,
+    value: &str,
+    env: &DislEnv,
+    usage: &str,
+) -> Result<Vec<(String, Value)>, String> {
+    let found = diagram_form_of(specification, usage)
+        .and_then(|(form, pointer)| find(form, &json::pointer(&pointer, "items"), row));
+    let Some((item, pointer)) = found else {
+        return Err(format!("'{row}' is not a row of this diagram's form."));
+    };
+    let metamodel = specification.metamodel();
+    let attribute = json::string_of(item, "attribute");
+    let declared = attribute.and_then(|a| metamodel.diagram_attributes.get(a));
+    let cel = env.to_cel();
+    let current = variables(
+        None,
+        attribute.map(|a| diagram.value_of(a)).unwrap_or(Value::Null),
+        &cel,
+        Some(diagram),
+    );
+    let current = with_self(current, diagram);
+    if let Some(reasons) = json::get(item, "readOnlyReasons")
+        && let Some(reason) = evaluation::first_reason(
+            specification,
+            reasons,
+            &json::pointer(&pointer, "readOnlyReasons"),
+            contexts::FORM,
+            &current,
+        )
+    {
+        return Err(reason);
+    }
+    if env.read_only {
+        return Err(evaluation::standard_message(
+            specification,
+            "std.readOnly",
+            &current,
+            "This diagram is read-only.",
+        ));
+    }
+    let text = with_self(variables(None, Value::from(value), &cel, Some(diagram)), diagram);
+    let Some(parse) = json::get(item, "parse") else {
+        let Some(declared) = declared.filter(|_| json::string_of(item, "kind") != Some("computed")) else {
+            return Err(format!("'{row}' cannot be edited here."));
+        };
+        let Some(written) = values::from_read(&Value::from(value), declared, metamodel) else {
+            return Err(format!("'{value}' is not a value of {}.", declared.name));
+        };
+        return Ok(vec![(
+            declared.name.clone(),
+            write::stored_of_type(specification, &declared.type_name, &written),
+        )]);
+    };
+    let parse_pointer = json::pointer(&pointer, "parse");
+    if let Some(refused) = refused_by(specification, parse, &parse_pointer, contexts::FORM, &text, value) {
+        return Err(refused);
+    }
+    let mut assigned = Vec::new();
+    let write_pointer = json::pointer(&parse_pointer, "write");
+    for (index, action) in json::get(parse, "write")
+        .and_then(Json::as_array)
+        .into_iter()
+        .flatten()
+        .enumerate()
+    {
+        let at = json::pointer_at(&write_pointer, index);
+        if let Some(when) = json::get(action, "when")
+            && !evaluation::holds(specification, when, &json::pointer(&at, "when"), contexts::FORM, &text)
+        {
+            continue;
+        }
+        if let Some(names) = json::get(action, "unset") {
+            assigned.extend(json::strings(names).into_iter().map(|name| (name, Value::Null)));
+        }
+        if let Some(members) = json::get(action, "set").and_then(Json::as_object) {
+            for (name, expression) in members {
+                let computed = evaluation::expression(
+                    specification,
+                    expression,
+                    &json::pointer(&json::pointer(&at, "set"), name),
+                    contexts::FORM,
+                    &text,
+                )
+                .map_err(|problem| format!("'{value}' cannot be written here: {problem}"))?;
+                let stored = match metamodel.diagram_attributes.get(name.as_str()) {
+                    Some(attribute) => write::stored_of_type(specification, &attribute.type_name, &computed),
+                    None => computed,
+                };
+                assigned.push((name.clone(), stored));
+            }
+        }
+    }
+    Ok(assigned)
+}
+
+/// `variables` with `self` the diagram, as a form on the diagram reads it.
+fn with_self(mut variables: Vars, diagram: &DislDiagram) -> Vars {
+    variables.insert("self".into(), diagram.to_value());
+    variables
 }
 
 /// Whether the row `row` of `element`'s form has a `parse` (DISL 0.3, 6.12), so that it also takes a value as the

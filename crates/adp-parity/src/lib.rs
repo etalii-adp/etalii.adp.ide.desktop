@@ -851,6 +851,17 @@ impl Replay<'_> {
             .get("value")
             .and_then(Json::as_str)
             .ok_or("a property step gives a value")?;
+        // The document's entry selected and nothing inside it: the rows of the diagram itself (etalii.adp spec 074).
+        if property.get("target").is_none() && self.selection.is_none() {
+            let rows = self.session.diagram_properties(self.workspace.documents());
+            let row_id = rows
+                .iter()
+                .find(|r| r.id == row)
+                .or_else(|| rows.iter().find(|r| r.label == row))
+                .map(|r| r.id.clone())
+                .ok_or_else(|| format!("the diagram has no property row '{row}'"))?;
+            return self.session.set_diagram_property(&mut self.workspace, &row_id, value);
+        }
         let id = match property.get("target") {
             Some(target) => self.element_id(target)?,
             None => self.selection.clone().ok_or("nothing is selected")?,

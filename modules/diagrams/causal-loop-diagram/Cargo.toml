@@ -14,12 +14,16 @@ adp-disl = { path = "../../../crates/adp-disl" }
 adp-layout = { path = "../../../crates/adp-layout" }
 # The active theme a tool's colours are chosen for (spec 030, FR-045).
 adp-theme = { path = "../../../crates/adp-theme" }
+# The local time in a flow page's name (etalii.adp spec 074, FR-004).
+time = { version = "0.3", features = ["local-offset"] }
 
 [dev-dependencies]
 adp-context = { path = "../../../crates/adp-context" }
 adp-core = { path = "../../../crates/adp-core" }
 serde_json = "1"
+sha2 = "0.10"
 tempfile = "3"
+time = { version = "0.3", features = ["macros"] }
 
 [lints]
 workspace = true

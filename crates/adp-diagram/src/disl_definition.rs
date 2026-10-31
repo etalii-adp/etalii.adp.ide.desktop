@@ -132,6 +132,14 @@ impl DislDiagramDefinition {
             .collect()
     }
 
+    /// The property rows of `diagram`'s own inspector form; none when no form is for the diagram.
+    pub fn diagram_rows(&self, diagram: &adp_disl::DislDiagram, env: &DislEnv) -> Vec<PropertyRow> {
+        forms::derive_diagram(&self.specification, diagram, env, &self.ids, "inspector")
+            .iter()
+            .map(Self::row)
+            .collect()
+    }
+
     /// The form item a row id names: the key the wire block maps to it, or the id itself.
     pub fn row_key(&self, property_id: &str) -> String {
         self.wire_block

@@ -73,6 +73,24 @@ impl TypeMap {
         })
     }
 
+    /// The binding type mapped as `diagram` whose `attributes` name diagram attribute `attribute`.
+    pub(crate) fn diagram_type_holding(&self, attribute: &str) -> Option<String> {
+        self.mappings
+            .iter()
+            .find(|(_, m)| m.as_type == "diagram" && m.attributes.values().any(|a| a == attribute))
+            .map(|(k, _)| k.clone())
+    }
+
+    /// The binding types mapped as `diagram` that the type map lists before `type_name`.
+    pub(crate) fn diagram_types_before(&self, type_name: &str) -> Vec<String> {
+        self.mappings
+            .iter()
+            .take_while(|(k, _)| *k != type_name)
+            .filter(|(_, m)| m.as_type == "diagram")
+            .map(|(k, _)| k.clone())
+            .collect()
+    }
+
     /// The binding type metamodel type `type_name` is written as: the first mapped to it, else its own name.
     pub(crate) fn binding_type_of(&self, type_name: &str) -> String {
         self.mappings

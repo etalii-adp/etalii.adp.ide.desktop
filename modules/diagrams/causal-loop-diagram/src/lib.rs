@@ -15,7 +15,9 @@
 //! - [`self_organizing`]: Arrange diagram, the plugin layout `net.etalii.adp.systems.cld`, written as the
 //!   registration's positions in one step (`SelfOrganizingLayout`, `ArrangeCausalLoopCommand`);
 //! - [`unreadable`]: the four sentences for a statement the binding leaves unread (`CausalLoopUnreadable`);
-//! - a new `layout:` block written with CRLF, as the standalone host's `RegistrationLayout` wrote it.
+//! - a new `layout:` block written with CRLF, as the standalone host's `RegistrationLayout` wrote it;
+//! - [`flow_page`]: the animated page of the diagram that the desktop host exports (etalii.adp spec 074), which no other
+//!   host has.
 //!
 //! Not ported: `CausalLoopNote`, the stand-in that reads a link's bare-word note and the last of two notes where the
 //! binding's `note` slot takes the first quoted word (gap 2). It reads the body again after the binding and writes a
@@ -24,6 +26,7 @@
 //! command records) is what `adp-diagram` does for every tool type.
 
 pub mod cycles;
+pub mod flow_page;
 pub mod metrics;
 pub mod reading;
 pub mod ring;
@@ -36,7 +39,7 @@ use std::rc::Rc;
 
 use adp_diagram::session::{ActionOutcome, ActionTarget, DiagramSession};
 use adp_diagram::workspace::DiagramWorkspace;
-use adp_diagram::{DiagramChange, DiagramDocument, DiagramModule, ModulePlacement};
+use adp_diagram::{DiagramChange, DiagramDocument, DiagramModule, Export, ExportOutput, ModulePlacement};
 use adp_disl::{DislElement, DislPluginFunctions, DislReaderFinding, IdSource};
 
 use crate::metrics::Metrics;
@@ -49,6 +52,9 @@ pub const ORIGIN: &str = "systems/causal-loop-diagram";
 /// CRLF (`causal-loop-diagram.fbl#cld`, finding B9), as the standalone host registered it with
 /// `AddEmptyDocument(CausalLoopOrigin, CausalLoopBody.Template)`.
 pub const TEMPLATE: &str = "causal-loop 1\r\n\r\nvariable population \"Population\"\r\nvariable births \"Births\"\r\n\r\nlink population -> births +\r\nlink births -> population +\r\n\r\nloop R1 \"Births beget births\" population births\r\n";
+
+/// The id of the flow page's export (etalii.adp spec 074).
+pub const EXPORT_FLOW_PAGE: &str = "causal-loop.export-flow-page";
 
 /// The wire id of Arrange diagram (`x-cld`).
 pub const ARRANGE: &str = "causal-loop.arrange";
@@ -163,6 +169,28 @@ impl CausalLoopModule {
 }
 
 impl DiagramModule for CausalLoopModule {
+    fn exports(&self) -> Vec<Export> {
+        let metrics = self.metrics;
+        vec![Export {
+            id: EXPORT_FLOW_PAGE.to_owned(),
+            label: "Export flow page".to_owned(),
+            hint: "Write this diagram as an animated page beside its file, and open it.".to_owned(),
+            elsewhere: "Open a causal loop diagram to export its flow page.".to_owned(),
+            write: Rc::new(move |document| {
+                let stem = document
+                    .body_path()
+                    .file_stem()
+                    .map(|s| s.to_string_lossy().into_owned())
+                    .unwrap_or_default();
+                let now = time::OffsetDateTime::now_local().unwrap_or_else(|_| time::OffsetDateTime::now_utc());
+                ExportOutput {
+                    file_name: flow_page::page_name(&stem, now),
+                    bytes: flow_page::generate(document, &metrics, &stem).into_bytes(),
+                }
+            }),
+        }]
+    }
+
     fn plugin_functions(&self) -> DislPluginFunctions {
         cycles::plugin_functions()
     }

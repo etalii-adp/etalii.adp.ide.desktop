@@ -757,6 +757,47 @@ fn the_property_grid_and_the_toolbox_draw_for_a_selection() {
 }
 
 #[test]
+fn an_empty_selection_shows_the_diagrams_own_rows_where_its_form_gives_any() {
+    let mut harness = Harness::open(
+        "causal-loop-diagram/business-philosophy",
+        &["business-philosophy.adp", "business-philosophy.cld"],
+        "business-philosophy.adp",
+        "business-philosophy.cld",
+    );
+    harness.grid = true;
+    harness.frame(Vec::new());
+    let shown: Vec<&str> = harness.texts.iter().map(|(text, _)| text.as_str()).collect();
+    assert!(shown.contains(&"Link strength"), "{shown:?}");
+    assert!(shown.contains(&"FLOW PAGE"), "{shown:?}");
+    assert!(
+        !shown.contains(&"Select an element to see its properties."),
+        "{shown:?}"
+    );
+
+    let rows = crate::properties::rows(&harness.tab, &harness.host.workspaces[&harness.root]);
+    let strength = rows
+        .iter()
+        .find(|r| r.label == "Link strength")
+        .expect("the row")
+        .id
+        .clone();
+    let (host, tab, root) = (&mut harness.host, &mut harness.tab, &harness.root);
+    crate::properties::set(tab, host.workspace(root), &strength, "4");
+    assert!(harness.written().contains("flow strength=4"), "{}", harness.written());
+    assert!(harness.workspace().undo().is_done());
+    assert_eq!(harness.written(), harness.original);
+}
+
+#[test]
+fn an_empty_selection_keeps_its_sentence_for_a_tool_type_without_rows_of_its_own() {
+    let mut harness = Harness::dependency_graph();
+    harness.grid = true;
+    harness.frame(Vec::new());
+    let shown: Vec<&str> = harness.texts.iter().map(|(text, _)| text.as_str()).collect();
+    assert!(shown.contains(&"Select an element to see its properties."), "{shown:?}");
+}
+
+#[test]
 fn a_causal_loop_diagram_opens_through_its_registration_and_moves_by_its_layout() {
     let mut harness = Harness::open(
         "causal-loop-diagram/business-philosophy",

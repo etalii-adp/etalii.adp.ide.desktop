@@ -187,6 +187,16 @@ fn systems_causal_loop_diagram_on_call() {
 }
 
 #[test]
+fn systems_causal_loop_diagram_flow_set() {
+    check("systems/causal-loop-diagram/flow/set");
+}
+
+#[test]
+fn systems_causal_loop_diagram_flow_default() {
+    check("systems/causal-loop-diagram/flow/default");
+}
+
+#[test]
 fn systems_causal_loop_diagram_reference() {
     check("systems/causal-loop-diagram/reference");
 }

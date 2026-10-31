@@ -14,6 +14,8 @@ Each tool type the host has a module for is in `modules/`, and the whole catalog
 - **Designers** (`modules/designers/`): the Knowledge designer (`etalii/knowledge`), tables in YAML, JSON or XML; and the Hierarchical requirement designer (`etalii/hierarchical-requirement`), a requirement document in Markdown drawn as one page of nested boxes ([etalii.adp, spec 036](https://github.com/etalii-adp/etalii.adp/tree/develop/specs/036-desktop-hierarchical-requirement)).
 - **Editors** (`modules/editors/`): JSON, Markdown, XML and YAML, and plain text for every other file.
 
+A causal loop diagram can be exported from the ribbon: **Export flow page** writes one self-contained web page beside the `.cld` and opens it in your browser, where the diagram moves as flows of influence, with a heatmap of where it piles up and controls for its values ([etalii.adp, spec 074](https://github.com/etalii-adp/etalii.adp/tree/develop/specs/074-desktop-cld-flow-export)). The host itself needs no browser.
+
 ## Build
 
 ```bash
