@@ -49,6 +49,10 @@
     "regions": {
       "type": "query",
       "doc": "A member's regions, a list of keys."
+    },
+    "edges": {
+      "type": "query",
+      "doc": "Whether a relation is an edge of the input, evaluated for each relation: the host gives the layout those for which it holds. Absent, the stored relations."
     }
   },
   "output": {

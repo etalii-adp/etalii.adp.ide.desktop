@@ -1,0 +1,119 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.15, section 4.9 (A node's number), spec 067, FR-008: labels repeated, anonymous nodes, a group before what it holds, a list's item before the node it holds though they have one span. Reading the same bytes twice gives the same numbers, as a host's reading is a function of the bytes; a number is not written.",
+  "binding": "ordinals.fbl#ordinals",
+  "input": "nodes.txt",
+  "read": {
+    "elements": [
+      {
+        "id": "n0@1",
+        "type": "Node",
+        "attributes": {
+          "number": "0",
+          "written": "_:x"
+        }
+      },
+      {
+        "id": "n1@2",
+        "type": "Node",
+        "attributes": {
+          "number": "1",
+          "written": "[]"
+        }
+      },
+      {
+        "id": "n2@3",
+        "type": "Node",
+        "attributes": {
+          "number": "2",
+          "written": "[ _:y _:x [] ]"
+        }
+      },
+      {
+        "id": "n3@3",
+        "type": "Node",
+        "attributes": {
+          "number": "3",
+          "written": "_:y"
+        }
+      },
+      {
+        "id": "n0@3",
+        "type": "Node",
+        "attributes": {
+          "number": "0",
+          "written": "_:x"
+        }
+      },
+      {
+        "id": "n4@3",
+        "type": "Node",
+        "attributes": {
+          "number": "4",
+          "written": "[]"
+        }
+      },
+      {
+        "id": "n@4",
+        "type": "Node",
+        "attributes": {
+          "written": "( _:y [] )"
+        }
+      },
+      {
+        "id": "c5@4",
+        "type": "Cell",
+        "attributes": {
+          "number": "5"
+        }
+      },
+      {
+        "id": "n3@4",
+        "type": "Node",
+        "attributes": {
+          "number": "3",
+          "written": "_:y"
+        }
+      },
+      {
+        "id": "c6@4",
+        "type": "Cell",
+        "attributes": {
+          "number": "6"
+        }
+      },
+      {
+        "id": "n7@4",
+        "type": "Node",
+        "attributes": {
+          "number": "7",
+          "written": "[]"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "_:x .\n[] .\n[ _:y _:x [] ] .\n( _:y [] ) .\n"
+    },
+    {
+      "doc": "A number is not written in the file.",
+      "edit": {
+        "set": {
+          "element": "n1@2",
+          "attributes": {
+            "number": "9"
+          }
+        }
+      },
+      "refused": "A number the reading gives a node is not written in the file.",
+      "splices": [],
+      "expect": "_:x .\n[] .\n[ _:y _:x [] ] .\n( _:y [] ) .\n"
+    }
+  ]
+}

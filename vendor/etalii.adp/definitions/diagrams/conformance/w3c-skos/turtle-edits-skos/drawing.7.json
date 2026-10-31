@@ -1,0 +1,204 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Drawing",
+  "view": "canvas",
+  "elements": [
+    {
+      "id": "res:http://example.org/k#Dee",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 60,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Dee",
+          "font": "13 400",
+          "position": {
+            "x": 100,
+            "y": 90
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/k#a",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 240,
+        "y": 60,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Ay",
+          "font": "13 400",
+          "position": {
+            "x": 340,
+            "y": 90
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/k#b",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 0,
+        "y": 420,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "B",
+          "font": "13 400",
+          "position": {
+            "x": 100,
+            "y": 450
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/k#cee",
+      "type": "w3c/skos+concept",
+      "shape": "path",
+      "bounds": {
+        "x": 120,
+        "y": 220,
+        "w": 200,
+        "h": 44
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "C",
+          "font": "13 400",
+          "position": {
+            "x": 220,
+            "y": 250
+          }
+        }
+      ],
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#8892a6",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "res:http://example.org/k#s",
+      "type": "w3c/skos+scheme",
+      "shape": "rect",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 260,
+        "h": 40
+      },
+      "labels": [
+        {
+          "id": "label",
+          "text": "Scheme (3)",
+          "font": "13 400",
+          "position": {
+            "x": 130,
+            "y": 25
+          }
+        }
+      ],
+      "style": {
+        "stroke": "#8892a6",
+        "strokeWidth": 1,
+        "dash": [
+          8,
+          6
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:res:http://example.org/k#b|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/k#cee",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/k#cee",
+      "target": "res:http://example.org/k#b",
+      "route": [
+        {
+          "x": 206.8,
+          "y": 264
+        },
+        {
+          "x": 113.2,
+          "y": 420
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    },
+    {
+      "id": "edge:res:http://example.org/k#cee|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/k#a",
+      "type": "w3c/skos+edge",
+      "source": "res:http://example.org/k#a",
+      "target": "res:http://example.org/k#cee",
+      "route": [
+        {
+          "x": 323.5,
+          "y": 104
+        },
+        {
+          "x": 236.5,
+          "y": 220
+        }
+      ],
+      "markers": {
+        "source": "none",
+        "target": "none"
+      },
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5
+      }
+    }
+  ],
+  "chrome": [],
+  "order": [
+    "res:http://example.org/k#s",
+    "edge:res:http://example.org/k#b|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/k#cee",
+    "edge:res:http://example.org/k#cee|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/k#a",
+    "res:http://example.org/k#Dee",
+    "res:http://example.org/k#a",
+    "res:http://example.org/k#cee",
+    "res:http://example.org/k#b"
+  ]
+}

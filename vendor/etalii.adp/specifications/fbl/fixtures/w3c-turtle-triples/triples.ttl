@@ -1,0 +1,10 @@
+@prefix ex: <http://example.org/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+ex:a a ex:T ;
+    rdfs:label "A \"one\""@en ;
+    ex:n 42 , "4.5"^^xsd:decimal ;
+    ex:b [ ex:c _:x ] ;
+    ex:l ( ex:d "e" ) .
+_:x ex:e () .

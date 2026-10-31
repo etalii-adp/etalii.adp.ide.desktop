@@ -1,0 +1,206 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/owl` from parity/cases/w3c/owl/turtle-edits-owl.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/owl",
+  "description": "../../../w3c-owl.atd",
+  "inputs": {
+    "body": "turtle-edits-owl.ttl",
+    "registration": "turtle-edits-owl.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/o",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "ontology",
+          "iri": "http://example.org/o",
+          "display": "o",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/o#A",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/o#A",
+          "display": "A",
+          "rows.0.predicate": "rdfs:label",
+          "rows.0.value": "A",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/o#B",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/o#B",
+          "display": ":B",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/o#C",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/o#C",
+          "display": ":C",
+          "deprecated": "false",
+          "external": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/o#D",
+        "type": "w3c/owl+node",
+        "parent": null,
+        "attributes": {
+          "kind": "class",
+          "iri": "http://example.org/o#D",
+          "display": ":D",
+          "deprecated": "false",
+          "external": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:res:http://example.org/o#D|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://example.org/o#C",
+        "type": "w3c/owl+edge",
+        "source": "res:http://example.org/o#D",
+        "target": "res:http://example.org/o#C",
+        "attributes": {
+          "kind": "subclass",
+          "fromElementId": "res:http://example.org/o#D",
+          "toElementId": "res:http://example.org/o#C",
+          "propertyIri": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "create": {
+        "type": "owl.toolbox.class",
+        "at": {
+          "x": 0,
+          "y": 0
+        }
+      },
+      "args": {
+        "value": ":E"
+      },
+      "expectFile": "after-1.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "connect": {
+        "type": "owl.subclass",
+        "source": "res:http://example.org/o#B",
+        "target": "res:http://example.org/o#C"
+      },
+      "expectFile": "after-2.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "Label",
+        "value": "Ay"
+      },
+      "select": [
+        "res:http://example.org/o#A"
+      ],
+      "expectFile": "after-3.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "action": "rdf.remove-resource",
+      "args": {
+        "confirm": true
+      },
+      "select": [
+        "res:http://example.org/o#D"
+      ],
+      "expectFile": "after-4.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-3.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "action": "rdf.rename-resource",
+      "args": {
+        "value": ":Cee"
+      },
+      "select": [
+        "res:http://example.org/o#C"
+      ],
+      "expectFile": "after-5.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "0f2b9d5",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "0f2b9d5",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "0f2b9d5",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "0f2b9d5",
+      "source": "atd record (drawing)"
+    }
+  },
+  "recordedFrom": "module"
+}

@@ -1,0 +1,113 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.15, section 4.9 (Terms, read through the body's directives) and 6.3 (A term), spec 067, FR-008: a keyword, a prefix redeclared between two uses, a `\\uXXXX` in a term written whole, a relative IRI before and after a base, and a `\\` in a local name. A set writes the IRI under the longest declaration whose local name `local` admits, whether in force there or not, a later one winning a tie, else whole, and an undo restores the bytes.",
+  "binding": "expand.fbl#expand",
+  "input": "terms.txt",
+  "read": {
+    "elements": [
+      {
+        "id": "ex:a a ex:b .",
+        "type": "Triple",
+        "attributes": {
+          "s": "http://example.org/a",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://example.org/b"
+        }
+      },
+      {
+        "id": "ex:a <rel> <http://example.org/one\\u0041> .",
+        "type": "Triple",
+        "attributes": {
+          "s": "http://other.org/a",
+          "p": "rel",
+          "o": "http://example.org/oneA"
+        }
+      },
+      {
+        "id": "<rel> ex:long\\.name <../up> .",
+        "type": "Triple",
+        "attributes": {
+          "s": "http://base.org/x/rel",
+          "p": "http://other.org/long.name",
+          "o": "http://base.org/up"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "prefix ex: <http://example.org/> .\nex:a a ex:b .\nprefix ex: <http://other.org/> .\nex:a <rel> <http://example.org/one\\u0041> .\nbase <http://base.org/x/> .\n<rel> ex:long\\.name <../up> .\n"
+    },
+    {
+      "doc": "An IRI whose rest the `local` of the file does not admit is written whole.",
+      "edit": {
+        "set": {
+          "element": "ex:a a ex:b .",
+          "attributes": {
+            "o": "http://example.org/c/d"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 42,
+          "end": 46,
+          "text": "<http://example.org/c/d>"
+        }
+      ],
+      "expect": "prefix ex: <http://example.org/> .\nex:a a <http://example.org/c/d> .\nprefix ex: <http://other.org/> .\nex:a <rel> <http://example.org/one\\u0041> .\nbase <http://base.org/x/> .\n<rel> ex:long\\.name <../up> .\n"
+    },
+    {
+      "doc": "Undo restores the term.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 42,
+          "end": 66,
+          "text": "ex:b"
+        }
+      ],
+      "expect": "prefix ex: <http://example.org/> .\nex:a a ex:b .\nprefix ex: <http://other.org/> .\nex:a <rel> <http://example.org/one\\u0041> .\nbase <http://base.org/x/> .\n<rel> ex:long\\.name <../up> .\n"
+    },
+    {
+      "doc": "An IRI under a declared namespace is written under its prefix. `ex:` names two namespaces, and each is found: this one by the first declaration, whose name reads otherwise here, is refused by the read-again check at the second.",
+      "edit": {
+        "set": {
+          "element": "<rel> ex:long\\.name <../up> .",
+          "attributes": {
+            "o": "http://other.org/up"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 174,
+          "end": 181,
+          "text": "ex:up"
+        }
+      ],
+      "expect": "prefix ex: <http://example.org/> .\nex:a a ex:b .\nprefix ex: <http://other.org/> .\nex:a <rel> <http://example.org/one\\u0041> .\nbase <http://base.org/x/> .\n<rel> ex:long\\.name ex:up .\n"
+    },
+    {
+      "doc": "Undo restores the term.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 174,
+          "end": 179,
+          "text": "<../up>"
+        }
+      ],
+      "expect": "prefix ex: <http://example.org/> .\nex:a a ex:b .\nprefix ex: <http://other.org/> .\nex:a <rel> <http://example.org/one\\u0041> .\nbase <http://base.org/x/> .\n<rel> ex:long\\.name <../up> .\n"
+    }
+  ]
+}

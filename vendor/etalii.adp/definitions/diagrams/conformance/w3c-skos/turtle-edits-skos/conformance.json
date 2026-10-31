@@ -1,0 +1,217 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record w3c/skos` from parity/cases/w3c/skos/turtle-edits-skos.json of etalii.adp.ide.desktop; never edited by hand.",
+  "tool": "w3c/skos",
+  "description": "../../../w3c-skos.atd",
+  "inputs": {
+    "body": "turtle-edits-skos.ttl",
+    "registration": "turtle-edits-skos.adp"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "res:http://example.org/k#s",
+        "type": "w3c/skos+scheme",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/k#s",
+          "label": "Scheme",
+          "languageTag": "en",
+          "labelKind": "0",
+          "memberCount": "2"
+        }
+      },
+      {
+        "id": "res:http://example.org/k#a",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/k#a",
+          "label": "A",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/k#s",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/k#c",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/k#c",
+          "label": "C",
+          "languageTag": "en",
+          "labelKind": "0",
+          "schemeIris.0": "http://example.org/k#s",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      },
+      {
+        "id": "res:http://example.org/k#b",
+        "type": "w3c/skos+concept",
+        "parent": null,
+        "attributes": {
+          "iri": "http://example.org/k#b",
+          "label": "B",
+          "languageTag": "en",
+          "labelKind": "0",
+          "blank": "false",
+          "languageChip": "false"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:res:http://example.org/k#b|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/k#a",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/k#a",
+        "target": "res:http://example.org/k#b",
+        "attributes": {
+          "fromElementId": "res:http://example.org/k#a",
+          "toElementId": "res:http://example.org/k#b",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      },
+      {
+        "id": "edge:res:http://example.org/k#b|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/k#c",
+        "type": "w3c/skos+edge",
+        "source": "res:http://example.org/k#c",
+        "target": "res:http://example.org/k#b",
+        "attributes": {
+          "fromElementId": "res:http://example.org/k#c",
+          "toElementId": "res:http://example.org/k#b",
+          "kind": "0",
+          "assertedBothWays": "false"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "drawing": {
+    "$ref": "drawing.read.json"
+  },
+  "steps": [
+    {
+      "create": {
+        "type": "skos.toolbox.concept",
+        "at": {
+          "x": 0,
+          "y": 0
+        }
+      },
+      "args": {
+        "value": "Dee"
+      },
+      "expectFile": "after-1.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.1.json"
+      }
+    },
+    {
+      "connect": {
+        "type": "skos.file-under",
+        "source": "res:http://example.org/k#c",
+        "target": "res:http://example.org/k#a"
+      },
+      "expectFile": "after-2.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.2.json"
+      }
+    },
+    {
+      "property": {
+        "attribute": "skos.label:prefLabel:en",
+        "value": "Ay"
+      },
+      "select": [
+        "res:http://example.org/k#a"
+      ],
+      "expectFile": "after-3.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.3.json"
+      }
+    },
+    {
+      "action": "skos.disconnect",
+      "select": [
+        "edge:res:http://example.org/k#b|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/k#c"
+      ],
+      "expectFile": "after-4.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.4.json"
+      }
+    },
+    {
+      "undo": true,
+      "expectFile": "after-3.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.5.json"
+      }
+    },
+    {
+      "action": "skos.disconnect",
+      "select": [
+        "edge:res:http://example.org/k#b|http://www.w3.org/2004/02/skos/core#broader|res:http://example.org/k#a"
+      ],
+      "expectFile": "after-5.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.6.json"
+      }
+    },
+    {
+      "action": "rdf.rename-resource",
+      "args": {
+        "value": ":cee"
+      },
+      "select": [
+        "res:http://example.org/k#c"
+      ],
+      "expectFile": "after-6.ttl",
+      "findings": [],
+      "drawing": {
+        "$ref": "drawing.7.json"
+      }
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "0f2b9d5",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "0f2b9d5",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "0f2b9d5",
+      "source": "atd record (findings)"
+    },
+    "drawing": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "0f2b9d5",
+      "source": "atd record (drawing)"
+    }
+  },
+  "recordedFrom": "module"
+}

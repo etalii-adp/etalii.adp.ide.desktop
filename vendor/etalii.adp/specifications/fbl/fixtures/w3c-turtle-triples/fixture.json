@@ -1,0 +1,299 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.15's constructs together on Turtle (sections 4.9, 6.3), spec 067, FR-008 and scenarios 1 to 4 of its story 4: every triple of a statement reaches its subject, `,` and `;` lists, a nested property list, a collection as its `rdf:first` and `rdf:rest`, the empty collection as `rdf:nil`, a labelled blank node numbered where it first appears, and the triples of a construct before the triple that names it. A literal's set is unescaped and written in its one quote, a term's under the file's prefixes or whole, a new triple as a statement of its own, and a removal refused: what FBL does not state of a shared statement (research R9).",
+  "binding": "../../w3c-turtle-grammar.fbl#triples",
+  "input": "triples.ttl",
+  "read": {
+    "elements": [
+      {
+        "id": "prefix:ex",
+        "type": "Prefix",
+        "attributes": {
+          "name": "ex",
+          "iri": "http://example.org/",
+          "form": "turtle"
+        }
+      },
+      {
+        "id": "prefix:rdfs",
+        "type": "Prefix",
+        "attributes": {
+          "name": "rdfs",
+          "iri": "http://www.w3.org/2000/01/rdf-schema#",
+          "form": "turtle"
+        }
+      },
+      {
+        "id": "prefix:xsd",
+        "type": "Prefix",
+        "attributes": {
+          "name": "xsd",
+          "iri": "http://www.w3.org/2001/XMLSchema#",
+          "form": "sparql"
+        }
+      },
+      {
+        "id": "triple:http://example.org/a|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://example.org/T",
+        "type": "Triple",
+        "attributes": {
+          "s": "http://example.org/a",
+          "sKind": "iri",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+          "o": "http://example.org/T",
+          "oKind": "iri",
+          "sWritten": "ex:a"
+        }
+      },
+      {
+        "id": "triple:http://example.org/a|http://www.w3.org/2000/01/rdf-schema#label|A \"one\"",
+        "type": "Triple",
+        "attributes": {
+          "s": "http://example.org/a",
+          "sKind": "iri",
+          "p": "http://www.w3.org/2000/01/rdf-schema#label",
+          "o": "A \"one\"",
+          "oKind": "literal",
+          "language": "en"
+        }
+      },
+      {
+        "id": "triple:http://example.org/a|http://example.org/n|42",
+        "type": "Triple",
+        "attributes": {
+          "s": "http://example.org/a",
+          "sKind": "iri",
+          "p": "http://example.org/n",
+          "o": "42",
+          "oKind": "literal",
+          "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+        }
+      },
+      {
+        "id": "triple:http://example.org/a|http://example.org/n|4.5",
+        "type": "Triple",
+        "attributes": {
+          "s": "http://example.org/a",
+          "sKind": "iri",
+          "p": "http://example.org/n",
+          "o": "4.5",
+          "oKind": "literal",
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal"
+        }
+      },
+      {
+        "id": "triple:0|http://example.org/c|1",
+        "type": "Triple",
+        "attributes": {
+          "s": "0",
+          "sKind": "blank",
+          "p": "http://example.org/c",
+          "o": "1",
+          "oKind": "blank",
+          "oLabel": "x"
+        }
+      },
+      {
+        "id": "triple:http://example.org/a|http://example.org/b|0",
+        "type": "Triple",
+        "attributes": {
+          "s": "http://example.org/a",
+          "sKind": "iri",
+          "p": "http://example.org/b",
+          "o": "0",
+          "oKind": "blank"
+        }
+      },
+      {
+        "id": "triple:2|http://www.w3.org/1999/02/22-rdf-syntax-ns#rest|3",
+        "type": "Triple",
+        "attributes": {
+          "s": "2",
+          "sKind": "blank",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "3",
+          "oKind": "blank"
+        }
+      },
+      {
+        "id": "triple:2|http://www.w3.org/1999/02/22-rdf-syntax-ns#first|http://example.org/d",
+        "type": "Triple",
+        "attributes": {
+          "s": "2",
+          "sKind": "blank",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "http://example.org/d",
+          "oKind": "iri"
+        }
+      },
+      {
+        "id": "triple:3|http://www.w3.org/1999/02/22-rdf-syntax-ns#rest|http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+        "type": "Triple",
+        "attributes": {
+          "s": "3",
+          "sKind": "blank",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          "o": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+          "oKind": "iri"
+        }
+      },
+      {
+        "id": "triple:3|http://www.w3.org/1999/02/22-rdf-syntax-ns#first|e",
+        "type": "Triple",
+        "attributes": {
+          "s": "3",
+          "sKind": "blank",
+          "p": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+          "o": "e",
+          "oKind": "literal"
+        }
+      },
+      {
+        "id": "triple:http://example.org/a|http://example.org/l|2",
+        "type": "Triple",
+        "attributes": {
+          "s": "http://example.org/a",
+          "sKind": "iri",
+          "p": "http://example.org/l",
+          "o": "2",
+          "oKind": "blank"
+        }
+      },
+      {
+        "id": "triple:1|http://example.org/e|http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+        "type": "Triple",
+        "attributes": {
+          "s": "1",
+          "sKind": "blank",
+          "p": "http://example.org/e",
+          "o": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+          "oKind": "iri",
+          "sLabel": "x"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nex:a a ex:T ;\n    rdfs:label \"A \\\"one\\\"\"@en ;\n    ex:n 42 , \"4.5\"^^xsd:decimal ;\n    ex:b [ ex:c _:x ] ;\n    ex:l ( ex:d \"e\" ) .\n_:x ex:e () .\n"
+    },
+    {
+      "doc": "A literal's value, in `requote`; the language tag stays.",
+      "edit": {
+        "set": {
+          "element": "triple:http://example.org/a|http://www.w3.org/2000/01/rdf-schema#label|A \"one\"",
+          "attributes": {
+            "o": "B\tb"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 170,
+          "end": 181,
+          "text": "\"B\\tb\""
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nex:a a ex:T ;\n    rdfs:label \"B\\tb\"@en ;\n    ex:n 42 , \"4.5\"^^xsd:decimal ;\n    ex:b [ ex:c _:x ] ;\n    ex:l ( ex:d \"e\" ) .\n_:x ex:e () .\n"
+    },
+    {
+      "doc": "Undo.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 170,
+          "end": 176,
+          "text": "\"A \\\"one\\\"\""
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nex:a a ex:T ;\n    rdfs:label \"A \\\"one\\\"\"@en ;\n    ex:n 42 , \"4.5\"^^xsd:decimal ;\n    ex:b [ ex:c _:x ] ;\n    ex:l ( ex:d \"e\" ) .\n_:x ex:e () .\n"
+    },
+    {
+      "doc": "A term no prefix leaves a clean local name for is written whole.",
+      "edit": {
+        "set": {
+          "element": "triple:http://example.org/a|http://www.w3.org/1999/02/22-rdf-syntax-ns#type|http://example.org/T",
+          "attributes": {
+            "o": "http://example.org/x/y"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 148,
+          "end": 152,
+          "text": "<http://example.org/x/y>"
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nex:a a <http://example.org/x/y> ;\n    rdfs:label \"A \\\"one\\\"\"@en ;\n    ex:n 42 , \"4.5\"^^xsd:decimal ;\n    ex:b [ ex:c _:x ] ;\n    ex:l ( ex:d \"e\" ) .\n_:x ex:e () .\n"
+    },
+    {
+      "doc": "Undo.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 148,
+          "end": 172,
+          "text": "ex:T"
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nex:a a ex:T ;\n    rdfs:label \"A \\\"one\\\"\"@en ;\n    ex:n 42 , \"4.5\"^^xsd:decimal ;\n    ex:b [ ex:c _:x ] ;\n    ex:l ( ex:d \"e\" ) .\n_:x ex:e () .\n"
+    },
+    {
+      "doc": "A new triple is a statement of its own at the end of the body, a term under the file's prefixes.",
+      "edit": {
+        "add": {
+          "type": "Triple",
+          "attributes": {
+            "s": "http://example.org/new",
+            "sKind": "iri",
+            "p": "http://example.org/p",
+            "o": "v",
+            "oKind": "literal"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 284,
+          "end": 284,
+          "text": "\nex:new ex:p \"v\" .\n"
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nex:a a ex:T ;\n    rdfs:label \"A \\\"one\\\"\"@en ;\n    ex:n 42 , \"4.5\"^^xsd:decimal ;\n    ex:b [ ex:c _:x ] ;\n    ex:l ( ex:d \"e\" ) .\n_:x ex:e () .\n\nex:new ex:p \"v\" .\n"
+    },
+    {
+      "doc": "Undo.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 284,
+          "end": 303,
+          "text": ""
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nex:a a ex:T ;\n    rdfs:label \"A \\\"one\\\"\"@en ;\n    ex:n 42 , \"4.5\"^^xsd:decimal ;\n    ex:b [ ex:c _:x ] ;\n    ex:l ( ex:d \"e\" ) .\n_:x ex:e () .\n"
+    },
+    {
+      "doc": "A triple is not removed: no rule states what becomes of the statement it shares.",
+      "edit": {
+        "remove": {
+          "element": "triple:http://example.org/a|http://www.w3.org/2000/01/rdf-schema#label|A \"one\""
+        }
+      },
+      "refused": "A Triple cannot be removed from this file.",
+      "splices": [],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nex:a a ex:T ;\n    rdfs:label \"A \\\"one\\\"\"@en ;\n    ex:n 42 , \"4.5\"^^xsd:decimal ;\n    ex:b [ ex:c _:x ] ;\n    ex:l ( ex:d \"e\" ) .\n_:x ex:e () .\n"
+    }
+  ]
+}

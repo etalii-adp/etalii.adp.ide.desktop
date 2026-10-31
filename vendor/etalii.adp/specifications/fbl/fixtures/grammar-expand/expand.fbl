@@ -1,0 +1,88 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.15",
+  "doc": "The binding of the fixture grammar-expand (FBL 0.15, sections 4.9 and 6.3): a term is read through the prefix and base directives in force where it stands, and written back through the file's declarations.",
+  "bindings": {
+    "expand": {
+      "title": "Terms under prefixes",
+      "claims": {
+        "extensions": [
+          ".expand"
+        ],
+        "origins": [
+          "example/expand"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "grammar",
+        "grammar": "start: statement*\nstatement: prefix | base | triple\nprefix: \"prefix\" PNAME_NS IRIREF \".\"\nbase: \"base\" IRIREF \".\"\ntriple: subject verb object \".\"\nsubject: term\nverb: term | KEYWORD\nobject: term\nterm: IRIREF | PNAME | PNAME_NS\nKEYWORD: \"a\"\nIRIREF: /<[^<>\\s]*>/\nPNAME_NS: /[a-z]*:/\nPNAME: /[a-z]*:[A-Za-z0-9_.\\\\-]+/\nWS: /[ \\n]+/\n%ignore WS\n",
+        "prefixes": {
+          "declarations": [
+            {
+              "at": "/statement/prefix",
+              "name": {
+                "node": "PNAME_NS",
+                "match": "(?<value>[^:]*):"
+              },
+              "iri": {
+                "node": "IRIREF"
+              }
+            }
+          ],
+          "bases": [
+            {
+              "at": "/statement/base",
+              "iri": {
+                "node": "IRIREF"
+              }
+            }
+          ],
+          "absolute": "<(?<value>[^>]*)>",
+          "prefixed": "(?<prefix>[^:<]*):(?<local>.*)",
+          "local": "[A-Za-z0-9_-]+",
+          "terminals": [
+            "PNAME",
+            "PNAME_NS"
+          ]
+        }
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "lf",
+        "indent": 2,
+        "finalNewline": true
+      },
+      "elements": [
+        {
+          "name": "triple",
+          "type": "Triple",
+          "at": "/statement/triple",
+          "id": {
+            "from": {
+              "node": "."
+            }
+          },
+          "attributes": {
+            "s": {
+              "node": "subject/term",
+              "expand": true
+            },
+            "p": {
+              "node": "verb",
+              "expand": {
+                "keywords": {
+                  "a": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+                }
+              }
+            },
+            "o": {
+              "node": "object/term",
+              "expand": true
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -73,6 +73,14 @@
     "pinnable": {
       "type": "query",
       "doc": "Whether a node's pin is kept; absent, every pin is."
+    },
+    "edges": {
+      "type": "query",
+      "doc": "Whether a relation is an edge of the input, evaluated for each relation: the host gives the layout those for which it holds. Absent, the stored relations."
+    },
+    "sequence": {
+      "type": "query",
+      "doc": "The order the nodes are given in, a number for each node: the host sorts the input by it before the layout runs. Absent, the model's order."
     }
   },
   "output": {

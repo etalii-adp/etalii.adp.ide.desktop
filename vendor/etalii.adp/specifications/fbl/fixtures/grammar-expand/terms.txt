@@ -1,0 +1,6 @@
+prefix ex: <http://example.org/> .
+ex:a a ex:b .
+prefix ex: <http://other.org/> .
+ex:a <rel> <http://example.org/one\u0041> .
+base <http://base.org/x/> .
+<rel> ex:long\.name <../up> .

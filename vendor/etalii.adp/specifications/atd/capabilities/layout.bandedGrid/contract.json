@@ -31,6 +31,10 @@
     "band": {
       "type": "query",
       "doc": "A node's band key, a string; absent, every node is in one band."
+    },
+    "sequence": {
+      "type": "query",
+      "doc": "The order the nodes are given in, a number for each node: the host sorts the input by it before the layout runs. Absent, the model's order."
     }
   },
   "output": {

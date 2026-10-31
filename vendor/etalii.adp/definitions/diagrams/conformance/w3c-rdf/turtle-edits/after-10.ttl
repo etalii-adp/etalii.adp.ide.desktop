@@ -1,0 +1,13 @@
+# Inserts and removals through the reader: a shared statement, a list, a line of its own and a whole statement.
+@prefix ex: <http://example.org/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:a a ex:T ;
+    rdfs:label "A" ;
+    ex:knows ex:b , ex:cc ;
+    rdfs:comment "A new comment." .
+ex:b rdfs:label "B" ;
+    ex:likes ex:a .
+ex:cc rdfs:label "See \"C\"\tnow" .  # kept
+
+ex:new a rdfs:Resource .

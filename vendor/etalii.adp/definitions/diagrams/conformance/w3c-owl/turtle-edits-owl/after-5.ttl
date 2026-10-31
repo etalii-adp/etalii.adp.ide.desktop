@@ -1,0 +1,15 @@
+# Inserts and removals through the reader, in an ontology.
+@prefix : <http://example.org/o#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<http://example.org/o> a owl:Ontology .
+:A a owl:Class ;
+    rdfs:label "Ay" ;
+    rdfs:seeAlso :B , :Cee .
+:B a owl:Class ;
+    rdfs:subClassOf :Cee .
+:Cee a owl:Class .
+:D a owl:Class ; rdfs:subClassOf :Cee .
+
+:E a owl:Class .

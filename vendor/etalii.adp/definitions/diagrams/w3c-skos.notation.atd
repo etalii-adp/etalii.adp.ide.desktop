@@ -40,7 +40,7 @@ notation {
 
   node Concept {
     shape rect
-    label (self.label) as name { position: { anchor: [0.5, 0.68] }, overflow: ellipsis, maxLines: 1, editable: false }
+    label (self.label) as name { position: center, overflow: ellipsis, maxLines: 1, editable: false }
     label (size(self.notation) > 0 ? self.notation[0] : '') as notation {
       position: { anchor: [0, 0], offset: [8, 14], align: start }
       style: { extends: "small", font: { color: $color.primary } }
@@ -79,7 +79,7 @@ notation {
   node ConceptScheme {
     shape rect
     label (self.label + ' (' + string(self.memberCount) + ')') as name {
-      position: { anchor: [0.5, 0.625] },
+      position: center,
       overflow: ellipsis,
       maxLines: 1,
       editable: false
@@ -91,8 +91,8 @@ notation {
 
   node Collection {
     shape rect
-    label (self.label) as name { position: { anchor: [0.5, 0.625] }, overflow: ellipsis, maxLines: 1, editable: false }
-    label "ordered" as kind {
+    label (self.label) as name { position: center, overflow: ellipsis, maxLines: 1, editable: false }
+    label ('ordered') as kind {
       position: { anchor: [0, 0], offset: [8, 34], align: start },
       style: "muted",
       visible: (self.ordered)
@@ -356,7 +356,8 @@ layout {
     minimumColumns: 8
     role: (self.isA('ConceptScheme') ? 'region' : (self.isA('Concept') ? 'member' : 'trailing'))
     key: (self.iri)
-    regions: (self.isA('Concept') ? self.inScheme.map(s, s.iri) : [])
+    regions: (self.isA('Concept') ? diagram.nodesOfType('ConceptScheme').filter(s, skosMember(self.id, s.id)).map(s, s.iri) : [])
+    edges: (self.isA('Broader'))
   }
   /// The declarative approximation of schemeBands, for a runtime without the capability: a layered layout over the hierarchy edges.
   algorithm fallback { algorithm: "layered", direction: down, spacing: { node: 40, layer: 66 } }

@@ -319,7 +319,7 @@ form renameDialog "Rename resource" for Shape {
 layout {
   default shapeGrid
   /// Cards in discovery order fill three columns left to right; each grid row is as tall as its tallest card.
-  algorithm shapeGrid capability layout.grid { columns: 3 columnGap: 0 rowGap: 48 }
+  algorithm shapeGrid capability layout.grid { columns: 3 columnGap: 60 rowGap: 56 }
   /// The declarative approximation of shapeGrid, for a runtime without the capability: a three-column grid in persistence order.
   algorithm fallback { algorithm: "grid", spacing: { node: 60, layer: 48 }, options: { columns: 3 } }
   trigger: onLoadIfMissing

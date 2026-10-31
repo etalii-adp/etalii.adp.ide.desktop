@@ -78,7 +78,7 @@ notation {
 
   node ThingAnchor {
     shape ellipse
-    label "Thing" as name { position: center, editable: false }
+    label ('Thing') as name { position: center, editable: false }
     style: { extends: "node", stroke: { dash: [4, 3], dashScale: absolute } }
     size: { fixed: [104.5, 38.5] }
     tooltip: "Thing"
@@ -98,7 +98,7 @@ notation {
 
   node LiteralAnchor {
     shape rect
-    label "Literal" as name { position: center, editable: false }
+    label ('Literal') as name { position: center, editable: false }
     style: "node"
     size: { fixed: [190, 70] }
     tooltip: "Literal"
@@ -163,7 +163,7 @@ notation {
 
   node Restriction {
     shape ellipse
-    label (roundLabel(self.display, self.elided)) as name {
+    label (roundLabel(self.rendered, self.elided)) as name {
       position: center,
       overflow: ellipsis,
       maxLines: 1,
@@ -177,14 +177,14 @@ notation {
       doc: "A broken structure is marked, not hidden."
     }
     ]
-    tooltip: (self.display)
+    tooltip: (self.rendered)
     deletable: false
     copyable: false
   }
 
   node Operator {
     shape ellipse
-    label (roundLabel(self.display, self.elided)) as name {
+    label (roundLabel(self.rendered, self.elided)) as name {
       position: center,
       overflow: ellipsis,
       maxLines: 1,
@@ -197,7 +197,7 @@ notation {
       style: { stroke: { color: $color.warning } }
     }
     ]
-    tooltip: (self.display)
+    tooltip: (self.rendered)
     deletable: false
     copyable: false
   }
@@ -563,6 +563,8 @@ layout {
     supers: ((self.isA('Class') || self.isA('Thing')) ? self.outgoingOf('SubClassOf').map(r, r.target.id) : [])
     owner: (self.isA('Expression') && self.axiomOwner != null ? self.axiomOwner.id : '')
     pinnable: (self.id.startsWith('res:') || self.id.startsWith('ind:'))
+    edges: (true)
+    sequence: (self.isA('Expression') ? 1000000 + owlExpressions().map(e, e[0]).indexOf(self.id) : 0)
   }
   /// The declarative approximation of depthColumns, for a runtime without the capability: a layered layout over the subclass edges, which run from subclass to
   /// superclass, so direction left puts the roots on the left.
