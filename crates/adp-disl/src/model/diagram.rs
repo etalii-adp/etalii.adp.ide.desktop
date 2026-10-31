@@ -12,12 +12,14 @@ use std::fmt;
 use std::rc::{Rc, Weak};
 
 use adp_cel::{Map, Object, Value};
+use adp_fbl::FblBodyView;
 
 use super::budgets::{self, DislBudgetState};
 use super::cycles;
 use super::element::{DislElement, NewElement, list, type_text};
 use super::knots;
 use super::values;
+use super::views::Views;
 use crate::loading::metamodel::DislType;
 use crate::loading::specification::DislSpecification;
 
@@ -42,6 +44,9 @@ pub(crate) struct DiagramData {
     computing_budgets: Cell<bool>,
     file: RefCell<Option<String>>,
     read_from: RefCell<Option<String>>,
+    /// The views the reading found in the body, and `diagram.views` once computed from them.
+    body_views: RefCell<Vec<FblBodyView>>,
+    views: RefCell<Option<Views>>,
 }
 
 impl fmt::Debug for DiagramData {
@@ -91,6 +96,7 @@ impl DiagramData {
     /// An element changed: the budgets are computed again when next read.
     pub(crate) fn forget_budgets(&self) {
         *self.budgets.borrow_mut() = None;
+        *self.views.borrow_mut() = None;
     }
 }
 
@@ -110,6 +116,8 @@ impl DislDiagram {
             computing_budgets: Cell::new(false),
             file: RefCell::new(None),
             read_from: RefCell::new(None),
+            body_views: RefCell::new(Vec::new()),
+            views: RefCell::new(None),
         }))
     }
 
@@ -143,6 +151,28 @@ impl DislDiagram {
     /// names another (section 8.6), known from the first read, before a host binds `diagram.file`.
     pub(crate) fn read_from(&self) -> Option<String> {
         self.0.read_from.borrow().clone()
+    }
+
+    /// The value a diagram attribute holds, none when it has none stored.
+    pub(crate) fn stored_attribute(&self, name: &str) -> Option<Value> {
+        self.0.attributes.borrow().get(name).cloned()
+    }
+
+    /// Keeps the views the reading found in the body (DISL section 12.2, `views`).
+    pub(crate) fn set_body_views(&self, views: Vec<FblBodyView>) {
+        *self.0.body_views.borrow_mut() = views;
+        *self.0.views.borrow_mut() = None;
+    }
+
+    /// `diagram.views`: computed when first read, until the diagram or one of its elements changes.
+    fn views(&self) -> Views {
+        if let Some(views) = self.0.views.borrow().as_ref() {
+            return Rc::clone(views);
+        }
+        let body_views = self.0.body_views.borrow().clone();
+        let views = Rc::new(self.views_of(&body_views));
+        *self.0.views.borrow_mut() = Some(Rc::clone(&views));
+        views
     }
 
     pub(crate) fn set_read_from(&self, file: Option<&str>) {
@@ -546,9 +576,24 @@ impl DislDiagram {
             "nodes" => list(self.nodes()),
             "relations" => list(self.relations()),
             "elements" => list(self.elements()),
+            "views" if !self.0.specification.metamodel().diagram_attributes.contains_key(name) => {
+                Value::list(self.views().as_ref().clone())
+            }
             "id" => Value::from(""),
             "type" | "kind" => Value::from("diagram"),
-            _ if self.0.specification.metamodel().diagram_attributes.contains_key(name) => self.value_of(name),
+            _ if self.0.specification.metamodel().diagram_attributes.contains_key(name) => {
+                let value = self.value_of(name);
+                let metamodel = self.0.specification.metamodel();
+                // An attribute that refers to an element reads as the element, as an element's own does.
+                let refers = metamodel
+                    .diagram_attributes
+                    .get(name)
+                    .is_some_and(|attribute| metamodel.type_of(&attribute.type_name).is_some());
+                match &value {
+                    Value::String(id) if refers => self.element_by_id(id).map_or(Value::Null, |e| e.to_value()),
+                    _ => value,
+                }
+            }
             "file" => Value::String(self.file()?),
             _ => return None,
         })

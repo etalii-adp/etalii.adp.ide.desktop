@@ -380,6 +380,7 @@ fn the_dependency_graph_draws_its_nodes_and_its_curve_through_the_routing_plugin
         folding: &folding,
         metrics: &adp_scene::EstimatedMetrics,
         plugins: &(),
+        shown: None,
     };
     let fallback = adp_scene::build_scene(
         &definition,

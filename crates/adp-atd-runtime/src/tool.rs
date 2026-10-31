@@ -187,6 +187,9 @@ fn lacking(required: &Json, reason: &str) -> Finding {
     }
 }
 
+/// The arguments of a layout that say what the host gives the capability, rather than being passed on to it.
+const PLACED_BY_HOST: [&str; 3] = ["boundary", "edges", "sequence"];
+
 /// The layout a description names by a capability (ATD §8.8): the capability and its arguments.
 #[derive(Debug, Clone)]
 struct CapabilityLayout {
@@ -340,8 +343,66 @@ impl RuntimeModule {
         }))
     }
 
-    /// A node's size, as its notation's `size` states it, else its `min`.
+    /// The size of a node that fits its content (DISL section 6.6, `autoSize: fitContent`), measured in its own style's
+    /// font and padding: as wide as its widest unwrapped label, or its wrapped ones up to what the maximum leaves them,
+    /// within its minimum and maximum, and as tall as its lines: one for an unwrapped label, however short, and for a
+    /// wrapped one as many as it takes at that width.
+    fn fitted(specification: &DislSpecification, element: &DislElement) -> Option<(f64, f64)> {
+        let root = specification.root();
+        let node = &root["notation"]["nodes"][element.type_name()];
+        let size = &node["size"];
+        if size["autoSize"] != "fitContent" {
+            return None;
+        }
+        let styles = &root["notation"]["styles"];
+        let setting = |pick: &dyn Fn(&Json) -> Option<f64>| {
+            let mut name = node["style"].as_str();
+            while let Some(style) = name.map(|n| &styles[n]) {
+                if let Some(found) = pick(style) {
+                    return Some(found);
+                }
+                name = style["extends"].as_str().or_else(|| style["extends"][0].as_str());
+            }
+            None
+        };
+        let font = setting(&|s: &Json| s["font"]["size"].as_f64()).unwrap_or(14.0);
+        let line_height = setting(&|s: &Json| s["font"]["lineHeight"].as_f64()).unwrap_or(1.4);
+        let down = setting(&|s: &Json| s["padding"][0].as_f64()).unwrap_or(0.0);
+        let across = setting(&|s: &Json| s["padding"][1].as_f64()).unwrap_or(0.0);
+        let limit = |key: &str, i: usize| size[key][i].as_f64();
+        let (min_width, max_width) = (limit("min", 0).unwrap_or(0.0), limit("max", 0).unwrap_or(f64::MAX));
+        let room = max_width - 2.0 * across;
+        let mut widest: f64 = 0.0;
+        let mut wrapped = Vec::new();
+        let mut lines = 0.0;
+        for label in node["labels"].as_array().into_iter().flatten() {
+            let text = Self::evaluate(specification, element, &label["text"]).map_or(String::new(), |v| match v {
+                Value::String(text) => text,
+                other => other.to_string(),
+            });
+            let width = adp_layout::text_metric::width_of(&text, font);
+            if label["wrap"] == "word" {
+                widest = widest.max(width.min(room));
+                wrapped.push(width);
+            } else {
+                widest = widest.max(width);
+                lines += 1.0;
+            }
+        }
+        let width = (widest + 2.0 * across).clamp(min_width, max_width);
+        for text_width in wrapped {
+            lines += (text_width / (width - 2.0 * across)).ceil();
+        }
+        let height = (lines * font * line_height + 2.0 * down).max(limit("min", 1).unwrap_or(0.0));
+        let round = crate::capabilities::two_sided_tree::round2;
+        Some((round(width), round(height)))
+    }
+
+    /// A node's size, as it fits its content, else as its notation's `size` states it, else its `min`.
     fn size(specification: &DislSpecification, element: &DislElement) -> (f64, f64) {
+        if let Some(fitted) = Self::fitted(specification, element) {
+            return fitted;
+        }
         let size = &specification.root()["notation"]["nodes"][element.type_name()]["size"];
         let min = |i: usize| size["min"][i].as_f64().unwrap_or(0.0);
         let measure = |key: &str, fallback: f64| {
@@ -357,6 +418,11 @@ impl RuntimeModule {
 }
 
 impl DiagramModule for RuntimeModule {
+    /// A node that fits its content, measured as the layout measures it.
+    fn size_of(&self, document: &DiagramDocument, element: &DislElement) -> Option<(f64, f64)> {
+        Self::fitted(document.tool().definition.specification(), element)
+    }
+
     /// A node on an axis with a `scale`: its values in the axis's canvas units (ATD §8.1).
     fn position(&self, element: &DislElement) -> Option<(f64, f64)> {
         let placement = self.scaled.get(&element.type_name())?;
@@ -460,14 +526,53 @@ impl DiagramModule for RuntimeModule {
             }
         }
         let authored = document.authored_positions();
-        for element in diagram.nodes() {
-            let (width, height) = Self::size(specification, &element);
+        // What the view shows is what is laid out (DISL section 3.5), with each boundary its layout draws around it.
+        let is_boundary = |element: &DislElement| {
+            layout
+                .arguments
+                .get("boundary")
+                .and_then(|value| Self::evaluate(specification, element, value))
+                .is_some_and(|value| value == Value::Bool(true))
+        };
+        let shown = diagram.shown_in(&specification.default_viewpoint());
+        let shown_ids: std::collections::HashSet<String> = shown.iter().map(DislElement::id).collect();
+        let mut placed: Vec<DislElement> = diagram
+            .nodes()
+            .into_iter()
+            .filter(|element| shown_ids.contains(&element.id()) || is_boundary(element))
+            .collect();
+        // The order the description gives them, else the model's.
+        if let Some(sequence) = layout.arguments.get("sequence") {
+            placed.sort_by_key(|element| {
+                Self::evaluate(specification, element, sequence).and_then(|value| value.as_number().map(|n| n as i64))
+            });
+        }
+        let boundaries: std::collections::HashSet<String> = placed
+            .iter()
+            .filter(|element| is_boundary(element))
+            .map(DislElement::id)
+            .collect();
+        let placed_ids: std::collections::HashSet<String> = placed.iter().map(DislElement::id).collect();
+        let placed_id = |id: String| {
+            if boundaries.contains(&id) {
+                format!("boundary:{id}")
+            } else {
+                id
+            }
+        };
+        for element in placed {
+            let boundary = boundaries.contains(&element.id());
+            let (width, height) = if boundary {
+                (0.0, 0.0)
+            } else {
+                Self::size(specification, &element)
+            };
             sizes.insert(element.id(), (width, height));
             let mut attributes = serde_json::Map::new();
             for (key, value) in layout
                 .arguments
                 .iter()
-                .filter(|(key, _)| !queries.contains(&key.as_str()))
+                .filter(|(key, _)| !queries.contains(&key.as_str()) && !PLACED_BY_HOST.contains(&key.as_str()))
             {
                 if value.get("cel").is_some() {
                     if let Some(evaluated) = Self::evaluate(specification, &element, value)
@@ -478,6 +583,9 @@ impl DiagramModule for RuntimeModule {
                 } else {
                     args.insert(key.clone(), value.clone());
                 }
+            }
+            if boundary {
+                attributes.insert("boundary".into(), json!(true));
             }
             let collapsed = self
                 .view_of(document, &element)
@@ -491,19 +599,26 @@ impl DiagramModule for RuntimeModule {
                 .as_ref()
                 .map(|p| p.children().iter().position(|c| *c == element).unwrap_or(0))
                 .unwrap_or(0);
+            // The nearest ancestor that is laid out too.
+            let holder = std::iter::successors(parent, DislElement::parent).find(|a| placed_ids.contains(&a.id()));
             let mut node = json!({
-                "id": element.id(), "width": width, "height": height,
-                "parent": parent.map(|p| p.id()), "order": order, "attributes": attributes,
+                "id": placed_id(element.id()), "width": width, "height": height,
+                "parent": holder.map(|p| placed_id(p.id())), "order": order, "attributes": attributes,
             });
-            if let Some((x, y)) = authored.get(&element.id()) {
+            if !boundary && let Some((x, y)) = authored.get(&element.id()) {
                 node["pinned"] = json!({ "x": x, "y": y });
             }
             nodes.push(node);
         }
+        // The relations the description says the layout follows, else the stored ones.
+        let followed = layout.arguments.get("edges");
         let edges: Vec<Json> = diagram
             .relations()
             .into_iter()
-            .filter(|relation| !relation.is_derived())
+            .filter(|relation| match followed {
+                Some(value) => Self::evaluate(specification, relation, value) == Some(Value::Bool(true)),
+                None => !relation.is_derived(),
+            })
             .map(|relation| json!({ "id": relation.id(), "source": relation.source_id(), "target": relation.target_id() }))
             .collect();
         // The corners as the algorithm computes them, not rounded, so that the centres are where its module put them.

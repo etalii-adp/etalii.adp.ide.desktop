@@ -639,7 +639,7 @@ fn presentation(member: &Json) -> Map<String, Json> {
                     lowered.insert("shape".into(), shape);
                 } else {
                     let mut instance = Map::new();
-                    instance.insert("shape".into(), shape);
+                    instance.insert("type".into(), shape);
                     instance.insert("params".into(), Json::Object(parameters));
                     lowered.insert("shape".into(), Json::Object(instance));
                 }

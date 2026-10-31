@@ -12,7 +12,7 @@
 //! places it at the centre of the members it lists. A line is drawn when both its ends are, or as its stub where it
 //! has no target and its relation states one.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use adp_cel::Value;
@@ -130,6 +130,8 @@ pub struct SceneOptions<'a> {
     pub folding: &'a Folding,
     pub metrics: &'a dyn TextMetrics,
     pub plugins: &'a dyn RoutePlugins,
+    /// What the view shows, by id, when something is drawn for one view of the diagram; none draws everything.
+    pub shown: Option<&'a HashSet<String>>,
 }
 
 /// The size an element of `element_type` has where its position gives none: its fixed size, else its default with the
@@ -392,7 +394,7 @@ pub fn build_scene_pieces(
 
     for relation in diagram.relations() {
         // A relation a budget cuts, or one an end of which it cuts, is not drawn (DISL section 3.2.1).
-        if !diagram.is_drawn(&relation) {
+        if !diagram.is_drawn(&relation) || options.shown.is_some_and(|shown| !shown.contains(&relation.id())) {
             continue;
         }
         let owner = Owner::Relation(relation.id());
@@ -460,7 +462,7 @@ impl<'a> Builder<'a> {
                 continue;
             };
             // A node a truncating budget cuts is not drawn (DISL section 3.2.1).
-            if !diagram.is_drawn(&element) {
+            if !diagram.is_drawn(&element) || self.options.shown.is_some_and(|shown| !shown.contains(&element.id())) {
                 continue;
             }
             let vars = self.evaluator.element_vars(&element);
@@ -732,6 +734,14 @@ impl<'a> Builder<'a> {
             BuiltInShape::RoundedRectangle => {
                 let param = self.shape_param(placed, "radius");
                 Path::rounded_rect(bounds, param.or(radius).unwrap_or(8.0))
+            }
+            BuiltInShape::Person => {
+                // The head first, so that the body covers it where they overlap (DISL 0.5, *The person shape*).
+                let head = Rect::centred(Point::new(centre.x, bounds.y - 8.0), 20.0, 20.0);
+                self.shape(owner, Role::BodyPart, Path::ellipse(head), style, stroke.clone(), None);
+                let param = self.shape_param(placed, "radius");
+                let radius = param.or(radius).unwrap_or(8.0);
+                Path::rounded_rect(bounds, radius.min(bounds.width.min(bounds.height) / 2.0))
             }
             BuiltInShape::Pill => Path::rounded_rect(bounds, bounds.height / 2.0),
             BuiltInShape::CenteredBox => Path::rounded_rect(bounds, 6.0),

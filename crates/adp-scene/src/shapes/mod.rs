@@ -35,11 +35,13 @@ pub enum BuiltInShape {
     DoubleEllipse,
     /// A banner closed on the right by a point, which may be cut into segments.
     ArrowBanner,
+    /// A rounded box that carries the label, with a round head above it (DISL 0.5, section 6.4).
+    Person,
 }
 
 impl BuiltInShape {
     /// Every built-in shape.
-    pub const ALL: [BuiltInShape; 20] = [
+    pub const ALL: [BuiltInShape; 21] = [
         BuiltInShape::None,
         BuiltInShape::Box,
         BuiltInShape::CenteredBox,
@@ -60,6 +62,7 @@ impl BuiltInShape {
         BuiltInShape::Moment,
         BuiltInShape::DoubleEllipse,
         BuiltInShape::ArrowBanner,
+        BuiltInShape::Person,
     ];
 
     /// The name the standalone library gives it.
@@ -85,6 +88,7 @@ impl BuiltInShape {
             BuiltInShape::Diode => "diode",
             BuiltInShape::DoubleEllipse => "double-ellipse",
             BuiltInShape::ArrowBanner => "arrow-banner",
+            BuiltInShape::Person => "person",
         }
     }
 }

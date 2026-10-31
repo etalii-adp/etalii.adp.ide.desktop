@@ -866,6 +866,7 @@ impl DiagramTab {
             folding: &folding,
             metrics,
             plugins: &StandardRoutePlugins,
+            shown: None,
         };
         let pieces = build_scene_pieces(definition, &evaluator, diagram, &rects, &options, None);
         let scene = pieces.scene(definition, &evaluator, diagram, metrics);
@@ -938,6 +939,7 @@ impl DiagramTab {
             folding: &folding,
             metrics: &*metrics,
             plugins: &StandardRoutePlugins,
+            shown: None,
         };
         let pieces = build_scene_pieces(
             &drawn.definition,

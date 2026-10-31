@@ -137,6 +137,7 @@ fn drawn(workspace: &DiagramWorkspace, body: &Path, elements: &[DiagramElement])
         folding: &folding,
         metrics: &EstimatedMetrics,
         plugins: &StandardRoutePlugins,
+        shown: None,
     };
     let scene = build_scene(&definition, &evaluator, &document.model().diagram, &positions, &options);
     let mut out = String::new();

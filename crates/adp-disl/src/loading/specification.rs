@@ -101,6 +101,20 @@ impl DislSpecification {
         }))
     }
 
+    /// The viewpoint a view opens in (DISL section 3.5): the one marked `default`, else the first; empty for a
+    /// specification without viewpoints.
+    pub fn default_viewpoint(&self) -> String {
+        let viewpoints = self.root().get("viewpoints").and_then(|v| v.as_object());
+        viewpoints
+            .and_then(|all| {
+                all.iter()
+                    .find(|(_, v)| v.get("default").and_then(|d| d.as_bool()) == Some(true))
+                    .or_else(|| all.iter().next())
+            })
+            .map(|(id, _)| id.clone())
+            .unwrap_or_default()
+    }
+
     /// The runtime that runs `extension` actions, when one loaded the specification.
     pub(crate) fn action_extension(&self) -> Option<Rc<dyn DislActionExtension>> {
         self.0.actions.clone()

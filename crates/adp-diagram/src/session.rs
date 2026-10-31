@@ -124,16 +124,16 @@ impl DiagramSession {
     /// The view in `specification`'s default viewpoint, which `env.viewpoint` reads (DISL section 12.4): the one it
     /// marks `default`, else its first; empty for a specification without viewpoints.
     pub fn in_default_viewpoint(mut self, specification: &adp_disl::DislSpecification) -> Self {
-        let viewpoints = specification.root().get("viewpoints").and_then(|v| v.as_object());
-        self.env.viewpoint = viewpoints
-            .and_then(|all| {
-                all.iter()
-                    .find(|(_, v)| v.get("default").and_then(|d| d.as_bool()) == Some(true))
-                    .or_else(|| all.iter().next())
-            })
-            .map(|(id, _)| id.clone())
-            .unwrap_or_default();
+        self.env.viewpoint = specification.default_viewpoint();
         self
+    }
+
+    /// Whether the view's viewpoint selects what it shows (DISL section 3.5): whether `specification` declares it.
+    pub fn uses_viewpoint(&self, specification: &adp_disl::DislSpecification) -> bool {
+        specification
+            .root()
+            .get("viewpoints")
+            .is_some_and(|all| all.get(self.viewpoint()).is_some())
     }
 
     /// Shows the view in viewpoint `viewpoint` (DISL section 11), which `env.viewpoint` reads: a menu or a form that

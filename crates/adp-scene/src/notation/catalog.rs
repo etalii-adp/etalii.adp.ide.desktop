@@ -147,6 +147,14 @@ pub fn library_shape_of(reference: &Json) -> Result<Option<BuiltInShape>, Refusa
     if name == "roundedRect" {
         return Ok(Some(BuiltInShape::RoundedRectangle));
     }
+    if name == "person" {
+        return match params.get("radius") {
+            Some(radius) if radius.as_f64().is_some_and(|r| r < 0.0) => Err(format!(
+                "A person's radius is not negative; the specification asks for {radius}."
+            )),
+            _ => Ok(Some(BuiltInShape::Person)),
+        };
+    }
     let Some(entry) = SHAPES.iter().find(|e| e.name == name) else {
         return Ok(None);
     };

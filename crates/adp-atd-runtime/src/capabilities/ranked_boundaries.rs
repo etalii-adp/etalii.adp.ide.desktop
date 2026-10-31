@@ -662,7 +662,7 @@ impl LayoutCapability for RankedBoundaries {
     }
 
     fn query_arguments(&self) -> &'static [&'static str] {
-        &["direction", "rankSeparation", "nodeSeparation", "pinsIgnored"]
+        &["mode", "direction", "rankSeparation", "nodeSeparation", "pinsIgnored"]
     }
 }
 
@@ -682,7 +682,7 @@ fn arguments_of(args: &Json) -> RankedArguments {
         value => value.as_bool().unwrap_or(defaults.pins_ignored),
     };
     RankedArguments {
-        nest: args["mode"].as_str() == Some("nest"),
+        nest: args["mode"].as_str().map(|mode| mode.trim_matches(['\'', '"'])) == Some("nest"),
         direction: direction.unwrap_or(defaults.direction),
         rank_separation: number("rankSeparation", defaults.rank_separation),
         node_separation: number("nodeSeparation", defaults.node_separation),

@@ -72,6 +72,7 @@ fn line_of(element: &FblElement) -> Option<i32> {
 pub fn from(reading: &FblModel, specification: &DislSpecification) -> DislModel {
     let diagram = DislDiagram::new(specification);
     diagram.set_read_from(reading.file.as_deref());
+    diagram.set_body_views(reading.body_views.clone());
     let mut findings = reading.findings.clone();
     let mut header = Vec::new();
     let mut unreadable = Vec::new();
@@ -102,6 +103,13 @@ pub fn from(reading: &FblModel, specification: &DislSpecification) -> DislModel 
                     if let Some(attribute) = metamodel.diagram_attributes.get(target)
                         && let Some(value) = values::from_read(raw, attribute, metamodel)
                     {
+                        // Several entries of a type mapped `as: diagram` gather into an attribute that holds a list.
+                        let value = match (attribute.many, diagram.stored_attribute(target), value) {
+                            (true, Some(Value::List(held)), Value::List(more)) => {
+                                Value::list(held.iter().cloned().chain(more.iter().cloned()).collect())
+                            }
+                            (_, _, value) => value,
+                        };
                         diagram.set_attribute(target, value);
                     }
                 }
@@ -330,6 +338,15 @@ fn attributes(
     (attributes, host, ends)
 }
 
+/// The `env` of a derivation: the viewpoint a view of the reading opens in (DISL section 12.3).
+fn viewpoint_env(specification: &DislSpecification) -> Value {
+    let env = crate::derivation::env::DislEnv {
+        viewpoint: specification.default_viewpoint(),
+        ..Default::default()
+    };
+    Value::map(env.to_cel())
+}
+
 /// Completes a diagram whose stored elements are in place (section 14.2): the derived ids of its nodes, ancestors
 /// first, then its derived relations, then the derived ids of its stored relations. The runtime's findings, in the
 /// order they arose.
@@ -429,20 +446,9 @@ fn derived_relations(diagram: &DislDiagram, findings: &mut Vec<Finding>) {
             continue;
         };
         let pointer = json::pointer(&json::pointer("/metamodel/relations", &t.name), "derived");
-        if json::has(derived, "key") {
-            findings.push(finding(
-                DERIVED_FAILED,
-                format!(
-                    "{} groups its items by key, which this runtime does not compute yet.",
-                    t.name
-                ),
-            ));
-            continue;
-        }
-
         let base: HashMap<String, Value> = [
             ("diagram".to_owned(), diagram.to_value()),
-            ("env".to_owned(), Value::Null),
+            ("env".to_owned(), viewpoint_env(&specification)),
         ]
         .into_iter()
         .collect();
@@ -469,10 +475,33 @@ fn derived_relations(diagram: &DislDiagram, findings: &mut Vec<Finding>) {
             None => bad_ends.push((end, 1)),
         };
         let mut repeats: HashMap<String, usize> = HashMap::new();
+        // Items with equal keys yield one element, the first of them its `item`, all of them its `group`.
+        let mut groups: Vec<(Option<Value>, Vec<Value>)> = Vec::new();
         for (index, item) in items.iter().enumerate() {
+            let mut key = None;
+            if json::has(derived, "key") {
+                let mut variables = base.clone();
+                variables.insert("item".to_owned(), item.clone());
+                variables.insert("group".to_owned(), Value::list(vec![item.clone()]));
+                variables.insert("index".to_owned(), Value::Int(index as i64));
+                match evaluate(&specification, &json::pointer(&pointer, "key"), &variables) {
+                    Ok(value) => key = Some(value),
+                    Err(e) => {
+                        fail(e);
+                        continue;
+                    }
+                }
+            }
+            match groups.iter_mut().find(|(k, _)| key.is_some() && *k == key) {
+                Some((_, group)) => group.push(item.clone()),
+                None => groups.push((key, vec![item.clone()])),
+            }
+        }
+        for (index, (_, group)) in groups.iter().enumerate() {
+            let item = &group[0];
             let mut variables = base.clone();
             variables.insert("item".to_owned(), item.clone());
-            variables.insert("group".to_owned(), Value::list(vec![item.clone()]));
+            variables.insert("group".to_owned(), Value::list(group.clone()));
             variables.insert("index".to_owned(), Value::Int(index as i64));
             let source = evaluate(&specification, &json::pointer(&pointer, "source"), &variables);
             let target = evaluate(&specification, &json::pointer(&pointer, "target"), &variables);
