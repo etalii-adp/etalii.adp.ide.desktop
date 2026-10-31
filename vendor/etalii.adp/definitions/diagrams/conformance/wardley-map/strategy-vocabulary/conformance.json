@@ -336,9 +336,9 @@
     },
     {
       "action": "wardley.toggle-inertia",
-      "args": {
-        "target": "b474cr9m9t3eczg1gdv5gcjhk"
-      },
+      "select": [
+        "b474cr9m9t3eczg1gdv5gcjhk"
+      ],
       "expectFile": "after-3.owm",
       "findings": [],
       "drawing": {
@@ -347,9 +347,9 @@
     },
     {
       "action": "wardley.toggle-market",
-      "args": {
-        "target": "et0fqurcgd3ri1az051jupyvf"
-      },
+      "select": [
+        "et0fqurcgd3ri1az051jupyvf"
+      ],
       "expectFile": "after-4.owm",
       "findings": [],
       "drawing": {
@@ -371,9 +371,11 @@
     {
       "action": "wardley.set-evolve",
       "args": {
-        "target": "et0fqurcgd3ri1az051jupyvf",
         "value": "0.85"
       },
+      "select": [
+        "et0fqurcgd3ri1az051jupyvf"
+      ],
       "expectFile": "after-6.owm",
       "findings": [],
       "drawing": {
@@ -407,9 +409,11 @@
     {
       "action": "wardley.rename",
       "args": {
-        "target": "28aq8skvp5n22fbrkdpr7w6eu",
         "value": "Storefront"
       },
+      "select": [
+        "28aq8skvp5n22fbrkdpr7w6eu"
+      ],
       "ids": [
         "4ndt134kcx713rrnqizzpsn5i",
         "e5qi005zdnsn83xbspnom5383",
@@ -425,9 +429,11 @@
     {
       "action": "wardley.link",
       "args": {
-        "target": "28aq8skvp5n22fbrkdpr7w6eu",
         "value": "b474cr9m9t3eczg1gdv5gcjhk"
       },
+      "select": [
+        "28aq8skvp5n22fbrkdpr7w6eu"
+      ],
       "ids": [
         "0k5jmapx566tx6rwyd8rd2qb0"
       ],
@@ -440,9 +446,11 @@
     {
       "action": "wardley.flow",
       "args": {
-        "target": "b7ak4vpps5jzv5z6e35bwkdk0",
         "value": "et0fqurcgd3ri1az051jupyvf"
       },
+      "select": [
+        "b7ak4vpps5jzv5z6e35bwkdk0"
+      ],
       "ids": [
         "bauda479zrlbnng6v0709b5d7"
       ],
@@ -455,9 +463,11 @@
     {
       "action": "wardley.unlink",
       "args": {
-        "target": "et0fqurcgd3ri1az051jupyvf",
         "value": "Payment\u001fLedger\u001fDependency"
       },
+      "select": [
+        "et0fqurcgd3ri1az051jupyvf"
+      ],
       "expectFile": "after-12.owm",
       "findings": [],
       "drawing": {
@@ -479,9 +489,11 @@
     {
       "action": "wardley.remove",
       "args": {
-        "target": "b7ak4vpps5jzv5z6e35bwkdk0",
         "confirm": true
       },
+      "select": [
+        "b7ak4vpps5jzv5z6e35bwkdk0"
+      ],
       "expectFile": "after-14.owm",
       "findings": [],
       "drawing": {
@@ -490,9 +502,9 @@
     },
     {
       "action": "wardley.clear-evolve",
-      "args": {
-        "target": "804r9rdikiiftb5uxc4dmz1sb"
-      },
+      "select": [
+        "804r9rdikiiftb5uxc4dmz1sb"
+      ],
       "expectFile": "after-15.owm",
       "findings": [],
       "drawing": {
@@ -544,9 +556,9 @@
     },
     {
       "action": "wardley.toggle-buy",
-      "args": {
-        "target": "et0fqurcgd3ri1az051jupyvf"
-      },
+      "select": [
+        "et0fqurcgd3ri1az051jupyvf"
+      ],
       "expectFile": "after-17.owm",
       "findings": [],
       "drawing": {
@@ -570,9 +582,9 @@
     },
     {
       "action": "wardley.toggle-inertia",
-      "args": {
-        "target": "804r9rdikiiftb5uxc4dmz1sb"
-      },
+      "select": [
+        "804r9rdikiiftb5uxc4dmz1sb"
+      ],
       "expectFile": "after-19.owm",
       "findings": [],
       "drawing": {
@@ -599,21 +611,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

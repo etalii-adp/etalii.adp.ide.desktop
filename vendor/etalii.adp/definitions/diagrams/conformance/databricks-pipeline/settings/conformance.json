@@ -145,9 +145,11 @@
     {
       "action": "databricks.add-library:notebook",
       "args": {
-        "target": "pipeline",
         "value": "transformations/platinum"
       },
+      "select": [
+        "pipeline"
+      ],
       "ids": [
         "library:transformations/platinum",
         "flow:transformations/platinum->pipeline"
@@ -196,9 +198,9 @@
     },
     {
       "action": "databricks.remove-library",
-      "args": {
-        "target": "library:transformations/platinum"
-      },
+      "select": [
+        "library:transformations/platinum"
+      ],
       "expectFile": "after-5.json",
       "findings": [],
       "drawing": {
@@ -207,9 +209,9 @@
     },
     {
       "action": "databricks.remove-library",
-      "args": {
-        "target": "library:transformations/silver.py"
-      },
+      "select": [
+        "library:transformations/silver.py"
+      ],
       "expectFile": "after-6.json",
       "findings": [],
       "drawing": {
@@ -235,9 +237,11 @@
     {
       "action": "databricks.add-library:file",
       "args": {
-        "target": "pipeline",
         "value": "a/b.py"
       },
+      "select": [
+        "pipeline"
+      ],
       "ids": [
         "library:a/b.py",
         "flow:a/b.py->pipeline"
@@ -250,9 +254,9 @@
     },
     {
       "action": "databricks.remove-library",
-      "args": {
-        "target": "library:transformations/bronze"
-      },
+      "select": [
+        "library:transformations/bronze"
+      ],
       "expectFile": "after-8.json",
       "findings": [],
       "drawing": {
@@ -261,9 +265,9 @@
     },
     {
       "action": "databricks.remove-library",
-      "args": {
-        "target": "library:a/b.py"
-      },
+      "select": [
+        "library:a/b.py"
+      ],
       "expectFile": "after-9.json",
       "findings": [],
       "drawing": {
@@ -272,9 +276,9 @@
     },
     {
       "action": "databricks.remove-library",
-      "args": {
-        "target": "library:transformations/gold/**"
-      },
+      "select": [
+        "library:transformations/gold/**"
+      ],
       "refused": {
         "reason": "A pipeline needs at least one library; removing the last one is not allowed."
       },
@@ -343,21 +347,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

@@ -365,9 +365,10 @@
       }
     },
     {
-      "action": "dependencies.connect",
-      "args": {
-        "target": "rel:checkout-web->identity-service"
+      "connect": {
+        "type": "dependencies.connect",
+        "source": "checkout-web",
+        "target": "identity-service"
       },
       "ids": [
         "f2l95kayzmapdgsrek57ftky9"
@@ -380,9 +381,9 @@
     },
     {
       "action": "dependencies.disconnect",
-      "args": {
-        "target": "f2l95kayzmapdgsrek57ftky9"
-      },
+      "select": [
+        "f2l95kayzmapdgsrek57ftky9"
+      ],
       "expectFile": "after-10.dgr",
       "findings": [],
       "drawing": {
@@ -398,9 +399,12 @@
       }
     },
     {
-      "action": "dependencies.add-element",
-      "args": {
-        "target": "new:300,0"
+      "create": {
+        "type": "dependencies.toolbox.node",
+        "at": {
+          "x": 300,
+          "y": 0
+        }
       },
       "ids": [
         "5kc4kfyegzhkq7njr0s8mv4we"
@@ -412,9 +416,17 @@
       }
     },
     {
-      "action": "dependencies.connect",
-      "args": {
-        "target": "rel:payments-db->new:1400,0"
+      "connect": {
+        "type": "dependencies.connect",
+        "source": "payments-db",
+        "target": "7yxwlqfi4fcv63bmdakhufj59"
+      },
+      "create": {
+        "type": "Node",
+        "at": {
+          "x": 1400,
+          "y": 0
+        }
       },
       "ids": [
         "7yxwlqfi4fcv63bmdakhufj59",
@@ -490,9 +502,12 @@
       }
     },
     {
-      "action": "dependencies.add-element",
-      "args": {
-        "target": "new:-250.5,0"
+      "create": {
+        "type": "dependencies.toolbox.node",
+        "at": {
+          "x": -250.5,
+          "y": 0
+        }
       },
       "ids": [
         "b33yper85kxyzww12puriz9c5"
@@ -546,21 +561,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

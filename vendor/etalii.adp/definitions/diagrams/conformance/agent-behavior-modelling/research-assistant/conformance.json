@@ -293,9 +293,9 @@
     },
     {
       "action": "abm.move-earlier",
-      "args": {
-        "target": "1.2.3"
-      },
+      "select": [
+        "1.2.3"
+      ],
       "expectFile": "after-6.md",
       "findings": [],
       "drawing": {
@@ -304,9 +304,9 @@
     },
     {
       "action": "abm.move-later",
-      "args": {
-        "target": "1.1.1"
-      },
+      "select": [
+        "1.1.1"
+      ],
       "expectFile": "after-7.md",
       "findings": [],
       "drawing": {
@@ -316,9 +316,11 @@
     {
       "action": "abm.edit-notes",
       "args": {
-        "target": "1.2",
         "value": "Search all three at once.\nKeep what each one found apart."
       },
+      "select": [
+        "1.2"
+      ],
       "expectFile": "after-8.md",
       "findings": [],
       "drawing": {
@@ -328,9 +330,11 @@
     {
       "action": "abm.rename",
       "args": {
-        "target": "1.4",
         "value": "Answer with the draft and its sources"
       },
+      "select": [
+        "1.4"
+      ],
       "expectFile": "after-9.md",
       "findings": [],
       "drawing": {
@@ -338,9 +342,10 @@
       }
     },
     {
-      "action": "abm.connect.child",
-      "args": {
-        "target": "rel:1.1->1.4"
+      "connect": {
+        "type": "abm.connect.child",
+        "source": "1.1",
+        "target": "1.4"
       },
       "ids": [
         "1.1.4",
@@ -371,9 +376,11 @@
     {
       "action": "abm.add.action",
       "args": {
-        "target": "1.3.1",
         "value": "Cite every source"
       },
+      "select": [
+        "1.3.1"
+      ],
       "ids": [
         "1.3.1.3",
         "child:1.3.1.3"
@@ -386,9 +393,9 @@
     },
     {
       "action": "abm.remove",
-      "args": {
-        "target": "1.2.1"
-      },
+      "select": [
+        "1.2.1"
+      ],
       "expectFile": "after-12.md",
       "findings": [],
       "drawing": {
@@ -398,9 +405,11 @@
     {
       "action": "abm.remove",
       "args": {
-        "target": "1.3",
         "confirm": true
       },
+      "select": [
+        "1.3"
+      ],
       "expectFile": "after-13.md",
       "findings": [],
       "drawing": {
@@ -429,9 +438,9 @@
     },
     {
       "action": "abm.add.check",
-      "args": {
-        "target": "1.1.1"
-      },
+      "select": [
+        "1.1.1"
+      ],
       "refused": {
         "reason": "That action is not available for this item."
       },
@@ -443,9 +452,9 @@
     },
     {
       "action": "abm.arrange",
-      "args": {
-        "target": "1"
-      },
+      "select": [
+        "1"
+      ],
       "expectFile": "after-14.md",
       "findings": [],
       "drawing": {
@@ -483,9 +492,11 @@
     {
       "action": "abm.add.parallel",
       "args": {
-        "target": "1",
         "value": "Report"
       },
+      "select": [
+        "1"
+      ],
       "expectFile": "after-16.md",
       "findings": [
         {
@@ -500,9 +511,14 @@
       }
     },
     {
-      "action": "abm.add.delegate",
+      "create": {
+        "type": "abm.toolbox.delegate",
+        "at": {
+          "x": 1250,
+          "y": 300
+        }
+      },
       "args": {
-        "target": "new:1250,300",
         "value": "Ask a librarian"
       },
       "ids": [
@@ -523,9 +539,12 @@
       }
     },
     {
-      "action": "abm.add.check",
-      "args": {
-        "target": "new:1700,250"
+      "create": {
+        "type": "abm.toolbox.check",
+        "at": {
+          "x": 1700,
+          "y": 250
+        }
       },
       "ids": [
         "1.4.1",
@@ -538,9 +557,12 @@
       }
     },
     {
-      "action": "abm.add.action",
-      "args": {
-        "target": "new:0,-400"
+      "create": {
+        "type": "abm.toolbox.action",
+        "at": {
+          "x": 0,
+          "y": -400
+        }
       },
       "refused": {
         "reason": "Drop the node below the node it belongs under: a Do in order, a Try in order, a Do together, or a Retry, Repeat until, Only while or Ask approval before that has no child yet."
@@ -553,9 +575,9 @@
     },
     {
       "action": "abm.move-earlier",
-      "args": {
-        "target": "1.1"
-      },
+      "select": [
+        "1.1"
+      ],
       "refused": {
         "reason": "That action is not available for this item."
       },
@@ -566,9 +588,10 @@
       }
     },
     {
-      "action": "abm.connect.child",
-      "args": {
-        "target": "rel:1.1.1->1.2"
+      "connect": {
+        "type": "abm.connect.child",
+        "source": "1.1.1",
+        "target": "1.2"
       },
       "refused": {
         "reason": "\"Do\" holds no children."
@@ -614,21 +637,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "2f18863",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "2f18863",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "2f18863",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

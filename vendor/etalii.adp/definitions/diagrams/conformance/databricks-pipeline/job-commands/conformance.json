@@ -113,7 +113,10 @@
     {
       "action": "databricks.add-task:notebook",
       "args": {
-        "target": "new:600,400"
+        "at": {
+          "x": 600,
+          "y": 400
+        }
       },
       "expectFile": "after-1.yml",
       "findings": [
@@ -149,7 +152,10 @@
     {
       "action": "databricks.add-task:python",
       "args": {
-        "target": "new:860,400"
+        "at": {
+          "x": 860,
+          "y": 400
+        }
       },
       "expectFile": "after-2.yml",
       "findings": [
@@ -185,7 +191,10 @@
     {
       "action": "databricks.add-task:condition",
       "args": {
-        "target": "new:1120,400"
+        "at": {
+          "x": 1120,
+          "y": 400
+        }
       },
       "expectFile": "after-3.yml",
       "findings": [
@@ -219,9 +228,10 @@
       }
     },
     {
-      "action": "databricks.connect",
-      "args": {
-        "target": "rel:task:ingest->task:shape"
+      "connect": {
+        "type": "databricks.connect",
+        "source": "task:ingest",
+        "target": "task:shape"
       },
       "refused": {
         "reason": "'shape' already depends on 'ingest'."
@@ -263,28 +273,28 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (bytes)"
     },
     "reading": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

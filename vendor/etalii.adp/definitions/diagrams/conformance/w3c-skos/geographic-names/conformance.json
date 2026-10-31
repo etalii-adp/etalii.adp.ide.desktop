@@ -16212,9 +16212,10 @@
       }
     },
     {
-      "action": "skos.file-under",
-      "args": {
-        "target": "rel:res:http://zbw.eu/stw/thsys/70026->res:http://zbw.eu/stw/thsys/70002"
+      "connect": {
+        "type": "skos.file-under",
+        "source": "res:http://zbw.eu/stw/thsys/70026",
+        "target": "res:http://zbw.eu/stw/thsys/70002"
       },
       "ids": [
         "edge:res:http://zbw.eu/stw/thsys/70026|http://www.w3.org/2004/02/skos/core#broader|res:http://zbw.eu/stw/thsys/70002"
@@ -16226,9 +16227,10 @@
       }
     },
     {
-      "action": "skos.relate",
-      "args": {
-        "target": "rel:res:http://zbw.eu/stw/thsys/70076->res:http://zbw.eu/stw/thsys/70002"
+      "connect": {
+        "type": "skos.relate",
+        "source": "res:http://zbw.eu/stw/thsys/70076",
+        "target": "res:http://zbw.eu/stw/thsys/70002"
       },
       "ids": [
         "edge:res:http://zbw.eu/stw/thsys/70002|http://www.w3.org/2004/02/skos/core#related|res:http://zbw.eu/stw/thsys/70076"
@@ -16240,9 +16242,10 @@
       }
     },
     {
-      "action": "skos.file-under",
-      "args": {
-        "target": "rel:res:http://zbw.eu/stw/thsys/70076->res:http://zbw.eu/stw/thsys/70076"
+      "connect": {
+        "type": "skos.file-under",
+        "source": "res:http://zbw.eu/stw/thsys/70076",
+        "target": "res:http://zbw.eu/stw/thsys/70076"
       },
       "refused": {
         "reason": "A concept cannot be filed under or related to itself."
@@ -16256,9 +16259,11 @@
     {
       "action": "skos.disconnect",
       "args": {
-        "target": "edge:res:http://zbw.eu/stw/thsys/70002|http://www.w3.org/2004/02/skos/core#broader|res:http://zbw.eu/stw/thsys/g",
         "confirm": true
       },
+      "select": [
+        "edge:res:http://zbw.eu/stw/thsys/70002|http://www.w3.org/2004/02/skos/core#broader|res:http://zbw.eu/stw/thsys/g"
+      ],
       "expectFile": "after-5.ttl",
       "findings": [],
       "drawing": {
@@ -16283,9 +16288,9 @@
     },
     {
       "action": "skos.disconnect",
-      "args": {
-        "target": "edge:res:http://zbw.eu/stw/thsys/70026|http://www.w3.org/2004/02/skos/core#broader|res:http://zbw.eu/stw/thsys/70002"
-      },
+      "select": [
+        "edge:res:http://zbw.eu/stw/thsys/70026|http://www.w3.org/2004/02/skos/core#broader|res:http://zbw.eu/stw/thsys/70002"
+      ],
       "expectFile": "after-6.ttl",
       "findings": [],
       "drawing": {
@@ -16293,9 +16298,14 @@
       }
     },
     {
-      "action": "skos.add-concept",
+      "create": {
+        "type": "skos.toolbox.concept",
+        "at": {
+          "x": 120,
+          "y": 40
+        }
+      },
       "args": {
-        "target": "new:120,40",
         "value": "Antarctica"
       },
       "ids": [
@@ -16310,9 +16320,11 @@
     {
       "action": "rdf.rename-resource",
       "args": {
-        "target": "res:http://zbw.eu/stw/thsys/70198",
         "value": "<http://zbw.eu/stw/thsys/70198b>"
       },
+      "select": [
+        "res:http://zbw.eu/stw/thsys/70198"
+      ],
       "ids": [
         "res:http://zbw.eu/stw/thsys/70198b",
         "edge:res:http://zbw.eu/stw/descriptor/15895-5|http://www.w3.org/2004/02/skos/core#broader|res:http://zbw.eu/stw/thsys/70198b",
@@ -16395,21 +16407,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

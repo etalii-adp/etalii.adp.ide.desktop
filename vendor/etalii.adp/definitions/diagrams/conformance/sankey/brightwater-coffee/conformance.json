@@ -521,9 +521,9 @@
     },
     {
       "action": "sankey.increase",
-      "args": {
-        "target": "cafes->revenue"
-      },
+      "select": [
+        "cafes->revenue"
+      ],
       "expectFile": "after-7.skv",
       "findings": [],
       "drawing": {
@@ -532,9 +532,9 @@
     },
     {
       "action": "sankey.decrease",
-      "args": {
-        "target": "packaged->revenue"
-      },
+      "select": [
+        "packaged->revenue"
+      ],
       "expectFile": "after-8.skv",
       "findings": [],
       "drawing": {
@@ -555,9 +555,9 @@
     },
     {
       "action": "sankey.increase",
-      "args": {
-        "target": "wholesale->revenue"
-      },
+      "select": [
+        "wholesale->revenue"
+      ],
       "expectFile": "after-10.skv",
       "findings": [],
       "drawing": {
@@ -591,7 +591,10 @@
     {
       "action": "sankey.thicker",
       "args": {
-        "target": "new:0,0"
+        "at": {
+          "x": 0,
+          "y": 0
+        }
       },
       "expectFile": "after-13.skv",
       "findings": [],
@@ -602,7 +605,10 @@
     {
       "action": "sankey.thicker",
       "args": {
-        "target": "new:0,0"
+        "at": {
+          "x": 0,
+          "y": 0
+        }
       },
       "expectFile": "after-14.skv",
       "findings": [],
@@ -613,7 +619,10 @@
     {
       "action": "sankey.thinner",
       "args": {
-        "target": "new:0,0"
+        "at": {
+          "x": 0,
+          "y": 0
+        }
       },
       "expectFile": "after-13.skv",
       "findings": [],
@@ -622,9 +631,12 @@
       }
     },
     {
-      "action": "sankey.add",
-      "args": {
-        "target": "new:1300,100"
+      "create": {
+        "type": "sankey.toolbox.node",
+        "at": {
+          "x": 1300,
+          "y": 100
+        }
       },
       "ids": [
         "4qy5135gxh6e47yl06j4itbqi"
@@ -638,9 +650,11 @@
     {
       "action": "sankey.rename",
       "args": {
-        "target": "4qy5135gxh6e47yl06j4itbqi",
         "value": "Dividends"
       },
+      "select": [
+        "4qy5135gxh6e47yl06j4itbqi"
+      ],
       "expectFile": "after-16.skv",
       "findings": [],
       "drawing": {
@@ -648,9 +662,10 @@
       }
     },
     {
-      "action": "sankey.connect",
-      "args": {
-        "target": "rel:net-profit->4qy5135gxh6e47yl06j4itbqi"
+      "connect": {
+        "type": "sankey.connect",
+        "source": "net-profit",
+        "target": "4qy5135gxh6e47yl06j4itbqi"
       },
       "ids": [
         "net-profit->4qy5135gxh6e47yl06j4itbqi"
@@ -669,9 +684,10 @@
       }
     },
     {
-      "action": "sankey.connect",
-      "args": {
-        "target": "rel:cafes->revenue"
+      "connect": {
+        "type": "sankey.connect",
+        "source": "cafes",
+        "target": "revenue"
       },
       "refused": {
         "reason": "These two are already joined by a flow in this direction; change its value instead."
@@ -691,9 +707,9 @@
     },
     {
       "action": "sankey.decrease",
-      "args": {
-        "target": "net-profit->4qy5135gxh6e47yl06j4itbqi"
-      },
+      "select": [
+        "net-profit->4qy5135gxh6e47yl06j4itbqi"
+      ],
       "expectFile": "after-18.skv",
       "findings": [
         {
@@ -750,9 +766,11 @@
     {
       "action": "sankey.remove",
       "args": {
-        "target": "general",
         "confirm": true
       },
+      "select": [
+        "general"
+      ],
       "expectFile": "after-21.skv",
       "findings": [
         {
@@ -798,9 +816,9 @@
     },
     {
       "action": "sankey.remove",
-      "args": {
-        "target": "operating-expenses->research"
-      },
+      "select": [
+        "operating-expenses->research"
+      ],
       "expectFile": "after-22.skv",
       "findings": [
         {
@@ -817,7 +835,10 @@
     {
       "action": "sankey.arrange",
       "args": {
-        "target": "new:0,0"
+        "at": {
+          "x": 0,
+          "y": 0
+        }
       },
       "expectFile": "after-23.skv",
       "findings": [
@@ -884,9 +905,11 @@
     {
       "action": "sankey.rename",
       "args": {
-        "target": "research",
         "value": "R&D"
       },
+      "select": [
+        "research"
+      ],
       "expectFile": "after-25.skv",
       "findings": [
         {
@@ -903,9 +926,11 @@
     {
       "action": "sankey.rename",
       "args": {
-        "target": "cost-of-revenue",
         "value": "  "
       },
+      "select": [
+        "cost-of-revenue"
+      ],
       "refused": {
         "reason": "A node needs a name."
       },
@@ -946,6 +971,9 @@
         "attribute": "Colour",
         "value": "(default)"
       },
+      "select": [
+        "cafes"
+      ],
       "expectFile": "after-27.skv",
       "findings": [
         {
@@ -971,21 +999,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

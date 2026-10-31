@@ -2089,9 +2089,10 @@
       }
     },
     {
-      "action": "owl.subclass",
-      "args": {
-        "target": "rel:res:http://www.w3.org/ns/prov#Plan->res:http://www.w3.org/ns/prov#Bundle"
+      "connect": {
+        "type": "owl.subclass",
+        "source": "res:http://www.w3.org/ns/prov#Plan",
+        "target": "res:http://www.w3.org/ns/prov#Bundle"
       },
       "ids": [
         "edge:res:http://www.w3.org/ns/prov#Plan|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Bundle"
@@ -2103,9 +2104,10 @@
       }
     },
     {
-      "action": "owl.subclass",
-      "args": {
-        "target": "rel:res:http://www.w3.org/ns/prov#Person->res:http://www.w3.org/ns/prov#Agent"
+      "connect": {
+        "type": "owl.subclass",
+        "source": "res:http://www.w3.org/ns/prov#Person",
+        "target": "res:http://www.w3.org/ns/prov#Agent"
       },
       "refused": {
         "reason": "That subclass relation is already asserted; drawing it again would state nothing new."
@@ -2117,9 +2119,14 @@
       }
     },
     {
-      "action": "owl.add-class",
+      "create": {
+        "type": "owl.toolbox.class",
+        "at": {
+          "x": 200,
+          "y": 1800
+        }
+      },
       "args": {
-        "target": "new:200,1800",
         "value": ":Recipe"
       },
       "ids": [
@@ -2132,9 +2139,14 @@
       }
     },
     {
-      "action": "owl.add-object-property",
+      "create": {
+        "type": "owl.toolbox.object-property",
+        "at": {
+          "x": 400,
+          "y": 1800
+        }
+      },
       "args": {
-        "target": "new:400,1800",
         "value": ":followedRecipe"
       },
       "ids": [
@@ -2149,9 +2161,14 @@
       }
     },
     {
-      "action": "owl.add-datatype-property",
+      "create": {
+        "type": "owl.toolbox.datatype-property",
+        "at": {
+          "x": 600,
+          "y": 1800
+        }
+      },
       "args": {
-        "target": "new:600,1800",
         "value": ":servings"
       },
       "ids": [
@@ -2166,9 +2183,14 @@
       }
     },
     {
-      "action": "owl.add-individual",
+      "create": {
+        "type": "owl.toolbox.individual",
+        "at": {
+          "x": 800,
+          "y": 1800
+        }
+      },
       "args": {
-        "target": "new:800,1800",
         "value": ":grandmasPie"
       },
       "ids": [
@@ -2181,9 +2203,10 @@
       }
     },
     {
-      "action": "owl.subclass",
-      "args": {
-        "target": "rel:res:http://www.w3.org/ns/prov#Recipe->res:http://www.w3.org/ns/prov#Plan"
+      "connect": {
+        "type": "owl.subclass",
+        "source": "res:http://www.w3.org/ns/prov#Recipe",
+        "target": "res:http://www.w3.org/ns/prov#Plan"
       },
       "ids": [
         "edge:res:http://www.w3.org/ns/prov#Recipe|http://www.w3.org/2000/01/rdf-schema#subClassOf|res:http://www.w3.org/ns/prov#Plan"
@@ -2195,9 +2218,12 @@
       }
     },
     {
-      "action": "rdf.connect",
+      "connect": {
+        "type": "rdf.connect",
+        "source": "res:http://www.w3.org/ns/prov#Recipe",
+        "target": "res:http://www.w3.org/ns/prov#Role"
+      },
       "args": {
-        "target": "rel:res:http://www.w3.org/ns/prov#Recipe->res:http://www.w3.org/ns/prov#Role",
         "value": "rdfs:seeAlso"
       },
       "expectFile": "after-8.ttl",
@@ -2209,9 +2235,11 @@
     {
       "action": "rdf.rename-resource",
       "args": {
-        "target": "res:http://www.w3.org/ns/prov#Role",
         "value": ":Part"
       },
+      "select": [
+        "res:http://www.w3.org/ns/prov#Role"
+      ],
       "ids": [
         "res:http://www.w3.org/ns/prov#Part",
         "edge:res:http://www.w3.org/ns/prov#Influence|http://www.w3.org/ns/prov#hadRole|res:http://www.w3.org/ns/prov#Part"
@@ -2244,9 +2272,9 @@
     },
     {
       "action": "rdf.remove-resource",
-      "args": {
-        "target": "res:http://www.w3.org/ns/prov#servings"
-      },
+      "select": [
+        "res:http://www.w3.org/ns/prov#servings"
+      ],
       "expectFile": "after-11.ttl",
       "findings": [],
       "drawing": {
@@ -2256,9 +2284,11 @@
     {
       "action": "rdf.remove-resource",
       "args": {
-        "target": "res:http://www.w3.org/ns/prov#Recipe",
         "confirm": true
       },
+      "select": [
+        "res:http://www.w3.org/ns/prov#Recipe"
+      ],
       "expectFile": "after-12.ttl",
       "findings": [],
       "drawing": {
@@ -2343,21 +2373,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

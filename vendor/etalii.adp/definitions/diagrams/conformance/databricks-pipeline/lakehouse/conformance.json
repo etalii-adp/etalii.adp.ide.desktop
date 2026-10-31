@@ -167,9 +167,11 @@
     {
       "action": "databricks.add-library:file",
       "args": {
-        "target": "pipeline",
         "value": "  transformations/udfs.py "
       },
+      "select": [
+        "pipeline"
+      ],
       "ids": [
         "library:transformations/udfs.py",
         "flow:transformations/udfs.py->pipeline"
@@ -183,9 +185,11 @@
     {
       "action": "databricks.add-library:notebook",
       "args": {
-        "target": "pipeline",
         "value": "transformations/bronze"
       },
+      "select": [
+        "pipeline"
+      ],
       "refused": {
         "reason": "The notebook library 'transformations/bronze' is already there."
       },
@@ -197,9 +201,9 @@
     },
     {
       "action": "databricks.remove-library",
-      "args": {
-        "target": "library:transformations/silver"
-      },
+      "select": [
+        "library:transformations/silver"
+      ],
       "expectFile": "after-3.yml",
       "findings": [],
       "drawing": {
@@ -278,9 +282,9 @@
     },
     {
       "action": "databricks.remove-library",
-      "args": {
-        "target": "library:transformations/gold/**"
-      },
+      "select": [
+        "library:transformations/gold/**"
+      ],
       "expectFile": "after-7.yml",
       "findings": [],
       "drawing": {
@@ -289,9 +293,9 @@
     },
     {
       "action": "databricks.simulated.pipeline-update",
-      "args": {
-        "target": "pipeline"
-      },
+      "select": [
+        "pipeline"
+      ],
       "expectFile": "after-7.yml",
       "findings": [],
       "drawing": {
@@ -373,21 +377,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

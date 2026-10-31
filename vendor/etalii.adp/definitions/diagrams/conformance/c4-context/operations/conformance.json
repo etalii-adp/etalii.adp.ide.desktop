@@ -298,9 +298,11 @@
     {
       "action": "c4.rename",
       "args": {
-        "target": "api",
         "value": "Tracking API"
       },
+      "select": [
+        "api"
+      ],
       "expectFile": "after-1.dsl",
       "findings": [],
       "drawing": {
@@ -310,9 +312,11 @@
     {
       "action": "c4.edit-description",
       "args": {
-        "target": "api",
         "value": "Books deliveries and answers where a parcel is."
       },
+      "select": [
+        "api"
+      ],
       "expectFile": "after-2.dsl",
       "findings": [],
       "drawing": {
@@ -322,9 +326,11 @@
     {
       "action": "c4.set-technology",
       "args": {
-        "target": "api",
         "value": "Java 21"
       },
+      "select": [
+        "api"
+      ],
       "expectFile": "after-3.dsl",
       "findings": [],
       "drawing": {
@@ -334,9 +340,11 @@
     {
       "action": "c4.set-technology",
       "args": {
-        "target": "sender",
         "value": "Browser"
       },
+      "select": [
+        "sender"
+      ],
       "refused": {
         "reason": "A person has no technology in C4; only containers, components and infrastructure do."
       },
@@ -349,9 +357,11 @@
     {
       "action": "c4.rename",
       "args": {
-        "target": "sender",
         "value": ""
       },
+      "select": [
+        "sender"
+      ],
       "expectFile": "after-4.dsl",
       "findings": [],
       "drawing": {
@@ -361,9 +371,11 @@
     {
       "action": "c4.relabel",
       "args": {
-        "target": "spa->api@88",
         "value": "Calls the API of"
       },
+      "select": [
+        "spa->api@88"
+      ],
       "expectFile": "after-5.dsl",
       "findings": [],
       "drawing": {
@@ -373,9 +385,11 @@
     {
       "action": "c4.set-protocol",
       "args": {
-        "target": "spa->api@88",
         "value": "gRPC"
       },
+      "select": [
+        "spa->api@88"
+      ],
       "expectFile": "after-6.dsl",
       "findings": [],
       "drawing": {
@@ -383,9 +397,14 @@
       }
     },
     {
-      "action": "c4.add-person",
+      "create": {
+        "type": "c4.toolbox.person",
+        "at": {
+          "x": 900,
+          "y": -200
+        }
+      },
       "args": {
-        "target": "new:900,-200",
         "value": "Dispatcher"
       },
       "expectFile": "after-7.dsl",
@@ -402,9 +421,14 @@
       }
     },
     {
-      "action": "c4.add-softwaresystem",
+      "create": {
+        "type": "c4.toolbox.softwaresystem",
+        "at": {
+          "x": 900,
+          "y": 400
+        }
+      },
       "args": {
-        "target": "new:900,400",
         "value": "Billing"
       },
       "expectFile": "after-8.dsl",
@@ -429,9 +453,11 @@
     {
       "action": "c4.add-container",
       "args": {
-        "target": "tracking",
         "value": "Worker"
       },
+      "select": [
+        "tracking"
+      ],
       "expectFile": "after-9.dsl",
       "findings": [
         {
@@ -460,9 +486,11 @@
     {
       "action": "c4.add-component",
       "args": {
-        "target": "api",
         "value": "Scanner"
       },
+      "select": [
+        "api"
+      ],
       "expectFile": "after-10.dsl",
       "findings": [
         {
@@ -497,9 +525,11 @@
     {
       "action": "c4.add-container",
       "args": {
-        "target": "tracking",
         "value": "Web Application"
       },
+      "select": [
+        "tracking"
+      ],
       "expectFile": "after-11.dsl",
       "findings": [
         {
@@ -540,8 +570,11 @@
     {
       "action": "c4.add-deploymentnode",
       "args": {
-        "target": "new:1200,400",
-        "value": "Edge"
+        "value": "Edge",
+        "at": {
+          "x": 1200,
+          "y": 400
+        }
       },
       "refused": {
         "reason": "That element is no longer in this model."
@@ -661,28 +694,28 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "db80761",
+      "recordedWith": "e390321",
       "source": "atd record (bytes)"
     },
     "reading": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "db80761",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "db80761",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "db80761",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

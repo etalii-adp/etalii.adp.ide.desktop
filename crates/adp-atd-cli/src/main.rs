@@ -107,7 +107,9 @@ fn record_command(args: &[String]) -> ExitCode {
     let value = |flag: &str| args.iter().position(|a| a == flag).and_then(|i| args.get(i + 1));
     if args.iter().any(|a| a == "--check") {
         let vendor = adp_parity::repository_root().join("vendor/etalii.adp");
-        return match record::check::check(&vendor) {
+        let checked = record::check::check(&vendor);
+        report_unstated();
+        return match checked {
             Ok(differences) if differences.is_empty() => {
                 println!("Every vendored case and capability fixture records as vendored.");
                 ExitCode::SUCCESS
@@ -148,7 +150,9 @@ fn record_command(args: &[String]) -> ExitCode {
     let (Some(origin), Some(cases)) = (args.first().filter(|a| !a.starts_with("--")), value("--cases")) else {
         return usage("record needs an origin and --cases <dir>");
     };
-    match record::record(origin, Path::new(cases), value("--description").map(String::as_str)) {
+    let recorded = record::record(origin, Path::new(cases), value("--description").map(String::as_str));
+    report_unstated();
+    match recorded {
         Ok(folders) => {
             for folder in folders {
                 println!("{}", folder.display());
@@ -159,6 +163,19 @@ fn record_command(args: &[String]) -> ExitCode {
             eprintln!("atd record: {problem}");
             ExitCode::from(1)
         }
+    }
+}
+
+/// Names on stderr every gesture just recorded that ATD's steps cannot state, and how many (spec 067, FR-007): each
+/// stays in its case as the parity script has it.
+#[cfg(feature = "record")]
+fn report_unstated() {
+    let unstated = record::take_unstated();
+    for gesture in &unstated {
+        eprintln!("atd record: ATD cannot state {gesture}");
+    }
+    if !unstated.is_empty() {
+        eprintln!("atd record: {} gesture(s) ATD cannot state.", unstated.len());
     }
 }
 

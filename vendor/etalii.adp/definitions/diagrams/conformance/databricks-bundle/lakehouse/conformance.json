@@ -137,9 +137,11 @@
     {
       "action": "databricks.add-resource:jobs",
       "args": {
-        "target": "bundle",
         "value": "nightly_ingest_v2"
       },
+      "select": [
+        "bundle"
+      ],
       "ids": [
         "resource:jobs/nightly_ingest_v2"
       ],
@@ -152,9 +154,11 @@
     {
       "action": "databricks.add-resource:pipelines",
       "args": {
-        "target": "bundle",
         "value": "silver_only"
       },
+      "select": [
+        "bundle"
+      ],
       "ids": [
         "resource:pipelines/silver_only"
       ],
@@ -167,9 +171,11 @@
     {
       "action": "databricks.add-resource:jobs",
       "args": {
-        "target": "bundle",
         "value": " audit "
       },
+      "select": [
+        "bundle"
+      ],
       "ids": [
         "resource:jobs/audit"
       ],
@@ -182,9 +188,11 @@
     {
       "action": "databricks.add-resource:pipelines",
       "args": {
-        "target": "bundle",
         "value": "silver_only"
       },
+      "select": [
+        "bundle"
+      ],
       "refused": {
         "reason": "A pipelines resource named 'silver_only' is already there."
       },
@@ -212,9 +220,9 @@
     },
     {
       "action": "databricks.simulated.deploy",
-      "args": {
-        "target": "target:dev"
-      },
+      "select": [
+        "target:dev"
+      ],
       "expectFile": "after-5.yml",
       "findings": [],
       "drawing": {
@@ -343,21 +351,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

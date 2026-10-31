@@ -439,9 +439,12 @@
       }
     },
     {
-      "action": "fdg.add.function",
-      "args": {
-        "target": "new:1200,640"
+      "create": {
+        "type": "fdg.toolbox.function",
+        "at": {
+          "x": 1200,
+          "y": 640
+        }
       },
       "ids": [
         "8eg94tfqireqo7cyvhnaoela1"
@@ -465,9 +468,10 @@
       }
     },
     {
-      "action": "fdg.connect.owns-function",
-      "args": {
-        "target": "rel:sync-queue->8eg94tfqireqo7cyvhnaoela1"
+      "connect": {
+        "type": "fdg.connect.owns-function",
+        "source": "sync-queue",
+        "target": "8eg94tfqireqo7cyvhnaoela1"
       },
       "ids": [
         "6vt0l08bq0e2ea43mnk1vaf4m"
@@ -479,9 +483,10 @@
       }
     },
     {
-      "action": "fdg.connect.owns-function",
-      "args": {
-        "target": "rel:upload-photos->8eg94tfqireqo7cyvhnaoela1"
+      "connect": {
+        "type": "fdg.connect.owns-function",
+        "source": "upload-photos",
+        "target": "8eg94tfqireqo7cyvhnaoela1"
       },
       "refused": {
         "reason": "the standalone host generated no further id at step 11, but the desktop host creates a owns-function"
@@ -493,9 +498,10 @@
       }
     },
     {
-      "action": "fdg.connect.shows",
-      "args": {
-        "target": "rel:tick-step->step-list"
+      "connect": {
+        "type": "fdg.connect.shows",
+        "source": "tick-step",
+        "target": "step-list"
       },
       "ids": [
         "4yd4ikhg7xnaz1wl8kpj0dnfu"
@@ -507,9 +513,10 @@
       }
     },
     {
-      "action": "fdg.connect.shows",
-      "args": {
-        "target": "rel:open-task->task-list"
+      "connect": {
+        "type": "fdg.connect.shows",
+        "source": "open-task",
+        "target": "task-list"
       },
       "refused": {
         "reason": "the standalone host generated no further id at step 13, but the desktop host creates a shows"
@@ -521,9 +528,10 @@
       }
     },
     {
-      "action": "fdg.connect.ui-child",
-      "args": {
-        "target": "rel:task-row->planning"
+      "connect": {
+        "type": "fdg.connect.ui-child",
+        "source": "task-row",
+        "target": "planning"
       },
       "refused": {
         "reason": "the standalone host generated no further id at step 14, but the desktop host creates a ui-child"
@@ -535,9 +543,10 @@
       }
     },
     {
-      "action": "fdg.connect.owns-action",
-      "args": {
-        "target": "rel:open-task->tick-step"
+      "connect": {
+        "type": "fdg.connect.owns-action",
+        "source": "open-task",
+        "target": "tick-step"
       },
       "refused": {
         "reason": "the standalone host generated no further id at step 15, but the desktop host creates a owns-action"
@@ -587,9 +596,12 @@
       }
     },
     {
-      "action": "fdg.add.comment",
-      "args": {
-        "target": "new:200,760"
+      "create": {
+        "type": "fdg.toolbox.comment",
+        "at": {
+          "x": 200,
+          "y": 760
+        }
       },
       "ids": [
         "6vnlhd8l5rxs2tl29489e5mj1"
@@ -664,9 +676,9 @@
     },
     {
       "action": "fdg.disconnect",
-      "args": {
-        "target": "c-day-cache"
-      },
+      "select": [
+        "c-day-cache"
+      ],
       "expectFile": "after-17.fdg",
       "findings": [],
       "drawing": {
@@ -675,9 +687,9 @@
     },
     {
       "action": "fdg.remove",
-      "args": {
-        "target": "note-round-trip"
-      },
+      "select": [
+        "note-round-trip"
+      ],
       "expectFile": "after-18.fdg",
       "findings": [],
       "drawing": {
@@ -695,9 +707,11 @@
     {
       "action": "fdg.rename",
       "args": {
-        "target": "note-offline",
         "value": "Everything must work offline.\nSync waits for a connection."
       },
+      "select": [
+        "note-offline"
+      ],
       "expectFile": "after-19.fdg",
       "findings": [],
       "drawing": {
@@ -705,9 +719,12 @@
       }
     },
     {
-      "action": "fdg.add.data-element",
-      "args": {
-        "target": "new:1500,700"
+      "create": {
+        "type": "fdg.toolbox.data-element",
+        "at": {
+          "x": 1500,
+          "y": 700
+        }
       },
       "ids": [
         "bq7tb6ivg0irbwo4nekv485v8"
@@ -742,21 +759,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

@@ -174,9 +174,11 @@
     {
       "action": "databricks.set-run-if",
       "args": {
-        "target": "task:publish",
         "value": "ALL_DONE"
       },
+      "select": [
+        "task:publish"
+      ],
       "expectFile": "after-2.yml",
       "findings": [],
       "drawing": {
@@ -198,9 +200,11 @@
     {
       "action": "databricks.assign-cluster",
       "args": {
-        "target": "task:publish",
         "value": "ingest_cluster"
       },
+      "select": [
+        "task:publish"
+      ],
       "expectFile": "after-4.yml",
       "findings": [],
       "drawing": {
@@ -250,9 +254,10 @@
       }
     },
     {
-      "action": "databricks.connect",
-      "args": {
-        "target": "rel:task:land_raw->task:refresh_dashboard"
+      "connect": {
+        "type": "databricks.connect",
+        "source": "task:land_raw",
+        "target": "task:refresh_dashboard"
       },
       "ids": [
         "edge:land_raw->refresh_dashboard"
@@ -264,9 +269,10 @@
       }
     },
     {
-      "action": "databricks.connect",
-      "args": {
-        "target": "rel:task:land_raw->task:refresh_dashboard"
+      "connect": {
+        "type": "databricks.connect",
+        "source": "task:land_raw",
+        "target": "task:refresh_dashboard"
       },
       "refused": {
         "reason": "'refresh_dashboard' already depends on 'land_raw'."
@@ -278,9 +284,12 @@
       }
     },
     {
-      "action": "databricks.add-task:notebook",
-      "args": {
-        "target": "new:600,400"
+      "create": {
+        "type": "databricks.toolbox.notebook-task",
+        "at": {
+          "x": 600,
+          "y": 400
+        }
       },
       "ids": [
         "task:notebook_1"
@@ -292,9 +301,10 @@
       }
     },
     {
-      "action": "databricks.connect",
-      "args": {
-        "target": "rel:task:refresh_dashboard->task:notebook_1"
+      "connect": {
+        "type": "databricks.connect",
+        "source": "task:refresh_dashboard",
+        "target": "task:notebook_1"
       },
       "ids": [
         "edge:refresh_dashboard->notebook_1"
@@ -306,9 +316,12 @@
       }
     },
     {
-      "action": "databricks.add-task:condition",
-      "args": {
-        "target": "new:860,400"
+      "create": {
+        "type": "databricks.toolbox.condition-task",
+        "at": {
+          "x": 860,
+          "y": 400
+        }
       },
       "ids": [
         "task:condition_1"
@@ -320,9 +333,12 @@
       }
     },
     {
-      "action": "databricks.add-task:python",
-      "args": {
-        "target": "new:860,520"
+      "create": {
+        "type": "databricks.toolbox.python-task",
+        "at": {
+          "x": 860,
+          "y": 520
+        }
       },
       "ids": [
         "task:python_1"
@@ -334,9 +350,12 @@
       }
     },
     {
-      "action": "databricks.add-task:notebook",
-      "args": {
-        "target": "new:600,520"
+      "create": {
+        "type": "databricks.toolbox.notebook-task",
+        "at": {
+          "x": 600,
+          "y": 520
+        }
       },
       "ids": [
         "task:notebook_2"
@@ -349,9 +368,9 @@
     },
     {
       "action": "databricks.disconnect:publish",
-      "args": {
-        "target": "task:refresh_dashboard"
-      },
+      "select": [
+        "task:refresh_dashboard"
+      ],
       "expectFile": "after-12.yml",
       "findings": [],
       "drawing": {
@@ -360,9 +379,9 @@
     },
     {
       "action": "databricks.remove-edge",
-      "args": {
-        "target": "edge:refresh_dashboard->notebook_1"
-      },
+      "select": [
+        "edge:refresh_dashboard->notebook_1"
+      ],
       "expectFile": "after-13.yml",
       "findings": [],
       "drawing": {
@@ -388,9 +407,11 @@
     {
       "action": "databricks.rename-task",
       "args": {
-        "target": "task:publish",
         "value": "land_raw"
       },
+      "select": [
+        "task:publish"
+      ],
       "refused": {
         "reason": "A task named 'land_raw' is already there."
       },
@@ -402,9 +423,9 @@
     },
     {
       "action": "databricks.remove-task",
-      "args": {
-        "target": "task:gate"
-      },
+      "select": [
+        "task:gate"
+      ],
       "expectFile": "after-13.yml",
       "findings": [],
       "drawing": {
@@ -414,9 +435,11 @@
     {
       "action": "databricks.remove-task",
       "args": {
-        "target": "task:gate",
         "confirm": true
       },
+      "select": [
+        "task:gate"
+      ],
       "expectFile": "after-14.yml",
       "findings": [],
       "drawing": {
@@ -433,9 +456,9 @@
     },
     {
       "action": "databricks.remove-task",
-      "args": {
-        "target": "task:python_1"
-      },
+      "select": [
+        "task:python_1"
+      ],
       "expectFile": "after-15.yml",
       "findings": [],
       "drawing": {
@@ -444,9 +467,9 @@
     },
     {
       "action": "databricks.simulated.run-job",
-      "args": {
-        "target": "task:publish"
-      },
+      "select": [
+        "task:publish"
+      ],
       "expectFile": "after-15.yml",
       "findings": [],
       "drawing": {
@@ -524,9 +547,11 @@
     {
       "action": "databricks.rename-task",
       "args": {
-        "target": "task:notebook_2",
         "value": "  report  "
       },
+      "select": [
+        "task:notebook_2"
+      ],
       "ids": [
         "task:report"
       ],
@@ -539,9 +564,11 @@
     {
       "action": "databricks.set-run-if",
       "args": {
-        "target": "task:report",
         "value": "AT_LEAST_ONE_SUCCESS"
       },
+      "select": [
+        "task:report"
+      ],
       "expectFile": "after-17.yml",
       "findings": [],
       "drawing": {
@@ -572,21 +599,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

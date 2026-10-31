@@ -185,9 +185,11 @@
     {
       "action": "databricks.assign-cluster",
       "args": {
-        "target": "task:publish",
         "value": "warp_core"
       },
+      "select": [
+        "task:publish"
+      ],
       "refused": {
         "reason": "There is no cluster named 'warp_core' in this job."
       },
@@ -198,9 +200,10 @@
       }
     },
     {
-      "action": "databricks.connect",
-      "args": {
-        "target": "rel:task:ingest->task:ingest"
+      "connect": {
+        "type": "databricks.connect",
+        "source": "task:ingest",
+        "target": "task:ingest"
       },
       "refused": {
         "reason": "A task cannot depend on itself."
@@ -212,9 +215,10 @@
       }
     },
     {
-      "action": "databricks.connect",
-      "args": {
-        "target": "rel:task:ingest->task:quality_gate"
+      "connect": {
+        "type": "databricks.connect",
+        "source": "task:ingest",
+        "target": "task:quality_gate"
       },
       "refused": {
         "reason": "'quality_gate' already depends on 'ingest'."
@@ -227,9 +231,9 @@
     },
     {
       "action": "databricks.disconnect:ingest",
-      "args": {
-        "target": "task:quality_gate"
-      },
+      "select": [
+        "task:quality_gate"
+      ],
       "expectFile": "after-1.yml",
       "findings": [],
       "drawing": {
@@ -250,28 +254,28 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (bytes)"
     },
     "reading": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "d78ee5f",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }

@@ -366,9 +366,12 @@
       }
     },
     {
-      "action": "add-agent",
-      "args": {
-        "target": "new:400,-120"
+      "create": {
+        "type": "agent",
+        "at": {
+          "x": 400,
+          "y": -120
+        }
       },
       "ids": [
         "6xe90awwiog7f15dpcecgsrmo"
@@ -393,9 +396,10 @@
       }
     },
     {
-      "action": "connect",
-      "args": {
-        "target": "rel:s-conversion->6xe90awwiog7f15dpcecgsrmo"
+      "connect": {
+        "type": "connect",
+        "source": "s-conversion",
+        "target": "6xe90awwiog7f15dpcecgsrmo"
       },
       "ids": [
         "specification:6xe90awwiog7f15dpcecgsrmo"
@@ -416,9 +420,11 @@
     {
       "action": "editLabel",
       "args": {
-        "target": "6xe90awwiog7f15dpcecgsrmo",
         "value": "Conversion thread"
       },
+      "select": [
+        "6xe90awwiog7f15dpcecgsrmo"
+      ],
       "expectFile": "after-6.aad",
       "findings": [
         {
@@ -433,9 +439,12 @@
       }
     },
     {
-      "action": "add-location",
-      "args": {
-        "target": "new:620.4,-200.6"
+      "create": {
+        "type": "location",
+        "at": {
+          "x": 620.4,
+          "y": -200.6
+        }
       },
       "ids": [
         "a7zb4lrkzfnnnyn9zi9e7i7vi"
@@ -466,9 +475,10 @@
       }
     },
     {
-      "action": "connect",
-      "args": {
-        "target": "rel:a7zb4lrkzfnnnyn9zi9e7i7vi->6xe90awwiog7f15dpcecgsrmo"
+      "connect": {
+        "type": "connect",
+        "source": "a7zb4lrkzfnnnyn9zi9e7i7vi",
+        "target": "6xe90awwiog7f15dpcecgsrmo"
       },
       "ids": [
         "agent:a7zb4lrkzfnnnyn9zi9e7i7vi"
@@ -506,9 +516,10 @@
       }
     },
     {
-      "action": "connect",
-      "args": {
-        "target": "rel:a7zb4lrkzfnnnyn9zi9e7i7vi->e-cloud"
+      "connect": {
+        "type": "connect",
+        "source": "a7zb4lrkzfnnnyn9zi9e7i7vi",
+        "target": "e-cloud"
       },
       "ids": [
         "environment:a7zb4lrkzfnnnyn9zi9e7i7vi"
@@ -520,9 +531,10 @@
       }
     },
     {
-      "action": "connect",
-      "args": {
-        "target": "rel:a-module->s-fbl"
+      "connect": {
+        "type": "connect",
+        "source": "a-module",
+        "target": "s-fbl"
       },
       "refused": {
         "reason": "\"Module thread\" is already joined to \"Agent activity diagram\". Remove that line first: each agent has one specification."
@@ -534,9 +546,10 @@
       }
     },
     {
-      "action": "connect",
-      "args": {
-        "target": "rel:p-ide->e-fractal"
+      "connect": {
+        "type": "connect",
+        "source": "p-ide",
+        "target": "e-fractal"
       },
       "refused": {
         "reason": "A project cannot be joined to an environment. A project is joined to a specification."
@@ -575,9 +588,9 @@
     },
     {
       "action": "collapse-group",
-      "args": {
-        "target": "s-module#progressing"
-      },
+      "select": [
+        "s-module#progressing"
+      ],
       "expectFile": "after-13.aad",
       "findings": [],
       "drawing": {
@@ -586,9 +599,9 @@
     },
     {
       "action": "expand-group",
-      "args": {
-        "target": "s-module#pending"
-      },
+      "select": [
+        "s-module#pending"
+      ],
       "expectFile": "after-14.aad",
       "findings": [],
       "drawing": {
@@ -597,9 +610,9 @@
     },
     {
       "action": "show-archived",
-      "args": {
-        "target": "diagram view"
-      },
+      "select": [
+        "diagram view"
+      ],
       "expectFile": "after-15.aad",
       "findings": [],
       "drawing": {
@@ -647,9 +660,9 @@
     },
     {
       "action": "unpin",
-      "args": {
-        "target": "a-definitions"
-      },
+      "select": [
+        "a-definitions"
+      ],
       "expectFile": "after-18.aad",
       "findings": [],
       "drawing": {
@@ -690,9 +703,9 @@
     },
     {
       "action": "hide-archived",
-      "args": {
-        "target": "diagram view"
-      },
+      "select": [
+        "diagram view"
+      ],
       "expectFile": "after-21.aad",
       "findings": [],
       "drawing": {
@@ -701,9 +714,9 @@
     },
     {
       "action": "delete",
-      "args": {
-        "target": "s-definitions"
-      },
+      "select": [
+        "s-definitions"
+      ],
       "expectFile": "after-22.aad",
       "findings": [],
       "drawing": {
@@ -721,7 +734,10 @@
     {
       "action": "unpinAll",
       "args": {
-        "target": "new:0,0"
+        "at": {
+          "x": 0,
+          "y": 0
+        }
       },
       "expectFile": "after-23.aad",
       "findings": [],
@@ -731,9 +747,9 @@
     },
     {
       "action": "expand-group",
-      "args": {
-        "target": "s-module#progressing"
-      },
+      "select": [
+        "s-module#progressing"
+      ],
       "expectFile": "after-24.aad",
       "findings": [],
       "drawing": {
@@ -752,21 +768,21 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "e390321",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "e390321",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e728fc8",
+      "recordedWith": "e390321",
       "source": "atd record (drawing)"
     }
   }
