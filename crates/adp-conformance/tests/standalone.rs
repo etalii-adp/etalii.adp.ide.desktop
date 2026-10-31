@@ -21,7 +21,7 @@ use std::sync::OnceLock;
 use adp_cel::{Map, Value};
 use adp_fbl::documents::{self, FblBinding, ProblemSeverity};
 use adp_fbl::{
-    BodyReading, FblModel, FblOptions, IdRequest, ModelChange, OpenBody, OpenRegistration, Operation, PlanResult,
+    BodyReading, FblModel, FblOptions, IdRequest, ModelChange, OpenBody, OpenDocument, Operation, PlanResult,
     PlannedEdit, Setting, SettingPosition, Splice, UndoResult,
 };
 use serde_json::Value as Json;
@@ -60,7 +60,27 @@ const STANDALONE_FIXTURES: [&str; 21] = [
 
 /// The fixtures of the `grammar` family (FBL 0.9 section 4.9), which no host but this one is required to read: run
 /// as the standalone host's are, by [`the_grammar_family_fixtures_pass`].
-const GRAMMAR_FIXTURES: [&str; 2] = ["w3c-turtle-grammar", "w3c-turtle-grammar-partial"];
+const GRAMMAR_FIXTURES: [&str; 19] = [
+    "grammar-comment-start",
+    "grammar-remove-part",
+    "structurizr-open-block",
+    "structurizr-absent-arguments",
+    "structurizr-add-view",
+    "structurizr-block-comments",
+    "structurizr-comments",
+    "structurizr-escapes",
+    "structurizr-gathered-tags",
+    "structurizr-legacy-layout",
+    "structurizr-recover-edges",
+    "structurizr-recover-nested",
+    "structurizr-rename",
+    "structurizr-trailing-comments",
+    "structurizr-view-statements",
+    "structurizr-view-without-key/default-key",
+    "structurizr-view-without-key/no-view",
+    "w3c-turtle-grammar",
+    "w3c-turtle-grammar-partial",
+];
 
 /// The fixtures the library departs from, which [`the_yaml_family_departs_from_the_fixture_only_as_recorded`] and
 /// [`the_json_family_departs_from_the_fixture_only_as_recorded`] run with the departure written out, as the
@@ -92,7 +112,7 @@ const KNOWLEDGE_STEPS: [(&str, usize, usize); 4] = [
 /// the standalone host does not vendor either. They are out of scope here, not failing: etalii.adp's splice replay
 /// (`fixtures.rs`) still runs every one of them. The hierarchical-requirement tool type's fixtures are run by
 /// [`hierarchical_requirement`], through the stand-in for its DESL interpreter.
-const NOT_SUPPORTED: [&str; 61] = [
+const NOT_SUPPORTED: [&str; 44] = [
     // The standalone host does not vendor this one at a7fdf03 either: its Retry's attempts is read as the text "1",
     // as every value of a lines or bullets group is, and the fixture reads the number 1, which the specification's
     // type gives it above FBL (agent-behavior-modelling.dis, `Retry.attempts: int`).
@@ -101,10 +121,9 @@ const NOT_SUPPORTED: [&str; 61] = [
     "insert-constant-json-read",
     "insert-constant-yaml",
     "insert-constant-yaml-read",
-    // FBL 0.10 to 0.12 (etalii.adp spec 066), which this port does not have: the grammar binding of Structurizr, the
-    // readings of one Databricks file, and the Wardley map. Most edit several files at once, which `fixtures.rs` leaves
-    // out as well, so nothing here runs them yet.
-    "structurizr-open-block",
+    // FBL 0.10 to 0.13 (etalii.adp spec 066), which this port does not have yet: the readings of one Databricks file,
+    // the Wardley map, and several items written in one argument. Their splices are replayed by `fixtures.rs` only,
+    // each leaving this list as its construct is written.
     "databricks-flow-empty/job",
     "databricks-flow-empty/read-back",
     "databricks-flow-one-line/job",
@@ -128,22 +147,6 @@ const NOT_SUPPORTED: [&str; 61] = [
     "databricks-secondary/both",
     "databricks-secondary/legacy",
     "databricks-template-key",
-    "grammar-comment-start",
-    "grammar-remove-part",
-    "structurizr-absent-arguments",
-    "structurizr-add-view",
-    "structurizr-block-comments",
-    "structurizr-comments",
-    "structurizr-escapes",
-    "structurizr-gathered-tags",
-    "structurizr-legacy-layout",
-    "structurizr-recover-edges",
-    "structurizr-recover-nested",
-    "structurizr-rename",
-    "structurizr-trailing-comments",
-    "structurizr-view-statements",
-    "structurizr-view-without-key/default-key",
-    "structurizr-view-without-key/no-view",
     "wardley-annotation-positions",
     "wardley-brace-ending",
     "wardley-comments/comments-everywhere",
@@ -211,11 +214,9 @@ fn natural_id(binding: &str, request: &IdRequest<'_>) -> Option<String> {
             request.source.unwrap_or_default(),
             request.target.unwrap_or_default()
         ),
-        ("workspace", "relationship") => format!(
-            "{}->{}",
-            request.source.unwrap_or_default(),
-            request.target.unwrap_or_default()
-        ),
+        // The C4 types' `persistence.ids` (c4-*.dis): a relationship's ends as written and its line.
+        ("workspace", "relationship") => format!("{}->{}@{}", a("from"), a("to"), request.line),
+        ("workspace", "interaction") => format!("interaction:{}->{}@{}", a("from"), a("to"), request.line),
         // The agent activity diagram (DISL 0.4, persistence.view.bind): the root is the diagram, and a locked
         // position and a group state are view data, keyed by the element they name.
         ("aad", "diagram") => "diagram".into(),
@@ -398,45 +399,46 @@ enum Subject {
     },
     /// A registration opened through its binding (FBL 0.7 section 8.1). When its body is beside it, the body is read
     /// too, as the document the registration opens: its elements are the reading's, and the ids the registration's
-    /// stale entries are told by (FBL section 8.5); the findings are the body's and the registration's.
-    Registration {
-        registration: Box<OpenRegistration>,
-        read: Option<FblModel>,
-    },
+    /// stale entries are told by (FBL section 8.5); the findings are the body's, the registration's and those of a
+    /// legacy layout (FBL 0.11 section 8.7). An edit goes to the file that holds what it changes.
+    Registration(Box<OpenDocument>),
+}
+
+/// What a binding's tool type gives a body's reading, as FBL leaves it to the specification (DISL section 11.5).
+fn options_of(binding_name: &str, file_name: &str) -> FblOptions {
+    let derive_name = binding_name.to_owned();
+    FblOptions {
+        file_name: file_name.to_owned(),
+        derive_id: Some(Rc::new(move |request: &IdRequest<'_>| {
+            natural_id(&derive_name, request)
+        })),
+        time_attributes: time_attributes(binding_name),
+        attribute_type: (binding_name == "timeline").then(|| type_of(timeline_types())),
+        // The C4 types' `persistence.ids.missing`, and the attributes of their `ViewInclude` that hold lists.
+        ephemeral_missing_ids: binding_name == "workspace",
+        many: (binding_name == "workspace").then(|| {
+            let many: adp_fbl::model::Many = Rc::new(|element: &str, attribute: &str| {
+                element == "ViewInclude" && matches!(attribute, "members" | "excludes")
+            });
+            many
+        }),
+        ..FblOptions::default()
+    }
 }
 
 impl Subject {
     fn open(input: Vec<u8>, name: &str, binding: Rc<FblBinding>, folder: &Path) -> Subject {
         if name.to_lowercase().ends_with(".adp") {
-            let mut registration = OpenRegistration::open_with(input, &binding);
-            let body_name = registration.document().body().map(str::to_owned);
-            let read = body_name.and_then(|body_name| {
-                let bytes = fs::read(folder.join(&body_name)).ok()?;
-                let options = FblOptions {
-                    file_name: body_name,
-                    ..FblOptions::default()
-                };
-                let mut model = OpenBody::open(bytes, binding.clone(), Rc::new(options)).model();
-                registration.known_ids = Some(model.elements.iter().map(|e| e.id.clone()).collect());
-                model.findings.extend(registration.findings(name));
-                Some(model)
-            });
-            return Subject::Registration {
-                registration: Box::new(registration),
-                read,
-            };
+            let options = options_of(&binding.name, name);
+            return Subject::Registration(Box::new(OpenDocument::open(
+                input,
+                &folder.join(name),
+                binding,
+                options,
+                &fixtures_root(),
+            )));
         }
-        let binding_name = binding.name.clone();
-        let derive_name = binding_name.clone();
-        let options = FblOptions {
-            file_name: name.to_owned(),
-            derive_id: Some(Rc::new(move |request: &IdRequest<'_>| {
-                natural_id(&derive_name, request)
-            })),
-            time_attributes: time_attributes(&binding_name),
-            attribute_type: (binding_name == "timeline").then(|| type_of(timeline_types())),
-            ..FblOptions::default()
-        };
+        let options = options_of(&binding.name, name);
         Subject::Body {
             body: Box::new(OpenBody::open(input, binding.clone(), Rc::new(options))),
             binding,
@@ -446,20 +448,20 @@ impl Subject {
     fn bytes(&self) -> Vec<u8> {
         match self {
             Subject::Body { body, .. } => body.bytes().to_vec(),
-            Subject::Registration { registration, .. } => registration.bytes().to_vec(),
+            Subject::Registration(document) => document.registration().bytes().to_vec(),
         }
     }
 
     fn model(&self) -> Option<FblModel> {
         match self {
             Subject::Body { body, .. } => Some(body.model()),
-            Subject::Registration { read, .. } => read.clone(),
+            Subject::Registration(document) => document.model(),
         }
     }
 
     fn change(&mut self, change: &ModelChange) -> PlanResult {
         match self {
-            Subject::Registration { registration, .. } => registration.change(change),
+            Subject::Registration(document) => document.change(change),
             Subject::Body { body, binding } => {
                 if let ModelChange::Remove { id } = change {
                     let unsets = unsets(body, binding, id);
@@ -475,14 +477,30 @@ impl Subject {
     fn undo(&mut self) -> UndoResult {
         match self {
             Subject::Body { body, .. } => body.undo(),
-            Subject::Registration { registration, .. } => registration.undo(),
+            Subject::Registration(document) => document.undo(),
         }
     }
 
     fn redo(&mut self) -> UndoResult {
         match self {
             Subject::Body { body, .. } => body.redo(),
-            Subject::Registration { registration, .. } => registration.redo(),
+            Subject::Registration(document) => document.redo(),
+        }
+    }
+
+    /// The name of the file the last edit wrote, when it is not the fixture's input (FBL 0.10 section 15.3).
+    fn edited_file(&self) -> Option<&str> {
+        match self {
+            Subject::Body { .. } => None,
+            Subject::Registration(document) => document.last_file(),
+        }
+    }
+
+    /// A file of the document by the name a fixture's `expectFiles` gives it.
+    fn file(&self, name: &str) -> Option<Vec<u8>> {
+        match self {
+            Subject::Body { .. } => None,
+            Subject::Registration(document) => document.file(name).map(<[u8]>::to_vec),
         }
     }
 }
@@ -675,6 +693,20 @@ fn written(value: &Value) -> String {
     }
 }
 
+fn same_value(actual: &Value, expected: &Json) -> bool {
+    match expected {
+        Json::String(s) => actual.as_str() == Some(s.as_str()),
+        Json::Number(n) => actual.as_number().is_some_and(|a| Some(a) == n.as_f64()),
+        Json::Bool(b) => matches!(actual, Value::Bool(x) if x == b),
+        Json::Null => actual.is_null(),
+        Json::Array(items) => match actual {
+            Value::List(list) => list.len() == items.len() && list.iter().zip(items).all(|(a, e)| same_value(a, e)),
+            _ => false,
+        },
+        Json::Object(_) => false,
+    }
+}
+
 /// Each attribute a fixture's element names has that value and that JSON type, a string for a text (FBL 0.5
 /// section 15.3); an attribute it does not name is not compared.
 fn check_attributes(element: &adp_fbl::FblElement, attributes: &Json, name: &str) -> Result<(), String> {
@@ -683,13 +715,7 @@ fn check_attributes(element: &adp_fbl::FblElement, attributes: &Json, name: &str
         let Some(actual) = element.attributes.get(attribute) else {
             return Err(format!("{label} was not read."));
         };
-        let same = match expected {
-            Json::String(s) => actual.as_str() == Some(s.as_str()),
-            Json::Number(n) => actual.as_number().is_some_and(|a| Some(a) == n.as_f64()),
-            Json::Bool(b) => matches!(actual, Value::Bool(x) if x == b),
-            Json::Null => actual.is_null(),
-            _ => false,
-        };
+        let same = same_value(actual, expected);
         if !same {
             return Err(format!(
                 "{label} is {}, where the fixture reads {expected}.",
@@ -700,7 +726,62 @@ fn check_attributes(element: &adp_fbl::FblElement, attributes: &Json, name: &str
     Ok(())
 }
 
+/// The attributes of the C4 types' diagram (`persistence.typeMap` of c4-*.dis, `as: "diagram"`): a binding type's
+/// attribute under the name the diagram has it by, its own unless the map renames it, with every value it was read
+/// with, as a fixture's `document` lists them (FBL 0.11 section 9.3).
+fn check_document(model: &FblModel, read: &Json, name: &str) -> Result<(), String> {
+    let Some(attributes) = read.pointer("/document/attributes").and_then(Json::as_object) else {
+        return Ok(());
+    };
+    for (attribute, expected) in attributes {
+        let wire = match attribute.as_str() {
+            "workspaceName" => "name",
+            "includes" => "members",
+            other => other,
+        };
+        let mut values: Vec<&Value> = Vec::new();
+        for element in model
+            .elements
+            .iter()
+            .filter(|e| matches!(e.type_name.as_str(), "Workspace" | "ViewInclude"))
+        {
+            values.extend(element.attributes.get(wire));
+        }
+        // A number is compared as written: the type comes from the specification, which this runner does not read.
+        let written = |value: &Value| match value {
+            Value::String(s) => s.clone(),
+            other => other.to_string(),
+        };
+        let same = match expected {
+            Json::Null => values.is_empty(),
+            Json::Array(items) => {
+                let read: Vec<String> = values
+                    .iter()
+                    .flat_map(|v| match v {
+                        Value::List(list) => list.iter().map(written).collect::<Vec<_>>(),
+                        other => vec![written(other)],
+                    })
+                    .collect();
+                let items: Vec<String> = items
+                    .iter()
+                    .map(|i| i.as_str().unwrap_or_default().to_owned())
+                    .collect();
+                read == items
+            }
+            Json::Number(n) => values.len() == 1 && written(values[0]) == n.to_string(),
+            other => values.len() == 1 && same_value(values[0], other),
+        };
+        if !same {
+            return Err(format!(
+                "{name}: the document's {attribute} is {values:?}, where the fixture reads {expected}."
+            ));
+        }
+    }
+    Ok(())
+}
+
 fn check_read(model: &FblModel, read: &Json, name: &str) -> Result<(), String> {
+    check_document(model, read, name)?;
     if let Some(unreadable) = read.get("unreadable").and_then(Json::as_bool)
         && unreadable != model.unreadable
     {
@@ -830,6 +911,29 @@ fn run(name: &str, folder: &Path, fixture: &Json) -> Result<usize, String> {
                 describe(&expected),
                 describe(&actual)
             ));
+        }
+        for file in step["splices"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(|s| s["file"].as_str())
+        {
+            if subject.edited_file() != Some(file) {
+                return Err(format!(
+                    "{label}: the splices are of {file}, and the edit wrote {:?}.",
+                    subject.edited_file()
+                ));
+            }
+        }
+        for (file, bytes) in step.get("expectFiles").and_then(Json::as_object).into_iter().flatten() {
+            let held = subject.file(file);
+            if held.as_deref() != bytes.as_str().map(str::as_bytes) {
+                return Err(format!(
+                    "{label}: {file} differs from 'expectFiles'.\nExpected:\n{}\nActual:\n{}",
+                    bytes.as_str().unwrap_or_default(),
+                    String::from_utf8_lossy(&held.unwrap_or_default())
+                ));
+            }
         }
         // A step that names no document leaves the one it started from.
         let expect = match (

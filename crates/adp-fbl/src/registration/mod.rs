@@ -8,6 +8,7 @@
 mod blocks;
 #[cfg(test)]
 mod blocks_tests;
+pub mod document;
 pub mod legacy_sidecar;
 
 use std::collections::{HashMap, HashSet};
@@ -439,6 +440,11 @@ impl OpenRegistration {
             findings.extend(self.document.stale_entries(ids, file_name, &self.declarations));
         }
         findings
+    }
+
+    /// Whether writes to the block `name` are steps of the history (FBL 0.7 section 8.1).
+    pub(crate) fn keeps_in_history(&self, name: &str) -> bool {
+        self.declaration(name).is_none_or(|d| d.in_history)
     }
 
     fn declaration(&self, name: &str) -> Option<&RegistrationBlockDeclaration> {

@@ -504,6 +504,10 @@ fn read_binding(name: &str, json: &Json, pointer: &str, problems: &mut Vec<LoadP
                 within: optional_strings(b, "within"),
                 case_insensitive: flag(b, "caseInsensitive"),
                 view: s(b, "view"),
+                at: s(b, "at"),
+                view_slot: b.get("view").filter(|v| v.is_object()).map(read_slot),
+                origins: strings(b, "origins"),
+                insert: b.get("insert").map(read_insert),
             })
             .collect(),
         sections: array(json, "sections")
@@ -619,6 +623,19 @@ fn read_grammar(json: &Json, pointer: &str, problems: &mut Vec<LoadProblem>) -> 
     let recover = json.get("recover").map(|r| Recover {
         unit: s(r, "unit").unwrap_or_default(),
         sync: strings(r, "sync"),
+        nested: r.get("nested").map(|n| NestedRecover {
+            open: s(n, "open").unwrap_or_default(),
+            close: s(n, "close").unwrap_or_default(),
+        }),
+        unclosed: r
+            .get("unclosed")
+            .and_then(Json::as_object)
+            .map(|u| {
+                u.iter()
+                    .map(|(k, v)| (k.clone(), v.as_str().unwrap_or_default().to_owned()))
+                    .collect()
+            })
+            .unwrap_or_default(),
     });
     let settings = match json.get("grammar") {
         Some(Json::String(text)) => GrammarSettings {
@@ -682,6 +699,48 @@ fn read_text(json: &Json) -> TextDefaults {
     }
 }
 
+fn read_insert(ins: &Json) -> InsertSettings {
+    // {before: key} is recognised so every family can refuse it; no family places by it yet.
+    let place = match ins.get("place") {
+        Some(Json::Object(_)) => "before".to_owned(),
+        Some(Json::String(p)) => p.clone(),
+        _ => "end".to_owned(),
+    };
+    let create = ins.get("create").map(|c| match c.get("at") {
+        Some(Json::String(at)) => CreateContainer {
+            at: at.clone(),
+            argument: None,
+            text: s(c, "text"),
+        },
+        Some(Json::Object(at)) => {
+            let (name, value) = at
+                .iter()
+                .next()
+                .map(|(k, v)| (k.clone(), v.as_str().map(str::to_owned)))
+                .unwrap_or_default();
+            CreateContainer {
+                at: name,
+                argument: value,
+                text: s(c, "text"),
+            }
+        }
+        _ => CreateContainer {
+            at: String::new(),
+            argument: None,
+            text: s(c, "text"),
+        },
+    });
+    InsertSettings {
+        place,
+        container: s(ins, "container"),
+        create,
+        keys: strings(ins, "keys"),
+        emit: s(ins, "emit"),
+        skeleton: s(ins, "skeleton"),
+        when: s(ins, "when"),
+    }
+}
+
 fn read_rule(json: &Json, relation: bool) -> Rule {
     let id = json.get("id").map(|id| IdBinding {
         from: id.get("from").map(read_slot),
@@ -696,47 +755,7 @@ fn read_rule(json: &Json, relation: bool) -> Rule {
         .and_then(Json::as_object)
         .map(|a| a.iter().map(|(k, v)| (k.clone(), read_attribute(v))).collect())
         .unwrap_or_default();
-    let insert = json.get("insert").map(|ins| {
-        // {before: key} is recognised so every family can refuse it; no family places by it yet.
-        let place = match ins.get("place") {
-            Some(Json::Object(_)) => "before".to_owned(),
-            Some(Json::String(p)) => p.clone(),
-            _ => "end".to_owned(),
-        };
-        let create = ins.get("create").map(|c| match c.get("at") {
-            Some(Json::String(at)) => CreateContainer {
-                at: at.clone(),
-                argument: None,
-                text: s(c, "text"),
-            },
-            Some(Json::Object(at)) => {
-                let (name, value) = at
-                    .iter()
-                    .next()
-                    .map(|(k, v)| (k.clone(), v.as_str().map(str::to_owned)))
-                    .unwrap_or_default();
-                CreateContainer {
-                    at: name,
-                    argument: value,
-                    text: s(c, "text"),
-                }
-            }
-            _ => CreateContainer {
-                at: String::new(),
-                argument: None,
-                text: s(c, "text"),
-            },
-        });
-        InsertSettings {
-            place,
-            container: s(ins, "container"),
-            create,
-            keys: strings(ins, "keys"),
-            emit: s(ins, "emit"),
-            skeleton: s(ins, "skeleton"),
-            when: s(ins, "when"),
-        }
-    });
+    let insert = json.get("insert").map(read_insert);
     let remove = json.get("remove").map(|rem| {
         let container = s(rem, "container");
         RemoveSettings {
@@ -756,6 +775,11 @@ fn read_rule(json: &Json, relation: bool) -> Rule {
         line: s(json, "line"),
         within: optional_strings(json, "within"),
         opens: flag(json, "opens"),
+        opens_text: json.get("opens").filter(|o| o.is_object()).map(|o| OpensText {
+            open: s(o, "open").unwrap_or_default(),
+            close: s(o, "close").unwrap_or_default(),
+        }),
+        selected_view: flag(json, "selectedView"),
         case_insensitive: flag(json, "caseInsensitive"),
         files: strings(json, "files"),
         when: s(json, "when"),
@@ -786,7 +810,17 @@ fn read_slot(json: &Json) -> Slot {
         flag: flag(json, "flag"),
         node: s(json, "node"),
         node_match: s(json, "match"),
+        escape: json.get("escape").and_then(read_escape),
+        split: s(json, "split"),
     }
+}
+
+fn read_escape(json: &Json) -> Option<SlotEscape> {
+    let one = |name: &str| s(json, name).and_then(|text| text.chars().next());
+    Some(SlotEscape {
+        with: one("with")?,
+        quote: one("quote")?,
+    })
 }
 
 fn read_attribute(json: &Json) -> AttributeBinding {
@@ -808,6 +842,8 @@ fn read_attribute(json: &Json) -> AttributeBinding {
                 place: "last".into(),
                 before: None,
                 at_end: true,
+                after: Vec::new(),
+                pad: false,
             }
         } else if let Some(Json::Object(_)) = place {
             CreateChild {
@@ -815,6 +851,8 @@ fn read_attribute(json: &Json) -> AttributeBinding {
                 place: "before".into(),
                 before: place.and_then(|p| s(p, "before")),
                 at_end: false,
+                after: Vec::new(),
+                pad: false,
             }
         } else {
             CreateChild {
@@ -822,6 +860,8 @@ fn read_attribute(json: &Json) -> AttributeBinding {
                 place: place.and_then(Json::as_str).unwrap_or("last").to_owned(),
                 before: None,
                 at_end: false,
+                after: strings(c, "after"),
+                pad: flag(c, "pad"),
             }
         }
     });
@@ -856,6 +896,7 @@ fn read_attribute(json: &Json) -> AttributeBinding {
             value: f.get("value").cloned().unwrap_or(Json::Null),
             report: f.get("report").and_then(Json::as_bool) != Some(false),
         }),
+        gather: array(json, "gather").iter().map(read_slot).collect(),
     }
 }
 
@@ -1039,6 +1080,7 @@ fn check(binding: &FblBinding, pointer: &str, problems: &mut Vec<LoadProblem>) {
                 check_slot(o, context, &format!("{a}/override"), problems);
             }
             check_scalar_options(attribute, scalars, &a, problems);
+            check_grammar_options(attribute, &a, problems);
             if count_slots(attribute) != 1 {
                 problems.push(error(
                     a.clone(),
@@ -1134,6 +1176,27 @@ fn check_scalar_options(attribute: &AttributeBinding, scalars: bool, pointer: &s
             problems.push(error(
                 format!("{pointer}/{option}"),
                 format!("'{option}' is not given on {place} (FBL 5.2)."),
+            ));
+        }
+    }
+}
+
+/// FBL 0.11 section 14.1: `gather` is given on a read-only binding only; FBL 0.13: `split` holds neither of the
+/// characters of the slot's `escape`.
+fn check_grammar_options(attribute: &AttributeBinding, pointer: &str, problems: &mut Vec<LoadProblem>) {
+    if !attribute.gather.is_empty() && attribute.read_only.is_none() {
+        problems.push(error(
+            format!("{pointer}/gather"),
+            "A binding with 'gather' is read-only (FBL 5.2).",
+        ));
+    }
+    for slot in std::iter::once(&attribute.slot).chain(&attribute.gather) {
+        if let (Some(split), Some(escape)) = (&slot.split, &slot.escape)
+            && split.contains([escape.with, escape.quote])
+        {
+            problems.push(error(
+                format!("{pointer}/split"),
+                "'split' holds neither of the characters of the slot's 'escape' (FBL 4.9).",
             ));
         }
     }

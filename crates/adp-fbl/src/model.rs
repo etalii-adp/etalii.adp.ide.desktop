@@ -71,6 +71,12 @@ pub mod codes {
     pub const UNREADABLE_ENTRY: &str = "std.unreadableEntry";
     /// *(FBL 0.9)* Text of a `grammar` body read in part that does not parse (FBL section 4.9).
     pub const UNPARSED_TEXT: &str = "fbl.unparsed-text";
+    /// *(FBL 0.11)* A block of a `grammar` body read with `recover.nested` is still open at its end (FBL section 4.9).
+    pub const UNCLOSED_BLOCK: &str = "fbl.unclosed-block";
+    /// *(FBL 0.11)* A `close` token that closes no block (FBL section 4.9).
+    pub const UNMATCHED_CLOSE: &str = "fbl.unmatched-close";
+    /// *(FBL 0.11)* A token of a terminal named in `recover.unclosed` that does not end with its text (FBL section 4.9).
+    pub const UNCLOSED_COMMENT: &str = "fbl.unclosed-comment";
     pub const MISSING_ID: &str = "std.missingId";
     pub const DUPLICATE_ID: &str = "std.duplicateId";
     pub const PLUGIN_MISSING: &str = "std.pluginMissing";
@@ -178,6 +184,14 @@ pub struct FblOptions {
     /// word of its group that matches, as a list (FBL 0.7 section 4.6); without this, it holds the first. A binding
     /// does not carry it.
     pub many: Option<Many>,
+    /// The origin of the reading (FBL section 8.1), which a block rule's `origins` admits (FBL 0.11 section 4.9). None
+    /// reads every block rule's entries as views.
+    pub origin: Option<String>,
+    /// The registration's `view` header (FBL section 9.3), which selects the view `selectedView` rules read inside.
+    pub view: Option<String>,
+    /// Whether the tool type's specification gives `ids.missing: "ephemeral"` (DISL section 11.5): an entry a rule
+    /// reads no stored id for is then addressed by its place without `std.missingId`.
+    pub ephemeral_missing_ids: bool,
     /// The binding types the tool type's specification maps as unreadable (DESL section 5.2): an entry a rule of such
     /// a type takes is an unreadable entry, reported and kept, and nothing nested in it is looked into (FBL 0.7
     /// sections 4.8, 7.4).
@@ -229,6 +243,9 @@ impl Default for FblOptions {
             derive_id: None,
             attribute_type: None,
             many: None,
+            origin: None,
+            view: None,
+            ephemeral_missing_ids: false,
             unreadable_types: HashSet::new(),
             time_attributes: HashSet::new(),
             report_unbound_keys: false,

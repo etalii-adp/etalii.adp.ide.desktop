@@ -261,6 +261,7 @@ impl Family {
     pub fn block_candidates(&self, block: usize) -> Vec<Candidate> {
         match &self.kind {
             FamilyKind::Lines(_) => self.lines_block_candidates(block),
+            FamilyKind::Grammar(_) => self.grammar_block_candidates(block),
             _ => Vec::new(),
         }
     }
@@ -356,9 +357,11 @@ impl Family {
 
     /// Reads a word slot of an attribute the tool type's specification gives `many` (FBL 0.7 section 4.6): every
     /// word of the group that matches, each an item; a slot of a family without words, or no word slot, as any slot.
-    pub fn read_many(&self, candidate: &Candidate, slot: &Slot) -> SlotRead {
+    pub fn read_many(&self, candidate: &Candidate, attribute: &AttributeBinding) -> SlotRead {
+        let slot = &attribute.slot;
         let many = match &self.kind {
             FamilyKind::Lines(_) if !slot.continuation => self.lines_read_many(candidate, slot),
+            FamilyKind::Grammar(_) if slot.node.is_some() => Some(self.grammar_read_many(candidate, attribute)),
             _ => None,
         };
         many.unwrap_or_else(|| self.read(candidate, slot, false))
