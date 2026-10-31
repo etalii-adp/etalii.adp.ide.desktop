@@ -9,7 +9,7 @@ pub(crate) mod scalars;
 use adp_cel::Value;
 
 use crate::documents::types::{AttributeBinding, InsertSettings};
-use crate::families::tree::{TreeEntry, ValueId, ValueKind, ValueStyle};
+use crate::families::tree::{NewMember, TreeEntry, ValueId, ValueKind, ValueStyle};
 use crate::families::{Entry, EntryId, EntryKind, Family};
 use crate::model::{FindingSeverity, codes};
 use crate::planning::new_text;
@@ -64,7 +64,8 @@ impl Family {
         }
         for i in 0..self.order.len() {
             let id = self.order[i];
-            if !self.entries[id].tree().is_root {
+            // An item of a flow sequence has a json item's span, whatever lines it stands on (FBL 0.10 section 4.3).
+            if !self.entries[id].tree().is_root && !self.in_flow(id) {
                 self.entries[id].line_span = self.yaml_line_span_of(id);
             }
         }
@@ -153,6 +154,13 @@ impl Family {
                 scalars::double_quoted(&written)
             };
         }
+        // A reference rewritten inside a flow item stays one scalar of it (FBL 0.10 section 6.2).
+        if let (Some(member), Some(old)) = (member, old)
+            && self.in_flow(member)
+            && self.tree_value(old).style == ValueStyle::Plain
+        {
+            written = self.flow_scalar(written, &written_value);
+        }
         if old.is_some_and(|o| self.tree_value(o).style == ValueStyle::Empty) {
             format!(" {written}")
         } else {
@@ -229,10 +237,26 @@ impl Family {
         if scalars::is_plain_safe(&value, time_typed) {
             return value;
         }
-        if self.binding.text.quote == "single" && !multiline {
-            scalars::single_quoted(&value)
+        self.yaml_quoted(&value)
+    }
+
+    /// A string quoted as `text.quote` says, double-quoted when it runs over several lines (FBL section 6.3).
+    fn yaml_quoted(&self, value: &str) -> String {
+        if self.binding.text.quote == "single" && !value.contains(['\n', '\r']) {
+            scalars::single_quoted(value)
         } else {
-            scalars::double_quoted(&value)
+            scalars::double_quoted(value)
+        }
+    }
+
+    /// `written`, what section 6.3 writes for `value`, quoted when it stands plain and holds what a flow collection
+    /// would read as its own (FBL 0.10 section 6.2).
+    fn flow_scalar(&self, written: String, value: &Value) -> String {
+        match value {
+            Value::String(plain) if *plain == written && written.contains(FLOW_INDICATORS) => {
+                self.yaml_quoted(&written)
+            }
+            _ => written,
         }
     }
 
@@ -332,6 +356,11 @@ impl Family {
                 return refuse(format!(
                     "The {} file has no mapping to write '{key}' in.",
                     self.binding.name
+                ));
+            }
+            if self.tree_value(mapping).style == ValueStyle::FlowMapping {
+                return refuse(format!(
+                    "'{key}' would go inside a flow mapping, whose only writable span is the whole collection."
                 ));
             }
             self.insert_key(plan, mapping, key, change);
@@ -455,14 +484,34 @@ impl Family {
             .clone()
             .unwrap_or_else(|| container_of(rule.at.as_deref()));
         let container = self.container(&selector, parent, &captures);
-        let keys = self.item_lines(plan, request);
+        let members = self.new_members(plan, request)?;
+        let keys = self.item_lines(&members, request);
         if keys.is_empty() {
             return refuse(format!("A new {} would have no keys to write.", rule.type_name));
         }
         let Some(container) = container else {
+            if parent.is_some_and(|p| self.value_of(p).style == ValueStyle::FlowMapping) {
+                return refuse(format!(
+                    "The {selector} would go inside a flow mapping, which takes no insert."
+                ));
+            }
             return self.ensure_container(plan, insert, &selector, parent, &keys);
         };
         let value = self.value_of(container);
+        match value.style {
+            ValueStyle::FlowSequence if value.via_alias => {
+                return refuse(format!(
+                    "The {selector} is reached through an alias, so it is read-only."
+                ));
+            }
+            ValueStyle::FlowSequence => return self.flow_insert(plan, insert, container, &members, &keys, &selector),
+            ValueStyle::FlowMapping => {
+                return refuse(format!(
+                    "The {selector} of this file is written as a flow mapping, which takes no insert."
+                ));
+            }
+            _ => {}
+        }
         if value.kind == ValueKind::Sequence {
             let siblings = &value.entries;
             let previous = match insert.place.as_str() {
@@ -508,12 +557,34 @@ impl Family {
             );
             return Ok(());
         }
-        if value.style == ValueStyle::FlowSequence
-            && matches!(&value.flow, Some(Value::List(l)) if l.is_empty())
-            && let Some(key_span) = self.entries[container].tree().key_span
-        {
-            // An empty flow sequence ("elements: []", the template's) becomes a block sequence: the flow value goes
-            // and the item follows on its own line.
+        refuse(format!(
+            "The {selector} of this file is not a list a {} can be added to.",
+            rule.type_name
+        ))
+    }
+
+    /// An insert into a flow sequence (FBL 0.10 section 6.2, *Flow sequences*): an empty one is opened into a block
+    /// sequence, a one-line one takes the item inside it, and one written over several lines takes none.
+    fn flow_insert(
+        &self,
+        plan: &mut Plan<'_>,
+        insert: &InsertSettings,
+        container: EntryId,
+        members: &[NewMember<'_>],
+        keys: &[String],
+        selector: &str,
+    ) -> Planning {
+        let value = self.value_of(container);
+        let inside = Span::new(value.span.start + 1, value.span.end - 1);
+        if self.is_whitespace(inside) {
+            let Some(key_span) = self.entries[container]
+                .tree()
+                .key_span
+                .filter(|_| !self.in_flow(container))
+            else {
+                return refuse(format!("The {selector} is inside a flow collection, so it stays one."));
+            };
+            // The flow value goes with the whitespace before it, and the item follows on its own line.
             let colon = self.text.text(key_span.end, value.span.start).find(':').unwrap_or(0);
             plan.add(Operation::ReplaceValue, key_span.end + colon + 1, value.span.end, "");
             let offset = self.line_end_after(container);
@@ -522,14 +593,60 @@ impl Family {
                 Operation::InsertEntry,
                 offset,
                 offset,
-                self.yaml_new_line(offset, &self.item(&keys, dash, dash + 2)),
+                self.yaml_new_line(offset, &self.item(keys, dash, dash + 2)),
             );
             return Ok(());
         }
-        refuse(format!(
-            "The {selector} of this file is not a list a {} can be added to.",
-            rule.type_name
-        ))
+        if self.text.line_index_at(value.span.start) != self.text.line_index_at(inside.end) {
+            return refuse(format!(
+                "The {selector} is written over several lines, so nothing can be added inside it."
+            ));
+        }
+        // FBL gives a flow item's keys their order and no form to a skeleton's lines.
+        if insert.skeleton.is_some() {
+            return refuse(format!(
+                "A new entry with a skeleton cannot be written inside the one-line {selector}."
+            ));
+        }
+        let item = self.flow_mapping(members);
+        if insert.place == "start" {
+            plan.add(Operation::InsertEntry, inside.start, inside.start, format!("{item}, "));
+            return Ok(());
+        }
+        // Written after a trailing `,`, the item needs no separator of its own.
+        let trailing = value
+            .entries
+            .last()
+            .is_some_and(|last| self.entries[*last].tree().separator.is_some());
+        let separator = if trailing { " " } else { ", " };
+        plan.add(
+            Operation::InsertEntry,
+            inside.end,
+            inside.end,
+            format!("{separator}{item}"),
+        );
+        Ok(())
+    }
+
+    /// A new item's members in flow form: `{`, each `key: value` with `, ` between them, `}`, each value by section
+    /// 6.3's yaml scalar rules, quoted when it holds what a flow collection would read as its own (FBL 0.10 section
+    /// 6.2).
+    fn flow_mapping(&self, members: &[NewMember<'_>]) -> String {
+        let written: Vec<String> = members
+            .iter()
+            .map(|member| match member {
+                NewMember::Value { key, value, binding } => {
+                    let wire = binding.and_then(|b| new_text::wire(b, value, None)).map(Value::from);
+                    let value = wire.as_ref().unwrap_or(value);
+                    format!(
+                        "{key}: {}",
+                        self.flow_scalar(self.scalar(value, None, *binding, 0), value)
+                    )
+                }
+                NewMember::Level { key, members } => format!("{key}: {}", self.flow_mapping(members)),
+            })
+            .collect();
+        format!("{{{}}}", written.join(", "))
     }
 
     /// The entry a relation is written inside when one of its ends is its enclosing entry (a Databricks dependency
@@ -554,10 +671,12 @@ impl Family {
         keys: &[String],
     ) -> Planning {
         let Some(create) = &insert.create else {
-            return refuse(format!(
-                "The file has no {} to add to.",
-                selector.trim_start_matches('/')
-            ));
+            return refuse(
+                insert
+                    .refusal_container
+                    .clone()
+                    .unwrap_or_else(|| format!("The file has no {} to add to.", selector.trim_start_matches('/'))),
+            );
         };
         let trimmed = selector.trim_end_matches('/');
         let name = &trimmed[trimmed.rfind('/').map(|i| i + 1).unwrap_or(0)..];
@@ -682,7 +801,9 @@ impl Family {
         }
         let is_root = self.entries[level].tree().is_root;
         let value = self.value_of(level);
-        let (offset, mut indent) = if value.kind == ValueKind::Mapping && !value.entries.is_empty() {
+        let (offset, mut indent) = if value.style == ValueStyle::FlowMapping {
+            return None;
+        } else if value.kind == ValueKind::Mapping && !value.entries.is_empty() {
             (
                 if is_root {
                     self.text.len()
@@ -781,18 +902,55 @@ impl Family {
         parts.join("\n")
     }
 
-    /// The key lines of a new item in `insert.keys` order, then the skeleton's lines.
-    fn item_lines(&self, plan: &Plan<'_>, request: &InsertRequest) -> Vec<String> {
+    /// The keys of a new item in `insert.keys` order, a level of an attribute bound with `child` at its place there,
+    /// else after them (FBL 0.10 section 6.2).
+    fn new_members(&self, plan: &Plan<'_>, request: &InsertRequest) -> Planning<Vec<NewMember<'_>>> {
         let rule = self.rule(request.rule);
         let insert = rule.insert.as_ref().expect("an insertable rule");
-        let mut lines = Vec::new();
+        let mut levels = self.new_levels(request)?;
+        let mut members = Vec::new();
         for key in key_order(rule, None) {
+            if let Some(at) = levels.iter().position(|l| l.key() == key) {
+                members.push(levels.remove(at));
+                continue;
+            }
             if !insert.keys.is_empty() && !insert.keys.contains(&key) {
                 continue;
             }
-            if let Some(value) = self.yaml_wire_value(plan, request, &key) {
-                lines.push(format!("{key}: {value}"));
+            if let Some((value, binding)) = self.yaml_wire_value(plan, request, &key) {
+                members.push(NewMember::Value { key, value, binding });
             }
+        }
+        members.extend(levels);
+        Ok(members)
+    }
+
+    /// The lines of `member`, relative to the new item's keys: a level's key alone, what it holds one step deeper
+    /// (FBL 0.10 section 6.2).
+    fn member_lines(&self, member: &NewMember<'_>, indent: usize, lines: &mut Vec<String>) {
+        let pad = self.indentation(indent);
+        match member {
+            NewMember::Value { key, value, binding } => {
+                let wire = binding.and_then(|b| new_text::wire(b, value, None)).map(Value::from);
+                let text = self.scalar(wire.as_ref().unwrap_or(value), None, *binding, indent);
+                lines.push(format!("{pad}{key}: {text}"));
+            }
+            NewMember::Level { key, members } => {
+                lines.push(format!("{pad}{key}:"));
+                for member in members {
+                    self.member_lines(member, indent + self.step(), lines);
+                }
+            }
+        }
+    }
+
+    /// The lines of a new item: its keys, then the skeleton's lines.
+    fn item_lines(&self, members: &[NewMember<'_>], request: &InsertRequest) -> Vec<String> {
+        let rule = self.rule(request.rule);
+        let insert = rule.insert.as_ref().expect("an insertable rule");
+        let mut lines = Vec::new();
+        for member in members {
+            self.member_lines(member, 0, &mut lines);
         }
         if let Some(skeleton) = &insert.skeleton {
             let rendered = new_text::render(skeleton, &|name| match request.values.get(name) {
@@ -806,7 +964,13 @@ impl Family {
         lines
     }
 
-    fn yaml_wire_value(&self, plan: &Plan<'_>, request: &InsertRequest, key: &str) -> Option<String> {
+    /// What a new item's `key` holds: the id, an end of a relation, or an attribute's value with its binding.
+    fn yaml_wire_value(
+        &self,
+        plan: &Plan<'_>,
+        request: &InsertRequest,
+        key: &str,
+    ) -> Option<(Value, Option<&AttributeBinding>)> {
         let rule = self.rule(request.rule);
         let reading = plan.reading;
         if rule
@@ -817,17 +981,17 @@ impl Family {
             == Some(key)
             && let Some(id) = &request.id
         {
-            return Some(self.scalar(&Value::from(id.as_str()), None, None, 0));
+            return Some((Value::from(id.as_str()), None));
         }
         if rule.source.as_ref().and_then(|s| s.key.as_deref()) == Some(key)
             && let Some(source) = request.source
         {
-            return Some(self.scalar(&Value::from(reading.element(source).key.as_str()), None, None, 0));
+            return Some((Value::from(reading.element(source).key.as_str()), None));
         }
         if rule.target.as_ref().and_then(|t| t.key.as_deref()) == Some(key)
             && let Some(target) = request.target
         {
-            return Some(self.scalar(&Value::from(reading.element(target).key.as_str()), None, None, 0));
+            return Some((Value::from(reading.element(target).key.as_str()), None));
         }
         for (name, binding) in &rule.attributes {
             if binding.key.as_deref() != Some(key) || binding.child.is_some() || binding.is_computed() {
@@ -839,8 +1003,7 @@ impl Family {
             if new_text::is_empty(value) && binding.empty.as_deref() != Some("keep") {
                 continue;
             }
-            let wire = new_text::wire(binding, value, None).map(Value::from);
-            return Some(self.scalar(wire.as_ref().unwrap_or(value), None, Some(binding), 0));
+            return Some((value.clone(), Some(binding)));
         }
         None
     }
@@ -853,7 +1016,12 @@ impl Family {
             return refuse(format!("The whole {} file cannot be removed.", self.binding.name));
         }
         let rule = self.rule(read_element.rule);
-        let span = self.entries[entry].line_span.unwrap_or(self.entries[entry].own);
+        let flow = self.in_flow(entry);
+        let span = if flow {
+            self.flow_removal_span(entry)
+        } else {
+            self.entries[entry].line_span.unwrap_or(self.entries[entry].own)
+        };
         if let Some(remove) = rule.remove.as_ref().filter(|r| r.remove_container_when_empty) {
             // The container alone, or with remove-empty-levels every level of its selector that a key names,
             // counted from the container up to the first level a * or a capture names.
@@ -892,7 +1060,39 @@ impl Family {
         }
         let span = self.without_final_newline(plan, span, removed);
         plan.add_span(Operation::RemoveEntry, span, "");
+        // The container of its only item goes around it, as what is before the item, then the item, then what is
+        // after it (FBL 0.10 section 6.2).
+        if flow
+            && rule.remove.as_ref().is_some_and(|r| r.remove_container_when_empty)
+            && let Some(container) = self.entries[entry].parent
+            && self.value_of(container).entries.len() == 1
+            && let Some(line) = self.entries[container].line_span
+        {
+            plan.add(Operation::RemoveContainer, span.end, line.end, "");
+        }
         Ok(())
+    }
+
+    /// What removing an item of a flow sequence takes (FBL 0.10 section 6.2): the item and the separator after it with
+    /// the whitespace up to the next item; for the last item, the separator before it and the whitespace between; the
+    /// only item alone.
+    fn flow_removal_span(&self, entry: EntryId) -> Span {
+        let own = self.entries[entry].own;
+        let Some(parent) = self.entries[entry].parent else {
+            return own;
+        };
+        let siblings = &self.value_of(parent).entries;
+        let index = siblings.iter().position(|s| *s == entry).unwrap_or(0);
+        if let Some(next) = siblings.get(index + 1) {
+            return own.with_end(self.entries[*next].own.start);
+        }
+        match index
+            .checked_sub(1)
+            .and_then(|i| self.entries[siblings[i]].tree().separator)
+        {
+            Some(separator) => own.with_start(separator),
+            None => own,
+        }
     }
 
     /// The last entry of a body without a final newline, removed with the line ending before it, so the body still
@@ -920,6 +1120,9 @@ impl Family {
         span.with_start(start)
     }
 }
+
+/// What a flow collection would read as its own in a plain scalar (FBL 0.10 section 6.2).
+const FLOW_INDICATORS: [char; 5] = [',', '[', ']', '{', '}'];
 
 /// A string inside a flow collection: plain only when it is plain-safe and holds none of the flow indicators
 /// `, [ ] { }` nor a `:`, which a flow collection would read as a separator or a mapping; double-quoted otherwise.
@@ -965,3 +1168,7 @@ pub(crate) fn container_of(at: Option<&str>) -> String {
         _ => "/".into(),
     }
 }
+
+#[cfg(test)]
+#[path = "flow_tests.rs"]
+mod tests;

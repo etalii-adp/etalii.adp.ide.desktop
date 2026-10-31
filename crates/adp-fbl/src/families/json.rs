@@ -5,7 +5,7 @@
 use adp_cel::Value;
 
 use crate::documents::types::{AttributeBinding, InsertSettings};
-use crate::families::tree::{TreeEntry, TreeValue, ValueId, ValueKind, ValueStyle};
+use crate::families::tree::{NewMember, TreeEntry, TreeValue, ValueId, ValueKind, ValueStyle};
 use crate::families::{Entry, EntryId, EntryKind, Family, FamilyKind};
 use crate::model::{FindingSeverity, codes};
 use crate::planning::new_text;
@@ -519,19 +519,24 @@ impl Family {
                     .map(|v| escape(&new_text::plain(v, rule.attribute(name)))),
             }),
             None => {
-                let members: Vec<String> = insert
-                    .keys
-                    .iter()
-                    .filter_map(|key| {
-                        self.json_wire_value(plan, request, key)
-                            .map(|value| format!("{}: {value}", quote(key)))
-                    })
-                    .collect();
+                let mut levels = self.new_levels(request)?;
+                let mut members: Vec<String> = Vec::new();
+                for key in &insert.keys {
+                    if let Some(at) = levels.iter().position(|l| l.key() == key) {
+                        members.push(member_text(&levels.remove(at)));
+                    } else if let Some(value) = self.json_wire_value(plan, request, key) {
+                        members.push(format!("{}: {value}", quote(key)));
+                    }
+                }
+                members.extend(levels.iter().map(member_text));
                 format!("{{ {} }}", members.join(", "))
             }
         };
         let Some(container) = container else {
             let Some((offset, opening)) = self.new_container(insert, parent_entry) else {
+                if let Some(sentence) = insert.refusal_container.as_ref().filter(|_| insert.create.is_none()) {
+                    return refuse(sentence.clone());
+                }
                 return refuse(format!(
                     "The {} file has no {} to add the {} to.",
                     self.binding.name,
@@ -750,6 +755,17 @@ impl Family {
         }
         plan.add_span(Operation::RemoveEntry, self.json_removal_span(entry), "");
         Ok(())
+    }
+}
+
+/// A key of a new entry as a member of its object, a level as an object of its own (FBL 0.10 section 6.2).
+fn member_text(member: &NewMember<'_>) -> String {
+    match member {
+        NewMember::Value { key, value, binding } => format!("{}: {}", quote(key), write(value, *binding)),
+        NewMember::Level { key, members } => {
+            let members: Vec<String> = members.iter().map(member_text).collect();
+            format!("{}: {{ {} }}", quote(key), members.join(", "))
+        }
     }
 }
 

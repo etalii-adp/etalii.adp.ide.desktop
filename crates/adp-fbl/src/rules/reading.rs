@@ -144,6 +144,9 @@ impl BodyReading {
         }
         reading.read_views();
         reading.claim();
+        if reading.missing_resource().is_some() {
+            reading.empty();
+        }
         reading.resolve();
         if options.report_unbound_keys {
             reading.report_unbound_keys();
@@ -155,6 +158,35 @@ impl BodyReading {
         reading.findings = findings;
         reading.compact();
         reading
+    }
+
+    /// The registration's `resource` header, when it names a resource the body does not hold (FBL 0.10 section 8.2).
+    pub fn missing_resource(&self) -> Option<&str> {
+        let header = self.options().resource.as_deref()?;
+        self.resource_capture()?;
+        (!self.resources.iter().any(|r| r == header)).then_some(header)
+    }
+
+    /// The capture this reading selects a resource by, none when it sees every resource (FBL 0.10 section 8.2).
+    fn resource_capture(&self) -> Option<&str> {
+        self.binding()
+            .registration
+            .resource_capture_of(self.options().origin.as_deref())
+    }
+
+    /// The capture the selected resource binds, for a `{capture}` segment no element of the reading binds, as when the
+    /// reading is empty (FBL 0.10 section 8.2).
+    pub(crate) fn selected_capture(&self) -> Option<(String, String)> {
+        let value = self.options().resource.as_ref().or(self.resource.as_ref())?;
+        Some((self.resource_capture()?.to_owned(), value.clone()))
+    }
+
+    /// Leaves the reading without an element, as a resource the body does not hold opens it (FBL 0.10 section 8.2).
+    fn empty(&mut self) {
+        self.claims.clear();
+        self.by_entry.clear();
+        self.elements.clear();
+        self.order.clear();
     }
 
     /// Gives back the room the reading's lists grew into and no longer need: a list that doubled as it grew holds up
@@ -324,6 +356,9 @@ impl BodyReading {
             }
         };
         for rule in self.binding().all_rules() {
+            if !self.options().admits(&rule.origins) {
+                continue;
+            }
             if rule.at.as_deref() == Some(at) {
                 let slots = rule
                     .attributes
@@ -337,6 +372,11 @@ impl BodyReading {
                         keys.insert(key.clone());
                     }
                 }
+                keys.extend(
+                    rule.attributes
+                        .iter()
+                        .filter_map(|(_, a)| a.secondary.as_ref().and_then(|s| s.key.clone())),
+                );
                 if let Some(insert) = &rule.insert {
                     keys.extend(insert.keys.iter().cloned());
                 }
@@ -369,10 +409,7 @@ impl BodyReading {
         let mut views: Vec<(EntryId, FblView)> = Vec::new();
         for (index, block) in binding.blocks.iter().enumerate() {
             let Some(slot) = &block.view_slot else { continue };
-            if let Some(origin) = &self.options().origin
-                && !block.origins.is_empty()
-                && !block.origins.contains(origin)
-            {
+            if !self.options().admits(&block.origins) {
                 continue;
             }
             for candidate in self.family.block_candidates(index) {
@@ -506,6 +543,7 @@ impl BodyReading {
                     let block = &binding.blocks[block_index];
                     self.claims.insert(entry, block.name.clone());
                     if let Some(group) = &block.view
+                        && self.options().admits(&block.origins)
                         && let Some(view) = capture(&candidate.captures, group)
                     {
                         let own = self.family.entries[entry].own;
@@ -535,7 +573,7 @@ impl BodyReading {
     /// The registration's `resource` header selects one value of the binding's resource capture; without it, the
     /// first value in document order (FBL section 8.2).
     fn selected_resource(&mut self, candidate: &Candidate) -> bool {
-        let Some(name) = self.binding().registration.resource_capture.clone() else {
+        let Some(name) = self.resource_capture().map(str::to_owned) else {
             return true;
         };
         let Some(value) = capture(&candidate.captures, &name).map(str::to_owned) else {
@@ -900,8 +938,19 @@ impl BodyReading {
                 return overriding;
             }
         }
-        self.family
-            .read(candidate, slot, attribute.is_some_and(|a| a.html_paragraphs))
+        let read = self
+            .family
+            .read(candidate, slot, attribute.is_some_and(|a| a.html_paragraphs));
+        // A slot read only when the attribute's own is absent (FBL 0.10 section 5.2).
+        if !read.present
+            && let Some(secondary) = attribute.and_then(|a| a.secondary.as_deref())
+        {
+            let second = self.family.read(candidate, secondary, false);
+            if second.present {
+                return second;
+            }
+        }
+        read
     }
 
     // ---- ids, references, containment (FBL sections 5.3 to 5.5) ----

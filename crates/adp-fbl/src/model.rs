@@ -77,6 +77,8 @@ pub mod codes {
     pub const UNMATCHED_CLOSE: &str = "fbl.unmatched-close";
     /// *(FBL 0.11)* A token of a terminal named in `recover.unclosed` that does not end with its text (FBL section 4.9).
     pub const UNCLOSED_COMMENT: &str = "fbl.unclosed-comment";
+    /// *(FBL 0.10)* A registration's `resource` header names a resource the body does not hold (FBL section 8.2).
+    pub const MISSING_RESOURCE: &str = "fbl.missing-resource";
     pub const MISSING_ID: &str = "std.missingId";
     pub const DUPLICATE_ID: &str = "std.duplicateId";
     pub const PLUGIN_MISSING: &str = "std.pluginMissing";
@@ -184,8 +186,8 @@ pub struct FblOptions {
     /// word of its group that matches, as a list (FBL 0.7 section 4.6); without this, it holds the first. A binding
     /// does not carry it.
     pub many: Option<Many>,
-    /// The origin of the reading (FBL section 8.1), which a block rule's `origins` admits (FBL 0.11 section 4.9). None
-    /// reads every block rule's entries as views.
+    /// The origin of the reading (FBL section 8.1), which a rule's `origins` admits (FBL 0.10 section 5.1, 0.11
+    /// section 4.9) and `registration.resource` selects by (FBL 0.10 section 8.2). None reads every rule.
     pub origin: Option<String>,
     /// The registration's `view` header (FBL section 9.3), which selects the view `selectedView` rules read inside.
     pub view: Option<String>,
@@ -267,6 +269,11 @@ impl fmt::Debug for FblOptions {
 }
 
 impl FblOptions {
+    /// Whether a rule that lists `origins` is a rule of this reading (FBL 0.10 section 5.1).
+    pub fn admits(&self, origins: &[String]) -> bool {
+        origins.is_empty() || self.origin.as_ref().is_none_or(|origin| origins.contains(origin))
+    }
+
     pub fn attribute_type(&self, element: &str, attribute: &str) -> Option<String> {
         self.attribute_type.as_ref().and_then(|f| f(element, attribute))
     }

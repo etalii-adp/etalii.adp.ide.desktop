@@ -82,6 +82,35 @@ const GRAMMAR_FIXTURES: [&str; 19] = [
     "w3c-turtle-grammar-partial",
 ];
 
+/// The fixtures of one binding that several tool types read (FBL 0.10 sections 5.1, 8.2, 9.1): the readings of one
+/// Databricks file, inserts into a flow sequence, a binding's refusals, a secondary slot, a level written on an add and
+/// a template's key, run by [`the_fixtures_of_one_binding_with_several_readings_pass`].
+const READINGS_FIXTURES: [&str; 23] = [
+    "databricks-flow-empty/job",
+    "databricks-flow-empty/read-back",
+    "databricks-flow-one-line/job",
+    "databricks-flow-one-line/refused/mapping",
+    "databricks-flow-one-line/refused/several-lines",
+    "databricks-library-add/pipeline",
+    "databricks-library-add/read-back",
+    "databricks-readings/bundle",
+    "databricks-readings/job",
+    "databricks-readings/pipeline",
+    "databricks-refusals/job",
+    "databricks-refusals/pipeline",
+    "databricks-rename-shared/bundle",
+    "databricks-rename-shared/job",
+    "databricks-resources/bundle",
+    "databricks-resources/job-first",
+    "databricks-resources/job-named",
+    "databricks-resources/missing",
+    "databricks-resources/pipe-first",
+    "databricks-resources/pipe-named",
+    "databricks-secondary/both",
+    "databricks-secondary/legacy",
+    "databricks-template-key",
+];
+
 /// The fixtures the library departs from, which [`the_yaml_family_departs_from_the_fixture_only_as_recorded`] and
 /// [`the_json_family_departs_from_the_fixture_only_as_recorded`] run with the departure written out, as the
 /// standalone host's `InsertEmptyFixturesTests.Departing` does: FBL 0.6 section 6.2 applies each attribute binding's
@@ -112,7 +141,7 @@ const KNOWLEDGE_STEPS: [(&str, usize, usize); 4] = [
 /// the standalone host does not vendor either. They are out of scope here, not failing: etalii.adp's splice replay
 /// (`fixtures.rs`) still runs every one of them. The hierarchical-requirement tool type's fixtures are run by
 /// [`hierarchical_requirement`], through the stand-in for its DESL interpreter.
-const NOT_SUPPORTED: [&str; 44] = [
+const NOT_SUPPORTED: [&str; 21] = [
     // The standalone host does not vendor this one at a7fdf03 either: its Retry's attempts is read as the text "1",
     // as every value of a lines or bullets group is, and the fixture reads the number 1, which the specification's
     // type gives it above FBL (agent-behavior-modelling.dis, `Retry.attempts: int`).
@@ -121,32 +150,9 @@ const NOT_SUPPORTED: [&str; 44] = [
     "insert-constant-json-read",
     "insert-constant-yaml",
     "insert-constant-yaml-read",
-    // FBL 0.10 to 0.13 (etalii.adp spec 066), which this port does not have yet: the readings of one Databricks file,
-    // the Wardley map, and several items written in one argument. Their splices are replayed by `fixtures.rs` only,
-    // each leaving this list as its construct is written.
-    "databricks-flow-empty/job",
-    "databricks-flow-empty/read-back",
-    "databricks-flow-one-line/job",
-    "databricks-flow-one-line/refused/mapping",
-    "databricks-flow-one-line/refused/several-lines",
-    "databricks-library-add/pipeline",
-    "databricks-library-add/read-back",
-    "databricks-readings/bundle",
-    "databricks-readings/job",
-    "databricks-readings/pipeline",
-    "databricks-refusals/job",
-    "databricks-refusals/pipeline",
-    "databricks-rename-shared/bundle",
-    "databricks-rename-shared/job",
-    "databricks-resources/bundle",
-    "databricks-resources/job-first",
-    "databricks-resources/job-named",
-    "databricks-resources/missing",
-    "databricks-resources/pipe-first",
-    "databricks-resources/pipe-named",
-    "databricks-secondary/both",
-    "databricks-secondary/legacy",
-    "databricks-template-key",
+    // FBL 0.10 to 0.13 (etalii.adp spec 066), which this port does not have yet: the Wardley map, and several items
+    // written in one argument. Their splices are replayed by `fixtures.rs` only, each leaving this list as its construct
+    // is written.
     "wardley-annotation-positions",
     "wardley-brace-ending",
     "wardley-comments/comments-everywhere",
@@ -209,6 +215,21 @@ fn natural_id(binding: &str, request: &IdRequest<'_>) -> Option<String> {
         ("job", "dependency") => format!("edge:{}->{}", unprefixed(request.source), unprefixed(request.target)),
         ("settings", "pipeline") => "pipeline".into(),
         ("settings", "library") => format!("library:{}", a("path")),
+        // One binding for the three Databricks readings (`persistence.ids` of databricks-bundle.dis, databricks-job.dis
+        // and databricks-pipeline.dis). A job is the job reading's diagram, whose id no fixture names.
+        ("configuration", "bundle") => "bundle".into(),
+        ("configuration", "jobResource" | "pipelineResource") => {
+            format!("resource:{}/{}", a("resourceKind"), a("key"))
+        }
+        ("configuration", "target") => format!("target:{}", a("name")),
+        ("configuration", "job") => format!("job:{}", a("jobKey")),
+        ("configuration", "task") => format!("task:{}", a("key")),
+        ("configuration", "cluster") => format!("cluster:{}", a("key")),
+        ("configuration", "dependency") => format!("edge:{}->{}", a("upstreamKey"), unprefixed(request.target)),
+        ("configuration", "pipeline" | "settings") => "pipeline".into(),
+        ("configuration", "notebookLibrary" | "fileLibrary" | "globLibrary" | "settingsLibrary") => {
+            format!("library:{}", a("path"))
+        }
         ("freeplane", "branch") => format!(
             "branch:{}->{}",
             request.source.unwrap_or_default(),
@@ -427,7 +448,8 @@ fn options_of(binding_name: &str, file_name: &str) -> FblOptions {
 }
 
 impl Subject {
-    fn open(input: Vec<u8>, name: &str, binding: Rc<FblBinding>, folder: &Path) -> Subject {
+    /// `origin` is the reading a body without a registration is read as: a fixture's `template` names it.
+    fn open(input: Vec<u8>, name: &str, binding: Rc<FblBinding>, folder: &Path, origin: Option<&str>) -> Subject {
         if name.to_lowercase().ends_with(".adp") {
             let options = options_of(&binding.name, name);
             return Subject::Registration(Box::new(OpenDocument::open(
@@ -438,7 +460,10 @@ impl Subject {
                 &fixtures_root(),
             )));
         }
-        let options = options_of(&binding.name, name);
+        let options = FblOptions {
+            origin: origin.map(str::to_owned),
+            ..options_of(&binding.name, name)
+        };
         Subject::Body {
             body: Box::new(OpenBody::open(input, binding.clone(), Rc::new(options))),
             binding,
@@ -726,9 +751,9 @@ fn check_attributes(element: &adp_fbl::FblElement, attributes: &Json, name: &str
     Ok(())
 }
 
-/// The attributes of the C4 types' diagram (`persistence.typeMap` of c4-*.dis, `as: "diagram"`): a binding type's
-/// attribute under the name the diagram has it by, its own unless the map renames it, with every value it was read
-/// with, as a fixture's `document` lists them (FBL 0.11 section 9.3).
+/// The attributes of the C4 types' diagram (`persistence.typeMap` of c4-*.dis, `as: "diagram"`) and of the job reading's
+/// (databricks-job.dis, `Job`): a binding type's attribute under the name the diagram has it by, its own unless the map
+/// renames it, with every value it was read with, as a fixture's `document` lists them (FBL 0.11 section 9.3).
 fn check_document(model: &FblModel, read: &Json, name: &str) -> Result<(), String> {
     let Some(attributes) = read.pointer("/document/attributes").and_then(Json::as_object) else {
         return Ok(());
@@ -743,7 +768,7 @@ fn check_document(model: &FblModel, read: &Json, name: &str) -> Result<(), Strin
         for element in model
             .elements
             .iter()
-            .filter(|e| matches!(e.type_name.as_str(), "Workspace" | "ViewInclude"))
+            .filter(|e| matches!(e.type_name.as_str(), "Workspace" | "ViewInclude" | "Job"))
         {
             values.extend(element.attributes.get(wire));
         }
@@ -855,7 +880,19 @@ fn run(name: &str, folder: &Path, fixture: &Json) -> Result<usize, String> {
     let (binding, binding_text) = load_binding(fixture, folder)?;
     let input_name = fixture["input"].as_str().unwrap_or_default();
     let input = fs::read(folder.join(input_name)).map_err(|e| e.to_string())?;
-    let mut subject = Subject::open(input, input_name, binding, folder);
+    // A fixture of a new document: what the template writes is the input (FBL 0.10 section 15.3).
+    let template = fixture.get("template");
+    let origin = template.and_then(|t| t["origin"].as_str());
+    if let Some(template) = template {
+        let written =
+            adp_fbl::routing::produce(&binding, origin, template["name"].as_str().unwrap_or_default(), &|_| {
+                String::new()
+            });
+        if written.as_deref() != Some(input.as_slice()) {
+            return Err(format!("{name}: the template does not write the input."));
+        }
+    }
+    let mut subject = Subject::open(input, input_name, binding, folder, origin);
     if let Some(read) = fixture.get("read")
         && let Some(model) = subject.model()
     {
@@ -985,6 +1022,7 @@ fn every_vendored_fixture_is_run_or_named_as_not_supported() {
         .iter()
         .chain(KNOWLEDGE_FIXTURES.iter())
         .chain(GRAMMAR_FIXTURES.iter())
+        .chain(READINGS_FIXTURES.iter())
         .chain(NOT_SUPPORTED.iter())
         .copied()
         .chain(designer.iter().map(String::as_str))
@@ -1056,6 +1094,40 @@ fn the_grammar_family_fixtures_pass() {
     assert!(failures.is_empty(), "{}", failures.join("\n\n"));
 }
 
+#[test]
+fn the_fixtures_of_one_binding_with_several_readings_pass() {
+    let mut failures = Vec::new();
+    for name in READINGS_FIXTURES {
+        let folder = fixture_folder(name);
+        let fixture = read_json(&folder.join("fixture.json"));
+        if let Err(problem) = run(name, &folder, &fixture) {
+            failures.push(problem);
+        }
+    }
+    assert!(
+        failures.is_empty(),
+        "{} failed:\n{}",
+        failures.len(),
+        failures.join("\n\n")
+    );
+}
+
+/// The documents a host must refuse for naming an origin the binding does not claim (FBL 0.10 section 14.1).
+#[test]
+fn a_binding_that_names_an_origin_it_does_not_claim_is_refused() {
+    for name in ["origins-not-claimed.fbl", "resource-by-origin-not-claimed.fbl"] {
+        let path = vendor().join("specifications/fbl/refused").join(name);
+        let (problems, _) = documents::load_file(&path);
+        assert!(
+            problems
+                .iter()
+                .any(|p| p.severity == ProblemSeverity::Error
+                    && p.message.contains("is not one of the binding's claims")),
+            "{name}: {problems:?}"
+        );
+    }
+}
+
 /// The runner fails on a fixture whose reading names a typed value where a text is read (Requirement 5.5).
 #[test]
 fn the_runner_fails_on_an_attribute_value_of_another_type() {
@@ -1122,7 +1194,7 @@ fn an_unchanged_save_of_the_input_plans_no_splice_and_keeps_its_bytes() {
     let mut failures = Vec::new();
     for name in STANDALONE_FIXTURES {
         let (binding, input, input_name, _) = binding_and_input(name);
-        let mut subject = Subject::open(input.clone(), &input_name, binding, &fixture_folder(name));
+        let mut subject = Subject::open(input.clone(), &input_name, binding, &fixture_folder(name), None);
         match subject.change(&ModelChange::Save) {
             PlanResult::Planned(edit) if edit.splices.is_empty() && subject.bytes() == input => {}
             other => failures.push(format!("{name}: {other:?}")),

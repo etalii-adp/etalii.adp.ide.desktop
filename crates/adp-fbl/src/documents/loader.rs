@@ -48,7 +48,7 @@ fn error(pointer: impl Into<String>, message: impl Into<String>) -> LoadProblem 
 const SUPPORTED_MAJOR: i64 = 0;
 
 /// The newest minor version this library reads in full; a document of a newer one loads with a warning.
-const KNOWN_MINOR: i64 = 9;
+const KNOWN_MINOR: i64 = 11;
 
 /// Loads the document at `path`.
 pub fn load_file(path: &Path) -> (Vec<LoadProblem>, Option<FblDocument>) {
@@ -738,6 +738,8 @@ fn read_insert(ins: &Json) -> InsertSettings {
         emit: s(ins, "emit"),
         skeleton: s(ins, "skeleton"),
         when: s(ins, "when"),
+        refusal_when: ins.get("refusals").and_then(|r| localized(r, "when")),
+        refusal_container: ins.get("refusals").and_then(|r| localized(r, "container")),
     }
 }
 
@@ -771,6 +773,7 @@ fn read_rule(json: &Json, relation: bool) -> Rule {
         name: s(json, "name").unwrap_or_default(),
         type_name: s(json, "type").unwrap_or_default(),
         is_relation: relation,
+        origins: strings(json, "origins"),
         at: s(json, "at"),
         line: s(json, "line"),
         within: optional_strings(json, "within"),
@@ -897,6 +900,14 @@ fn read_attribute(json: &Json) -> AttributeBinding {
             report: f.get("report").and_then(Json::as_bool) != Some(false),
         }),
         gather: array(json, "gather").iter().map(read_slot).collect(),
+        secondary: json.get("secondary").map(|slot| {
+            Box::new(AttributeBinding {
+                empty: Some("remove".into()),
+                ..AttributeBinding::of_slot(read_slot(slot))
+            })
+        }),
+        refusal_empty: json.get("refusals").and_then(|r| localized(r, "empty")),
+        refusal_absent: json.get("refusals").and_then(|r| localized(r, "absent")),
     }
 }
 
@@ -914,6 +925,12 @@ fn read_registration(json: &Json, pointer: &str, problems: &mut Vec<LoadProblem>
         create_on_first_placement: flag(r, "createOnFirstPlacement"),
         blocks,
         resource_capture: r.get("resource").and_then(|res| s(res, "capture")),
+        resource_by_origin: r
+            .get("resource")
+            .and_then(|res| res.get("byOrigin"))
+            .and_then(Json::as_object)
+            .map(|origins| origins.iter().map(|(o, c)| (o.clone(), s(c, "capture"))).collect())
+            .unwrap_or_default(),
         legacy_layout: s(r, "legacyLayout"),
     }
 }
@@ -996,6 +1013,7 @@ fn check(binding: &FblBinding, pointer: &str, problems: &mut Vec<LoadProblem>) {
             names.push(&block.name);
         }
         check_regex(&block.line, &format!("{at}/line"), problems);
+        check_origins(&block.origins, binding, &format!("{at}/origins"), problems);
         check_within(block.within.as_deref(), &rule_names, &format!("{at}/within"), problems);
     }
 
@@ -1021,6 +1039,7 @@ fn check(binding: &FblBinding, pointer: &str, problems: &mut Vec<LoadProblem>) {
         } else {
             names.push(&rule.name);
         }
+        check_origins(&rule.origins, binding, &format!("{at}/origins"), problems);
         if rule.at.is_none() == rule.line.is_none() && binding.plugin.is_none() {
             problems.push(error(at.clone(), "A rule has exactly one of 'at' and 'line'."));
         }
@@ -1079,6 +1098,15 @@ fn check(binding: &FblBinding, pointer: &str, problems: &mut Vec<LoadProblem>) {
             if let Some(o) = &attribute.override_slot {
                 check_slot(o, context, &format!("{a}/override"), problems);
             }
+            if let Some(secondary) = &attribute.secondary {
+                check_slot(secondary, context, &format!("{a}/secondary"), problems);
+                if attribute.override_slot.is_some() {
+                    problems.push(error(
+                        format!("{a}/secondary"),
+                        "An attribute binding has no 'secondary' beside 'override' (FBL section 14.1).",
+                    ));
+                }
+            }
             check_scalar_options(attribute, scalars, &a, problems);
             check_grammar_options(attribute, &a, problems);
             if count_slots(attribute) != 1 {
@@ -1094,6 +1122,15 @@ fn check(binding: &FblBinding, pointer: &str, problems: &mut Vec<LoadProblem>) {
         if let Some(target) = &rule.target {
             check_slot(target, context, &format!("{at}/target"), problems);
         }
+    }
+
+    for (origin, _) in &binding.registration.resource_by_origin {
+        check_origins(
+            std::slice::from_ref(origin),
+            binding,
+            &format!("{pointer}/registration/resource/byOrigin"),
+            problems,
+        );
     }
 
     if binding.plugin.is_none() {
@@ -1135,6 +1172,16 @@ fn check(binding: &FblBinding, pointer: &str, problems: &mut Vec<LoadProblem>) {
     }
     if let Some(pattern) = binding.claims.marker.as_ref().and_then(|m| m.pattern.as_deref()) {
         check_regex(pattern, &format!("{pointer}/claims/marker/pattern"), problems);
+    }
+}
+
+/// *(FBL 0.10)* Every origin a rule or `resource.byOrigin` names is one of the binding's claims (FBL section 14.1).
+fn check_origins(origins: &[String], binding: &FblBinding, pointer: &str, problems: &mut Vec<LoadProblem>) {
+    for origin in origins.iter().filter(|o| !binding.claims.origins.contains(o)) {
+        problems.push(error(
+            pointer,
+            format!("The origin '{origin}' is not one of the binding's claims."),
+        ));
     }
 }
 

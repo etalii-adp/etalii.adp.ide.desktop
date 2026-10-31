@@ -712,10 +712,7 @@ impl Family {
     /// Adds one of a block rule's entries from its `emit`, planned as an element's insert (FBL 0.11 section 4.9).
     pub(crate) fn grammar_insert_block(&self, plan: &mut Plan<'_>, block: usize, values: &adp_cel::Map) -> Planning {
         let rule = self.block(block);
-        if let Some(origin) = &self.options.origin
-            && !rule.origins.is_empty()
-            && !rule.origins.contains(origin)
-        {
+        if !self.options.admits(&rule.origins) {
             return refuse(format!("A {} cannot be added to this reading.", rule.name));
         }
         let Some(insert) = &rule.insert else {

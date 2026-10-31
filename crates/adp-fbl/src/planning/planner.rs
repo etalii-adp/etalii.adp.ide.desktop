@@ -217,12 +217,34 @@ fn plan_set(plan: &mut Plan<'_>, id: &str, attributes: &Map) -> Planning {
                 ),
             });
         }
+        // An attribute with a secondary slot writes its own and removes the secondary (FBL 0.10 section 5.2).
+        let mut read = read;
+        let mut secondary = None;
+        if let Some(binding) = binding.secondary.as_deref() {
+            let second = reading.family.read(&element.candidate, binding, false);
+            if second.present && !second.writable {
+                return refuse(second.reason.unwrap_or_default());
+            }
+            secondary = second.present.then(|| SlotChange {
+                attribute: attribute.clone(),
+                binding,
+                rule,
+                read: second,
+                value: Value::Null,
+                is_empty: true,
+            });
+        }
+        if binding.secondary.is_some() {
+            read = reading.family.read(&element.candidate, binding, false);
+        }
         let empty = new_text::is_empty(&value) || (binding.flag && matches!(value, Value::Bool(false)));
         if empty && !binding.flag && binding.empty.as_deref() == Some("refuse") {
-            return refuse(format!(
-                "The {attribute} of a {} cannot be empty.",
-                element_rule.type_name
-            ));
+            return refuse(
+                binding
+                    .refusal_empty
+                    .clone()
+                    .unwrap_or_else(|| format!("The {attribute} of a {} cannot be empty.", element_rule.type_name)),
+            );
         }
         if !read.present
             && !empty
@@ -232,13 +254,16 @@ fn plan_set(plan: &mut Plan<'_>, id: &str, attributes: &Map) -> Planning {
                 .iter()
                 .any(|(family, absent)| family == reading.family.family_name() && absent == "refuse")
         {
-            return refuse(format!(
-                "The {} file has no \"{}\" to rewrite.",
-                reading.binding_rc().name,
-                slot_name(binding)
-            ));
+            return refuse(binding.refusal_absent.clone().unwrap_or_else(|| {
+                format!(
+                    "The {} file has no \"{}\" to rewrite.",
+                    reading.binding_rc().name,
+                    slot_name(binding)
+                )
+            }));
         }
         if empty && !read.present && !binding.flag {
+            changes.extend(secondary);
             continue;
         }
         if !empty && is_key(reading, index, attribute, binding) {
@@ -261,6 +286,7 @@ fn plan_set(plan: &mut Plan<'_>, id: &str, attributes: &Map) -> Planning {
             value,
             is_empty: empty,
         });
+        changes.extend(secondary);
     }
     if !changes.is_empty() {
         reading.family.write(plan, element, &changes)?;
@@ -404,6 +430,7 @@ fn plan_add(
     let rules: Vec<usize> = (0..all.len())
         .filter(|&r| {
             all[r].type_name == type_name
+                && reading.family.options.admits(&all[r].origins)
                 && (slot.is_none() || all[r].parent.as_ref().and_then(|p| p.slot.as_deref()) == slot)
         })
         .collect();
@@ -437,13 +464,34 @@ fn plan_add(
             .filter(|name| all[r].attribute(name).is_some())
             .count()
     };
+    // What a rule writes of the attributes given: a relation's ends are not attributes of the new entry.
+    let values_of = |r: usize| -> Map {
+        attributes
+            .iter()
+            .filter(|(name, _)| !(all[r].is_relation && (*name == "source" || *name == "target")))
+            .map(|(name, value)| (name.clone(), value.clone()))
+            .collect()
+    };
+    // An add is planned by a rule whose `insert.when` holds (FBL section 6.2).
+    let holds = |r: usize| {
+        all[r]
+            .insert
+            .as_ref()
+            .and_then(|i| i.when.as_deref())
+            .is_none_or(|when| reading.insert_allowed(when, &values_of(r)))
+    };
     let mut best: Option<usize> = None;
-    for &r in choices {
+    for &r in choices.iter().filter(|&&r| holds(r)) {
         if best.is_none_or(|b| bound(r) > bound(b)) {
             best = Some(r);
         }
     }
     let Some(rule_index) = best else {
+        if let Some(&first) = choices.first() {
+            refuse_read_only(&all[first], "added")?;
+            let sentence = all[first].insert.as_ref().and_then(|i| i.refusal_when.clone());
+            return refuse(sentence.unwrap_or_else(|| format!("This {type_name} cannot be added to the file.")));
+        }
         return refuse(match all[rules[0]].read_only.as_deref() {
             Some(text) if !text.is_empty() => text.to_owned(),
             _ => format!("A {type_name} cannot be added to this file."),
@@ -451,17 +499,17 @@ fn plan_add(
     };
     let rule = &all[rule_index];
     refuse_read_only(rule, "added")?;
-    let mut values = Map::default();
-    for (name, value) in attributes.iter() {
-        if rule.is_relation && (name == "source" || name == "target") {
-            continue;
+    let values = values_of(rule_index);
+    // A binding's own sentence for an empty value (FBL 0.10 section 6.4). Without one the add is planned as it was, a
+    // departure from FBL 0.6 section 6.2 that `the_yaml_family_departs_from_the_fixture_only_as_recorded` records.
+    for (name, value) in values.iter() {
+        if let Some(binding) = rule.attribute(name)
+            && binding.empty.as_deref() == Some("refuse")
+            && new_text::is_empty(value)
+            && let Some(sentence) = &binding.refusal_empty
+        {
+            return refuse(sentence.clone());
         }
-        values.insert(name.clone(), value.clone());
-    }
-    if let Some(when) = rule.insert.as_ref().and_then(|i| i.when.as_deref())
-        && !reading.insert_allowed(when, &values)
-    {
-        return refuse(format!("This {type_name} cannot be added to the file."));
     }
     let (mut source, mut target) = (None, None);
     if rule.is_relation {

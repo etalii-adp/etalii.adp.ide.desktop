@@ -248,7 +248,11 @@ impl Family {
             .all(|b| matches!(b, b' ' | b'\t' | b'\r' | b'\n'))
     }
 
+    /// The entries `rule` can take: none for a reading its `origins` do not admit (FBL 0.10 section 5.1).
     pub fn candidates(&self, rule: usize) -> Vec<Candidate> {
+        if !self.options.admits(&self.rule(rule).origins) {
+            return Vec::new();
+        }
         match &self.kind {
             FamilyKind::Yaml(_) | FamilyKind::Json(_) => self.tree_candidates(rule),
             FamilyKind::Xml(_) => self.xml_candidates(rule),
@@ -496,6 +500,14 @@ impl Family {
             return self.json_move(plan, element, before, last);
         }
         let reading = plan.reading;
+        if self.is_yaml()
+            && [Some(element), before, Some(last)]
+                .into_iter()
+                .flatten()
+                .any(|e| self.in_flow(reading.element(e).entry()))
+        {
+            return refuse("An item of a flow sequence is not moved; it can be removed and added.");
+        }
         let span = self.entries[reading.element(element).entry()].removal_span();
         let offset = match before {
             Some(b) => self.entries[reading.element(b).entry()].removal_span().start,

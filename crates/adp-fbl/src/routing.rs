@@ -291,7 +291,8 @@ pub fn folder_files(binding: &FblBinding, folder: &Path, ignore_case: Option<boo
 }
 
 static PLACEHOLDER: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"\{(name|base|key|newid:[A-Za-z_][A-Za-z0-9_-]*)\}").expect("the template placeholder compiles")
+    Regex::new(r"\{(name|base|key|key:lower|newid:[A-Za-z_][A-Za-z0-9_-]*)\}")
+        .expect("the template placeholder compiles")
 });
 
 /// The text of a new body named `file_name` from the binding's template (FBL section 13):
@@ -310,7 +311,7 @@ pub fn produce(
     Some(replace(text, file_name, new_id).into_bytes())
 }
 
-/// Replaces the four placeholder forms of FBL section 13 and leaves every other brace literal.
+/// Replaces the placeholder forms of FBL section 13 and leaves every other brace literal.
 pub fn replace(template: &str, file_name: &str, new_id: &dyn Fn(&str) -> String) -> String {
     let name = Path::new(file_name)
         .file_name()
@@ -326,6 +327,7 @@ pub fn replace(template: &str, file_name: &str, new_id: &dyn Fn(&str) -> String)
             "name" => name.clone(),
             "base" => base.clone(),
             "key" => key_value.clone(),
+            "key:lower" => key_value.to_ascii_lowercase(),
             other => new_id(&other["newid:".len()..]),
         })
         .into_owned()

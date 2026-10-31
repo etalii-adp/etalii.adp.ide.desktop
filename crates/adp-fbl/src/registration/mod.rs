@@ -219,6 +219,28 @@ impl RegistrationDocument {
             .collect()
     }
 
+    /// *(FBL 0.10)* The finding of a `resource` header that names a resource the body does not hold, at the header's
+    /// line (FBL sections 7.4, 8.2).
+    pub fn missing_resource(&self, file_name: &str) -> Option<Finding> {
+        let header = self.headers.iter().find(|h| h.key == "resource")?;
+        let (line, column) = self.text.position(header.line.start);
+        Some(Finding {
+            code: codes::MISSING_RESOURCE.into(),
+            severity: FindingSeverity::Warning,
+            message: format!(
+                "The body holds no resource '{}', so this reading is empty.",
+                header.value
+            ),
+            location: Some(SourceLocation {
+                file: file_name.to_owned(),
+                line,
+                column,
+                length: self.text.code_points(header.line.start, header.line.end),
+            }),
+            detail: None,
+        })
+    }
+
     /// The blocks neither FBL nor the binding declares, reported once each as `fbl.unknown-block` (FBL 0.7 section
     /// 8.1).
     pub fn unknown_blocks(&self, file_name: &str) -> Vec<Finding> {
