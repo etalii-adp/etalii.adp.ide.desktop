@@ -395,7 +395,21 @@ impl DiagramSession {
         for (id, x, y) in moves {
             let element = document.element(id).ok_or_else(|| GONE.to_owned())?;
             if element.is_relation() {
-                return Err(NOT_MOVABLE.to_owned());
+                // What the description says of moving one, else the host's own sentence (DISL section 8.4).
+                let bounds = Map::default;
+                let stated = gestures::placement(
+                    specification,
+                    &element,
+                    "move",
+                    bounds(),
+                    bounds(),
+                    None,
+                    Some(&self.env),
+                );
+                return Err(stated
+                    .into_iter()
+                    .next()
+                    .map_or_else(|| NOT_MOVABLE.to_owned(), |r| r.message));
             }
             let (old_x, old_y) = positions.get(id).copied().unwrap_or_default();
             if (old_x, old_y) == (*x, *y) && positions.contains_key(id) {
@@ -740,6 +754,12 @@ impl DiagramSession {
                         .unwrap_or_else(|| id.clone());
                     return ActionOutcome::Refused(format!("'{name}' cannot be deleted, so none of the selection is."));
                 }
+            }
+            if let Some(refusal) = gestures::delete(specification, &element, Some(&self.env))
+                .into_iter()
+                .next()
+            {
+                return ActionOutcome::Refused(refusal.message);
             }
             elements.push(element);
         }
@@ -1157,6 +1177,12 @@ impl DiagramSession {
                 let Some(element) = document.element(id) else {
                     return ActionOutcome::Refused(GONE.to_owned());
                 };
+                if let Some(refusal) = gestures::delete(specification, &element, Some(&self.env))
+                    .into_iter()
+                    .next()
+                {
+                    return ActionOutcome::Refused(refusal.message);
+                }
                 match deletion::confirmation(specification, &element, None, Some(&self.env)) {
                     Some(confirmation) => ActionOutcome::Prompt(Prompt::Confirm {
                         title: confirmation.title,
@@ -1180,6 +1206,17 @@ impl DiagramSession {
                     initial_value: form_commit::edit_text(specification, &element, &label, &self.env)
                         .unwrap_or_default(),
                     confirm_label: entry.label.clone(),
+                })
+            }
+            // A connect entry that picks its other end (`target: "pick"`, DISL section 7.3) asks which.
+            ("connect", ActionTarget::Element(_)) if entry.via.is_some() => {
+                let title = entry.label.trim_end_matches(['\u{2026}', '.']).trim_end().to_owned();
+                ActionOutcome::Prompt(Prompt::Input {
+                    title: title.clone(),
+                    icon: entry.icon.clone(),
+                    label: title.clone(),
+                    initial_value: String::new(),
+                    confirm_label: title,
                 })
             }
             ("connect", ActionTarget::Connection { source, target }) => {
@@ -1206,15 +1243,9 @@ impl DiagramSession {
                 };
                 let parameters =
                     operations::parameters(specification, &operation, &working, element.as_ref(), Some(&self.env));
-                // A pending connection's entry hands its ends to the operation through `args` (DISL section 7.3:
-                // `"args": {"from": "source", "to": "target"}`); only what they leave is asked.
-                let given: Map = match target {
-                    ActionTarget::Connection { .. } => parameters
-                        .iter()
-                        .filter_map(|p| Some((p.name.clone(), entry.arguments.get(&p.name)?.clone())))
-                        .collect(),
-                    _ => Map::default(),
-                };
+                // An entry hands the operation what its `args` state (DISL section 7.3), a pending connection its ends
+                // among them (`"args": {"from": "source", "to": "target"}`); only what they leave is asked.
+                let given = given_arguments(&parameters, &entry);
                 let asked: Vec<_> = parameters.iter().filter(|p| !given.contains_key(&p.name)).collect();
                 if !given.is_empty() && asked.is_empty() {
                     return match self.run_operation(workspace, target, &entry, &operation, Some(given), ids) {
@@ -1222,7 +1253,7 @@ impl DiagramSession {
                         Err(refusal) => ActionOutcome::Refused(refusal),
                     };
                 }
-                match parameters.as_slice() {
+                match asked.as_slice() {
                     [] => {}
                     [parameter] => {
                         let title = entry.label.trim_end_matches(['\u{2026}', '.']).trim_end().to_owned();
@@ -1301,6 +1332,21 @@ impl DiagramSession {
         let entry = self.entry(document, target, action_id);
         match (entry, target) {
             (Some(entry), ActionTarget::Element(id)) if entry.kind == "delete" => self.remove(workspace, id),
+            (Some(entry), ActionTarget::Element(id)) if entry.kind == "connect" && entry.via.is_some() => {
+                let via = entry.via.clone().unwrap_or_default();
+                let specification = document.tool().definition.specification();
+                let minted = adp_disl::behavior::ids::of(specification);
+                let stand_ins = StandInIds::default();
+                let ids: &dyn adp_disl::IdSource = match (&minted, given) {
+                    (_, Some(given)) => given,
+                    (Ok(minted), None) => minted,
+                    (Err(_), None) => &stand_ins,
+                };
+                match self.connect(workspace, &via, id, value, ids) {
+                    Ok(()) => ActionOutcome::Done,
+                    Err(refusal) => ActionOutcome::Refused(refusal),
+                }
+            }
             (Some(entry), _) if entry.operation.is_some() => {
                 let operation = entry.operation.clone().unwrap_or_default();
                 let specification = document.tool().definition.specification();
@@ -1311,13 +1357,19 @@ impl DiagramSession {
                 };
                 let parameters =
                     operations::parameters(specification, &operation, &working, element.as_ref(), Some(&self.env));
-                let [parameter] = parameters.as_slice() else {
+                let handed = given_arguments(&parameters, &entry);
+                let asked: Vec<_> = parameters.iter().filter(|p| !handed.contains_key(&p.name)).collect();
+                let [parameter] = asked.as_slice() else {
                     return ActionOutcome::Refused(format!("'{action_id}' asks for nothing."));
                 };
                 let Some(answered) = parameter.value_of(value) else {
                     return ActionOutcome::Refused(format!("'{value}' is not a value of {}.", parameter.label));
                 };
-                let parameters: Map = [(parameter.name.clone(), answered)].into_iter().collect();
+                let parameters: Map = handed
+                    .iter()
+                    .map(|(name, value)| (name.clone(), value.clone()))
+                    .chain([(parameter.name.clone(), answered)])
+                    .collect();
                 // An answer carries no ids unless a replay gives them: what an operation that asks first creates
                 // takes the specification's own strategy, else, for a `natural` one whose ids the binding reads back
                 // from the keys written, a stand-in (the causal loop's link and the loops its hook claims; the
@@ -1727,6 +1779,14 @@ fn plugin_layout(specification: &adp_disl::DislSpecification, algorithm: &str) -
         .get("algorithm")?
         .as_str()?;
     Some(declared.strip_prefix("plugin:").unwrap_or(declared).to_owned())
+}
+
+/// What a menu entry's `args` give an operation's `parameters`, by name (DISL section 7.3).
+fn given_arguments(parameters: &[operations::DislOperationParameter], entry: &DerivedMenuEntry) -> Map {
+    parameters
+        .iter()
+        .filter_map(|p| Some((p.name.clone(), entry.arguments.get(&p.name)?.clone())))
+        .collect()
 }
 
 /// The relation type a finished connect gesture's menu entry draws: the `via` of the `connect` entry of the menu
