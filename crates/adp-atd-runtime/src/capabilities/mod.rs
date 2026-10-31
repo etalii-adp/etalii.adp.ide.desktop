@@ -3,7 +3,9 @@
 //! conformance fixtures pass (`tests/capabilities.rs`). A capability is named by its contract, never by a tool type;
 //! one this host does not provide is absent, and the gestures that need it are refused.
 
+pub mod bands;
 pub mod forward_bezier;
+pub mod layered_columns;
 pub mod ranked_boundaries;
 pub mod two_sided_tree;
 
@@ -45,6 +47,75 @@ pub trait LayoutCapability {
             .collect();
         Ok(json!({ "positions": positions }))
     }
+}
+
+/// A number among a capability's arguments, the default where it is left out.
+fn number_argument(args: &Json, name: &str, default: f64) -> f64 {
+    args[name].as_f64().unwrap_or(default)
+}
+
+/// The text of a query argument, as a fixture writes it or a description's `(…)` lowers it.
+fn query_text(value: &Json) -> Option<&str> {
+    value.as_str().or_else(|| value["cel"].as_str())
+}
+
+/// A node of `$defs/LayoutInput` as a query reads it: `self.id`, `self.type` and its attributes by name, the text
+/// `true` or `false` as a Boolean, since an input's attributes are text.
+fn self_of(node: &Json) -> adp_cel::Value {
+    let mut entries: Vec<(String, adp_cel::Value)> = Vec::new();
+    for key in ["id", "type"] {
+        if let Some(text) = node[key].as_str() {
+            entries.push((key.to_owned(), adp_cel::Value::String(text.to_owned())));
+        }
+    }
+    for (key, value) in node["attributes"].as_object().into_iter().flatten() {
+        let read = match value {
+            Json::Bool(flag) => adp_cel::Value::Bool(*flag),
+            Json::Number(number) => number.as_f64().map_or(adp_cel::Value::Null, adp_cel::Value::Double),
+            Json::String(text) if text == "true" => adp_cel::Value::Bool(true),
+            Json::String(text) if text == "false" => adp_cel::Value::Bool(false),
+            Json::String(text) => adp_cel::Value::String(text.clone()),
+            _ => adp_cel::Value::Null,
+        };
+        entries.push((key.clone(), read));
+    }
+    entries.into_iter().collect::<adp_cel::Map>().into()
+}
+
+/// The answer of the query argument `name` for `node`: evaluated here where `args` holds its text, as a fixture states
+/// it, else what the host evaluated for the node and gave as the attribute of that name, as a runtime does.
+fn query_of(node: &Json, args: &Json, name: &str) -> Result<Option<adp_cel::Value>, String> {
+    if let Some(source) = query_text(&args[name]) {
+        let program = adp_cel::Environment::standard(&["self"])
+            .compile(source)
+            .map_err(|e| format!("`{name}`: {e}"))?;
+        let variables = std::collections::HashMap::from([("self".to_owned(), self_of(node))]);
+        // A query that cannot be answered for a node says nothing of it.
+        return Ok(program.evaluate(&variables).ok());
+    }
+    Ok(match node["attributes"][name].as_str() {
+        Some("true") => Some(adp_cel::Value::Bool(true)),
+        Some("false") => Some(adp_cel::Value::Bool(false)),
+        Some(text) => text.parse().ok().map(adp_cel::Value::Double),
+        None => None,
+    })
+}
+
+/// `placed` with every pinned node of `nodes` at its pin: the law `pinnedStay`, which moves no other node.
+fn pinned_over(placed: Vec<(String, f64, f64)>, nodes: &[Json]) -> Vec<(String, f64, f64)> {
+    placed
+        .into_iter()
+        .map(|(id, x, y)| {
+            let pin = nodes
+                .iter()
+                .find(|node| node["id"].as_str() == Some(id.as_str()))
+                .and_then(|node| node["pinned"]["x"].as_f64().zip(node["pinned"]["y"].as_f64()));
+            match pin {
+                Some((x, y)) => (id, x, y),
+                None => (id, x, y),
+            }
+        })
+        .collect()
 }
 
 /// A capability's version: major, minor and patch.
@@ -145,6 +216,10 @@ impl Capabilities {
         capabilities
             .layouts
             .insert("layout.rankedBoundaries", Rc::new(ranked_boundaries::RankedBoundaries));
+        capabilities
+            .layouts
+            .insert("layout.layeredColumns", Rc::new(layered_columns::LayeredColumns));
+        capabilities.layouts.insert("layout.bands", Rc::new(bands::Bands));
         capabilities
             .routings
             .insert("routing.forwardBezier", Rc::new(forward_bezier::ForwardBezier));
