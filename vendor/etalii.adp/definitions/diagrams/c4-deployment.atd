@@ -39,7 +39,6 @@ diagram c4/deployment version "0.2.0" {
 
   import "c4-deployment.notation.atd"
   import "c4-deployment.structurizr.atd"
-  requires capability reader.structurizr@^1
   requires capability layout.rankedBoundaries@^1
 
   /// The C4 model of one Structurizr DSL workspace, the same in all six C4 definitions: every element kind and every
@@ -618,6 +617,8 @@ diagram c4/deployment version "0.2.0" {
       rule self.source != null && self.target != null
       message ("The relationship on line " + string(self.location().orValue({ 'line': 0 }).line) + " names '" + (self.source == null ? writtenEnd(self, 'source') : writtenEnd(self, 'target')) + "', which the model does not declare.")
       code: "c4.dangling-relationship"
+      target: ([])
+      location: (self.location())
     }
 
     constraint unlabelledRelationship for Relationship {
@@ -627,6 +628,8 @@ diagram c4/deployment version "0.2.0" {
       message ("The relationship from '" + shownName(self.source) + "' to '" + shownName(self.target) + "' has no label. C4 asks what the relationship is for, in the direction of the arrow.")
       code: "c4.unlabelled-relationship"
       attribute: "description"
+      target: ([])
+      location: (self.location())
     }
 
     constraint missingProtocol for Relationship {
@@ -636,6 +639,8 @@ diagram c4/deployment version "0.2.0" {
       message ("The relationship from '" + shownName(self.source) + "' to '" + shownName(self.target) + "' names no technology. How two elements communicate - a protocol, a library, a call - is what tells a reader where a boundary really is.")
       code: "c4.missing-protocol"
       attribute: "technology"
+      target: ([])
+      location: (self.location())
     }
 
     /// Only an element a view's `include` names can be of a kind the view does not permit; `include *` selects
@@ -841,9 +846,8 @@ diagram c4/deployment version "0.2.0" {
 
   // ---------------------------------------------------------------- Persistence
 
-  /// The body is an ordinary Structurizr DSL workspace, read and written through the module's own binding; one body is
-  /// one model and one history however many of its views are open. While gaps 1, 2 and 6 stand, the module reads the
-  /// body itself and builds this model from its reading (`C4Disl`). Positions are view data, stored as FBL's
+  /// The body is an ordinary Structurizr DSL workspace, read and written through the binding `structurizr`; one body
+  /// is one model and one history however many of its views are open. Positions are view data, stored as FBL's
   /// registration says.
   persistence {
     format: fbl

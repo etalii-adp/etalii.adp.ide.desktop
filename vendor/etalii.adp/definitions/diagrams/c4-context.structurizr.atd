@@ -3,25 +3,571 @@ part of c4/context
 
 // The body of a C4 view, in a part of its own (ATD §5.2, §9).
 
-/// A Structurizr DSL workspace, read and written by the capability `reader.structurizr` as its `systemContext` reading
-/// (c4-context.md, gaps 1 to 8, 10, 12, 13 and 14): the persistence plugin's contract (FBL §11) as a binding's family, since
-/// FBL's `blocks` family cannot read the statements of the selected view (gap 1), a comment after a brace or a
-/// statement (gap 2), a comment that spans lines (gap 3), an escaped quote (gap 4) or a body whose braces do not balance
-/// (gap 6), nor write a positional optional argument (gap 5), add a view block or gather a value from two statements
-/// (gap 8), or make an id depend on a directive of the body (gap 12). The reader reads every element and relationship
-/// of the workspace whichever view a reading shows, the selected view's own statements as the diagram's attributes, and
-/// each relationship's and interaction's ends as written (`sourceWritten`, `targetWritten`, gap 14); it reports the
-/// findings element by element (gap 10), the view whose scope names nothing and the empty view at their view's line
-/// among them (gap 13). `!identifiers hierarchical` is carried and not honoured, as today (gap 12).
-///
-/// The registration's `view:` names the view; without one the workspace's first view is read. Positions are kept in
-/// the legacy `<base>.layout.json`, keyed by view and by element compared without regard to case, each number as .NET
-/// writes a double, and a view that declares `autoLayout` ignores them (gaps 7 and 9). The C4 module's own FBL binding,
-/// `structurizr.fbl` in the standalone host, states what FBL 0.2 can express of this and is on no reading path.
-binding structurizr family capability reader.structurizr {
+/// A Structurizr DSL workspace (definitions/diagrams/c4-*.dis, c4-container.md), read by the grammar structurizr.lark
+/// beside this part, a copy of `specifications/fbl/structurizr.lark`: FBL 0.11's grammar family (section 4.9), one
+/// binding shared by six readings. Every C4 specification names 'structurizr.fbl#workspace' as its binding, so a host
+/// opens one model and one history per .dsl file however many C4 views of it are open (section 9). Comments are owned
+/// and kept wherever they stand; a statement that does not parse is skipped to its line's end, inside blocks too, and a
+/// block that is never closed ends at the end of the body (recover). Elements, relationships and the declaration's
+/// positional arguments are read by name, quoted or bare, with their escapes; a tags argument holds the tags its text
+/// is cut into at its commas (FBL 0.13, split), as Structurizr reads it; an absent argument is written in its place,
+/// padded with empty ones. Each view kind is a view of the body for the reading of its tool type, and the selected
+/// view's include, exclude, title and autoLayout statements, its scope and environment, which the tool types map onto
+/// the diagram's attributes, and its interactions are read for it alone. Which elements a view shows, and relationships
+/// lifted to the nearest drawn ancestor, are the viewpoint's and DISL's. !include, !script and other directives, styles
+/// and properties are unbound statements: kept byte for byte, never followed. This part is
+/// `specifications/fbl/structurizr.fbl` in ATD (ATD §11, Appendix C.3), the same in all six C4 descriptions; beyond it,
+/// each relationship and interaction also reads its ends as written (`sourceWritten`, `targetWritten`, gap 14), which
+/// `writtenEnd` states for the ids and the sentences.
+binding structurizr family grammar {
   label "Structurizr DSL workspace"
-  claims { extensions: [".dsl"], origins: ["c4/context"] }
-  body { kind: file }
+  claims {
+    extensions: [".dsl"],
+    origins: ["c4/context", "c4/container", "c4/component", "c4/deployment", "c4/dynamic", "c4/system-landscape"]
+  }
+  body {
+    kind: file,
+    recover: { unit: "unit", sync: ["_NL"], nested: { open: "{", close: "}" }, unclosed: { BLOCK_COMMENT: "*/" } }
+  }
+  grammar from "structurizr.lark"
+  text { newline: lf, indent: 4, finalNewline: true }
   registration { legacyLayout: "{base}.layout.json", createOnFirstPlacement: true }
-  args: { view: systemContext }
+
+  block systemLandscapeView {
+    at: "/workspace/views/system_landscape_view"
+    origins: ["c4/system-landscape"]
+    view: { node: "key", match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?", escape: { with: "\\", quote: "\"" } }
+    insert: {
+      place: end,
+      container: "/workspace/views",
+      emit: "systemLandscape \"{key}\" {\n    include *\n    autoLayout lr\n}"
+    }
+  }
+  block systemLandscapeViewWithoutKey {
+    at: "/workspace/views/system_landscape_view_default"
+    origins: ["c4/system-landscape"]
+    view: { value: "'landscape'" }
+  }
+  block systemContextView {
+    at: "/workspace/views/system_context_view"
+    origins: ["c4/context"]
+    view: { node: "key", match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?", escape: { with: "\\", quote: "\"" } }
+    insert: {
+      place: end,
+      container: "/workspace/views",
+      emit: "systemContext {scope} \"{key}\" {\n    include *\n    autoLayout lr\n}"
+    }
+  }
+  block systemContextViewWithoutKey {
+    at: "/workspace/views/system_context_view_default"
+    origins: ["c4/context"]
+    view: { value: "'systemcontext'" }
+  }
+  block containerView {
+    at: "/workspace/views/container_view"
+    origins: ["c4/container"]
+    view: { node: "key", match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?", escape: { with: "\\", quote: "\"" } }
+    insert: {
+      place: end,
+      container: "/workspace/views",
+      emit: "container {scope} \"{key}\" {\n    include *\n    autoLayout lr\n}"
+    }
+  }
+  block containerViewWithoutKey {
+    at: "/workspace/views/container_view_default"
+    origins: ["c4/container"]
+    view: { value: "'container'" }
+  }
+  block componentView {
+    at: "/workspace/views/component_view"
+    origins: ["c4/component"]
+    view: { node: "key", match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?", escape: { with: "\\", quote: "\"" } }
+    insert: {
+      place: end,
+      container: "/workspace/views",
+      emit: "component {scope} \"{key}\" {\n    include *\n    autoLayout lr\n}"
+    }
+  }
+  block componentViewWithoutKey {
+    at: "/workspace/views/component_view_default"
+    origins: ["c4/component"]
+    view: { value: "'component'" }
+  }
+  block dynamicView {
+    at: "/workspace/views/dynamic_view"
+    origins: ["c4/dynamic"]
+    view: { node: "key", match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?", escape: { with: "\\", quote: "\"" } }
+    insert: {
+      place: end,
+      container: "/workspace/views",
+      emit: "dynamic {scope} \"{key}\" {\n    include *\n    autoLayout lr\n}"
+    }
+  }
+  block dynamicViewWithoutKey {
+    at: "/workspace/views/dynamic_view_default"
+    origins: ["c4/dynamic"]
+    view: { value: "'dynamic'" }
+  }
+  block deploymentView {
+    at: "/workspace/views/deployment_view"
+    origins: ["c4/deployment"]
+    view: { node: "key", match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?", escape: { with: "\\", quote: "\"" } }
+    insert: {
+      place: end,
+      container: "/workspace/views",
+      emit: "deployment {scope} \"{environment}\" \"{key}\" {\n    include *\n    autoLayout lr\n}"
+    }
+  }
+  block deploymentViewWithoutKey {
+    at: "/workspace/views/deployment_view_default"
+    origins: ["c4/deployment"]
+    view: { node: "environment", match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?", escape: { with: "\\", quote: "\"" } }
+  }
+
+  /// The workspace's name, which the tool types map onto the diagram's workspaceName.
+  element Workspace as workspace at "/workspace" {
+    attribute name from node "name" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      readOnly: true
+    }
+  }
+
+  element Person as person at "/workspace/model/**/person" {
+    id from node "identifier"
+    attribute identifier from node "identifier" { readOnly: true }
+    attribute name from node "name" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      empty: keep
+    }
+    attribute description from node "description" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      empty: keep
+      create: { emit: " \"{value}\"", after: ["name"], pad: true }
+    }
+    attribute tags from node "tags" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      split: ","
+      gather: [{
+        node: "tags_statement/tag",
+        match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
+        escape: { with: "\\", quote: "\"" },
+        split: ","
+      }
+      ]
+      readOnly: true
+    }
+    insert { place: end, container: "/workspace/model", emit: "{id} = person \"{name}\" \"{description}\"" }
+    remove { cascade: ["relationship"] }
+  }
+
+  element SoftwareSystem as softwareSystem at "/workspace/model/**/software_system" {
+    id from node "identifier"
+    opens: { open: " {", close: "}" }
+    attribute identifier from node "identifier" { readOnly: true }
+    attribute name from node "name" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      empty: keep
+    }
+    attribute description from node "description" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      empty: keep
+      create: { emit: " \"{value}\"", after: ["name"], pad: true }
+    }
+    attribute tags from node "tags" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      split: ","
+      gather: [{
+        node: "tags_statement/tag",
+        match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
+        escape: { with: "\\", quote: "\"" },
+        split: ","
+      }
+      ]
+      readOnly: true
+    }
+    insert { place: end, container: "/workspace/model", emit: "{id} = softwareSystem \"{name}\" \"{description}\"" }
+    remove { cascade: ["container", "relationship"] }
+  }
+
+  element Container as container at "/workspace/model/**/container" {
+    id from node "identifier"
+    parent person, softwareSystem, container, component, deploymentNode, infrastructureNode, containerInstance, softwareSystemInstance slot containers
+    opens: { open: " {", close: "}" }
+    attribute identifier from node "identifier" { readOnly: true }
+    attribute name from node "name" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      empty: keep
+    }
+    attribute description from node "description" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      empty: keep
+      create: { emit: " \"{value}\"", after: ["name"], pad: true }
+    }
+    attribute technology from node "technology" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      empty: keep
+      create: { emit: " \"{value}\"", after: ["description", "name"], pad: true }
+    }
+    attribute tags from node "tags" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      split: ","
+      gather: [{
+        node: "tags_statement/tag",
+        match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
+        escape: { with: "\\", quote: "\"" },
+        split: ","
+      }
+      ]
+      readOnly: true
+    }
+    insert { place: last-child, emit: "{id} = container \"{name}\" \"{description}\" \"{technology}\"" }
+    remove { cascade: ["component", "relationship"] }
+  }
+
+  element Component as component at "/workspace/model/**/component" {
+    id from node "identifier"
+    parent person, softwareSystem, container, component, deploymentNode, infrastructureNode, containerInstance, softwareSystemInstance
+    opens: { open: " {", close: "}" }
+    attribute identifier from node "identifier" { readOnly: true }
+    attribute name from node "name" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      empty: keep
+    }
+    attribute description from node "description" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      empty: keep
+      create: { emit: " \"{value}\"", after: ["name"], pad: true }
+    }
+    attribute technology from node "technology" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      empty: keep
+      create: { emit: " \"{value}\"", after: ["description", "name"], pad: true }
+    }
+    attribute tags from node "tags" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      split: ","
+      gather: [{
+        node: "tags_statement/tag",
+        match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
+        escape: { with: "\\", quote: "\"" },
+        split: ","
+      }
+      ]
+      readOnly: true
+    }
+    insert { place: last-child, emit: "{id} = component \"{name}\" \"{description}\" \"{technology}\"" }
+    remove { cascade: ["relationship"] }
+  }
+
+  element DeploymentNode as deploymentNode at "/workspace/model/**/deployment_node" {
+    id from node "identifier"
+    parent person, softwareSystem, container, component, deploymentNode, infrastructureNode, containerInstance, softwareSystemInstance
+    opens: { open: " {", close: "}" }
+    attribute identifier from node "identifier" { readOnly: true }
+    attribute name from node "name" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      empty: keep
+    }
+    attribute description from node "description" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      empty: keep
+      create: { emit: " \"{value}\"", after: ["name"], pad: true }
+    }
+    attribute technology from node "technology" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      empty: keep
+      create: { emit: " \"{value}\"", after: ["description", "name"], pad: true }
+    }
+    attribute tags from node "tags" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      split: ","
+      gather: [{
+        node: "tags_statement/tag",
+        match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
+        escape: { with: "\\", quote: "\"" },
+        split: ","
+      }
+      ]
+      readOnly: true
+    }
+    remove { cascade: ["relationship"] }
+  }
+
+  element InfrastructureNode as infrastructureNode at "/workspace/model/**/infrastructure_node" {
+    id from node "identifier"
+    parent person, softwareSystem, container, component, deploymentNode, infrastructureNode, containerInstance, softwareSystemInstance
+    attribute identifier from node "identifier" { readOnly: true }
+    attribute name from node "name" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      empty: keep
+    }
+    attribute description from node "description" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      empty: keep
+      create: { emit: " \"{value}\"", after: ["name"], pad: true }
+    }
+    attribute technology from node "technology" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      empty: keep
+      create: { emit: " \"{value}\"", after: ["description", "name"], pad: true }
+    }
+    attribute tags from node "tags" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      split: ","
+      gather: [{
+        node: "tags_statement/tag",
+        match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
+        escape: { with: "\\", quote: "\"" },
+        split: ","
+      }
+      ]
+      readOnly: true
+    }
+    remove { cascade: ["relationship"] }
+  }
+
+  element ContainerInstance as containerInstance at "/workspace/model/**/container_instance" {
+    id from node "identifier"
+    parent person, softwareSystem, container, component, deploymentNode, infrastructureNode, containerInstance, softwareSystemInstance
+    attribute identifier from node "identifier" { readOnly: true }
+    attribute container from node "instance_of" {
+      references container by id
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+    }
+    attribute tags from node "tags" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      split: ","
+      gather: [{
+        node: "tags_statement/tag",
+        match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
+        escape: { with: "\\", quote: "\"" },
+        split: ","
+      }
+      ]
+      readOnly: true
+    }
+    remove { cascade: ["relationship"] }
+  }
+
+  element SoftwareSystemInstance as softwareSystemInstance at "/workspace/model/**/software_system_instance" {
+    id from node "identifier"
+    parent person, softwareSystem, container, component, deploymentNode, infrastructureNode, containerInstance, softwareSystemInstance
+    attribute identifier from node "identifier" { readOnly: true }
+    attribute softwareSystem from node "instance_of" {
+      references softwareSystem by id
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+    }
+    attribute tags from node "tags" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      split: ","
+      gather: [{
+        node: "tags_statement/tag",
+        match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
+        escape: { with: "\\", quote: "\"" },
+        split: ","
+      }
+      ]
+      readOnly: true
+    }
+    remove { cascade: ["relationship"] }
+  }
+
+  /// A relationship is read as an entry with two reference attributes, which the tool types map onto a relation, so
+  /// that an end that names nothing is kept with that end unset. A relationship written without a source inside an
+  /// element's block has that element as its source.
+  element Relationship as relationship at "/workspace/model/**/relationship" {
+    attribute from from node "source" {
+      references person, softwareSystem, container, component, deploymentNode, infrastructureNode, containerInstance, softwareSystemInstance by id
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      secondary: { parent: "identifier" }
+    }
+    attribute to from node "destination" {
+      references person, softwareSystem, container, component, deploymentNode, infrastructureNode, containerInstance, softwareSystemInstance by id
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+    }
+    attribute description from node "description" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      empty: keep
+      create: { emit: " \"{value}\"", after: ["to"], pad: true }
+    }
+    attribute technology from node "technology" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      empty: keep
+      create: { emit: " \"{value}\"", after: ["description", "to"], pad: true }
+    }
+    attribute tags from node "tags" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      split: ","
+      gather: [{
+        node: "tags_statement/tag",
+        match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
+        escape: { with: "\\", quote: "\"" },
+        split: ","
+      }
+      ]
+      readOnly: true
+    }
+    attribute sourceWritten from node "source" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      readOnly: true
+      secondary: { parent: "identifier" }
+    }
+    attribute targetWritten from node "destination" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      readOnly: true
+    }
+    insert { place: end, container: "/workspace/model", emit: "{from} -> {to} \"{description}\"" }
+    remove {}
+  }
+
+  /// The selected view's include statements, which the tool types map onto the diagram's includes.
+  element ViewInclude as viewInclude at "/workspace/views/*/include_statement" {
+    selectedView: true
+    attribute members from node "member" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      readOnly: true
+    }
+  }
+
+  element ViewInclude as viewExclude at "/workspace/views/*/exclude_statement" {
+    selectedView: true
+    attribute excludes from node "member" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      readOnly: true
+    }
+  }
+
+  element ViewInclude as viewTitle at "/workspace/views/*/title_statement" {
+    selectedView: true
+    attribute title from node "title" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      readOnly: true
+    }
+  }
+
+  /// autoLayout with no direction lays out top to bottom.
+  element ViewInclude as viewAutoLayout at "/workspace/views/*/auto_layout_statement" {
+    selectedView: true
+    attribute autoLayout from node "direction" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      default: "tb"
+      readOnly: true
+    }
+    attribute rankSeparation from node "rank_separation" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      readOnly: true
+    }
+    attribute nodeSeparation from node "node_separation" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      readOnly: true
+    }
+  }
+
+  element ViewInclude as viewScope at "/workspace/views/*/scope" {
+    selectedView: true
+    attribute scope from node "." {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      readOnly: true
+    }
+  }
+
+  element ViewInclude as viewEnvironment at "/workspace/views/*/environment" {
+    selectedView: true
+    attribute environment from node "." {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      readOnly: true
+    }
+  }
+
+  /// A dynamic view's interactions, read for the selected view only.
+  element Interaction as interaction at "/workspace/views/*/interaction" {
+    selectedView: true
+    attribute from from node "source" {
+      references person, softwareSystem, container, component, deploymentNode, infrastructureNode, containerInstance, softwareSystemInstance by id
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+    }
+    attribute to from node "destination" {
+      references person, softwareSystem, container, component, deploymentNode, infrastructureNode, containerInstance, softwareSystemInstance by id
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+    }
+    attribute description from node "description" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      readOnly: true
+    }
+    attribute sourceWritten from node "source" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      readOnly: true
+    }
+    attribute targetWritten from node "destination" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      readOnly: true
+    }
+  }
+
+  /// An `!include` the body names, which ADP does not follow: `includeNotFollowed` reports it. A rule beyond
+  /// `structurizr.fbl`, which keeps the statement unbound.
+  element IncludedFile as includedFile at "/**/directive" {
+    when (entry.children[0].text.lowerAscii() == "!include")
+    attribute path from node "STRING" {
+      match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
+      escape: { with: "\\", quote: "\"" }
+      secondary: { node: "WORD", match: "^(?<value>[^/]*(?:/[^/]+)*)(?://.*)?$" }
+      readOnly: true
+    }
+  }
+
+  template {
+    text: "workspace \"{base}\" {\n    model {\n        {key} = softwareSystem \"{base}\" \"Describe {base}.\"\n    }\n    views {\n        container {key} \"containers\" {\n            include *\n            autoLayout lr\n        }\n    }\n}\n",
+    byOrigin: {
+      "c4/context": "workspace \"{base}\" {\n    model {\n        {key} = softwareSystem \"{base}\" \"Describe {base}.\"\n    }\n    views {\n        systemContext {key} \"context\" {\n            include *\n            autoLayout lr\n        }\n    }\n}\n",
+      "c4/system-landscape": "workspace \"{base}\" {\n    model {\n        {key} = softwareSystem \"{base}\" \"Describe {base}.\"\n    }\n    views {\n        systemLandscape \"landscape\" {\n            include *\n            autoLayout lr\n        }\n    }\n}\n"
+    }
+  }
 }
