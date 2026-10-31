@@ -1,6 +1,6 @@
 //! FBL section 4.2's selectors over the entries of a tree (yaml, json) or of an xml document (the standalone host's
 //! `Rules/Selector`): keys and names, `*`, `**`, `{capture}` and `name[@A='v']`, absolute from the root or relative
-//! to an entry, and *(FBL 0.9)* `name[path='v']` over a grammar body's tree.
+//! to an entry, *(FBL 0.9)* `name[path='v']` over a grammar body's tree, and *(FBL 0.15)* in a grammar slot `..` and `+`.
 
 use std::collections::HashSet;
 use std::rc::Rc;
@@ -14,6 +14,10 @@ enum Segment {
     Any,
     Descendants,
     Capture(String),
+    /// *(FBL 0.15)* grammar, in a slot: the node that holds this one.
+    Up,
+    /// *(FBL 0.15)* grammar, in a slot: the next child of the node that holds this one.
+    Next,
 }
 
 fn parse(text: &str) -> Segment {
@@ -22,6 +26,12 @@ fn parse(text: &str) -> Segment {
     }
     if text == "**" {
         return Segment::Descendants;
+    }
+    if text == ".." {
+        return Segment::Up;
+    }
+    if text == "+" {
+        return Segment::Next;
     }
     if text.len() >= 2 && text.starts_with('{') && text.ends_with('}') {
         return Segment::Capture(text[1..text.len() - 1].to_owned());
@@ -119,6 +129,30 @@ fn walk(
                 );
             }
         }
+        Segment::Up | Segment::Next => {
+            let Some(parent) = entries[entry].parent else { return };
+            let next = if segments[index] == Segment::Up {
+                Some(parent)
+            } else {
+                let children = &entries[parent].children;
+                children
+                    .iter()
+                    .position(|&child| child == entry)
+                    .and_then(|at| children.get(at + 1).copied())
+            };
+            if let Some(next) = next {
+                walk(
+                    entries,
+                    segments,
+                    attribute_equals,
+                    next,
+                    index + 1,
+                    captures,
+                    results,
+                    seen,
+                );
+            }
+        }
         segment => {
             for &child in &entries[entry].children {
                 match segment {
@@ -171,7 +205,7 @@ fn walk(
                             seen,
                         );
                     }
-                    Segment::Descendants => {}
+                    Segment::Descendants | Segment::Up | Segment::Next => {}
                 }
             }
         }

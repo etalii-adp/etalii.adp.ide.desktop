@@ -642,6 +642,20 @@ impl BodyReading {
                 );
             }
         }
+        // In the order their entries end, an entry held by another first (FBL 0.15 section 4.9).
+        if self.binding().body.order.as_deref() == Some("closed") {
+            let family = &self.family;
+            let elements = &self.elements;
+            self.order.sort_by_key(|&index| {
+                let entry = elements[index].entry();
+                let own = family.entries[entry].own;
+                (
+                    own.end,
+                    std::cmp::Reverse(own.start),
+                    std::cmp::Reverse(family.depth_of(entry)),
+                )
+            });
+        }
     }
 
     /// The registration's `resource` header selects one value of the binding's resource capture; without it, the
@@ -1039,6 +1053,18 @@ impl BodyReading {
             let second = self.read_slot_unchecked(candidate, secondary, None, rule);
             if second.present {
                 return second;
+            }
+        }
+        // The first of the further slots that is present (FBL 0.15 section 5.2).
+        if !read.present
+            && let Some(attribute) = attribute
+        {
+            for (at, slot) in attribute.or.iter().enumerate() {
+                let mut other = self.read_slot_unchecked(candidate, slot, None, rule);
+                if other.present {
+                    other.alternative = Some(at);
+                    return other;
+                }
             }
         }
         read

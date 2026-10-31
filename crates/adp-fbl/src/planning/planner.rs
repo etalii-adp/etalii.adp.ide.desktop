@@ -129,7 +129,7 @@ fn plan_store_id(plan: &mut Plan<'_>, id: &str, new_id: &str) -> Planning {
         group: from.group.clone(),
         node: from.node.clone(),
         node_match: from.node_match.clone(),
-        escape: from.escape,
+        escape: from.escape.clone(),
         ..Slot::default()
     });
     let change = SlotChange {
@@ -160,7 +160,7 @@ fn plan_set(plan: &mut Plan<'_>, id: &str, attributes: &Map) -> Planning {
             capture: from.capture.clone(),
             node: from.node.clone(),
             node_match: from.node_match.clone(),
-            escape: from.escape,
+            escape: from.escape.clone(),
             ..Slot::default()
         })
     });

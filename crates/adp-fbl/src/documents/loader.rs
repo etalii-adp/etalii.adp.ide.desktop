@@ -48,7 +48,7 @@ fn error(pointer: impl Into<String>, message: impl Into<String>) -> LoadProblem 
 const SUPPORTED_MAJOR: i64 = 0;
 
 /// The newest minor version this library reads in full; a document of a newer one loads with a warning.
-const KNOWN_MINOR: i64 = 14;
+const KNOWN_MINOR: i64 = 15;
 
 /// Loads the document at `path`.
 pub fn load_file(path: &Path) -> (Vec<LoadProblem>, Option<FblDocument>) {
@@ -612,6 +612,9 @@ fn read_body(json: &Json, pointer: &str, problems: &mut Vec<LoadProblem>) -> Bod
         ignore: strings(json, "ignore"),
         settle,
         grammar: read_grammar(json, pointer, problems),
+        prefixes: json.get("prefixes").map(read_prefixes),
+        ordinals: json.get("ordinals").map(read_ordinals).unwrap_or_default(),
+        order: s(json, "order"),
     }
 }
 
@@ -827,15 +830,81 @@ fn read_slot(json: &Json) -> Slot {
             .map(|items| items.iter().map(|(k, v)| (k.clone(), read_slot(v))).collect())
             .unwrap_or_default(),
         separator: s(json, "separator"),
+        expand: json
+            .get("expand")
+            .filter(|e| **e != Json::Bool(false))
+            .map(|e| SlotExpand {
+                keywords: e
+                    .get("keywords")
+                    .and_then(Json::as_object)
+                    .map(|keywords| {
+                        keywords
+                            .iter()
+                            .filter_map(|(k, v)| v.as_str().map(|v| (k.clone(), v.to_owned())))
+                            .collect()
+                    })
+                    .unwrap_or_default(),
+            }),
+        ordinal: s(json, "ordinal"),
+        node_name: flag(json, "name"),
     }
 }
 
 fn read_escape(json: &Json) -> Option<SlotEscape> {
     let one = |name: &str| s(json, name).and_then(|text| text.chars().next());
+    let first = |text: &str| text.chars().next();
+    let object = |name: &str| json.get(name).and_then(Json::as_object).into_iter().flatten();
     Some(SlotEscape {
         with: one("with")?,
         quote: one("quote")?,
+        sequences: object("sequences")
+            .filter_map(|(k, v)| Some((first(k)?, first(v.as_str()?)?)))
+            .collect(),
+        unicode: object("unicode")
+            .filter_map(|(k, v)| Some((first(k)?, v.as_u64()? as usize)))
+            .collect(),
+        writes: strings(json, "writes").iter().filter_map(|w| first(w)).collect(),
+        requote: one("requote"),
     })
+}
+
+/// `body.prefixes` (FBL 0.15 section 4.9).
+fn read_prefixes(json: &Json) -> PrefixSettings {
+    let directives = |name: &str| -> Vec<PrefixDirective> {
+        array(json, name)
+            .iter()
+            .map(|directive| PrefixDirective {
+                at: s(directive, "at").unwrap_or_default(),
+                name: directive.get("name").map(read_slot),
+                iri: directive.get("iri").map(read_slot).unwrap_or_default(),
+            })
+            .collect()
+    };
+    PrefixSettings {
+        declarations: directives("declarations"),
+        bases: directives("bases"),
+        absolute: s(json, "absolute").unwrap_or_default(),
+        prefixed: s(json, "prefixed").unwrap_or_default(),
+        local: s(json, "local").unwrap_or_default(),
+        terminals: strings(json, "terminals"),
+    }
+}
+
+/// `body.ordinals` (FBL 0.15 section 4.9).
+fn read_ordinals(json: &Json) -> Vec<(String, OrdinalSettings)> {
+    json.as_object()
+        .into_iter()
+        .flatten()
+        .map(|(name, numbering)| {
+            (
+                name.clone(),
+                OrdinalSettings {
+                    at: strings(numbering, "at"),
+                    same: s(numbering, "same"),
+                },
+            )
+        })
+        .collect()
 }
 
 fn read_attribute(json: &Json) -> AttributeBinding {
@@ -912,6 +981,7 @@ fn read_attribute(json: &Json) -> AttributeBinding {
             report: f.get("report").and_then(Json::as_bool) != Some(false),
         }),
         gather: array(json, "gather").iter().map(read_slot).collect(),
+        or: array(json, "or").iter().map(read_slot).collect(),
         secondary: json.get("secondary").map(|slot| {
             Box::new(AttributeBinding {
                 empty: Some("remove".into()),
@@ -1133,6 +1203,7 @@ fn check(binding: &FblBinding, pointer: &str, problems: &mut Vec<LoadProblem>) {
             }
             check_scalar_options(attribute, scalars, &a, problems);
             check_grammar_options(attribute, &a, problems);
+            check_terms(attribute, &binding.body, &a, problems);
             if count_slots(attribute) != 1 {
                 problems.push(error(
                     a.clone(),
@@ -1296,6 +1367,35 @@ fn check_grammar_options(attribute: &AttributeBinding, pointer: &str, problems: 
             problems.push(error(
                 format!("{pointer}/split"),
                 "'split' holds neither of the characters of the slot's 'escape' (FBL 4.9).",
+            ));
+        }
+    }
+}
+
+/// FBL 0.15 section 14.1: a slot's `ordinal` names one of the body's `ordinals`, a slot with `expand` has the body's
+/// `prefixes` to read through, and each of `expand`, `ordinal` and `name` stands alone on a `{node}` slot.
+fn check_terms(attribute: &AttributeBinding, body: &BodySettings, pointer: &str, problems: &mut Vec<LoadProblem>) {
+    for slot in std::iter::once(&attribute.slot).chain(&attribute.or) {
+        if let Some(numbering) = &slot.ordinal
+            && !body.ordinals.iter().any(|(name, _)| name == numbering)
+        {
+            problems.push(error(
+                format!("{pointer}/ordinal"),
+                format!("'{numbering}' is not one of the body's ordinals (FBL 0.15 section 14.1)."),
+            ));
+        }
+        if slot.expand.is_some() && body.prefixes.is_none() {
+            problems.push(error(
+                format!("{pointer}/expand"),
+                "A slot with 'expand' needs the body's 'prefixes' (FBL 0.15 section 14.1).",
+            ));
+        }
+        let kinds =
+            usize::from(slot.expand.is_some()) + usize::from(slot.ordinal.is_some()) + usize::from(slot.node_name);
+        if kinds > 1 || (kinds == 1 && slot.node.is_none()) {
+            problems.push(error(
+                pointer.to_owned(),
+                "'expand', 'ordinal' and 'name' stand on a {node} slot, at most one of them (FBL 0.15 section 14.1).",
             ));
         }
     }

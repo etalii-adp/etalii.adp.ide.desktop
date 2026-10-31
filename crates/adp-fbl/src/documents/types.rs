@@ -121,6 +121,42 @@ pub struct BodySettings {
     pub settle: i64,
     /// *(FBL 0.9)* The grammar of a `grammar` body (FBL section 4.9).
     pub grammar: Option<GrammarSettings>,
+    /// *(FBL 0.15)* grammar: the directives a slot with `expand` is read through (FBL section 4.9).
+    pub prefixes: Option<PrefixSettings>,
+    /// *(FBL 0.15)* grammar: the numberings a slot with `ordinal` reads, by name (FBL section 4.9).
+    pub ordinals: Vec<(String, OrdinalSettings)>,
+    /// *(FBL 0.15)* grammar: `closed` reads a body's elements in the order their entries end (FBL section 4.9).
+    pub order: Option<String>,
+}
+
+/// `body.prefixes` (FBL 0.15 section 4.9): the directives that declare a prefix or a base, and how a term is written.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct PrefixSettings {
+    pub declarations: Vec<PrefixDirective>,
+    pub bases: Vec<PrefixDirective>,
+    /// A term written whole: the group `value` is the IRI, with its numeric escapes.
+    pub absolute: String,
+    /// A term written under a prefix: the groups `prefix` and `local`.
+    pub prefixed: String,
+    /// What a local name may hold for an IRI to be written under a prefix.
+    pub local: String,
+    /// The terminals whose tokens are terms under a prefix, each of which a declaration must be in force for.
+    pub terminals: Vec<String>,
+}
+
+/// A directive of `body.prefixes` (FBL 0.15 section 4.9): the entries it is, and the slots of their name and IRI.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct PrefixDirective {
+    pub at: String,
+    pub name: Option<Slot>,
+    pub iri: Slot,
+}
+
+/// One of `body.ordinals` (FBL 0.15 section 4.9): the nodes numbered, and the terminal whose equal texts are one node.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct OrdinalSettings {
+    pub at: Vec<String>,
+    pub same: Option<String>,
 }
 
 /// The grammar of a `grammar` body (FBL 0.9 section 4.9): its modules in ATD grammar notation, the start rule and
@@ -369,27 +405,68 @@ pub struct Slot {
     pub items: Vec<(String, Slot)>,
     /// *(FBL 0.12)* With `items` or `split`: the text written between two items, `", "` when none is given.
     pub separator: Option<String>,
+    /// *(FBL 0.15)* With `node`: the node's text is a term, read through `body.prefixes` (FBL section 4.9).
+    pub expand: Option<SlotExpand>,
+    /// *(FBL 0.15)* With `node`: the value is the node's number in this numbering of `body.ordinals` (FBL section 4.9).
+    pub ordinal: Option<String>,
+    /// *(FBL 0.15)* With `node`: the value is the node's name: its rule, alias or terminal (FBL section 4.9).
+    pub node_name: bool,
 }
 
-/// A `{node}` slot's `escape` (FBL 0.11 section 4.9): the escape character and the quote it escapes.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// A slot's `expand` (FBL 0.15 section 4.9).
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct SlotExpand {
+    /// A text that stands for an IRI whatever the directives say, in the slot's order.
+    pub keywords: Vec<(String, String)>,
+}
+
+/// A `{node}` slot's `escape` (FBL 0.11 section 4.9): the escape character and the quote it escapes; *(FBL 0.15)* the
+/// other sequences it reads, the characters it writes by one, and the quote a set writes the whole node in.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct SlotEscape {
     pub with: char,
     pub quote: char,
+    /// The character after `with`, and the character it stands for.
+    pub sequences: Vec<(char, char)>,
+    /// The letter after `with`, and how many hexadecimal digits of a code point follow it.
+    pub unicode: Vec<(char, usize)>,
+    /// The characters a value writes by their sequence, beside `quote` and `with`.
+    pub writes: Vec<char>,
+    /// A set replaces the whole node, with the value between two of these.
+    pub requote: Option<char>,
 }
 
 impl SlotEscape {
-    /// `with` before `quote` or `with` read as that character; `with` before any other character kept as it is.
+    /// `with` before `quote` or `with` read as that character, *(FBL 0.15)* before a key of `sequences` as what it stands
+    /// for, before a key of `unicode` and that many hexadecimal digits as that code point; `with` before any other
+    /// character kept as it is.
     pub fn read(&self, text: &str) -> String {
         let mut read = String::with_capacity(text.len());
         let mut chars = text.chars().peekable();
         while let Some(c) = chars.next() {
-            if c == self.with
-                && let Some(&next) = chars.peek()
-                && (next == self.quote || next == self.with)
-            {
+            if c != self.with {
+                read.push(c);
+                continue;
+            }
+            let Some(&next) = chars.peek() else {
+                read.push(c);
+                continue;
+            };
+            if next == self.quote || next == self.with {
                 read.push(next);
                 chars.next();
+            } else if let Some((_, stands)) = self.sequences.iter().find(|(key, _)| *key == next) {
+                read.push(*stands);
+                chars.next();
+            } else if let Some((_, digits)) = self.unicode.iter().find(|(key, _)| *key == next) {
+                let hex: String = chars.clone().skip(1).take(*digits).collect();
+                match u32::from_str_radix(&hex, 16).ok().and_then(char::from_u32) {
+                    Some(point) if hex.len() == *digits => {
+                        read.push(point);
+                        chars.nth(*digits);
+                    }
+                    _ => read.push(c),
+                }
             } else {
                 read.push(c);
             }
@@ -397,14 +474,22 @@ impl SlotEscape {
         read
     }
 
-    /// Every `quote` and `with` character written after `with`.
+    /// Every `quote` and `with` character written after `with`, *(FBL 0.15)* and every character of `writes` by its
+    /// sequence.
     pub fn write(&self, text: &str) -> String {
         let mut written = String::with_capacity(text.len());
         for c in text.chars() {
             if c == self.quote || c == self.with {
                 written.push(self.with);
+                written.push(c);
+            } else if self.writes.contains(&c)
+                && let Some((key, _)) = self.sequences.iter().find(|(_, stands)| *stands == c)
+            {
+                written.push(self.with);
+                written.push(*key);
+            } else {
+                written.push(c);
             }
-            written.push(c);
         }
         written
     }
@@ -469,6 +554,9 @@ pub struct AttributeBinding {
     pub fallback: Option<FallbackBinding>,
     /// *(FBL 0.11)* grammar: further `{node}` slots of the entry, whose values follow the first slot's.
     pub gather: Vec<Slot>,
+    /// *(FBL 0.15)* grammar: further slots of the entry, the first present of which is read when the attribute's own is
+    /// absent, and written as itself.
+    pub or: Vec<Slot>,
     /// *(FBL 0.10)* The slot read only when the attribute's own is absent, and removed by a write of the attribute
     /// (FBL section 5.2): written as a binding of that slot alone that an empty value removes.
     pub secondary: Option<Box<AttributeBinding>>,
