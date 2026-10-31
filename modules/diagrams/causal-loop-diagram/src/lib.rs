@@ -15,7 +15,9 @@
 //! - [`self_organizing`]: Arrange diagram, the plugin layout `net.etalii.adp.systems.cld`, written as the
 //!   registration's positions in one step (`SelfOrganizingLayout`, `ArrangeCausalLoopCommand`);
 //! - [`unreadable`]: the four sentences for a statement the binding leaves unread (`CausalLoopUnreadable`);
-//! - a new `layout:` block written with CRLF, as the standalone host's `RegistrationLayout` wrote it.
+//! - a new `layout:` block written with CRLF, as the standalone host's `RegistrationLayout` wrote it;
+//! - [`flow_page`]: the animated page of the diagram that the desktop host exports (etalii.adp spec 074), which no other
+//!   host has.
 //!
 //! Not ported: `CausalLoopNote`, the stand-in that reads a link's bare-word note and the last of two notes where the
 //! binding's `note` slot takes the first quoted word (gap 2). It reads the body again after the binding and writes a
@@ -24,6 +26,7 @@
 //! command records) is what `adp-diagram` does for every tool type.
 
 pub mod cycles;
+pub mod flow_page;
 pub mod metrics;
 pub mod reading;
 pub mod ring;

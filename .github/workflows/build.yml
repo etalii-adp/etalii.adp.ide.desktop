@@ -49,6 +49,27 @@ jobs:
       - name: Test
         run: cargo test --workspace
 
+  # The flow page's behaviour is JavaScript, so only a browser can show it (etalii.adp spec 074, R6). The desktop host
+  # itself runs and exports without one.
+  flow-page:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install the toolchain rust-toolchain.toml names
+        run: rustup show
+      - name: Reuse the build of earlier runs
+        uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Install the check and its browser
+        working-directory: tools/flow-page-check
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Check generated flow pages in a browser
+        run: node tools/flow-page-check/check.mjs
+
   # ATD, the ADP tool language (etalii.adp spec 035, T044, T107): the `atd` the other hosts ship (built without
   # `record`) checks every vendored example and the refused corpus, the toolchain's tests run against that same
   # specification, the language server builds for WebAssembly as VS Code runs it and validates there as `atd` does,
