@@ -8,6 +8,7 @@ use std::path::Path;
 use adp_atd_check::{FsFiles, Severity, check};
 use adp_atd_runtime::{RuntimeHost, RuntimeTool, diagram_tool};
 use adp_diagram::DiagramDocuments;
+use adp_diagram::problems::DiagramProblemLocation;
 use adp_diagram::workspace::DiagramWorkspace;
 use adp_disl::DislElement;
 
@@ -17,7 +18,8 @@ const GRAMMAR: &str = r#"start: unit*
      | wall
      | _NL
 person: "person" NAME _NL
-shelf: "shelf" NAME [NAME] "{" _NL? (show_statement _NL)* "}"
+shelf: "shelf" NAME [NAME] [scope] "{" _NL? (show_statement _NL)* "}"
+scope: "of" NAME
 wall: "wall" "{" _NL? (show_statement _NL)* "}"
 show_statement: "show" NAME
 NAME: /[a-z*]+/
@@ -38,6 +40,7 @@ diagram example/rooms version "0.1.0" {
       attribute shows: string many readonly default []
       attribute kindOfView: string readonly default ""
       attribute viewpoint: string readonly default ""
+      attribute scope: Person readonly
     }
     element Person {
       attribute name: string default "" { key: true }
@@ -69,6 +72,15 @@ diagram example/rooms version "0.1.0" {
       code: "example.empty"
       over: model
       forEach: (diagram.views.filter(v, !v.members.exists(m, m.kind == 'node')))
+    }
+    constraint unknownScope for diagram {
+      label "Unknown scope"
+      message ("The '" + item.id + "' view is of '" + item.scope + "'.")
+      code: "example.unknown-scope"
+      over: model
+      forEach: (diagram.views.filter(v, v.scope != '' && !diagram.nodes.exists(n, n.id == v.scope)))
+      subject: (item.id)
+      location: (item.location())
     }
   }
 
@@ -118,6 +130,10 @@ diagram example/rooms version "0.1.0" {
     element Show as show at "/*/show_statement" {
       selectedView: true
       attribute member from node "NAME" { readOnly: true }
+    }
+    element Show as scoped at "/*/scope" {
+      selectedView: true
+      attribute scope from node "NAME" { readOnly: true }
     }
   }
 }
@@ -217,6 +233,86 @@ fn a_rule_about_the_model_sees_every_view() {
             .any(|m| m.starts_with("The 'empty' view of kind 'shelfView'")),
         "{messages:?}"
     );
+}
+
+/// A block rule with `origins` is a view for readings of those origins only, so without a `view` header a reading shows
+/// the first view of its own (FBL 9.3), however many others the body holds before it.
+#[test]
+fn a_reading_without_a_view_header_shows_the_first_view_its_origins_admit() {
+    let tool = rooms();
+    let mut documents = DiagramDocuments::default();
+    let document = documents.open_bytes(
+        tool.tool.clone(),
+        Path::new("/nowhere/x.rooms"),
+        None,
+        b"person ann\nwall {\nshow ann\n}\nshelf one {\n}\n".to_vec(),
+        None,
+    );
+    let views: Vec<&str> = document.fbl().views.iter().map(|v| v.name.as_str()).collect();
+    assert_eq!(views, ["one"]);
+}
+
+/// What each view of the body is written with, whichever view the reading shows, as `diagram.views` lists it: its id,
+/// the scope as written, also when it names nothing, and the line it stands on (DISL 12.2; spec 067, FR-016).
+fn scopes_of(body: &str) -> Vec<Vec<String>> {
+    let tool = rooms();
+    let mut documents = DiagramDocuments::default();
+    let document = documents.open_bytes(
+        tool.tool.clone(),
+        Path::new("/nowhere/x.rooms"),
+        None,
+        body.as_bytes().to_vec(),
+        None,
+    );
+    let program = tool
+        .tool
+        .definition
+        .specification()
+        .environment("element", &[])
+        .compile("diagram.views.map(v, [v.id, v.scope, string(v.location().orValue({'line': 0}).line)])")
+        .unwrap();
+    let variables = std::collections::HashMap::from([("diagram".to_owned(), document.model().diagram.to_value())]);
+    let value = program.evaluate(&variables).unwrap();
+    value
+        .as_list()
+        .unwrap()
+        .iter()
+        .map(|view| view.as_list().unwrap().iter().map(ToString::to_string).collect())
+        .collect()
+}
+
+const SCOPED: &str = "person ann\nshelf one of ann {\nshow ann\n}\nshelf two of nobody {\n}\nwall {\nshow ann\n}\n";
+
+#[test]
+fn a_view_exposes_the_scope_it_is_written_with_and_where_it_stands() {
+    assert_eq!(
+        scopes_of(SCOPED),
+        vec![
+            vec!["one".to_owned(), "ann".to_owned(), "2".to_owned()],
+            // A scope that names nothing is kept as written, on a view this reading does not show.
+            vec!["two".to_owned(), "nobody".to_owned(), "5".to_owned()],
+            // A view written without a scope has the empty text.
+            vec!["wall".to_owned(), String::new(), "7".to_owned()],
+        ]
+    );
+}
+
+/// A rule locates a finding about a view at the view's own line, the view having no element to be located by.
+#[test]
+fn a_rule_about_a_view_locates_its_finding_at_the_view() {
+    let tool = rooms();
+    let mut workspace = DiagramWorkspace::in_memory("/nowhere");
+    let path = Path::new("/nowhere/x.rooms");
+    let session = workspace.open_bytes_beside(tool.tool.clone(), path, None, SCOPED.as_bytes().to_vec(), None, &|_| {
+        None
+    });
+    let findings = session.problems(workspace.documents());
+    let finding = findings
+        .iter()
+        .find(|f| f.message == "The 'two' view is of 'nobody'.")
+        .unwrap_or_else(|| panic!("{findings:#?}"));
+    assert_eq!(finding.location, Some(DiagramProblemLocation::Line(5)), "{finding:#?}");
+    assert_eq!(findings.iter().filter(|f| f.message.contains("is of")).count(), 1);
 }
 
 /// A node that fits its content is measured in its style's font and padding, through what the style extends.

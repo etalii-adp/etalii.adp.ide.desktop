@@ -468,6 +468,7 @@ impl BodyReading {
                         block: block.name.clone(),
                         origins: block.origins.clone(),
                         admitted,
+                        line: self.family.text.position(own.start).0,
                         reading: None,
                     },
                 ));
@@ -618,6 +619,7 @@ impl BodyReading {
                             block: block.name.clone(),
                             origins: block.origins.clone(),
                             admitted: true,
+                            line: self.family.text.position(own.start).0,
                             reading: None,
                         });
                     }
