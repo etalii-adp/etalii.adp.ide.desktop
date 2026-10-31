@@ -291,7 +291,8 @@ fn metamodel(frame: &Frame, key: &str, value: &Json, path: &[String]) -> Frame {
     if key == "default" && parent_is(path, &["attributes"]) {
         return frame.within(contexts::CREATE).as_mode(Mode::Literal);
     }
-    if key == "display" {
+    // A datatype's `display`; a derived type's attribute of that name is the deriveItem context's, below.
+    if key == "display" && !ends_with(path, &["derived", "attributes"]) {
         return frame.within(contexts::DATA_TYPE_DISPLAY).as_mode(Mode::Literal);
     }
 

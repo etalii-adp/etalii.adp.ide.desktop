@@ -140,6 +140,18 @@ impl DislDiagramDefinition {
             .collect()
     }
 
+    /// Whether a notation draws the element `id`: one none does, as a stored element everything is derived from, is
+    /// nowhere the reader can be taken to.
+    pub fn draws(&self, diagram: &adp_disl::DislDiagram, id: &str) -> bool {
+        let Some(element) = diagram.element_by_id(id) else {
+            return true;
+        };
+        let notation = &self.specification.root()["notation"];
+        let type_name = element.type_name();
+        let declared = |part: &str| notation[part].get(type_name.as_str()).is_some();
+        declared("nodes") || declared("relations") || declared("edges") || notation.is_null()
+    }
+
     /// The form item a row id names: the key the wire block maps to it, or the id itself.
     pub fn row_key(&self, property_id: &str) -> String {
         self.wire_block

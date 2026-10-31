@@ -231,6 +231,39 @@ pub fn connect(
     actions(specification, operation, &pointer, diagram, ids, variables)
 }
 
+/// Runs the operation a derived element's `edits."attribute:<name>"` names for a new value of that attribute (section
+/// 4.11.4), as one transaction: `self` is the element, and the operation's first parameter the value. None when the
+/// type names no such edit.
+pub fn derived_attribute(
+    specification: &DislSpecification,
+    element: &DislElement,
+    attribute: &str,
+    value: &str,
+    env: Option<&DislEnv>,
+) -> Option<DislTransaction> {
+    let element_type = element.element_type();
+    let derived = element_type.derived().filter(|d| d.is_object())?;
+    let operation_id = json::string_of(json::member(derived, "edits"), &format!("attribute:{attribute}"))?;
+    let Some(operation) = operation_of(specification, operation_id) else {
+        return Some(DislTransaction::refused(format!(
+            "There is no operation '{operation_id}'."
+        )));
+    };
+    let pointer = json::pointer("/behavior/operations", operation_id);
+    let diagram = element.diagram();
+    let mut variables = variables_of(contexts::OPERATION, &diagram, env);
+    variables.insert("self".into(), element.to_value());
+    variables.insert("selection".into(), Value::list(vec![element.to_value()]));
+    variables.insert("position".into(), Value::map(Map::default()));
+    let mut parameters = Map::default();
+    if let Some((name, _)) = json::members(operation, "params").next() {
+        parameters.insert(name.clone(), Value::from(value));
+    }
+    variables.insert("p".into(), Value::map(parameters));
+    let ids = crate::behavior::ids::short_guids();
+    Some(actions(specification, operation, &pointer, &diagram, &ids, variables))
+}
+
 /// The operation's `plugin` handed back whole, its `args` as written, or its actions run.
 fn actions(
     specification: &DislSpecification,
