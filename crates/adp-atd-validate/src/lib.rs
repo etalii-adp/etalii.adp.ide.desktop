@@ -110,12 +110,16 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
     let registration_name = inputs["registration"].as_str();
     let registration_path = registration_name.map(|r| Path::new(ROOT).join(r));
     let mut workspace = DiagramWorkspace::in_memory(ROOT);
-    let session = workspace.open_bytes(
+    let session = workspace.open_bytes_beside(
         runtime.tool.clone(),
         &body_path,
         registration_path.as_deref(),
         case.files.get(body_name).cloned().unwrap_or_default(),
         registration_name.and_then(|r| case.files.get(r).cloned()),
+        &|path| {
+            let name = path.strip_prefix(ROOT).ok()?.to_str()?;
+            case.files.get(name).cloned()
+        },
     );
     let mut replay = Replay {
         tool: runtime.tool.clone(),

@@ -977,7 +977,7 @@ impl BodyReading {
         if !read.present
             && let Some(secondary) = attribute.and_then(|a| a.secondary.as_deref())
         {
-            let second = self.family.read(candidate, secondary, false);
+            let second = self.read_slot_unchecked(candidate, secondary, None, rule);
             if second.present {
                 return second;
             }
@@ -1372,6 +1372,7 @@ impl BodyReading {
             unreadable: self.unreadable.is_some(),
             views: self.views.clone(),
             resources: self.resources.clone(),
+            file: Some(self.options().file_name.clone()),
         }
     }
 }

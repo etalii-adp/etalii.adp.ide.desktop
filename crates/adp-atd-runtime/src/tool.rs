@@ -66,7 +66,16 @@ pub fn diagram_tool(description: &Description, symbols: &Symbols, host: &Runtime
         debugger.attach_script(&loaded.script, ());
     }
     let members: Vec<&Json> = description.members().collect();
-    let document = lowering::fbl::lower(&members).ok_or("The description has no binding.")?;
+    let mut document = lowering::fbl::lower(&members).ok_or("The description has no binding.")?;
+    // An inline grammar is the binding's text; a grammar in a file is read beside the description, by the checker.
+    for (name, binding) in document["bindings"].as_object_mut().into_iter().flatten() {
+        if binding["body"]["family"] == "grammar"
+            && binding["body"].get("grammar").is_none()
+            && let Some(text) = description.grammar(name).and_then(|modules| modules.get("grammar"))
+        {
+            binding["body"]["grammar"] = json!(text);
+        }
+    }
     let bytes = serde_json::to_vec(&document).expect("JSON writes");
     let (problems, read) = adp_fbl::documents::load(&bytes);
     let read = read.ok_or_else(|| {
@@ -74,13 +83,18 @@ pub fn diagram_tool(description: &Description, symbols: &Symbols, host: &Runtime
         format!("The description's binding does not lower to FBL: {}", lines.join("; "))
     })?;
     let origin = description.origin().unwrap_or_default().to_owned();
-    let binding = read
+    let (name, mut binding) = read
         .bindings
         .iter()
         .find(|(_, b)| b.claims.origins.contains(&origin))
         .or_else(|| read.bindings.first())
-        .map(|(_, binding)| binding.clone())
+        .map(|(name, binding)| (name.clone(), binding.clone()))
         .ok_or("The description's binding does not lower to FBL.")?;
+    if let Some(grammar) = binding.body.grammar.as_mut().filter(|g| g.file.is_some())
+        && let Some(modules) = description.grammar(&name)
+    {
+        grammar.modules = modules.clone();
+    }
     let specification = loaded.specification.clone();
     let wire_block = DislDiagramDefinition::wire_block_of(&specification);
     let definition = DislDiagramDefinition::of(specification.clone(), Vec::new(), wire_block.as_deref());
@@ -311,6 +325,21 @@ impl RuntimeModule {
         program.evaluate(&variables).ok()
     }
 
+    /// A query argument of a layout capability (ATD §13.3), evaluated over the diagram, as the text of a CEL constant, as
+    /// the capability's fixtures state it; a literal as it is.
+    fn query(specification: &DislSpecification, diagram: &adp_disl::DislDiagram, value: &Json) -> Option<Json> {
+        let Some(source) = value.get("cel").and_then(Json::as_str) else {
+            return Some(value.clone());
+        };
+        let program = specification.environment("element", &[]).compile(source).ok()?;
+        let variables = HashMap::from([("diagram".to_owned(), diagram.to_value())]);
+        Some(json!(match program.evaluate(&variables).ok()? {
+            Value::String(text) => format!("'{text}'"),
+            Value::Double(number) => adp_fbl::planning::dotnet_double(number),
+            other => other.to_string(),
+        }))
+    }
+
     /// A node's size, as its notation's `size` states it, else its `min`.
     fn size(specification: &DislSpecification, element: &DislElement) -> (f64, f64) {
         let size = &specification.root()["notation"]["nodes"][element.type_name()]["size"];
@@ -420,11 +449,26 @@ impl DiagramModule for RuntimeModule {
         let mut nodes = Vec::new();
         let mut sizes = HashMap::new();
         let mut args = serde_json::Map::new();
+        let queries = capability.query_arguments();
+        for (key, value) in layout
+            .arguments
+            .iter()
+            .filter(|(key, _)| queries.contains(&key.as_str()))
+        {
+            if let Some(constant) = Self::query(specification, diagram, value) {
+                args.insert(key.clone(), constant);
+            }
+        }
+        let authored = document.authored_positions();
         for element in diagram.nodes() {
             let (width, height) = Self::size(specification, &element);
             sizes.insert(element.id(), (width, height));
             let mut attributes = serde_json::Map::new();
-            for (key, value) in &layout.arguments {
+            for (key, value) in layout
+                .arguments
+                .iter()
+                .filter(|(key, _)| !queries.contains(&key.as_str()))
+            {
                 if value.get("cel").is_some() {
                     if let Some(evaluated) = Self::evaluate(specification, &element, value)
                         && !evaluated.is_null()
@@ -447,14 +491,24 @@ impl DiagramModule for RuntimeModule {
                 .as_ref()
                 .map(|p| p.children().iter().position(|c| *c == element).unwrap_or(0))
                 .unwrap_or(0);
-            nodes.push(json!({
+            let mut node = json!({
                 "id": element.id(), "width": width, "height": height,
                 "parent": parent.map(|p| p.id()), "order": order, "attributes": attributes,
-            }));
+            });
+            if let Some((x, y)) = authored.get(&element.id()) {
+                node["pinned"] = json!({ "x": x, "y": y });
+            }
+            nodes.push(node);
         }
+        let edges: Vec<Json> = diagram
+            .relations()
+            .into_iter()
+            .filter(|relation| !relation.is_derived())
+            .map(|relation| json!({ "id": relation.id(), "source": relation.source_id(), "target": relation.target_id() }))
+            .collect();
         // The corners as the algorithm computes them, not rounded, so that the centres are where its module put them.
         let placed = capability
-            .place(&json!({ "nodes": nodes, "edges": [] }), &Json::Object(args))
+            .place(&json!({ "nodes": nodes, "edges": edges }), &Json::Object(args))
             .ok()?;
         Some(
             placed

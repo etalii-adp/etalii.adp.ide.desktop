@@ -4,7 +4,7 @@
 //! writes, an element's stored id follows its key in the edit that changes it (FBL 0.12 section 8.6), and a placement
 //! in a view the body does not hold is refused (FBL 0.11 section 9.3).
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::path::Path;
 use std::rc::Rc;
 
@@ -28,6 +28,17 @@ enum EditedFile {
     Sidecar,
     /// *(FBL 0.12)* The legacy identities file.
     Identities,
+}
+
+/// The files of a document, each by its path as an edit names it, with their bytes: what [`OpenDocument::of_files`]
+/// opens.
+#[derive(Debug, Clone, Default)]
+pub struct DocumentFiles {
+    pub registration: Vec<u8>,
+    pub registration_name: String,
+    pub body: Option<(String, Vec<u8>)>,
+    pub legacy_layout: Option<(String, Vec<u8>)>,
+    pub legacy_identities: Option<(String, Vec<u8>)>,
 }
 
 /// A registration with the body and the legacy layout it opens.
@@ -59,30 +70,50 @@ impl OpenDocument {
         options: FblOptions,
         workspace_root: &Path,
     ) -> OpenDocument {
-        let mut registration = OpenRegistration::open_with(bytes, &binding);
+        let registration = OpenRegistration::open_with(bytes.clone(), &binding);
         let name = |p: &Path| {
             p.file_name()
                 .map(|n| n.to_string_lossy().into_owned())
                 .unwrap_or_default()
         };
         let location = locate_body(path, registration.document(), &binding, workspace_root);
-        let mut body = None;
-        let mut sidecar = None;
-        let mut identities = None;
+        let mut files = DocumentFiles {
+            registration: bytes,
+            registration_name: name(path),
+            body: None,
+            legacy_layout: None,
+            legacy_identities: None,
+        };
         if let Some(body_path) = location.path.filter(|_| location.exists) {
             let document = registration.document();
             let body_name = document.body().map(str::to_owned).unwrap_or_else(|| name(&body_path));
-            let beside = |sidecar_path: &Path| {
+            let beside = |pattern: &Option<String>| {
+                let path = LegacySidecar::path_for(pattern.as_deref()?, &body_path);
                 let folder = Path::new(&body_name).parent().unwrap_or(Path::new(""));
-                folder.join(name(sidecar_path)).to_string_lossy().replace('\\', "/")
+                let file = folder.join(name(&path)).to_string_lossy().replace('\\', "/");
+                Some((file, std::fs::read(&path).ok()?))
             };
-            if document.identities.is_none()
-                && let Some(pattern) = binding.registration.legacy_identities.as_deref()
-            {
-                let identities_path = LegacySidecar::path_for(pattern, &body_path);
-                if let Ok(identities_bytes) = std::fs::read(&identities_path) {
-                    identities = Some((beside(&identities_path), LegacySidecar::open(identities_bytes)));
-                }
+            files.legacy_layout = beside(&binding.registration.legacy_layout);
+            files.legacy_identities = beside(&binding.registration.legacy_identities);
+            files.body = std::fs::read(&body_path).ok().map(|bytes| (body_name.clone(), bytes));
+        }
+        OpenDocument::of_files(files, binding, options)
+    }
+
+    /// Opens a document whose files are in `files`, as [`OpenDocument::open`] finds them on disk, so that a host that
+    /// holds its documents in memory reads and plans them as FBL says. A legacy file is used only while the registration
+    /// has no block that stands in for it (FBL section 8.7).
+    pub fn of_files(files: DocumentFiles, binding: Rc<FblBinding>, options: FblOptions) -> OpenDocument {
+        let mut registration = OpenRegistration::open_with(files.registration, &binding);
+        let mut body = None;
+        let mut sidecar = None;
+        let mut identities = None;
+        if let Some((body_name, body_bytes)) = files.body {
+            let document = registration.document();
+            if document.identities.is_none() {
+                identities = files
+                    .legacy_identities
+                    .map(|(name, bytes)| (name, LegacySidecar::open(bytes)));
             }
             let options = FblOptions {
                 file_name: body_name.clone(),
@@ -92,26 +123,18 @@ impl OpenDocument {
                 identities: stored_ids(&registration, identities.as_ref()),
                 ..options
             };
-            if let Ok(body_bytes) = std::fs::read(&body_path) {
-                let open = OpenBody::open(body_bytes, binding.clone(), Rc::new(options));
-                registration.known_ids = Some(open.model().elements.iter().map(|e| e.id.clone()).collect());
-                body = Some((body_name.clone(), open));
-                if let Some(pattern) = binding
-                    .registration
+            let open = OpenBody::open(body_bytes, binding.clone(), Rc::new(options));
+            registration.known_ids = Some(open.model().elements.iter().map(|e| e.id.clone()).collect());
+            body = Some((body_name, open));
+            if registration.document().layout.is_none() {
+                sidecar = files
                     .legacy_layout
-                    .as_deref()
-                    .filter(|_| registration.document().layout.is_none())
-                {
-                    let sidecar_path = LegacySidecar::path_for(pattern, &body_path);
-                    if let Ok(sidecar_bytes) = std::fs::read(&sidecar_path) {
-                        sidecar = Some((beside(&sidecar_path), LegacySidecar::open(sidecar_bytes)));
-                    }
-                }
+                    .map(|(name, bytes)| (name, LegacySidecar::open(bytes)));
             }
         }
         OpenDocument {
             registration,
-            registration_name: name(path),
+            registration_name: files.registration_name,
             body,
             sidecar,
             identities,
@@ -127,6 +150,20 @@ impl OpenDocument {
 
     pub fn body(&self) -> Option<&OpenBody> {
         self.body.as_ref().map(|(_, body)| body)
+    }
+
+    /// The positions a legacy layout holds for the view the registration selects, by the keys it writes them under;
+    /// none while no legacy layout stands in for the `layout:` block (FBL section 8.7).
+    pub fn legacy_positions(&self) -> Option<BTreeMap<String, (f64, f64)>> {
+        let (_, sidecar) = self.sidecar.as_ref()?;
+        let (_, body) = self.body.as_ref()?;
+        let model = body.model();
+        let header = self.registration.document().view();
+        let view = model.select_view(header).map(|v| v.name.clone());
+        Some(match view {
+            Some(view) => sidecar.positions(Some(&view)),
+            None => BTreeMap::new(),
+        })
     }
 
     /// The bytes of the file a change or an undo can write, by its path as an edit names it.

@@ -43,6 +43,8 @@ pub(crate) struct ElementData {
 pub(crate) struct ElementState {
     pub(crate) element_type: Rc<DislType>,
     pub(crate) id: String,
+    /// The id the binding read the element with, once the specification has derived another (section 11.5.2).
+    pub(crate) read_id: Option<String>,
     pub(crate) attributes: Map,
     pub(crate) parent: Option<Weak<ElementData>>,
     pub(crate) slot: Option<String>,
@@ -171,6 +173,7 @@ impl DislElement {
             state: RefCell::new(ElementState {
                 element_type,
                 id: new.id.clone(),
+                read_id: None,
                 attributes: new.attributes.clone(),
                 parent: new.parent.as_ref().map(|p| Rc::downgrade(&p.0)),
                 slot: if new.parent.is_some() { new.slot.clone() } else { None },
@@ -318,6 +321,17 @@ impl DislElement {
         self.0.state.borrow().line
     }
 
+    /// The id the binding knows the element by, when the specification derived the one it has (section 11.5.2).
+    pub fn read_id(&self) -> Option<String> {
+        self.0.state.borrow().read_id.clone()
+    }
+
+    /// Remembers the id the element has now as the one the binding read it with.
+    pub(crate) fn keep_read_id(&self) {
+        let mut state = self.0.state.borrow_mut();
+        state.read_id = Some(state.id.clone());
+    }
+
     /// The file the reader found the element in, relative to the diagram's subject (section 8.6); none for an
     /// element of the primary file, whose file is the diagram's.
     pub fn file(&self) -> Option<String> {
@@ -330,7 +344,11 @@ impl DislElement {
             let state = self.0.state.borrow();
             (state.file.clone(), state.line)
         };
-        (file.or_else(|| self.try_diagram().and_then(|d| d.file())), line)
+        let diagram = self.try_diagram();
+        let file = file
+            .or_else(|| diagram.as_ref().and_then(|d| d.file()))
+            .or_else(|| diagram.as_ref().and_then(|d| d.read_from()));
+        (file, line)
     }
 
     /// What `self.view` reads (section 12.2): the viewer's state of this element, which a host that holds viewer

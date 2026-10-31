@@ -430,13 +430,14 @@ impl DiagramSession {
                 }));
                 continue;
             }
+            // A move does not change what contains the element (DISL section 8.8), so its new parent is its parent.
             let refusals = gestures::placement(
                 specification,
                 &element,
                 "move",
                 bounds(old_x, old_y),
                 bounds(*x, *y),
-                None,
+                element.parent().as_ref(),
                 Some(&self.env),
             );
             if let Some(refusal) = refusals.into_iter().next() {
@@ -1062,13 +1063,13 @@ impl DiagramSession {
     fn entry(&self, document: &DiagramDocument, target: &ActionTarget, action_id: &str) -> Option<DerivedMenuEntry> {
         document.bind_views();
         let menu = Self::menu_target(document, target)?;
-        document
-            .tool()
-            .definition
+        let definition = &document.tool().definition;
+        definition
             .menu_entries(&menu, &self.env)
             .into_iter()
             .flatten()
             .find(|e| e.id == action_id)
+            .or_else(|| definition.operation_entry(&menu, &self.env, action_id))
     }
 
     /// Runs action `action_id` of `target`'s menu: an operation is run by the specification's behaviour and written

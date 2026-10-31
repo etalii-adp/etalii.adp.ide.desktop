@@ -41,6 +41,7 @@ pub(crate) struct DiagramData {
     budgets: RefCell<Option<Rc<Vec<DislBudgetState>>>>,
     computing_budgets: Cell<bool>,
     file: RefCell<Option<String>>,
+    read_from: RefCell<Option<String>>,
 }
 
 impl fmt::Debug for DiagramData {
@@ -108,6 +109,7 @@ impl DislDiagram {
             budgets: RefCell::new(None),
             computing_budgets: Cell::new(false),
             file: RefCell::new(None),
+            read_from: RefCell::new(None),
         }))
     }
 
@@ -135,6 +137,16 @@ impl DislDiagram {
 
     pub fn set_file(&self, file: Option<&str>) {
         *self.0.file.borrow_mut() = file.map(str::to_owned);
+    }
+
+    /// The file the reader read the elements from, relative to the subject: where an element's location is when nothing
+    /// names another (section 8.6), known from the first read, before a host binds `diagram.file`.
+    pub(crate) fn read_from(&self) -> Option<String> {
+        self.0.read_from.borrow().clone()
+    }
+
+    pub(crate) fn set_read_from(&self, file: Option<&str>) {
+        *self.0.read_from.borrow_mut() = file.map(str::to_owned);
     }
 
     /// The diagram attributes that have a stored value.

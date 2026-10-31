@@ -249,3 +249,43 @@ fn a_grammar_given_as_text_reads_and_writes_its_body() {
     assert!(matches!(removed, PlanResult::Planned(_)), "{removed:?}");
     assert_eq!(String::from_utf8_lossy(body.bytes()), "a = 1;\nc = 3;\n");
 }
+
+/// A secondary slot reads what its entry holds no slot for from the enclosing entry (FBL 0.10 section 5.2, section 4.9):
+/// a statement written inside another's block, with no source of its own, has that one's name as its source.
+#[test]
+fn a_secondary_slot_reads_from_the_enclosing_entry() {
+    let document = serde_json::json!({
+        "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+        "fbl": "0.14",
+        "bindings": { "items": {
+            "claims": { "extensions": [".txt"] },
+            "body": {
+                "kind": "file", "family": "grammar",
+                "grammar": "start: item*\nitem: NAME [\"{\" link* \"}\"]\nlink: [NAME] \"->\" target\ntarget: NAME\nNAME: /[a-z]+/\nWS: /[ \\n]+/\n%ignore WS\n",
+            },
+            "reader": "declared",
+            "elements": [
+                { "name": "item", "type": "Item", "at": "/item", "attributes": { "name": { "node": "NAME" } } },
+                { "name": "link", "type": "Link", "at": "/item/link", "attributes": {
+                    "from": { "node": "NAME", "secondary": { "parent": "name" } },
+                    "to": { "node": "target" },
+                } },
+            ],
+        } },
+    });
+    let (problems, document) = documents::load(&serde_json::to_vec(&document).unwrap());
+    let document = document.unwrap_or_else(|| panic!("{problems:?}"));
+    let body = OpenBody::open(
+        b"a { -> b  c -> d }\nb\n".to_vec(),
+        Rc::new(document.binding("items").unwrap().clone()),
+        Rc::new(FblOptions::default()),
+    );
+    let links: Vec<String> = body
+        .model()
+        .elements
+        .iter()
+        .filter(|e| e.type_name == "Link")
+        .map(|e| e.attributes.get("from").map(ToString::to_string).unwrap_or_default())
+        .collect();
+    assert_eq!(links, ["a", "c"]);
+}

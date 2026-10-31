@@ -109,6 +109,11 @@ impl DislDiagramDefinition {
             .collect()
     }
 
+    /// The entry of the operation `action_id` names, for a gesture that names an action `target`'s menu does not offer.
+    pub fn operation_entry(&self, target: &DislMenuTarget, env: &DislEnv, action_id: &str) -> Option<DerivedMenuEntry> {
+        context_menu::operation_entry(&self.specification, target, env, &self.ids, action_id)
+    }
+
     /// The context menu of `target`, as the shell shows it.
     pub fn menus(&self, target: &DislMenuTarget, env: &DislEnv) -> Vec<ActionGroup> {
         self.menu_entries(target, env)

@@ -1,7 +1,7 @@
 //! A description's files (ATD §5): the root a file belongs to, the parts its imports reach, their versions and their
 //! syntax, with the findings of §5 (versions, syntax, imports, cycles and parts).
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use adp_atd_syntax::{LineIndex, Parse, VERSIONS, declared_version};
@@ -18,6 +18,9 @@ pub struct FileUnit {
     pub parse: Option<Parse>,
     /// The abstract tree, when the file parsed far enough.
     pub tree: Option<Json>,
+    /// The modules of each grammar `grammar from` names in this file, by the module's name, as `Files` gave them, and
+    /// each inline grammar's text under `grammar`, by the binding's name: a runtime has no files of its own (ATD §11.9).
+    pub grammars: BTreeMap<String, BTreeMap<String, String>>,
 }
 
 impl FileUnit {
@@ -70,6 +73,11 @@ impl Description {
         self.files.iter().flat_map(|f| f.members().iter())
     }
 
+    /// The modules of the grammar of the binding named `binding`, by the module's name, when it has one.
+    pub fn grammar(&self, binding: &str) -> Option<&BTreeMap<String, String>> {
+        self.files.iter().find_map(|f| f.grammars.get(binding))
+    }
+
     pub fn file(&self, name: &str) -> Option<&FileUnit> {
         self.files.iter().find(|f| f.name == name)
     }
@@ -89,6 +97,7 @@ fn read(files: &dyn Files, path: &Path, findings: &mut Vec<Finding>) -> Option<F
         text,
         parse: None,
         tree: None,
+        grammars: BTreeMap::new(),
     };
     let lines = LineIndex::new(&unit.text);
     let at = |start: usize, end: usize| {
@@ -159,6 +168,7 @@ fn read(files: &dyn Files, path: &Path, findings: &mut Vec<Finding>) -> Option<F
     }
     unit.tree = adp_atd_syntax::lower(&parse, &name).ok();
     unit.parse = Some(parse);
+    unit.grammars = crate::grammars::read(files, &unit);
     Some(unit)
 }
 

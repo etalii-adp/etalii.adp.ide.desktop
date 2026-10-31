@@ -93,7 +93,9 @@ impl DiagramTool {
     }
 
     /// The settings for reading a body named `file_name` through the binding: the specification's id strategy and
-    /// attribute types, and what the registration it was opened through says.
+    /// attribute types, and what the registration it was opened through says: the reading's origin, the view it reads
+    /// inside and the resource it selects (FBL sections 5.1, 8.2 and 9.3). Without a registration the reading's origin is
+    /// the tool type's.
     pub fn options(&self, file_name: &str, registration: Option<&RegistrationDocument>) -> FblOptions {
         let specification = self.definition.specification();
         let mut options = FblOptions {
@@ -102,6 +104,12 @@ impl DiagramTool {
             attribute_type: Some(attribute_types::of(specification)),
             time_attributes: attribute_types::time_attributes(specification, &self.binding),
             rule_observer: self.module.as_ref().and_then(|m| m.rule_observer()),
+            origin: Some(self.origin.clone()),
+            ephemeral_missing_ids: specification
+                .root()
+                .pointer("/persistence/ids/missing")
+                .and_then(serde_json::Value::as_str)
+                == Some("ephemeral"),
             ..FblOptions::default()
         };
         if let Some(registration) = registration {
@@ -110,6 +118,10 @@ impl DiagramTool {
                 .iter()
                 .map(|h| (h.key.clone(), h.value.clone()))
                 .collect();
+            options.origin = Some(registration.origin.clone())
+                .filter(|origin| !origin.is_empty())
+                .or(options.origin);
+            options.view = registration.view().map(str::to_owned);
             options.resource = registration.resource().map(str::to_owned);
             options.identities = registration.identity_map();
         }

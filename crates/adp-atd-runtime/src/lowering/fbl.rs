@@ -6,8 +6,8 @@ use serde_json::{Map, Value as Json, json};
 
 use super::values::{settings_of, text, value};
 
-/// The FBL version the lowered document states.
-const FBL: &str = "0.1";
+/// The FBL version the lowered document states (ATD §11: a binding is FBL 0.14's in ATD 0.1).
+const FBL: &str = "0.14";
 
 /// The FBL document of the bindings among `members`, none when there are none.
 pub fn lower(members: &[&Json]) -> Option<Json> {
@@ -54,6 +54,10 @@ fn lower_binding(binding: &Json) -> Map<String, Json> {
                 lowered.insert(key, Json::Object(own));
             }
             "body" => body.extend(settings_of(member)),
+            // The file's text is read when the description is, and given to the binding when it is loaded (ATD §11.9).
+            "grammar_file" => {
+                body.insert("grammar".into(), json!({ "file": member["title"] }));
+            }
             "rule" => {
                 let rule = rule(member);
                 if member["ruleKind"] == "relation" {
@@ -81,7 +85,14 @@ fn lower_binding(binding: &Json) -> Map<String, Json> {
                 }
             }
             "template" => {
-                lowered.insert("template".into(), json!({ "text": value(&member["value"]) }));
+                // A string is the bytes of a new body; a settings map is FBL's `Template` itself (ATD §11.6).
+                let template = value(&member["value"]);
+                let template = if template.is_object() {
+                    template
+                } else {
+                    json!({ "text": template })
+                };
+                lowered.insert("template".into(), template);
             }
             "setting" => {
                 let key = member["setting"]["key"].as_str().unwrap_or_default().to_owned();
@@ -160,7 +171,7 @@ fn rule(rule: &Json) -> Json {
                 if let Some(references) = member.get("references") {
                     attribute.insert(
                         "reference".into(),
-                        json!({ "rules": super::values::names(&references["rules"]), "by": text(&references["by"]) }),
+                        json!({ "to": super::values::names(&references["rules"]), "by": text(&references["by"]) }),
                     );
                 }
                 attributes.insert(text(&member["name"]), Json::Object(attribute));
@@ -168,6 +179,9 @@ fn rule(rule: &Json) -> Json {
             "insert" | "remove" => {
                 let key = member["kind"].as_str().unwrap_or_default().to_owned();
                 lowered.insert(key, Json::Object(settings_of(member)));
+            }
+            "when" => {
+                lowered.insert("when".into(), member["when"]["cel"].clone());
             }
             "setting" => {
                 let key = member["setting"]["key"].as_str().unwrap_or_default().to_owned();
