@@ -368,3 +368,72 @@ fn a_node_on_an_axis_with_a_scale_is_placed_in_its_canvas_units() {
         "the nearest row"
     );
 }
+
+/// The Wardley map's binding part is `wardley-map.fbl` in ATD, its grammar a copy of `wardley-map.lark`, but for the form
+/// of a pipeline, which the model reads and FBL's example leaves unread (spec 067, T032). `ETALII_ADP` runs it on another
+/// clone.
+#[test]
+fn the_wardley_binding_is_fbls_example_but_for_a_pipelines_form() {
+    let root = etalii();
+    assert_eq!(
+        std::fs::read_to_string(root.join("definitions/diagrams/wardley-map.lark")).unwrap(),
+        std::fs::read_to_string(root.join("specifications/fbl/wardley-map.lark")).unwrap(),
+        "the grammar beside the description is FBL's example's"
+    );
+    let checked = check(&FsFiles, &root.join("definitions/diagrams/wardley-map.atd"));
+    let members: Vec<&Json> = checked.description.members().collect();
+    let lowered = adp_atd_runtime::lowering::fbl::lower(&members).expect("a binding");
+    let written = read_json(&root.join("specifications/fbl/wardley-map.fbl"));
+    let mut found = BTreeSet::new();
+    differences(
+        &undocumented(&lowered["bindings"]["owm"]),
+        &undocumented(&written["bindings"]["map"]),
+        "",
+        &mut found,
+    );
+    let expected: BTreeSet<String> = ["+ /elements/8/attributes/form", "+ /elements/9/attributes/form"]
+        .into_iter()
+        .map(str::to_owned)
+        .collect();
+    assert_eq!(found, expected);
+}
+
+/// Each Databricks binding part holds its reading's rules of `databricks.fbl`, where they read what FBL's example reads
+/// (spec 067, T030); what the cases ask beyond them is said in the parts' own documentation.
+#[test]
+fn the_databricks_bindings_hold_their_readings_rules_of_fbls_example() {
+    let root = etalii();
+    let written = read_json(&root.join("specifications/fbl/databricks.fbl"));
+    let written = &written["bindings"]["configuration"];
+    for reading in ["bundle", "job", "pipeline"] {
+        let checked = check(
+            &FsFiles,
+            &root.join(format!("definitions/diagrams/databricks-{reading}.atd")),
+        );
+        let members: Vec<&Json> = checked.description.members().collect();
+        let lowered = adp_atd_runtime::lowering::fbl::lower(&members).expect("a binding");
+        let lowered = &lowered["bindings"]["bundle"];
+        assert_eq!(lowered["reader"], "declared", "{reading} needs no reader");
+        let rules_of = |binding: &Json| -> Vec<Json> {
+            ["elements", "relations"]
+                .iter()
+                .flat_map(|list| binding[*list].as_array().cloned().unwrap_or_default())
+                .collect()
+        };
+        let own = rules_of(lowered);
+        let origin = format!("databricks/{reading}");
+        for rule in rules_of(written).iter().filter(|rule| {
+            rule["origins"]
+                .as_array()
+                .is_some_and(|o| o.iter().any(|x| *x == origin.as_str()))
+        }) {
+            // The job's dependency is read by a rule of its own and added by the relation rule of FBL's name's kind.
+            let found = own
+                .iter()
+                .find(|r| r["name"] == rule["name"])
+                .unwrap_or_else(|| panic!("{reading} has {}", rule["name"]));
+            assert_eq!(found["at"], rule["at"], "{reading} {}", rule["name"]);
+            assert_eq!(found["origins"], rule["origins"], "{reading} {}", rule["name"]);
+        }
+    }
+}
