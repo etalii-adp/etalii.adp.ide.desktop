@@ -51,13 +51,16 @@ diagram c4/component version "0.2.0" {
       attribute workspaceName: string readonly default "" { label: "Workspace" }
       /// The key of the view this reading shows, which a registration's `view:` names.
       attribute viewKey: string readonly default "" { label: "View key" }
+      /// The kind of the view this reading shows, by the name of its viewpoint: every reading shows a view of any kind,
+      /// the first in the body unless a registration's `view:` names another, as the tool does.
+      attribute viewpoint: string readonly default "" { label: "Kind of view" }
       /// The title the view declares with a `title` line.
       attribute title: string readonly default "" { label: "Title" }
       /// The title drawn above the diagram (`C4ElementMapper.TitleOf`): the declared title, else one made from the
       /// view's kind and the name of what it is scoped to, a landscape naming the workspace and a deployment view its
       /// environment.
       attribute heading: string {
-        derived: (self.title != '' ? self.title : (env.viewpoint == 'systemLandscape' ? (self.workspaceName != '' ? 'System Landscape diagram for ' + self.workspaceName : 'System Landscape diagram') : cel.bind(scopeName, self.scope != null ? self.scope.name : '', env.viewpoint == 'deployment' && self.environment != '' ? (scopeName != '' ? 'Deployment diagram for ' + scopeName + ' - ' + self.environment : 'Deployment diagram - ' + self.environment) : (scopeName != '' ? viewTitle(env.viewpoint) + ' diagram for ' + scopeName : viewTitle(env.viewpoint) + ' diagram'))))
+        derived: (self.title != '' ? self.title : (self.viewpoint == 'systemLandscape' ? (self.workspaceName != '' ? 'System Landscape diagram for ' + self.workspaceName : 'System Landscape diagram') : cel.bind(scopeName, self.scope != null ? self.scope.name : '', self.viewpoint == 'deployment' && self.environment != '' ? (scopeName != '' ? 'Deployment diagram for ' + scopeName + ' - ' + self.environment : 'Deployment diagram - ' + self.environment) : (scopeName != '' ? viewTitle(self.viewpoint) + ' diagram for ' + scopeName : viewTitle(self.viewpoint) + ' diagram'))))
       }
       /// What the view is scoped to: a software system, or a container for a component or dynamic view. Null for a
       /// landscape, and when the scope names nothing.
@@ -198,14 +201,14 @@ diagram c4/component version "0.2.0" {
       allowSelfLoops: false
       allowParallel: false
       derived: {
-        from: (env.viewpoint in ['systemLandscape', 'systemContext', 'container', 'component'] ? cel.bind(pairs, diagram.relationsOfType('Relationship').map(r, [r, lifted(r, env.viewpoint)]).filter(p, p[1].size() == 2), pairs.filter(p, cel.bind(first, pairs.filter(q, q[1] == p[1])[0], first[1] != [first[0].source, first[0].target])).map(p, p[0])) : [])
-        key: ([lifted(item, env.viewpoint)[0].id, lifted(item, env.viewpoint)[1].id])
-        id: (lifted(item, env.viewpoint)[0].id + '->' + lifted(item, env.viewpoint)[1].id + '@' + string(item.location().orValue({
+        from: (diagram.viewpoint in ['systemLandscape', 'systemContext', 'container', 'component'] ? cel.bind(pairs, diagram.relationsOfType('Relationship').map(r, [r, lifted(r, diagram.viewpoint)]).filter(p, p[1].size() == 2), pairs.filter(p, cel.bind(first, pairs.filter(q, q[1] == p[1])[0], first[1] != [first[0].source, first[0].target])).map(p, p[0])) : [])
+        key: ([lifted(item, diagram.viewpoint)[0].id, lifted(item, diagram.viewpoint)[1].id])
+        id: (lifted(item, diagram.viewpoint)[0].id + '->' + lifted(item, diagram.viewpoint)[1].id + '@' + string(item.location().orValue({
           'line': 0
         }
         ).line))
-        source: (lifted(item, env.viewpoint)[0])
-        target: (lifted(item, env.viewpoint)[1])
+        source: (lifted(item, diagram.viewpoint)[0])
+        target: (lifted(item, diagram.viewpoint)[1])
         attributes: { description: (item.description), technology: (item.technology) }
         sources: (group)
         reason: "That element is no longer in this model."
@@ -222,7 +225,7 @@ diagram c4/component version "0.2.0" {
       allowSelfLoops: false
       allowParallel: false
       derived: {
-        from: (env.viewpoint == 'deployment' ? cel.bind(entries, deploymentEntries(), entries.filter(x, !x[5] && entries.filter(y, y[3] == x[3] && y[4] == x[4])[0] == x)) : [])
+        from: (diagram.viewpoint == 'deployment' ? cel.bind(entries, deploymentEntries(), entries.filter(x, !x[5] && entries.filter(y, y[3] == x[3] && y[4] == x[4])[0] == x)) : [])
         id: (item[3] + '->' + item[4] + '@' + string(item[0].location().orValue({ 'line': 0 }).line))
         source: (item[1])
         target: (item[2])
@@ -242,7 +245,7 @@ diagram c4/component version "0.2.0" {
       allowSelfLoops: true
       allowParallel: true
       derived: {
-        from: (env.viewpoint == 'dynamic' ? diagram.relationsOfType('Interaction').filter(i, isMember(i.source, 'dynamic') && isMember(i.target, 'dynamic')) : [])
+        from: (diagram.viewpoint == 'dynamic' ? diagram.relationsOfType('Interaction').filter(i, isMember(i.source, 'dynamic') && isMember(i.target, 'dynamic')) : [])
         id: (writtenEnd(item, 'source') + '->' + writtenEnd(item, 'target') + '@' + string(item.location().orValue({
           'line': 0
         }
@@ -437,6 +440,35 @@ diagram c4/component version "0.2.0" {
   fn isMember(e: dyn, viewpoint: string) -> bool {
     // uses: ["diagram"]
     return e != null && e.kind == 'node' && (diagram.includes.exists(i, i != '*' && sameId(i, e.id)) || ('*' in diagram.includes && e.type in permitted(viewpoint)) || (viewpoint == 'dynamic' && diagram.relationsOfType('Interaction').exists(r, r.source == e || r.target == e))) && !diagram.excludes.exists(x, sameId(x, e.id)) && !(viewpoint in ['container', 'component'] && diagram.scope != null && diagram.scope == e)
+  }
+
+  /// Where `id` is in `items`, compared as identifiers are, or -1.
+  fn indexOfId(items: list<string>, id: string) -> int {
+    var i = 0
+    while i < size(items) limit 100000 {
+      if sameId(items[i], id) {
+        return i
+      }
+      i = i + 1
+    }
+    return -1
+  }
+
+  /// Where the view's statements put `e` among its members (`C4RuleSet.MembersOf`, companion, gap 15): what its
+  /// `include` statements name, in their order; then what `include *` adds, in the order of the model; then, on a
+  /// dynamic view, what its interactions name, in their order.
+  fn memberOrder(e: dyn) -> int {
+    // uses: ["diagram"]
+    let named = indexOfId(diagram.includes, e.id)
+    if named >= 0 {
+      return named
+    }
+    let statements = size(diagram.includes)
+    if '*' in diagram.includes && e.type in permitted(diagram.viewpoint) {
+      return statements + indexOfId(diagram.nodes.map(n, n.id), e.id)
+    }
+    let ends = diagram.relationsOfType('Interaction').map(r, [writtenEnd(r, 'source'), writtenEnd(r, 'target')]).flatten()
+    return statements + size(diagram.nodes) + indexOfId(ends, e.id)
   }
 
   /// The element `e` is drawn as: itself when the view shows it, else its nearest shown ancestor (`ancestors()` lists

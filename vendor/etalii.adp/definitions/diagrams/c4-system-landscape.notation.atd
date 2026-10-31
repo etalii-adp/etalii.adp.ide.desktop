@@ -3,9 +3,9 @@ part of c4/system-landscape
 
 // The coordinates, notation, toolbox, forms, layout and viewpoints, in a part of their own (ATD §5.2).
 
-/// The Structurizr default theme: a card per element, a dashed arrow per line. How big a card is, the boundary drawn
-/// around a container view's system or a hosting deployment node (`boundary:<id>`) and the moving of outsiders out of
-/// it are the host's (finding A16).
+/// The Structurizr default theme: a card per element, a dashed arrow per line. A card fits its content, in its style's
+/// font and padding. The boundary drawn around a container view's system or a hosting deployment node, and the moving of
+/// outsiders out of it, are the layout's (`boundary`); the module paints the boundary as its own chrome.
 notation {
   theme {
     tokens: {
@@ -685,18 +685,21 @@ form addComponent "Add component" {
 
 /// Every view is laid out by ADP. A position dragged on the canvas is kept for that view and replaces the computed one,
 /// except in a view that declares `autoLayout`, which sets the direction and the separations and makes every stored
-/// position ignored (companion, gap 9). Each card's size is measured by the host (finding A16).
+/// position ignored (companion, gap 9). The arguments follow the view the reading shows, of whichever kind.
 layout {
   default c4Ranks
   /// Longest-path ranks along the model's relationships (a dynamic view's interactions), one row per rank centred on
   /// the axis; a container or component view draws a boundary around its scope's children and moves anything else out
   /// of it (`C4Layout.cs`, `modules/diagrams/c4/src/layout.rs`).
   algorithm c4Ranks capability layout.rankedBoundaries {
-    mode: enclose
-    direction: (diagram.autoLayout != null ? string(diagram.autoLayout) : 'tb')
+    mode: (diagram.viewpoint == 'deployment' ? 'nest' : 'enclose')
+    direction: (diagram.autoLayout != '' ? string(diagram.autoLayout) : 'tb')
     rankSeparation: (diagram.rankSeparation)
     nodeSeparation: (diagram.nodeSeparation)
-    pinsIgnored: (diagram.autoLayout != null)
+    pinsIgnored: (diagram.autoLayout != '')
+    boundary: (diagram.viewpoint == 'deployment' ? isMember(self, 'deployment') && diagram.nodes.exists(n, isMember(n, 'deployment') && n.ancestors().exists(a, a == self)) : diagram.viewpoint in ['container', 'component'] && diagram.scope != null && diagram.scope == self && diagram.nodes.exists(n, n.parent == self && isMember(n, diagram.viewpoint)))
+    sequence: (memberOrder(self))
+    edges: (diagram.viewpoint == 'dynamic' ? self.isA('Interaction') : (diagram.viewpoint == 'deployment' ? self.isA('InstanceLine') || self.isA('Relationship') && drawsStored(self, 'deployment') : self.isA('Relationship')))
     padding: 32,
     labelHeight: 19.6,
     clearance: 60
@@ -721,7 +724,7 @@ layout {
 viewpoint systemLandscape "System Landscape view" {
   include: ["Person", "SoftwareSystem", "Container", "Component", "DeploymentNode", "InfrastructureNode", "ContainerInstance", "SoftwareSystemInstance", "Relationship", "LiftedRelationship", "InstanceLine", "InteractionLine"]
   exclude: ["IncludedFile", "Interaction"]
-  members: (self.isA('Relationship') ? drawsStored(self, 'systemLandscape') : (self.kind == 'relation' ? true : isMember(self, 'systemLandscape')))
+  members: (self.isA('Relationship') ? drawsStored(self, diagram.viewpoint) : (self.kind == 'relation' ? true : isMember(self, diagram.viewpoint)))
   toolbox: ["elements"]
   layout: "c4Ranks"
   default: true
