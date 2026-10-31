@@ -76,7 +76,12 @@ impl FlowReader {
                             style: Value::list(styles),
                         };
                     }
+                    let at = self.position;
                     let item = self.value();
+                    // A value that takes nothing (a stray `:`) is stepped over, so that the walk ends.
+                    if self.position == at {
+                        self.position += 1;
+                    }
                     typed.push(item.typed);
                     texts.push(item.text);
                     styles.push(item.style);
@@ -101,7 +106,11 @@ impl FlowReader {
                             style: Value::map(styles),
                         };
                     }
+                    let at = self.position;
                     let key = self.scalar(true);
+                    if self.position == at && self.at() != Some(':') {
+                        self.position += 1;
+                    }
                     self.skip();
                     let mut value = FlowValue::empty();
                     if self.at() == Some(':') {

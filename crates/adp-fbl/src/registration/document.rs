@@ -65,6 +65,7 @@ impl OpenDocument {
                 file_name: body_name.clone(),
                 origin: Some(document.origin.clone()),
                 view: document.view().map(str::to_owned),
+                resource: document.resource().map(str::to_owned),
                 ..options
             };
             if let Ok(body_bytes) = std::fs::read(&body_path) {
@@ -133,6 +134,11 @@ impl OpenDocument {
         model
             .findings
             .extend(self.registration.findings(&self.registration_name));
+        if body.reading().missing_resource().is_some() {
+            model
+                .findings
+                .extend(self.registration.document().missing_resource(&self.registration_name));
+        }
         if let Some((name, sidecar)) = &self.sidecar {
             let view = model
                 .select_view(self.registration.document().view())

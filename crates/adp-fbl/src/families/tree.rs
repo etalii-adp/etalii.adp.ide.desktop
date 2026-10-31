@@ -8,9 +8,10 @@ use crate::documents::loader::scalar_text;
 use crate::documents::types::{AttributeBinding, FblBinding, HeaderSettings, Slot};
 use crate::families::{Entry, EntryId, EntryKind, Family};
 use crate::model::FblOptions;
-use crate::planning::plan::Plan;
+use crate::planning::new_text;
+use crate::planning::plan::{Plan, Planning, refuse};
 use crate::rules::read_mode::{self, ReadMode};
-use crate::rules::{Candidate, Captures, Node, SlotRead, capture, selector};
+use crate::rules::{Candidate, Captures, InsertRequest, Node, SlotRead, capture, selector};
 use crate::text::Span;
 
 pub(crate) type ValueId = usize;
@@ -49,7 +50,7 @@ pub(crate) struct TreeValue {
     pub text: String,
     /// A scalar's value by the YAML 1.2 core schema or JSON's types: string, int, double, bool or null.
     pub typed: Value,
-    /// The members of a mapping or the items of a sequence, in order.
+    /// The members of a mapping or the items of a sequence, flow sequences' included (FBL 0.10 section 4.3), in order.
     pub entries: Vec<EntryId>,
     /// A flow collection's members as CEL sees them: readable, but writable only as a whole (FBL section 4.3).
     pub flow: Option<Value>,
@@ -194,6 +195,28 @@ pub(crate) fn cel_of(values: &[TreeValue], entries: &[Entry], id: ValueId, readi
     }
 }
 
+/// A key of a new entry (FBL section 6.2): with its value, or, for an attribute bound with `child`, a level of the
+/// entry with the keys below it (FBL 0.10).
+pub(crate) enum NewMember<'a> {
+    Value {
+        key: String,
+        value: Value,
+        binding: Option<&'a AttributeBinding>,
+    },
+    Level {
+        key: String,
+        members: Vec<NewMember<'a>>,
+    },
+}
+
+impl NewMember<'_> {
+    pub fn key(&self) -> &str {
+        match self {
+            NewMember::Value { key, .. } | NewMember::Level { key, .. } => key,
+        }
+    }
+}
+
 /// A scalar whose text is what was written: not a flow collection, nor an alias of a collection.
 fn is_written_scalar(value: &TreeValue) -> bool {
     value.kind == ValueKind::Scalar
@@ -218,6 +241,61 @@ impl Family {
             .iter()
             .copied()
             .find(|e| self.entries[*e].name.as_deref() == Some(key))
+    }
+
+    /// Whether the entry is an item or a member inside a yaml flow collection (FBL 0.10 section 4.3).
+    pub fn in_flow(&self, entry: EntryId) -> bool {
+        self.entries[entry].parent.is_some_and(|parent| {
+            matches!(
+                self.value_of(parent).style,
+                ValueStyle::FlowSequence | ValueStyle::FlowMapping
+            )
+        })
+    }
+
+    /// The levels of a new entry that its attributes bound with `child` make, each with the keys below it, those that
+    /// reach one level sharing it in the order of their bindings (FBL 0.10 section 6.2). A level a `*` or a capture
+    /// names gives no key to write, and the add is refused.
+    pub fn new_levels(&self, request: &InsertRequest) -> Planning<Vec<NewMember<'_>>> {
+        let rule = self.rule(request.rule);
+        let mut levels: Vec<NewMember<'_>> = Vec::new();
+        for (name, binding) in &rule.attributes {
+            let (Some(child), Some(key)) = (&binding.child, &binding.key) else {
+                continue;
+            };
+            let Some(value) = request.values.get(name).filter(|_| !binding.is_computed()) else {
+                continue;
+            };
+            if new_text::is_empty(value) && binding.empty.as_deref() != Some("keep") {
+                continue;
+            }
+            let mut members = &mut levels;
+            for segment in child.trim_matches('/').split('/') {
+                if segment == "*" || segment.starts_with('{') {
+                    return refuse(format!("A new {} has no key to write {child} under.", rule.type_name));
+                }
+                let at = match members.iter().position(|m| m.key() == segment) {
+                    Some(at) => at,
+                    None => {
+                        members.push(NewMember::Level {
+                            key: segment.to_owned(),
+                            members: Vec::new(),
+                        });
+                        members.len() - 1
+                    }
+                };
+                members = match &mut members[at] {
+                    NewMember::Level { members, .. } => members,
+                    NewMember::Value { .. } => unreachable!("a level holds only levels on the way down"),
+                };
+            }
+            members.push(NewMember::Value {
+                key: key.clone(),
+                value: value.clone(),
+                binding: Some(binding),
+            });
+        }
+        Ok(levels)
     }
 
     pub fn tree_root(&self) -> Option<EntryId> {
@@ -318,9 +396,12 @@ impl Family {
     fn read_member(&self, mapping: ValueId, name: &str) -> SlotRead {
         if let Some(member) = self.member(mapping, name) {
             let value = self.value_of(member);
-            let writable = !value.via_alias && value.kind == ValueKind::Scalar;
+            let in_flow = self.in_flow(member);
+            let writable = !value.via_alias && value.kind == ValueKind::Scalar && !in_flow;
             let reason = if value.via_alias {
                 Some("The value is reached through an alias, so it is read-only.")
+            } else if in_flow {
+                Some("The value is inside a flow collection, whose only writable span is the whole collection.")
             } else if writable {
                 None
             } else {
@@ -375,13 +456,23 @@ impl Family {
             .map(|(e, _)| e)
     }
 
-    /// The captures the binding's existing entries bound, so `{capture}` segments of a container resolve (FBL 6.2).
+    /// The captures the binding's existing entries bound, and the selected resource's, so `{capture}` segments of a
+    /// container resolve (FBL sections 6.2, 8.2).
     pub fn captures_of(plan: &Plan<'_>) -> Captures {
-        plan.reading
+        let bound = plan
+            .reading
             .elements()
             .map(|e| e.candidate.captures.clone())
             .find(|c| !c.is_empty())
-            .unwrap_or_default()
+            .unwrap_or_default();
+        match plan.reading.selected_capture() {
+            Some(selected) if !bound.iter().any(|(name, _)| *name == selected.0) => {
+                let mut captures = (*bound).clone();
+                captures.push(selected);
+                std::rc::Rc::new(captures)
+            }
+            _ => bound,
+        }
     }
 
     /// Indexes the tree under `entry` in document order, parenting every member and item.

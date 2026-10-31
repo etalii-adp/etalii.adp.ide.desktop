@@ -230,6 +230,8 @@ pub struct Rule {
     pub name: String,
     pub type_name: String,
     pub is_relation: bool,
+    /// *(FBL 0.10)* The readings the rule is a rule of (FBL section 5.1); empty for every reading.
+    pub origins: Vec<String>,
     pub at: Option<String>,
     pub line: Option<String>,
     pub within: Option<Vec<String>>,
@@ -443,6 +445,13 @@ pub struct AttributeBinding {
     pub fallback: Option<FallbackBinding>,
     /// *(FBL 0.11)* grammar: further `{node}` slots of the entry, whose values follow the first slot's.
     pub gather: Vec<Slot>,
+    /// *(FBL 0.10)* The slot read only when the attribute's own is absent, and removed by a write of the attribute
+    /// (FBL section 5.2): written as a binding of that slot alone that an empty value removes.
+    pub secondary: Option<Box<AttributeBinding>>,
+    /// *(FBL 0.10)* The sentence of a refusal by `empty: "refuse"` (FBL section 6.4).
+    pub refusal_empty: Option<String>,
+    /// *(FBL 0.10)* The sentence of a refusal by `absent` (FBL section 6.4).
+    pub refusal_absent: Option<String>,
 }
 
 impl std::ops::Deref for AttributeBinding {
@@ -500,6 +509,10 @@ pub struct InsertSettings {
     pub emit: Option<String>,
     pub skeleton: Option<String>,
     pub when: Option<String>,
+    /// *(FBL 0.10)* The sentence of a refusal because `when` does not hold (FBL section 6.4).
+    pub refusal_when: Option<String>,
+    /// *(FBL 0.10)* The sentence of a refusal because the container is missing and there is no `create`.
+    pub refusal_container: Option<String>,
 }
 
 /// How a missing container is created: `at` is "end-of-document", "before", "after", "under" or (FBL 0.4) "end".
@@ -527,7 +540,25 @@ pub struct RegistrationSettings {
     /// are written in (section 8.4).
     pub blocks: Vec<RegistrationBlockDeclaration>,
     pub resource_capture: Option<String>,
+    /// *(FBL 0.10)* `resource.byOrigin`: the capture each origin selects by, none for an origin that selects no
+    /// resource (FBL section 8.2). Empty when the capture is the same for every reading.
+    pub resource_by_origin: Vec<(String, Option<String>)>,
     pub legacy_layout: Option<String>,
+}
+
+impl RegistrationSettings {
+    /// The capture a registration of `origin` selects a resource by (FBL section 8.2): `byOrigin`'s for its origin,
+    /// none for an origin it maps to null or does not list, else `capture`.
+    pub fn resource_capture_of(&self, origin: Option<&str>) -> Option<&str> {
+        if self.resource_by_origin.is_empty() {
+            return self.resource_capture.as_deref();
+        }
+        let origin = origin?;
+        self.resource_by_origin
+            .iter()
+            .find(|(o, _)| o == origin)
+            .and_then(|(_, capture)| capture.as_deref())
+    }
 }
 
 /// A block of the registration that a binding declares (FBL 0.7 section 8.1, `registration.blocks`): its name,

@@ -1,6 +1,7 @@
 //! The lossless reading of a YAML body's first document (FBL section 4.3; the standalone host's
 //! `Files/Yaml/YamlParser`): block mappings and sequences, plain, quoted and block scalars, flow collections as one
-//! value, anchors and aliases, every node with its span as written. The standalone host had YamlDotNet judge
+//! value whose items are also entries when it is a sequence (FBL 0.10), anchors and aliases, every node with its span as
+//! written. The standalone host had YamlDotNet judge
 //! well-formedness before this ran; here this parser's own errors are what makes a body unreadable.
 
 use std::collections::{HashMap, HashSet};
@@ -777,7 +778,188 @@ impl Parser<'_> {
         value.flow = Some(flow.typed);
         value.flow_text = Some(flow.text);
         value.flow_style = Some(flow.style);
+        if style == ValueStyle::FlowSequence {
+            value.entries = self.flow_items(q, p).0;
+        }
         Ok(self.add_value(value))
+    }
+
+    // ---- the entries of a flow sequence (FBL 0.10 section 4.3) ----
+
+    /// The offset of the next thing in a flow collection that is not whitespace or a comment.
+    fn flow_skip(&self, mut p: usize, end: usize) -> usize {
+        while p < end {
+            match self.bytes[p] {
+                b' ' | b'\t' | b'\r' | b'\n' => p += 1,
+                b'#' if space(self.bytes[p - 1]) || self.bytes[p - 1] == b'\n' => {
+                    while p < end && self.bytes[p] != b'\n' {
+                        p += 1;
+                    }
+                }
+                _ => break,
+            }
+        }
+        p
+    }
+
+    fn flow_column(&self, offset: usize) -> usize {
+        offset - self.line_start(self.text.line_index_at(offset))
+    }
+
+    /// The `,` at `p` that follows the entry just read, when there is one, as that entry's separator (FBL section
+    /// 4.4), and the offset after it.
+    fn flow_separator(&mut self, entry: EntryId, p: usize, end: usize) -> usize {
+        let p = self.flow_skip(p, end);
+        if p >= end || self.bytes[p] != b',' {
+            return p;
+        }
+        if let EntryKind::Tree(tree) = &mut self.entries[entry].kind {
+            tree.separator = Some(p);
+        }
+        p + 1
+    }
+
+    /// The items of the flow sequence opening at `open`, each an entry with the span of a json item, and the offset
+    /// after its `]`. `end` bounds it: `parse_flow` found the brackets balanced, not that they match.
+    fn flow_items(&mut self, open: usize, end: usize) -> (Vec<EntryId>, usize) {
+        let mut items = Vec::new();
+        let mut p = open + 1;
+        loop {
+            p = self.flow_skip(p, end);
+            if p >= end {
+                return (items, end);
+            }
+            match self.bytes[p] {
+                b']' | b'}' => return (items, p + 1),
+                b',' => {
+                    p += 1;
+                    continue;
+                }
+                _ => {}
+            }
+            let (value, next) = self.flow_value(p, end);
+            let span = self.values[value].span;
+            let item = self.add_entry(span, self.flow_column(span.start), None, None, value);
+            items.push(item);
+            // A value that takes nothing (a stray `:`) is stepped over.
+            p = self.flow_separator(item, next.max(p + 1), end);
+        }
+    }
+
+    /// The members of the flow mapping opening at `open`, as `flow_items` reads items.
+    fn flow_members(&mut self, open: usize, end: usize) -> (Vec<EntryId>, usize) {
+        let mut members = Vec::new();
+        let mut p = open + 1;
+        loop {
+            p = self.flow_skip(p, end);
+            if p >= end {
+                return (members, end);
+            }
+            match self.bytes[p] {
+                b']' | b'}' => return (members, p + 1),
+                b',' => {
+                    p += 1;
+                    continue;
+                }
+                _ => {}
+            }
+            let (key, next) = self.flow_scalar(p, end, true);
+            let key_span = key.span;
+            let mut after = self.flow_skip(next.max(p + 1), end);
+            let mut value = None;
+            if after < end && self.bytes[after] == b':' {
+                after = self.flow_skip(after + 1, end);
+                if after < end && !matches!(self.bytes[after], b',' | b']' | b'}') {
+                    let (read, next) = self.flow_value(after, end);
+                    after = next.max(after + 1);
+                    value = Some(read);
+                }
+            }
+            let value = value.unwrap_or_else(|| self.empty(key_span.end));
+            let own = key_span.with_end(self.end_of(value, key_span.end));
+            let member = self.add_entry(own, self.flow_column(own.start), Some(key.text), Some(key_span), value);
+            members.push(member);
+            p = self.flow_separator(member, after, end);
+        }
+    }
+
+    /// A value inside a flow sequence, and the offset after it.
+    fn flow_value(&mut self, p: usize, end: usize) -> (ValueId, usize) {
+        let (value, next) = match self.bytes[p] {
+            b'[' => {
+                let (entries, next) = self.flow_items(p, end);
+                let span = Span::new(p, next);
+                (
+                    TreeValue {
+                        entries,
+                        ..TreeValue::new(ValueKind::Sequence, ValueStyle::FlowSequence, span)
+                    },
+                    next,
+                )
+            }
+            b'{' => {
+                let (entries, next) = self.flow_members(p, end);
+                let span = Span::new(p, next);
+                (
+                    TreeValue {
+                        entries,
+                        ..TreeValue::new(ValueKind::Mapping, ValueStyle::FlowMapping, span)
+                    },
+                    next,
+                )
+            }
+            _ => self.flow_scalar(p, end, false),
+        };
+        (self.add_value(value), next)
+    }
+
+    /// A scalar inside a flow collection, read as `flow` reads one, and the offset after it.
+    fn flow_scalar(&self, p: usize, end: usize, key: bool) -> (TreeValue, usize) {
+        let quote = self.bytes[p];
+        if quote == b'"' || quote == b'\'' {
+            let mut close = p + 1;
+            while close < end {
+                if quote == b'"' && self.bytes[close] == b'\\' {
+                    close += 2;
+                    continue;
+                }
+                if self.bytes[close] == quote {
+                    if quote == b'\'' && close + 1 < end && self.bytes[close + 1] == b'\'' {
+                        close += 2;
+                        continue;
+                    }
+                    break;
+                }
+                close += 1;
+            }
+            let close = close.min(end);
+            let inner = self.text.text(p + 1, close);
+            let (decoded, style) = if quote == b'"' {
+                (scalars::decode_double(inner), ValueStyle::Double)
+            } else {
+                (scalars::decode_single(inner), ValueStyle::Single)
+            };
+            let span = Span::new(p, (close + 1).min(end));
+            let typed = Value::from(decoded.as_str());
+            return (TreeValue::scalar(style, span, decoded, typed), span.end);
+        }
+        let mut q = p;
+        while q < end {
+            let b = self.bytes[q];
+            if matches!(b, b',' | b']' | b'}') {
+                break;
+            }
+            if b == b':' && (key || q + 1 >= end || matches!(self.bytes[q + 1], b' ' | b',' | b']' | b'}')) {
+                break;
+            }
+            q += 1;
+        }
+        let raw = self.text.text(p, q);
+        let trimmed = raw.trim();
+        let plain = scalars::fold(trimmed);
+        let span = Span::new(p, p + trimmed.len());
+        let typed = scalars::typed(&plain);
+        (TreeValue::scalar(ValueStyle::Plain, span, plain, typed), q)
     }
 }
 
