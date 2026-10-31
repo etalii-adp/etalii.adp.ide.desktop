@@ -619,7 +619,15 @@ impl DiagramModule for RuntimeModule {
                 Some(value) => Self::evaluate(specification, relation, value) == Some(Value::Bool(true)),
                 None => !relation.is_derived(),
             })
-            .map(|relation| json!({ "id": relation.id(), "source": relation.source_id(), "target": relation.target_id() }))
+            .map(|relation| {
+                // An end as the model holds it, not as it was read: under a prefix the two differ.
+                let end = |element: Option<DislElement>, read: Option<String>| element.map(|e| e.id()).or(read);
+                json!({
+                    "id": relation.id(),
+                    "source": end(relation.source(), relation.source_id()),
+                    "target": end(relation.target(), relation.target_id()),
+                })
+            })
             .collect();
         // The corners as the algorithm computes them, not rounded, so that the centres are where its module put them.
         let placed = capability
