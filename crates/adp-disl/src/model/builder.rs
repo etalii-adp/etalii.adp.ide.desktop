@@ -71,6 +71,7 @@ fn line_of(element: &FblElement) -> Option<i32> {
 /// The model of `reading` under `specification`.
 pub fn from(reading: &FblModel, specification: &DislSpecification) -> DislModel {
     let diagram = DislDiagram::new(specification);
+    diagram.set_read_from(reading.file.as_deref());
     let mut findings = reading.findings.clone();
     let mut header = Vec::new();
     let mut unreadable = Vec::new();
@@ -258,6 +259,23 @@ impl Builder<'_> {
             .get(id)
             .cloned()
             .or_else(|| self.diagram.element_by_id(id))
+            .or_else(|| self.ignoring_case(id))
+    }
+}
+
+impl Builder<'_> {
+    /// The first element whose read id is `id` but for the case of its letters, under `persistence.ids.compare:
+    /// ignore-case` (section 11.5), which says for every lookup the runtime makes itself.
+    fn ignoring_case(&self, id: &str) -> Option<DislElement> {
+        let compare = self.specification.root().pointer("/persistence/ids/compare")?;
+        if compare.as_str() != Some("ignore-case") {
+            return None;
+        }
+        self.built
+            .iter()
+            .filter(|(_, element)| element.id().eq_ignore_ascii_case(id))
+            .min_by_key(|(position, _)| **position)
+            .map(|(_, element)| element.clone())
     }
 }
 
@@ -363,6 +381,7 @@ fn derived_ids(diagram: &DislDiagram, elements: &[DislElement], findings: &mut V
                 continue;
             }
         };
+        element.keep_read_id();
         element.set_id(&id);
         element.set_id_is_stored(false);
         match computed.entry(id.clone()) {

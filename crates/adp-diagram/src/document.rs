@@ -18,8 +18,8 @@
 //! gesture are one edit, so one undo.
 
 use std::any::Any;
-use std::collections::HashMap;
 use std::collections::hash_map::DefaultHasher;
+use std::collections::{BTreeMap, HashMap};
 use std::fs;
 use std::hash::{Hash, Hasher};
 use std::io;
@@ -34,8 +34,10 @@ use adp_documents::SelfWriteGuard;
 use adp_fbl::history::{DRIFT_UNDO, apply_in_order, inverse};
 use adp_fbl::model::{SourceLocation, codes};
 use adp_fbl::plugins::PluginBody;
+use adp_fbl::registration::document::DocumentFiles;
+use adp_fbl::registration::legacy_sidecar::LegacySidecar;
 use adp_fbl::{
-    FblModel, FblOptions, Finding, FindingSeverity, ModelChange, OpenBody, OpenRegistration, PlanResult,
+    FblModel, FblOptions, Finding, FindingSeverity, ModelChange, OpenBody, OpenDocument, OpenRegistration, PlanResult,
     RegistrationDocument, Splice,
 };
 use adp_history::{Applied, Command, Refusal};
@@ -57,6 +59,10 @@ pub const NOT_OPEN: &str = "The diagram is not open.";
 pub enum EditedFile {
     Body,
     Registration,
+    /// The legacy layout beside the body (FBL section 8.7), while the registration has no `layout:` block.
+    LegacyLayout,
+    /// The legacy identities beside the body (FBL 0.12 section 8.7), while the registration has no `identities:` block.
+    LegacyIdentities,
 }
 
 /// The length and hash of the bytes a step was planned against.
@@ -133,6 +139,46 @@ pub struct Reading {
     pub fbl: FblModel,
     pub model: DislModel,
     pub registration: Option<RegistrationDocument>,
+    /// What a legacy layout holds for the view the registration selects, by the keys it writes them under, while it
+    /// stands in for the `layout:` block (FBL section 8.7).
+    legacy_positions: Option<BTreeMap<String, (f64, f64)>>,
+}
+
+/// A file a binding keeps beside the body (FBL section 8.7): where it is and its bytes.
+#[derive(Debug, Clone)]
+struct LegacyFile {
+    path: PathBuf,
+    bytes: Rc<[u8]>,
+}
+
+/// The files of one document beside its body.
+#[derive(Debug, Clone, Default)]
+struct Beside {
+    layout: Option<LegacyFile>,
+    identities: Option<LegacyFile>,
+}
+
+impl Beside {
+    /// What the binding of `tool` names beside `body_path`, as `read` gives each file's bytes.
+    fn of(tool: &DiagramTool, body_path: &Path, read: &dyn Fn(&Path) -> Option<Vec<u8>>) -> Beside {
+        let file = |pattern: &Option<String>| {
+            let path = LegacySidecar::path_for(pattern.as_deref()?, body_path);
+            let bytes = read(&path)?;
+            Some(LegacyFile {
+                path,
+                bytes: Rc::from(bytes),
+            })
+        };
+        let settings = &tool.binding.registration;
+        Beside {
+            layout: file(&settings.legacy_layout),
+            identities: file(&settings.legacy_identities),
+        }
+    }
+
+    fn bytes_of(file: &Option<LegacyFile>) -> Option<Vec<u8>> {
+        file.as_ref().map(|f| f.bytes.to_vec())
+    }
 }
 
 /// One open diagram: its body and registration as they are on disk after every edit, and their reading.
@@ -143,6 +189,7 @@ pub struct DiagramDocument {
     registration_path: Option<PathBuf>,
     body: Rc<[u8]>,
     registration: Option<Rc<[u8]>>,
+    beside: Beside,
     reading: Rc<Reading>,
     deleted: bool,
 }
@@ -166,6 +213,16 @@ impl DiagramDocument {
 
     pub fn registration_bytes(&self) -> Option<&[u8]> {
         self.registration.as_deref()
+    }
+
+    /// The bytes of the legacy layout beside the body, when there is one.
+    pub fn legacy_layout_bytes(&self) -> Option<&[u8]> {
+        self.beside.layout.as_ref().map(|f| &*f.bytes)
+    }
+
+    /// The bytes of the legacy identities beside the body, when there are any.
+    pub fn legacy_identities_bytes(&self) -> Option<&[u8]> {
+        self.beside.identities.as_ref().map(|f| &*f.bytes)
     }
 
     /// The DISL model of the body as it is now.
@@ -214,6 +271,23 @@ impl DiagramDocument {
         if let Some(positions) = self.laid_out() {
             return positions;
         }
+        let mut positions = self.authored_positions();
+        let module = self.tool.module.as_deref();
+        for element in self.reading.model.diagram.nodes() {
+            if let Some(position) = module.and_then(|m| m.position(&element)) {
+                positions.insert(element.id(), position);
+            } else if let Some((x, y)) = self.placement_attributes(&element) {
+                let number = |name: &str| element.value_of(name).as_number().unwrap_or_default();
+                positions.insert(element.id(), (number(&x), number(&y)));
+            }
+        }
+        positions
+    }
+
+    /// The positions authored for this reading, by element id: what the registration's `layout:` block stores, or the
+    /// legacy layout while it stands in for that block, its keys matched with the elements' ids ignoring the case of
+    /// ASCII letters (FBL section 8.7).
+    pub fn authored_positions(&self) -> HashMap<String, (f64, f64)> {
         let mut positions = HashMap::new();
         if let Some(layout) = self.registration().and_then(|r| r.layout.as_ref()) {
             for entry in &layout.entries {
@@ -223,13 +297,13 @@ impl DiagramDocument {
                 }
             }
         }
-        let module = self.tool.module.as_deref();
-        for element in self.reading.model.diagram.nodes() {
-            if let Some(position) = module.and_then(|m| m.position(&element)) {
-                positions.insert(element.id(), position);
-            } else if let Some((x, y)) = self.placement_attributes(&element) {
-                let number = |name: &str| element.value_of(name).as_number().unwrap_or_default();
-                positions.insert(element.id(), (number(&x), number(&y)));
+        if let Some(legacy) = &self.reading.legacy_positions {
+            for element in self.reading.model.diagram.nodes() {
+                let id = element.id();
+                let found = legacy.iter().find(|(key, _)| key.eq_ignore_ascii_case(&id));
+                if let Some((_, position)) = found {
+                    positions.insert(id, *position);
+                }
             }
         }
         positions
@@ -407,6 +481,9 @@ impl DiagramDocument {
         if let Some(refusal) = self.refusal() {
             return Err(refusal);
         }
+        if let Some(document) = self.open_document() {
+            return self.plan_through(document, label, changes);
+        }
         let specification = self.tool.definition.specification();
         let options = self.tool.options(&file_name(&self.body_path), self.registration());
         let mut body = Body::open(&self.tool, self.body.to_vec(), options, &file_name(&self.body_path));
@@ -419,7 +496,7 @@ impl DiagramDocument {
         for change in changes {
             let (model_change, place, explicit) = match change {
                 DiagramChange::Disl(disl) => (
-                    Some(write::to_fbl(specification, disl)),
+                    Some(self.addressed(write::to_fbl(specification, disl))),
                     placement_of(specification, disl),
                     false,
                 ),
@@ -464,6 +541,160 @@ impl DiagramDocument {
             steps,
         })
     }
+
+    /// `change` as the binding addresses what it changes: an element whose id the specification derives (DISL section
+    /// 11.5.2) is known to the binding by the id it read it with.
+    fn addressed(&self, change: ModelChange) -> ModelChange {
+        let read = |id: String| match self.reading.model.diagram.element_by_id(&id).and_then(|e| e.read_id()) {
+            Some(read) => read,
+            None => id,
+        };
+        match change {
+            ModelChange::Set { id, attributes } => ModelChange::Set {
+                id: read(id),
+                attributes,
+            },
+            ModelChange::Remove { id } => ModelChange::Remove { id: read(id) },
+            ModelChange::Move {
+                id,
+                new_parent_id,
+                index,
+            } => ModelChange::Move {
+                id: read(id),
+                new_parent_id,
+                index,
+            },
+            ModelChange::Retype {
+                id,
+                type_name,
+                attributes,
+            } => ModelChange::Retype {
+                id: read(id),
+                type_name,
+                attributes,
+            },
+            other => other,
+        }
+    }
+
+    /// The document as FBL's [`OpenDocument`] holds it, when the binding keeps a file beside the body and a registration
+    /// opens it: every change goes to the file that holds what it changes, an element's stored id follows its key, and a
+    /// place in a view the body does not hold is refused. A body read by a plugin keeps its own files.
+    fn open_document(&self) -> Option<OpenDocument> {
+        let registration = self.registration.as_ref()?;
+        open_through(
+            &self.tool,
+            &self.body_path,
+            &self.body,
+            registration,
+            &self.registration_path,
+            &self.beside,
+        )
+    }
+
+    /// Plans `changes` on `document`, each step's files in the order it writes them, the one that holds what the change
+    /// changes first.
+    fn plan_through(
+        &self,
+        mut document: OpenDocument,
+        label: &str,
+        changes: &[DiagramChange],
+    ) -> Result<DocumentEdit, String> {
+        let specification = self.tool.definition.specification();
+        let name = |path: &Path| file_name(path);
+        let files: Vec<(EditedFile, String)> = [
+            Some((EditedFile::Body, name(&self.body_path))),
+            self.registration_path
+                .as_deref()
+                .map(|path| (EditedFile::Registration, name(path))),
+            self.beside
+                .layout
+                .as_ref()
+                .map(|f| (EditedFile::LegacyLayout, name(&f.path))),
+            self.beside
+                .identities
+                .as_ref()
+                .map(|f| (EditedFile::LegacyIdentities, name(&f.path))),
+        ]
+        .into_iter()
+        .flatten()
+        .collect();
+        let mut steps = Vec::new();
+        for change in changes {
+            let (model_change, place) = match change {
+                DiagramChange::Disl(disl) => (
+                    Some(self.addressed(write::to_fbl(specification, disl))),
+                    placement_of(specification, disl),
+                ),
+                DiagramChange::Body(model_change) => (Some(model_change.clone()), None),
+                DiagramChange::Place { id, x, y } => (None, Some((id.clone(), *x, *y))),
+            };
+            let place = place.map(|(id, x, y)| ModelChange::Place { id, x, y });
+            for change in model_change.iter().chain(place.iter()) {
+                let before: Vec<Option<Fingerprint>> = files
+                    .iter()
+                    .map(|(_, name)| document.file(name).map(Fingerprint::of))
+                    .collect();
+                match document.change(change) {
+                    PlanResult::Planned(edit) if !edit.splices.is_empty() => {
+                        for written in document.last_files() {
+                            let place = files.iter().position(|(_, name)| name == written);
+                            let (Some(place), Some(splices)) = (place, document.last_splices(written)) else {
+                                continue;
+                            };
+                            let Some(before) = before[place] else { continue };
+                            steps.push(EditStep {
+                                file: files[place].0,
+                                splices: splices.to_vec(),
+                                before,
+                            });
+                        }
+                    }
+                    PlanResult::Planned(_) => {}
+                    PlanResult::Refused(reason) | PlanResult::Invalid(reason) => return Err(reason),
+                }
+            }
+        }
+        Ok(DocumentEdit {
+            label: label.to_owned(),
+            body_path: self.body_path.clone(),
+            steps,
+        })
+    }
+}
+
+/// `OpenDocument` of a document's bytes, when its binding is read by its declared rules and keeps a file beside the body
+/// (FBL section 8.7). A binding that keeps none opens as it always has.
+fn open_through(
+    tool: &DiagramTool,
+    body_path: &Path,
+    body: &[u8],
+    registration: &[u8],
+    registration_path: &Option<PathBuf>,
+    beside: &Beside,
+) -> Option<OpenDocument> {
+    let settings = &tool.binding.registration;
+    let keeps_a_file = settings.legacy_layout.is_some() || settings.legacy_identities.is_some();
+    if !keeps_a_file || tool.binding.plugin.is_some() {
+        return None;
+    }
+    let body_name = file_name(body_path);
+    let beside_name = |file: &Option<LegacyFile>| {
+        Some((
+            file_name(&file.as_ref()?.path),
+            Beside::bytes_of(file).unwrap_or_default(),
+        ))
+    };
+    let document = RegistrationDocument::read(registration.to_vec());
+    let options = tool.options(&body_name, Some(&document));
+    let files = DocumentFiles {
+        registration: registration.to_vec(),
+        registration_name: registration_path.as_deref().map(file_name).unwrap_or_default(),
+        body: Some((body_name, body.to_vec())),
+        legacy_layout: beside_name(&beside.layout),
+        legacy_identities: beside_name(&beside.identities),
+    };
+    Some(OpenDocument::of_files(files, tool.binding.clone(), options))
 }
 
 impl DiagramDocument {
@@ -704,12 +935,14 @@ impl DiagramDocuments {
         let read = |path: &Path| fs::read(path).map_err(|e| format!("'{}' could not be read: {e}", file_name(path)));
         let body = read(body_path)?;
         let registration = registration_path.map(read).transpose()?;
+        let beside = Beside::of(&tool, body_path, &|path| fs::read(path).ok());
         let document = self.read(
             tool,
             body_path.to_path_buf(),
             registration_path.map(Path::to_path_buf),
             Rc::from(body),
             registration.map(Rc::from),
+            beside,
         );
         self.documents.push(document);
         Ok(self.documents.last().expect("just opened"))
@@ -726,15 +959,31 @@ impl DiagramDocuments {
         body: Vec<u8>,
         registration: Option<Vec<u8>>,
     ) -> &DiagramDocument {
+        self.open_bytes_beside(tool, body_path, registration_path, body, registration, &|_| None)
+    }
+
+    /// [`DiagramDocuments::open_bytes`], with the bytes of the files the binding keeps beside the body as `beside` gives
+    /// them by their paths (FBL section 8.7).
+    pub fn open_bytes_beside(
+        &mut self,
+        tool: Rc<DiagramTool>,
+        body_path: &Path,
+        registration_path: Option<&Path>,
+        body: Vec<u8>,
+        registration: Option<Vec<u8>>,
+        beside: &dyn Fn(&Path) -> Option<Vec<u8>>,
+    ) -> &DiagramDocument {
         if let Some(index) = self.index_of(body_path) {
             return &self.documents[index];
         }
+        let beside = Beside::of(&tool, body_path, beside);
         let document = self.read(
             tool,
             body_path.to_path_buf(),
             registration_path.map(Path::to_path_buf),
             Rc::from(body),
             registration.map(Rc::from),
+            beside,
         );
         self.documents.push(document);
         self.documents.last().expect("just opened")
@@ -750,6 +999,12 @@ impl DiagramDocuments {
             self.guard.forget(&document.body_path);
             if let Some(registration) = &document.registration_path {
                 self.guard.forget(registration);
+            }
+            for file in [&document.beside.layout, &document.beside.identities]
+                .into_iter()
+                .flatten()
+            {
+                self.guard.forget(&file.path);
             }
         }
     }
@@ -807,21 +1062,36 @@ impl DiagramDocuments {
         registration_path: Option<PathBuf>,
         body: Rc<[u8]>,
         registration: Option<Rc<[u8]>>,
+        beside: Beside,
     ) -> DiagramDocument {
         let mut key = body.to_vec();
         key.push(0);
         key.extend_from_slice(registration.as_deref().unwrap_or_default());
+        for file in [&beside.layout, &beside.identities] {
+            key.push(0);
+            key.extend_from_slice(file.as_ref().map(|f| &*f.bytes).unwrap_or_default());
+        }
         let reading = match self.recent.find(&key) {
             Some(reading) => reading,
             None => {
                 let registration_document = registration.as_ref().map(|r| RegistrationDocument::read(r.to_vec()));
-                let options = tool.options(&file_name(&body_path), registration_document.as_ref());
-                let fbl = Body::open(&tool, body.to_vec(), options, &file_name(&body_path)).model();
+                let document = registration
+                    .as_ref()
+                    .and_then(|r| open_through(&tool, &body_path, &body, r, &registration_path, &beside));
+                let (fbl, legacy_positions) = match document {
+                    Some(document) => (document.model().unwrap_or_default(), document.legacy_positions()),
+                    None => {
+                        let options = tool.options(&file_name(&body_path), registration_document.as_ref());
+                        let body = Body::open(&tool, body.to_vec(), options, &file_name(&body_path));
+                        (body.model(), None)
+                    }
+                };
                 let model = builder::from(&fbl, tool.definition.specification());
                 let reading = Rc::new(Reading {
                     fbl,
                     model,
                     registration: registration_document,
+                    legacy_positions,
                 });
                 self.recent.remember(Rc::from(key), reading.clone());
                 reading
@@ -833,17 +1103,18 @@ impl DiagramDocuments {
             registration_path,
             body,
             registration,
+            beside,
             reading,
             deleted: false,
         }
     }
 
     /// Replaces the bytes of the document at `index` and reads it again.
-    fn replace(&mut self, index: usize, body: Rc<[u8]>, registration: Option<Rc<[u8]>>, deleted: bool) {
+    fn replace(&mut self, index: usize, body: Rc<[u8]>, registration: Option<Rc<[u8]>>, beside: Beside, deleted: bool) {
         let old = &self.documents[index];
         let (tool, body_path, registration_path) =
             (old.tool.clone(), old.body_path.clone(), old.registration_path.clone());
-        let mut document = self.read(tool, body_path.clone(), registration_path, body, registration);
+        let mut document = self.read(tool, body_path.clone(), registration_path, body, registration, beside);
         document.deleted = deleted;
         self.documents[index] = document;
         self.mark_changed(&body_path);
@@ -856,6 +1127,8 @@ impl DiagramDocuments {
         let document = &self.documents[index];
         let mut body = document.body.to_vec();
         let mut registration = document.registration.as_ref().map(|r| r.to_vec());
+        let mut layout = Beside::bytes_of(&document.beside.layout);
+        let mut identities = Beside::bytes_of(&document.beside.identities);
         let mut inverse_steps = Vec::with_capacity(edit.steps.len());
         for step in &edit.steps {
             let bytes = match step.file {
@@ -863,6 +1136,12 @@ impl DiagramDocuments {
                 EditedFile::Registration => registration
                     .as_mut()
                     .ok_or_else(|| Refusal::new("The registration file is no longer there."))?,
+                EditedFile::LegacyLayout => layout
+                    .as_mut()
+                    .ok_or_else(|| Refusal::new("The layout file is no longer there."))?,
+                EditedFile::LegacyIdentities => identities
+                    .as_mut()
+                    .ok_or_else(|| Refusal::new("The identities file is no longer there."))?,
             };
             if Fingerprint::of(bytes) != step.before {
                 return Err(Refusal::new(DRIFT_UNDO));
@@ -880,6 +1159,7 @@ impl DiagramDocuments {
         let body_path = document.body_path.clone();
         let registration_path = document.registration_path.clone();
         let old_body = document.body.clone();
+        let mut beside = document.beside.clone();
         if edit.writes(EditedFile::Body) {
             self.write(&body_path, &body)
                 .map_err(|e| Refusal::new(format!("Could not store the change: {e}")))?;
@@ -894,7 +1174,23 @@ impl DiagramDocuments {
             }
             return Err(Refusal::new(format!("Could not store the position: {e}")));
         }
-        self.replace(index, Rc::from(body), registration.map(Rc::from), false);
+        let kept = [
+            (EditedFile::LegacyLayout, &mut beside.layout, layout),
+            (EditedFile::LegacyIdentities, &mut beside.identities, identities),
+        ];
+        for (kind, file, bytes) in kept {
+            if let (true, Some(file), Some(bytes)) = (edit.writes(kind), file, bytes) {
+                if let Err(e) = self.write(&file.path, &bytes) {
+                    if edit.writes(EditedFile::Body) {
+                        // Best effort: put the body back, so the files still agree.
+                        let _ = self.write(&body_path, &old_body);
+                    }
+                    return Err(Refusal::new(format!("Could not store the change: {e}")));
+                }
+                file.bytes = Rc::from(bytes);
+            }
+        }
+        self.replace(index, Rc::from(body), registration.map(Rc::from), beside, false);
         Ok(DocumentEdit {
             label: edit.label.clone(),
             body_path,
@@ -921,6 +1217,10 @@ impl DiagramDocuments {
                 Some((i, EditedFile::Body))
             } else if d.registration_path.as_deref().is_some_and(|r| same_path(r, path)) {
                 Some((i, EditedFile::Registration))
+            } else if d.beside.layout.as_ref().is_some_and(|f| same_path(&f.path, path)) {
+                Some((i, EditedFile::LegacyLayout))
+            } else if d.beside.identities.as_ref().is_some_and(|f| same_path(&f.path, path)) {
+                Some((i, EditedFile::LegacyIdentities))
             } else {
                 None
             }
@@ -946,20 +1246,41 @@ impl DiagramDocuments {
         let document = &self.documents[index];
         let body_path = document.body_path.clone();
         let (body, registration) = (document.body.clone(), document.registration.clone());
+        let mut beside = document.beside.clone();
         match (file, disk) {
+            (EditedFile::LegacyLayout | EditedFile::LegacyIdentities, disk) => {
+                let held = if file == EditedFile::LegacyLayout {
+                    &mut beside.layout
+                } else {
+                    &mut beside.identities
+                };
+                if held.as_ref().map(|f| &*f.bytes) == disk.as_deref() {
+                    return DiskChange::Unchanged;
+                }
+                *held = match (held.take(), disk) {
+                    (Some(old), Some(bytes)) => Some(LegacyFile {
+                        path: old.path,
+                        bytes: Rc::from(bytes),
+                    }),
+                    _ => None,
+                };
+                let deleted = document.deleted;
+                self.replace(index, body, registration, beside, deleted);
+                DiskChange::Reloaded(body_path)
+            }
             (EditedFile::Body, None) => {
-                self.replace(index, Rc::from(Vec::new()), registration, true);
+                self.replace(index, Rc::from(Vec::new()), registration, beside, true);
                 DiskChange::Deleted(body_path)
             }
             (EditedFile::Body, Some(bytes)) if *bytes == *body => DiskChange::Unchanged,
             (EditedFile::Body, Some(bytes)) => {
-                self.replace(index, Rc::from(bytes), registration, false);
+                self.replace(index, Rc::from(bytes), registration, beside, false);
                 DiskChange::Reloaded(body_path)
             }
             (EditedFile::Registration, disk) if disk.as_deref() == registration.as_deref() => DiskChange::Unchanged,
             (EditedFile::Registration, disk) => {
                 let deleted = document.deleted;
-                self.replace(index, body, disk.map(Rc::from), deleted);
+                self.replace(index, body, disk.map(Rc::from), beside, deleted);
                 DiskChange::Reloaded(body_path)
             }
         }

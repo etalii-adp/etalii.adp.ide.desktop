@@ -4,6 +4,7 @@
 //! one this host does not provide is absent, and the gestures that need it are refused.
 
 pub mod forward_bezier;
+pub mod ranked_boundaries;
 pub mod two_sided_tree;
 
 use std::collections::BTreeMap;
@@ -20,6 +21,14 @@ pub trait LayoutCapability {
     /// The top-left corner of every node placed, by id, in the order they are placed, as the algorithm computes them:
     /// not rounded, so that a host that places a node by its centre places it where the code it was moved from did.
     fn place(&self, input: &Json, args: &Json) -> Result<Vec<(String, f64, f64)>, String>;
+
+    /// The arguments its contract types `query`: each evaluated once over the diagram, and given to [`place`] as the
+    /// text of a CEL constant, as its fixtures state them.
+    ///
+    /// [`place`]: LayoutCapability::place
+    fn query_arguments(&self) -> &'static [&'static str] {
+        &[]
+    }
 
     /// `$defs/LayoutResult` for `input` and the capability's `args`, the defaults filling what `args` leaves out: the
     /// corners rounded to 0.01, as the contract states.
@@ -133,6 +142,9 @@ impl Capabilities {
         capabilities
             .layouts
             .insert("layout.twoSidedTree", Rc::new(TwoSidedTree));
+        capabilities
+            .layouts
+            .insert("layout.rankedBoundaries", Rc::new(ranked_boundaries::RankedBoundaries));
         capabilities
             .routings
             .insert("routing.forwardBezier", Rc::new(forward_bezier::ForwardBezier));

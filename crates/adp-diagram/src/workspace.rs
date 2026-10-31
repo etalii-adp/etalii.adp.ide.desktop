@@ -78,10 +78,24 @@ impl DiagramWorkspace {
         body: Vec<u8>,
         registration: Option<Vec<u8>>,
     ) -> DiagramSession {
+        self.open_bytes_beside(tool, body_path, registration_path, body, registration, &|_| None)
+    }
+
+    /// [`DiagramWorkspace::open_bytes`], with the bytes of the files the binding keeps beside the body as `beside` gives
+    /// them by their paths (FBL section 8.7).
+    pub fn open_bytes_beside(
+        &mut self,
+        tool: Rc<DiagramTool>,
+        body_path: &Path,
+        registration_path: Option<&Path>,
+        body: Vec<u8>,
+        registration: Option<Vec<u8>>,
+        beside: &dyn Fn(&Path) -> Option<Vec<u8>>,
+    ) -> DiagramSession {
         let session =
             DiagramSession::new(body_path.to_path_buf()).in_default_viewpoint(tool.definition.specification());
         self.documents
-            .open_bytes(tool, body_path, registration_path, body, registration);
+            .open_bytes_beside(tool, body_path, registration_path, body, registration, beside);
         session
     }
 

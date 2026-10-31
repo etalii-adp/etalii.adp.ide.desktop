@@ -15,6 +15,7 @@ use super::change::DislChange;
 use crate::expressions::year_month;
 use crate::loading::specification::DislSpecification;
 use crate::model::element::DislElement;
+use crate::model::natural_ids;
 use crate::model::type_map::TypeMap;
 
 /// The FBL change that writes `change`.
@@ -30,7 +31,10 @@ pub fn to_fbl(specification: &DislSpecification, change: &DislChange) -> ModelCh
             ..
         } => ModelChange::Add {
             type_name: map.binding_type_of(type_name),
-            id: Some(read_id(specification, type_name, id)),
+            id: Some(
+                natural_read_id(specification, type_name, attributes)
+                    .unwrap_or_else(|| read_id(specification, type_name, id)),
+            ),
             attributes: written(specification, &map, type_name, attributes),
             parent_id: parent_id.as_ref().map(|p| read_id_of_any(specification, p)),
             index: *index,
@@ -103,6 +107,13 @@ pub fn stored_form(specification: &DislSpecification, type_name: &str, attribute
         Some(definition) => stored(specification, &definition.type_name, value),
         None => value.clone(),
     }
+}
+
+/// The id an element of `type_name` holding `attributes` is read back with under the `natural` strategy, without the
+/// prefix, whatever it was created with: what the binding writes (section 11.5.1).
+fn natural_read_id(specification: &DislSpecification, type_name: &str, attributes: &adp_cel::Map) -> Option<String> {
+    let id = natural_ids::id_of(specification, type_name, attributes)?;
+    Some(read_id(specification, type_name, &id))
 }
 
 /// The stored form of `value` for an attribute of type `type_name`.

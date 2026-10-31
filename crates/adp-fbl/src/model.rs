@@ -124,6 +124,9 @@ pub struct FblModel {
     pub views: Vec<FblView>,
     /// The resources a body holds (FBL section 8.2): the values of the binding's resource capture.
     pub resources: Vec<String>,
+    /// The file the body was read from, as the caller names it (`FblOptions::file_name`); none for a reading that
+    /// names no file.
+    pub file: Option<String>,
 }
 
 impl FblModel {

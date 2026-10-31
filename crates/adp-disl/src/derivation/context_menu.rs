@@ -222,6 +222,88 @@ pub fn derive(
     groups
 }
 
+/// The entry of the operation whose action id is `action_id`, for a gesture that names an action `target`'s menu does not
+/// offer: an operation the toolbox drops or the wire names, run on what its `for` admits (a canvas for one with none),
+/// with the reason it is unavailable. An operation the menu holds behind its `visible` has an entry only while it has
+/// such a reason, since a gesture is told why; otherwise it is not offered, and there is no entry.
+pub fn operation_entry(
+    specification: &DislSpecification,
+    target: &DislMenuTarget,
+    env: &DislEnv,
+    ids: &WireIdMap,
+    action_id: &str,
+) -> Option<DerivedMenuEntry> {
+    let diagram = target.diagram();
+    let (types, self_value) = match target {
+        DislMenuTarget::Element(element) => (element.element_type().linearisation.clone(), element.to_value()),
+        DislMenuTarget::Canvas(_) => (Vec::new(), diagram.to_value()),
+        DislMenuTarget::Connection { .. } => return None,
+    };
+    let operations = json::member(json::member(specification.root(), "behavior"), "operations");
+    let (name, operation) = operations
+        .as_object()?
+        .iter()
+        .find(|(name, _)| ids.action_id(&types, "operation", Some(name), &Map::default()) == action_id)?;
+    let admitted = json::strings_of(operation, "for");
+    let admits = match target {
+        DislMenuTarget::Element(element) => admitted.iter().any(|n| element.is_a(n)),
+        _ => admitted.is_empty(),
+    };
+    if !admits {
+        return None;
+    }
+    let variables = evaluation::vars([
+        ("self", self_value),
+        ("selection", Value::list(Vec::new())),
+        ("p", Value::map(Map::default())),
+        ("diagram", diagram.to_value()),
+        ("env", Value::map(env.to_cel())),
+        ("position", Value::Null),
+    ]);
+    let at = operation_pointer(name);
+    let reason = json::get(operation, "unavailable").and_then(|reasons| {
+        evaluation::first_reason(
+            specification,
+            reasons,
+            &json::pointer(&at, "unavailable"),
+            contexts::OPERATION,
+            &variables,
+        )
+    });
+    let held_back = json::member(json::member(specification.root(), "toolbox"), "contextMenus")
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter(|set| applies(set, target))
+        .flat_map(|set| json::member(set, "tools").as_array().into_iter().flatten())
+        .any(|tool| json::string_of(tool, "operation") == Some(name.as_str()));
+    if held_back && reason.is_none() {
+        return None;
+    }
+    let label = match json::get(operation, "label") {
+        Some(message) => evaluation::message(
+            specification,
+            message,
+            &json::pointer(&at, "label"),
+            contexts::OPERATION,
+            &variables,
+            name,
+        ),
+        None => name.clone(),
+    };
+    Some(DerivedMenuEntry {
+        id: action_id.to_owned(),
+        kind: "operation".into(),
+        operation: Some(name.clone()),
+        label,
+        icon: json::string_of(operation, "icon").unwrap_or("").to_owned(),
+        shortcut: json::string_of(operation, "shortcut").map(DerivedShortcut::parse),
+        available: reason.is_none(),
+        unavailable_reason: reason.unwrap_or_default(),
+        arguments: Map::default(),
+    })
+}
+
 fn applies(set: &Json, target: &DislMenuTarget) -> bool {
     let declared = json::has(set, "for");
     let names = json::strings_of(set, "for");

@@ -3,6 +3,7 @@
 //! is `ATD8001` at the head of the definition of the rule in conflict, one the notation does not read is `ATD1001` where
 //! it stops, and a file `grammar from` names that is not there is `ATD2009`.
 
+use std::collections::BTreeMap;
 use std::path::Path;
 
 use adp_atd_grammar::BuildError;
@@ -23,6 +24,77 @@ pub(crate) fn run(files: &dyn Files, description: &Description, findings: &mut V
     }
 }
 
+/// The modules of each grammar binding of `unit`, by the binding's name: an inline grammar under `grammar`, a file and
+/// what it imports under their names. A file that is not there is left out, for [`run`] to report.
+pub(crate) fn read(files: &dyn Files, unit: &FileUnit) -> BTreeMap<String, BTreeMap<String, String>> {
+    let mut grammars = BTreeMap::new();
+    for binding in unit.members().iter().filter(|m| m["kind"] == "binding") {
+        if binding["family"].as_str() != Some("grammar") {
+            continue;
+        }
+        let mut modules = BTreeMap::new();
+        for member in binding["members"].as_array().into_iter().flatten() {
+            match member["kind"].as_str() {
+                Some("grammar_inline") => {
+                    if let Some((text, _, _)) = inline_text(unit, member) {
+                        modules.insert("grammar".to_owned(), text);
+                    }
+                }
+                Some("grammar_file") => {
+                    let name = member["title"].as_str().unwrap_or_default();
+                    let folder = unit.path.parent().unwrap_or(Path::new("."));
+                    let mut wanted = vec![name.trim_end_matches(".lark").to_owned()];
+                    while let Some(module) = wanted.pop() {
+                        if modules.contains_key(&module) {
+                            continue;
+                        }
+                        let Some(text) = files.read(&folder.join(format!("{module}.lark"))) else {
+                            continue;
+                        };
+                        wanted.extend(text.lines().filter_map(imported));
+                        modules.insert(module, text);
+                    }
+                }
+                _ => {}
+            }
+        }
+        let name = binding["name"]["text"].as_str().unwrap_or_default().to_owned();
+        grammars.insert(name, modules);
+    }
+    grammars
+}
+
+/// The module a line `%import .<module>…` names.
+fn imported(line: &str) -> Option<String> {
+    let rest = line
+        .trim_start()
+        .strip_prefix("%import")?
+        .trim_start()
+        .strip_prefix('.')?;
+    let module: String = rest
+        .chars()
+        .take_while(|c| c.is_alphanumeric() || *c == '_' || *c == '-')
+        .collect();
+    Some(module)
+}
+
+/// An inline grammar's text, dedented, with where the text starts in the file and what is written from there.
+fn inline_text<'a>(unit: &'a FileUnit, member: &Json) -> Option<(String, usize, &'a str)> {
+    let text_node = member["members"]
+        .as_array()?
+        .iter()
+        .find(|n| n["kind"] == "grammar_text")?;
+    let span = adp_atd_syntax::Span::of(text_node).unwrap_or_default();
+    // From the start of the grammar's first line, so that every line has the indentation they share.
+    let from = unit
+        .text
+        .get(..span.start)
+        .and_then(|t| t.rfind('\n'))
+        .map_or(0, |n| n + 1);
+    let written = unit.text.get(from..span.end)?;
+    Some((adp_atd_grammar::dedent(written), from, written))
+}
+
 fn check_binding(files: &dyn Files, unit: &FileUnit, binding: &Json, findings: &mut Vec<Finding>) {
     let members: &[Json] = binding["members"].as_array().map(Vec::as_slice).unwrap_or(&[]);
     let start = members
@@ -36,23 +108,9 @@ fn check_binding(files: &dyn Files, unit: &FileUnit, binding: &Json, findings: &
     for member in members {
         match member["kind"].as_str() {
             Some("grammar_inline") => {
-                let Some(text_node) = member["members"]
-                    .as_array()
-                    .and_then(|m| m.iter().find(|n| n["kind"] == "grammar_text"))
-                else {
+                let Some((text, from, written)) = inline_text(unit, member) else {
                     continue;
                 };
-                let span = adp_atd_syntax::Span::of(text_node).unwrap_or_default();
-                // From the start of the grammar's first line, so that every line has the indentation they share.
-                let from = unit
-                    .text
-                    .get(..span.start)
-                    .and_then(|t| t.rfind('\n'))
-                    .map_or(0, |n| n + 1);
-                let Some(written) = unit.text.get(from..span.end) else {
-                    continue;
-                };
-                let text = adp_atd_grammar::dedent(written);
                 if let Err(error) = adp_atd_grammar::build_single(&text, &start) {
                     findings.push(refusal(unit, &error, from, written, member));
                 }
