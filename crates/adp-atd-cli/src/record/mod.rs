@@ -230,7 +230,10 @@ fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), Stri
     // What the module said of each step's gesture just before it was made, and what its gesture made.
     let mut before: Vec<Before> = Vec::new();
     let mut made: Vec<BTreeMap<String, (String, bool)>> = Vec::new();
+    // Whether the tool's module opens its own documents, which the case says of itself (ATD §2.3, spec 067, FR-012).
+    let mut from_module = false;
     let verdict = adp_parity::replay_observed(case, &mut |observed: &Observed| {
+        from_module = observed.session.module_view().is_some();
         let elements = observed.session.render(observed.documents).unwrap_or_default();
         made.push(
             elements
@@ -429,7 +432,7 @@ fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), Stri
         })
     };
     let source = if case.minted { "parity/cases" } else { "parity/scripts" };
-    let fixture = json!({
+    let mut fixture = json!({
         "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
         "doc": format!(
             "Recorded by `atd record {}` from {source}/{}.json of etalii.adp.ide.desktop; never edited by hand.",
@@ -448,6 +451,9 @@ fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), Stri
             "drawing": desktop("drawing"),
         },
     });
+    if from_module {
+        fixture["recordedFrom"] = json!("module");
+    }
     write_json(&folder.join("conformance.json"), &fixture)
 }
 
