@@ -48,7 +48,7 @@ fn error(pointer: impl Into<String>, message: impl Into<String>) -> LoadProblem 
 const SUPPORTED_MAJOR: i64 = 0;
 
 /// The newest minor version this library reads in full; a document of a newer one loads with a warning.
-const KNOWN_MINOR: i64 = 11;
+const KNOWN_MINOR: i64 = 13;
 
 /// Loads the document at `path`.
 pub fn load_file(path: &Path) -> (Vec<LoadProblem>, Option<FblDocument>) {
@@ -747,6 +747,8 @@ fn read_rule(json: &Json, relation: bool) -> Rule {
     let id = json.get("id").map(|id| IdBinding {
         from: id.get("from").map(read_slot),
         sidecar_key: id.get("sidecar").and_then(|sc| s(sc, "key")),
+        sidecar_kind: id.get("sidecar").and_then(|sc| s(sc, "kind")),
+        sidecar_ordinal: id.get("sidecar").and_then(|sc| s(sc, "ordinal")),
     });
     let parent = json.get("parent").map(|p| ParentBinding {
         rules: strings(p, "rules"),
@@ -815,6 +817,12 @@ fn read_slot(json: &Json) -> Slot {
         node_match: s(json, "match"),
         escape: json.get("escape").and_then(read_escape),
         split: s(json, "split"),
+        items: json
+            .get("items")
+            .and_then(Json::as_object)
+            .map(|items| items.iter().map(|(k, v)| (k.clone(), read_slot(v))).collect())
+            .unwrap_or_default(),
+        separator: s(json, "separator"),
     }
 }
 
@@ -932,6 +940,7 @@ fn read_registration(json: &Json, pointer: &str, problems: &mut Vec<LoadProblem>
             .map(|origins| origins.iter().map(|(o, c)| (o.clone(), s(c, "capture"))).collect())
             .unwrap_or_default(),
         legacy_layout: s(r, "legacyLayout"),
+        legacy_identities: s(r, "legacyIdentities"),
     }
 }
 
@@ -1083,6 +1092,17 @@ fn check(binding: &FblBinding, pointer: &str, problems: &mut Vec<LoadProblem>) {
         }
         if let Some(sidecar) = rule.id.as_ref().and_then(|i| i.sidecar_key.as_deref()) {
             compile(Some(sidecar), context, &format!("{at}/id/sidecar/key"), problems);
+            if rule
+                .id
+                .as_ref()
+                .and_then(|i| i.sidecar_ordinal.as_deref())
+                .is_some_and(|ordinal| ordinal.matches("{n}").count() != 1)
+            {
+                problems.push(error(
+                    format!("{at}/id/sidecar/ordinal"),
+                    "'ordinal' holds {n} once (FBL 8.6).",
+                ));
+            }
         }
         if rule.is_relation && (rule.source.is_none() || rule.target.is_none()) {
             problems.push(error(at.clone(), "A relation rule has a source and a target."));

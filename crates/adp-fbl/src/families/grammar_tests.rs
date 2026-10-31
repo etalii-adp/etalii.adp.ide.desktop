@@ -461,3 +461,183 @@ fn a_reading_shows_its_origins_first_view_or_the_one_its_header_names() {
     assert_eq!(lines_of(&views(None, Some("BEE"))), [5, 6]);
     assert_eq!(lines_of(&views(Some("o/b"), Some("first"))), Vec::<usize>::new());
 }
+
+// ---- FBL 0.12 and 0.13: segments, items and identities ----
+
+const SEGMENTS: &str = r#"start: unit*
+?unit: thing
+     | _NL
+thing: _THING NAME [_block] _segment*
+_segment: flagged
+        | mark
+        | spot
+        | other
+_block: "{" "}"
+flagged: _FLAGGED
+mark: "(" NAME ")"
+spot: "<" NUMBER "," NUMBER ">"
+other: NAME
+_THING.2: "thing"
+_FLAGGED.2: /[Ff][Ll][Aa][Gg]/
+NUMBER: /[0-9]+(\.[0-9]+)?/
+NAME: /[a-z]+/
+_NL: /(\r?\n[ \t]*)+/
+WHITESPACE: /[ \t]+/
+%ignore WHITESPACE
+"#;
+
+fn segments() -> Rc<FblBinding> {
+    let document = json!({
+        "fbl": "0.13",
+        "bindings": { "things": {
+            "claims": { "extensions": [".things"] },
+            "body": {
+                "kind": "file",
+                "family": "grammar",
+                "grammar": SEGMENTS,
+                "recover": { "unit": "unit", "sync": ["_NL"] }
+            },
+            "reader": "declared",
+            "elements": [{
+                "name": "thing",
+                "type": "Thing",
+                "at": "/thing",
+                "id": { "from": { "node": "NAME" } },
+                "attributes": {
+                    "name": { "node": "NAME" },
+                    "flagged": {
+                        "node": "flagged",
+                        "map": { "flag": "true", "": "false" },
+                        "default": "false",
+                        "empty": "remove",
+                        "create": { "emit": " {value}", "after": ["name"] }
+                    },
+                    "marks": {
+                        "node": "mark",
+                        "match": r"\((?<value>[a-z]+)\)",
+                        "create": { "emit": " ({value})", "after": ["name"] }
+                    },
+                    "spots": {
+                        "node": "spot",
+                        "items": { "x": { "node": "NUMBER" } },
+                        "separator": " ",
+                        "readOnly": true
+                    }
+                },
+                "insert": { "place": "end-of-document", "emit": "thing {name}[ {marks}]" }
+            }]
+        }}
+    });
+    let (problems, document) = load(document.to_string().as_bytes());
+    Rc::new(document.unwrap_or_else(|| panic!("{problems:?}")).bindings.remove(0).1)
+}
+
+fn things(text: &str) -> OpenBody {
+    let options = FblOptions {
+        many: Some(Rc::new(|_: &str, attribute: &str| attribute == "marks")),
+        attribute_type: Some(Rc::new(|_: &str, attribute: &str| {
+            (attribute == "flagged").then(|| "bool".to_owned())
+        })),
+        ..FblOptions::default()
+    };
+    OpenBody::open(text.as_bytes().to_vec(), segments(), Rc::new(options))
+}
+
+fn set_value(id: &str, attribute: &str, value: Value) -> ModelChange {
+    let mut attributes = Map::default();
+    attributes.insert(attribute, value);
+    ModelChange::Set {
+        id: id.to_owned(),
+        attributes,
+    }
+}
+
+fn marks(values: &[&str]) -> Value {
+    Value::list(values.iter().map(|v| Value::from(*v)).collect())
+}
+
+/// ATD section 3.6: the longest match wins, then the higher priority: `flagging` is a word, not `flag` and `ging`.
+#[test]
+fn a_word_that_starts_with_a_keyword_is_the_word() {
+    let model = things("thing a flagging\nthing b flag\nthing c FLAG\n").model();
+
+    assert_eq!(
+        model.find("a").unwrap().attributes.get("flagged"),
+        Some(&Value::Bool(false))
+    );
+    assert_eq!(
+        model.find("b").unwrap().attributes.get("flagged"),
+        Some(&Value::Bool(true))
+    );
+    // A wire value the map does not hold, as a keyword in another case, is kept as written and the entry is read.
+    assert_eq!(
+        model.find("c").unwrap().attributes.get("flagged"),
+        Some(&Value::from("FLAG"))
+    );
+}
+
+/// A value a `map` writes as no text is the slot's absence, and the other one is written by the slot's `create`.
+#[test]
+fn a_map_writes_a_segment_and_its_absence() {
+    let mut body = things("thing a flag (x)\n");
+
+    assert!(matches!(
+        body.change(&set_value("a", "flagged", Value::Bool(false))),
+        PlanResult::Planned(_)
+    ));
+    assert_eq!(text_of(&body), "thing a (x)\n");
+    assert!(matches!(
+        body.change(&set_value("a", "flagged", Value::Bool(true))),
+        PlanResult::Planned(_)
+    ));
+    assert_eq!(text_of(&body), "thing a flag (x)\n");
+}
+
+/// FBL 0.11 section 5.2: a changed item and one removed and one added in their places, nodes of a `many` slot.
+#[test]
+fn a_set_of_several_nodes_writes_the_difference() {
+    let mut body = things("thing a (x) (y) flag (z)\n");
+
+    let change = set_value("a", "marks", marks(&["x", "w", "z", "v"]));
+    assert!(
+        matches!(body.change(&change), PlanResult::Planned(_)),
+        "{:?}",
+        body.model()
+    );
+    assert_eq!(text_of(&body), "thing a (x) (w) flag (z) (v)\n");
+
+    assert!(matches!(
+        body.change(&set_value("a", "marks", marks(&["w"]))),
+        PlanResult::Planned(_)
+    ));
+    assert_eq!(text_of(&body), "thing a (w) flag\n");
+
+    assert!(matches!(
+        body.change(&set_value("a", "marks", marks(&[]))),
+        PlanResult::Planned(_)
+    ));
+    assert_eq!(text_of(&body), "thing a flag\n");
+
+    assert!(matches!(body.undo(), UndoResult::Done(_)));
+    assert_eq!(text_of(&body), "thing a (w) flag\n");
+}
+
+/// FBL section 4.9: a set is read again before it is made.
+#[test]
+fn a_set_of_items_that_would_not_read_back_is_refused() {
+    let mut body = things("thing a (x)\n");
+
+    let result = body.change(&set_value("a", "marks", marks(&["x", "NOT"])));
+
+    assert!(matches!(result, PlanResult::Refused(_)), "{result:?}");
+    assert_eq!(text_of(&body), "thing a (x)\n");
+}
+
+#[test]
+fn an_item_of_a_read_only_slot_is_refused() {
+    let mut body = things("thing a <1,2>\n");
+
+    let result = body.change(&set_value("a", "spots", Value::list(Vec::new())));
+
+    assert!(matches!(result, PlanResult::Refused(_)), "{result:?}");
+}
