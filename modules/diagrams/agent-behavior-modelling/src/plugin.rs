@@ -358,6 +358,7 @@ fn element_of(node: &Node, starts: &[usize], length: usize) -> FblElement {
         parent_id: node.parent_id.clone(),
         source: None,
         target: None,
+        referenced: Vec::new(),
         own_span: Span::new(
             start(starts, node.line, length),
             start(starts, node.subtree_end + 1, length),

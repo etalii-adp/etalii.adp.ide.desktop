@@ -98,6 +98,8 @@ pub struct FblElement {
     pub parent_slot: Option<String>,
     pub source: Option<String>,
     pub target: Option<String>,
+    /// The id of what each attribute bound as a `reference` by a value names (FBL section 5.7), where it names an element.
+    pub referenced: Vec<(String, String)>,
     pub own_span: Span,
     pub line: usize,
     /// The file the element is in, relative to a folder subject and `/`-separated, as the persistence plugin that

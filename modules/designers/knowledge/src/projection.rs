@@ -134,6 +134,7 @@ fn element(
         parent_slot: slot,
         source: None,
         target: None,
+        referenced: Vec::new(),
         own_span: Span::default(),
         line: 0,
         file: None,

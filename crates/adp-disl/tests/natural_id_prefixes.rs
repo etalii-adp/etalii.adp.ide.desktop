@@ -53,6 +53,7 @@ fn fbl(
         parent_slot: None,
         source: source.map(str::to_owned),
         target: target.map(str::to_owned),
+        referenced: Vec::new(),
         own_span: Span::new(0, 0),
         line,
         file: None,

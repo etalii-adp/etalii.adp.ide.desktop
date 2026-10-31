@@ -1421,6 +1421,24 @@ impl BodyReading {
                         parent_slot: e.parent.and(rule.parent.as_ref().and_then(|p| p.slot.clone())),
                         source: e.source_element.map(|p| self.elements[p].id.clone()),
                         target: e.target_element.map(|p| self.elements[p].id.clone()),
+                        referenced: rule
+                            .attributes
+                            .iter()
+                            .enumerate()
+                            .filter(|(_, (_, attribute))| {
+                                attribute
+                                    .reference
+                                    .as_ref()
+                                    .is_some_and(|reference| reference.by != "id")
+                            })
+                            .filter_map(|(a, (name, _))| {
+                                let Some(Value::String(key)) = e.attributes.get(name) else {
+                                    return None;
+                                };
+                                let found = self.referenced_by((e.rule, a), key)?;
+                                Some((name.clone(), self.elements[found].id.clone()))
+                            })
+                            .collect(),
                         own_span: self.family.entries[e.entry()].own,
                         line: e.line,
                         file: None,
