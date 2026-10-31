@@ -76,13 +76,44 @@ impl Node {
     }
 }
 
-/// One item of a word slot of an attribute with `many` (FBL 0.7 section 4.6): its value, the span the value is
-/// written in (the word's group `value`, or the whole word), and the word it is in.
+/// One item of a slot of several (a word slot of an attribute with `many`, FBL 0.7 section 4.6; *(FBL 0.11)* a `{node}`
+/// slot): its value, the span the value is written in (the word's group `value`, or the whole word), and the word it is
+/// in.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct WordItem {
     pub value: String,
     pub value_span: Span,
     pub word: Word,
+    /// *(FBL 0.9)* The grammar node the item is read from; the statement's entry in any other family.
+    pub node: EntryId,
+    /// *(FBL 0.12)* The item attributes of a slot with `items`, each with its text and its span.
+    pub parts: Vec<ItemPart>,
+}
+
+/// One item attribute of a slot with `items` (FBL 0.12 section 5.2).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct ItemPart {
+    pub name: String,
+    pub text: String,
+    pub span: Span,
+}
+
+/// What keys an element's stored id (FBL 0.12 section 8.6): its rule's `sidecar.kind`, the value of `sidecar.key`, and
+/// that value with the `ordinal` of a later holder.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct IdentityKey {
+    pub kind: Option<String>,
+    pub key: String,
+}
+
+impl IdentityKey {
+    /// The key of the element's entry: `<kind>:<key>` when its rule declares a kind.
+    pub fn entry(&self) -> String {
+        match &self.kind {
+            Some(kind) => format!("{kind}:{}", self.key),
+            None => self.key.clone(),
+        }
+    }
 }
 
 /// What reading one slot of one entry gave.
@@ -96,8 +127,8 @@ pub(crate) struct SlotRead {
     pub node: Node,
     /// For a group read as words: every word of the group, so references inside it can be rewritten one by one.
     pub words: Option<Rc<Vec<Word>>>,
-    /// For a word slot of an attribute with `many` (FBL 0.7 section 4.6): every word of the group it holds, in
-    /// order; None for any other slot.
+    /// For a slot of several items, of an attribute with `many` (FBL 0.7 section 4.6) or *(FBL 0.12, 0.13)* with `items`
+    /// or `split`: every item it holds, in order; None for any other slot.
     pub items: Option<Rc<Vec<WordItem>>>,
     /// The quote the value is written in on the wire, when the span includes one.
     pub quote: Option<String>,
@@ -153,6 +184,10 @@ pub(crate) struct ReadElement {
     pub id_stored: bool,
     /// Boxed, as are the source and the target: most elements have none, and an element is kept for each entry read.
     pub id_read: Option<Box<SlotRead>>,
+    /// *(FBL 0.12)* Whether the id is the one the specification's strategy made, which a sidecar rule stores.
+    pub id_derived: bool,
+    /// *(FBL 0.12)* What keys the id of a rule with `id.sidecar`.
+    pub identity: Option<IdentityKey>,
     /// The value references name this element by: its stored id, or the attribute its own rules reference it by.
     pub key: String,
     /// The attribute whose value is `key`, when it is an attribute.

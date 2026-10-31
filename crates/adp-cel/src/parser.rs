@@ -417,6 +417,16 @@ fn tokenize(source: &str) -> Result<Vec<(Kind, String)>, String> {
             while i < chars.len() && chars[i] != c {
                 if chars[i] == '\\' && i + 1 < chars.len() {
                     i += 1;
+                    let code = (chars[i] == 'u')
+                        .then(|| chars.get(i + 1..i + 5))
+                        .flatten()
+                        .and_then(|hex| u32::from_str_radix(&hex.iter().collect::<String>(), 16).ok())
+                        .and_then(char::from_u32);
+                    if let Some(code) = code {
+                        text.push(code);
+                        i += 5;
+                        continue;
+                    }
                     text.push(match chars[i] {
                         'n' => '\n',
                         't' => '\t',

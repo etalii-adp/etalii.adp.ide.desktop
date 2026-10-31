@@ -337,6 +337,16 @@ impl Grammar {
             let stopped_at = match parser.next_token() {
                 Ok(Some(token)) => {
                     let start = token.start_pos.unwrap_or(0);
+                    let can_shift = |kind: &str| reads(&parser, kind);
+                    let longer = self.longer_match(slice, &token, &can_shift);
+                    let token = match longer {
+                        Some(longer) => {
+                            let end = token.end_pos.unwrap_or(start);
+                            parser.skip_chars(slice[end..longer.end_pos.unwrap_or(end)].chars().count());
+                            longer
+                        }
+                        None => token,
+                    };
                     if reads(&parser, &token.kind) {
                         let end = token.end_pos.unwrap_or(start);
                         let kind = token.kind.clone();
@@ -456,6 +466,41 @@ impl Grammar {
                 },
             ));
         }
+    }
+
+    /// The token of a terminal of a lower priority that the parser's state can shift and that matches more than `token`
+    /// does, the longest of them (ATD section 3.6: the longest match wins, then the higher priority): `etalii-lark` takes
+    /// the higher priority first, which would read the keyword at the start of a longer word.
+    fn longer_match(&self, text: &str, token: &LarkToken, can_shift: &dyn Fn(&str) -> bool) -> Option<LarkToken> {
+        let lexer = &self.start.lexer;
+        let priority = lexer
+            .matchers
+            .iter()
+            .find(|m| m.definition().name == token.kind)?
+            .priority;
+        let start = token.start_pos?;
+        let mut end = token.end_pos?;
+        let mut kind = None;
+        for (terminal, matcher) in lexer.matchers.iter().enumerate() {
+            let name = &matcher.definition().name;
+            if matcher.priority >= priority || matcher.ignored || !can_shift(name) {
+                continue;
+            }
+            if let Some(found) = lexer.next(text, start, &[terminal])
+                && found.terminal == terminal
+                && found.end > end
+            {
+                end = found.end;
+                kind = Some(name.clone());
+            }
+        }
+        Some(LarkToken {
+            kind: kind?,
+            value: text[start..end].to_owned(),
+            start_pos: Some(start),
+            end_pos: Some(end),
+            ..token.clone()
+        })
     }
 
     /// Ends each block still open at the end of the body (FBL 0.11 section 4.9, rule 6): closed without text, with a

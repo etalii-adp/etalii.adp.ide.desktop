@@ -141,6 +141,13 @@ mod tests {
         program.evaluate(&map)
     }
 
+    /// A wardley-map.fbl key is joined by U+001F, which a CEL string writes `\u001f`.
+    #[test]
+    fn a_string_holds_a_unicode_escape() {
+        assert_eq!(eval(r"'a\u001fb' + '\n'", &[]), Ok(Value::from("a\u{1f}b\n")));
+        assert_eq!(eval(r"'\u00e9\u'", &[]), Ok(Value::from("\u{e9}u")));
+    }
+
     fn entry() -> Value {
         let mut map = Map::default();
         map.insert("id", Value::from("a"));
