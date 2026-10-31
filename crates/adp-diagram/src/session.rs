@@ -1262,7 +1262,7 @@ impl DiagramSession {
     ) -> ActionOutcome {
         match &self.view {
             Some(view) => view.answer_with_ids(workspace, target, action_id, value, ids),
-            None => self.answer(workspace, target, action_id, value),
+            None => self.answer_from(workspace, target, action_id, value, Some(ids)),
         }
     }
 
@@ -1274,6 +1274,18 @@ impl DiagramSession {
         target: &ActionTarget,
         action_id: &str,
         value: &str,
+    ) -> ActionOutcome {
+        self.answer_from(workspace, target, action_id, value, None)
+    }
+
+    /// [`DiagramSession::answer`], what an operation that asks first creates taking the ids `given`, when there are any.
+    fn answer_from(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        target: &ActionTarget,
+        action_id: &str,
+        value: &str,
+        given: Option<&dyn IdSource>,
     ) -> ActionOutcome {
         if let Some(view) = &self.view {
             return view.answer(workspace, target, action_id, value);
@@ -1306,15 +1318,16 @@ impl DiagramSession {
                     return ActionOutcome::Refused(format!("'{value}' is not a value of {}.", parameter.label));
                 };
                 let parameters: Map = [(parameter.name.clone(), answered)].into_iter().collect();
-                // An answer carries no ids: what an operation that asks first creates takes the specification's
-                // own strategy, else, for a `natural` one whose ids the binding reads back from the keys written, a
-                // stand-in (the causal loop's link and the loops its hook claims; the standalone host's
-                // `ClaimedLoopIds`).
+                // An answer carries no ids unless a replay gives them: what an operation that asks first creates
+                // takes the specification's own strategy, else, for a `natural` one whose ids the binding reads back
+                // from the keys written, a stand-in (the causal loop's link and the loops its hook claims; the
+                // standalone host's `ClaimedLoopIds`).
                 let minted = adp_disl::behavior::ids::of(specification);
                 let stand_ins = StandInIds::default();
-                let ids: &dyn adp_disl::IdSource = match &minted {
-                    Ok(minted) => minted,
-                    Err(_) => &stand_ins,
+                let ids: &dyn adp_disl::IdSource = match (&minted, given) {
+                    (Ok(_), Some(given)) => given,
+                    (Ok(minted), None) => minted,
+                    (Err(_), _) => &stand_ins,
                 };
                 match self.run_operation(workspace, target, &entry, &operation, Some(parameters), ids) {
                     Ok(()) => ActionOutcome::Done,

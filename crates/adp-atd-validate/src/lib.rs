@@ -119,8 +119,10 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
         case.files.get(body_name).cloned().unwrap_or_default(),
         registration_name.and_then(|r| case.files.get(r).cloned()),
         &|path| {
-            let name = path.strip_prefix(ROOT).ok()?.to_str()?;
-            case.files.get(name).cloned()
+            // A file beside the body is named by its absolute path, which on Windows has a drive before the root.
+            let root = std::path::absolute(ROOT).unwrap_or_else(|_| PathBuf::from(ROOT));
+            let name = path.strip_prefix(root).ok()?.to_str()?.replace('\\', "/");
+            case.files.get(&name).cloned()
         },
     );
     let mut replay = Replay {

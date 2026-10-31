@@ -124,3 +124,20 @@ fn the_deployment_cases_pass_but_for_what_is_listed() {
     operations.extend(["read:drawing", "read:reading", ADDED_FROM_THE_CANVAS]);
     check_description("c4-deployment", &operations);
 }
+
+/// An operation that asks first creates under the ids the case gives its step, so two replays say the same.
+#[test]
+fn a_prompted_operation_takes_the_ids_the_case_gives() {
+    let root = diagrams().join("supply-chain.atd");
+    let checked = check(&FsFiles, &root);
+    let cases: Vec<_> = cases_of(&root).iter().map(|dir| read_case(dir).unwrap()).collect();
+    let replayed = || {
+        validate_description(&checked, &RuntimeHost::default(), &cases)
+            .unwrap()
+            .into_iter()
+            .flat_map(|result| result.differences)
+            .map(|d| format!("{:?} {} {} {}", d.step, d.part, d.expected, d.actual))
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(replayed(), replayed());
+}
