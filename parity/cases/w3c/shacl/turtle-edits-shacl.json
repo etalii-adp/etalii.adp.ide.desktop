@@ -1,0 +1,51 @@
+{
+  "tool": "w3c/shacl",
+  "fixture": "w3c/shacl/turtle-edits-shacl/turtle-edits-shacl.ttl",
+  "registration": "w3c/shacl/turtle-edits-shacl/turtle-edits-shacl.adp",
+  "steps": [
+    {
+      "action": "shacl.add-node-shape",
+      "args": {
+        "target": "new:0,0",
+        "value": ":NewShape"
+      }
+    },
+    {
+      "select": [
+        "res:http://example.org/s#CityShape"
+      ]
+    },
+    {
+      "property": {
+        "row": "shacl.name",
+        "value": "Town"
+      }
+    },
+    {
+      "action": "rdf.remove-resource",
+      "args": {
+        "target": "res:http://example.org/s#Lone"
+      }
+    },
+    {
+      "undo": 1
+    },
+    {
+      "action": "rdf.remove-resource",
+      "args": {
+        "target": "res:http://example.org/s#PersonShape",
+        "confirm": true
+      }
+    },
+    {
+      "undo": 1
+    },
+    {
+      "action": "rdf.rename-resource",
+      "args": {
+        "target": "res:http://example.org/s#CityShape",
+        "value": ":TownShape"
+      }
+    }
+  ]
+}

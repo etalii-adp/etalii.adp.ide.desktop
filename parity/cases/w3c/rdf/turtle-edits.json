@@ -1,0 +1,89 @@
+{
+  "tool": "w3c/rdf",
+  "fixture": "w3c/rdf/turtle-edits/turtle-edits.ttl",
+  "registration": "w3c/rdf/turtle-edits/turtle-edits.adp",
+  "steps": [
+    {
+      "action": "rdf.add-resource",
+      "args": {
+        "target": "new:0,0",
+        "value": "ex:new"
+      }
+    },
+    {
+      "action": "rdf.connect",
+      "args": {
+        "target": "rel:res:http://example.org/b->res:http://example.org/a",
+        "value": "ex:likes"
+      }
+    },
+    {
+      "select": [
+        "res:http://example.org/c"
+      ]
+    },
+    {
+      "property": {
+        "row": "Label",
+        "value": "See \"C\"\tnow"
+      }
+    },
+    {
+      "property": {
+        "row": "rdf.comment",
+        "value": "A new comment.",
+        "target": "res:http://example.org/a"
+      }
+    },
+    {
+      "action": "rdf.remove-edge",
+      "args": {
+        "target": "edge:res:http://example.org/a|http://example.org/knows|res:http://example.org/b"
+      }
+    },
+    {
+      "undo": 1
+    },
+    {
+      "action": "rdf.remove-edge",
+      "args": {
+        "target": "edge:res:http://example.org/a|http://example.org/likes|res:http://example.org/c"
+      }
+    },
+    {
+      "action": "rdf.remove-edge",
+      "args": {
+        "target": "edge:res:http://example.org/b|http://example.org/knows|res:http://example.org/c"
+      }
+    },
+    {
+      "action": "rdf.remove-edge",
+      "args": {
+        "target": "edge:res:http://example.org/d|http://example.org/knows|res:http://example.org/a"
+      }
+    },
+    {
+      "undo": 1
+    },
+    {
+      "redo": 1
+    },
+    {
+      "action": "rdf.remove-resource",
+      "args": {
+        "target": "res:http://example.org/c",
+        "confirm": true
+      }
+    },
+    {
+      "undo": 1
+    },
+    {
+      "action": "rdf.rename-resource",
+      "args": {
+        "target": "res:http://example.org/c",
+        "value": "ex:cc"
+      }
+    }
+  ]
+}

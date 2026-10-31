@@ -74,10 +74,16 @@ const STANDALONE_FIXTURES: [&str; 33] = [
 
 /// The fixtures of the `grammar` family (FBL 0.9 section 4.9), which no host but this one is required to read: run
 /// as the standalone host's are, by [`the_grammar_family_fixtures_pass`].
-const GRAMMAR_FIXTURES: [&str; 21] = [
+const GRAMMAR_FIXTURES: [&str; 27] = [
     "grammar-comment-start",
     "grammar-remove-part",
     "grammar-split-slot",
+    "grammar-reach",
+    "grammar-expand",
+    "grammar-expand-undeclared",
+    "grammar-ordinals",
+    "grammar-string-sequences",
+    "w3c-turtle-triples",
     "structurizr-open-block",
     "structurizr-absent-arguments",
     "structurizr-add-view",
@@ -241,6 +247,11 @@ fn unprefixed(id: Option<&str>) -> String {
 fn natural_id(binding: &str, request: &IdRequest<'_>) -> Option<String> {
     let a = |name: &str| attribute_text(request.attributes, name);
     Some(match (binding, request.rule) {
+        // The fixture's and Turtle's (FBL 0.15): a number is no name, so a place is added to it, and a triple is its parts.
+        ("triples", "prefix" | "sparql-prefix") => format!("prefix:{}", a("name")),
+        ("triples", _) => format!("triple:{}|{}|{}", a("s"), a("p"), a("o")),
+        ("ordinals", "node") => format!("n{}@{}", a("number"), request.line),
+        ("ordinals", "cell") => format!("c{}@{}", a("number"), request.line),
         ("cld", "variable") => format!("variable:{}", a("name")),
         ("cld", "link") => format!("link:{}|{}", a("causeName"), a("effectName")),
         ("cld", "loop") => format!("loop:{}", a("identifier")),
@@ -1333,6 +1344,21 @@ fn a_binding_that_names_an_origin_it_does_not_claim_is_refused() {
                 .iter()
                 .any(|p| p.severity == ProblemSeverity::Error
                     && p.message.contains("is not one of the binding's claims")),
+            "{name}: {problems:?}"
+        );
+    }
+}
+
+/// The documents a host must refuse for what a term or a number reads through (FBL 0.15 section 14.1).
+#[test]
+fn a_binding_whose_term_has_nothing_to_read_through_is_refused() {
+    for name in ["expand-without-prefixes.fbl", "ordinal-unknown.fbl"] {
+        let path = vendor().join("specifications/fbl/refused").join(name);
+        let (problems, _) = documents::load_file(&path);
+        assert!(
+            problems
+                .iter()
+                .any(|p| p.severity == ProblemSeverity::Error && p.message.contains("FBL 0.15")),
             "{name}: {problems:?}"
         );
     }

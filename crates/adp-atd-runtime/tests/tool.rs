@@ -143,6 +143,40 @@ fn the_six_c4_bindings_are_structurizr_fbl_but_for_what_the_cases_ask() {
     }
 }
 
+/// One binding reads Turtle for the four W3C tool types (spec 067, T037, T039): the lowered binding part of each is the
+/// binding `triples` of `w3c-turtle-grammar.fbl`, its grammar a copy of `w3c-turtle.lark`, but for its origins and its
+/// label, and none requires a reader. `ETALII_ADP` runs it on another clone.
+#[test]
+fn the_four_turtle_bindings_are_fbls_triples() {
+    let root = etalii();
+    let written = read_json(&root.join("specifications/fbl/w3c-turtle-grammar.fbl"));
+    let written = undocumented(&written["bindings"]["triples"]);
+    assert_eq!(
+        std::fs::read_to_string(root.join("definitions/diagrams/w3c-turtle.lark")).unwrap(),
+        std::fs::read_to_string(root.join("specifications/fbl/w3c-turtle.lark")).unwrap(),
+        "the grammar beside the descriptions is FBL's example's"
+    );
+    for origin in ["rdf", "owl", "shacl", "skos"] {
+        let checked = check(&FsFiles, &root.join(format!("definitions/diagrams/w3c-{origin}.atd")));
+        assert!(
+            !checked.description.members().any(|m| m["kind"] == "requires"
+                && m["capability"]["text"]
+                    .as_str()
+                    .is_some_and(|c| c.starts_with("reader."))),
+            "{origin} requires no reader"
+        );
+        let members: Vec<&Json> = checked.description.members().collect();
+        let lowered = adp_atd_runtime::lowering::fbl::lower(&members).expect("a binding");
+        let lowered = undocumented(&lowered["bindings"]["turtle"]);
+        for part in ["elements", "text"] {
+            assert_eq!(lowered[part], written[part], "{origin}'s {part}");
+        }
+        for part in ["start", "order", "prefixes", "ordinals"] {
+            assert_eq!(lowered["body"][part], written["body"][part], "{origin}'s body's {part}");
+        }
+    }
+}
+
 /// How the C4 binding differs from `structurizr.fbl`, by what the cases, recorded from the module, ask of it.
 const C4_DIFFERENCES: &[&str] = &[
     // The key of `natural` ids, which the model holds and a nested relationship's source names.
