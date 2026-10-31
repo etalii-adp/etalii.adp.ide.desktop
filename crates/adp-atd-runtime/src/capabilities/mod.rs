@@ -3,9 +3,13 @@
 //! conformance fixtures pass (`tests/capabilities.rs`). A capability is named by its contract, never by a tool type;
 //! one this host does not provide is absent, and the gestures that need it are refused.
 
+pub mod banded_grid;
 pub mod bands;
+pub mod depth_columns;
 pub mod forward_bezier;
+pub mod grid;
 pub mod layered_columns;
+pub mod layered_regions;
 pub mod ranked_boundaries;
 pub mod two_sided_tree;
 
@@ -30,6 +34,12 @@ pub trait LayoutCapability {
     /// [`place`]: LayoutCapability::place
     fn query_arguments(&self) -> &'static [&'static str] {
         &[]
+    }
+
+    /// Whether a node is drawn at the size it was placed with, a fixed or a computed one, rather than at the size its
+    /// notation defaults to: so the node is drawn where the layout put it.
+    fn draws_its_sizes(&self) -> bool {
+        false
     }
 
     /// `$defs/LayoutResult` for `input` and the capability's `args`, the defaults filling what `args` leaves out: the
@@ -75,6 +85,12 @@ fn self_of(node: &Json) -> adp_cel::Value {
             Json::String(text) if text == "true" => adp_cel::Value::Bool(true),
             Json::String(text) if text == "false" => adp_cel::Value::Bool(false),
             Json::String(text) => adp_cel::Value::String(text.clone()),
+            Json::Array(items) => adp_cel::Value::list(
+                items
+                    .iter()
+                    .map(|item| adp_cel::Value::String(item.as_str().unwrap_or_default().to_owned()))
+                    .collect(),
+            ),
             _ => adp_cel::Value::Null,
         };
         entries.push((key.clone(), read));
@@ -99,6 +115,47 @@ fn query_of(node: &Json, args: &Json, name: &str) -> Result<Option<adp_cel::Valu
         Some(text) => text.parse().ok().map(adp_cel::Value::Double),
         None => None,
     })
+}
+
+/// The answer of a query argument for a node, as a fixture states it or as the host gave it: evaluated here where `args`
+/// holds its text, else the attribute of that name, as its JSON value.
+fn answer(node: &Json, args: &Json, name: &str) -> Result<Option<Json>, String> {
+    if let Some(source) = query_text(&args[name]) {
+        let program = adp_cel::Environment::standard(&["self"])
+            .compile(source)
+            .map_err(|e| format!("`{name}`: {e}"))?;
+        let variables = std::collections::HashMap::from([("self".to_owned(), self_of(node))]);
+        return Ok(program.evaluate(&variables).ok().map(|value| match value {
+            adp_cel::Value::Bool(flag) => Json::Bool(flag),
+            adp_cel::Value::List(items) => Json::Array(items.iter().map(|i| Json::String(i.to_string())).collect()),
+            other => Json::String(other.to_string()),
+        }));
+    }
+    Ok(node["attributes"].get(name).cloned())
+}
+
+/// A query argument's answer as a text.
+fn text_query(node: &Json, args: &Json, name: &str) -> Result<Option<String>, String> {
+    Ok(answer(node, args, name)?.and_then(|value| value.as_str().map(str::to_owned)))
+}
+
+/// A query argument's answer as a list of texts, none being the empty list.
+fn list_query(node: &Json, args: &Json, name: &str) -> Result<Vec<String>, String> {
+    Ok(answer(node, args, name)?
+        .and_then(|value| value.as_array().cloned())
+        .unwrap_or_default()
+        .iter()
+        .filter_map(|item| item.as_str().map(str::to_owned))
+        .collect())
+}
+
+/// A query argument's answer as a Boolean.
+fn bool_query(node: &Json, args: &Json, name: &str) -> Result<Option<bool>, String> {
+    Ok(answer(node, args, name)?.and_then(|value| match value {
+        Json::Bool(flag) => Some(flag),
+        Json::String(text) => text.parse().ok(),
+        _ => None,
+    }))
 }
 
 /// `placed` with every pinned node of `nodes` at its pin: the law `pinnedStay`, which moves no other node.
@@ -220,6 +277,16 @@ impl Capabilities {
             .layouts
             .insert("layout.layeredColumns", Rc::new(layered_columns::LayeredColumns));
         capabilities.layouts.insert("layout.bands", Rc::new(bands::Bands));
+        capabilities
+            .layouts
+            .insert("layout.bandedGrid", Rc::new(banded_grid::BandedGrid));
+        capabilities.layouts.insert("layout.grid", Rc::new(grid::Grid));
+        capabilities
+            .layouts
+            .insert("layout.depthColumns", Rc::new(depth_columns::DepthColumns));
+        capabilities
+            .layouts
+            .insert("layout.layeredRegions", Rc::new(layered_regions::LayeredRegions));
         capabilities
             .routings
             .insert("routing.forwardBezier", Rc::new(forward_bezier::ForwardBezier));
