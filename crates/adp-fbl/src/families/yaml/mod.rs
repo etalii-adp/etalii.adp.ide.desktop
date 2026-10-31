@@ -460,8 +460,8 @@ impl Family {
         let reading = plan.reading;
         let rule = self.rule(request.rule);
         let insert = rule.insert.as_ref().expect("an insertable rule");
-        // FBL section 5's place: {before: key} is not implemented here yet.
-        if insert.place == "before" {
+        // FBL section 5's place: {before: key} is implemented here for a new member alone.
+        if insert.place == "before" && rule.member_capture().is_none() {
             return refuse(format!(
                 "A {} body cannot place a new entry '{}'.",
                 self.family_name(),
@@ -484,8 +484,14 @@ impl Family {
             .clone()
             .unwrap_or_else(|| container_of(rule.at.as_deref()));
         let container = self.container(&selector, parent, &captures);
+        let new_key = self.new_member_key(request, container)?;
         let members = self.new_members(plan, request)?;
         let keys = self.item_lines(&members, request);
+        if let Some(new_key) = new_key {
+            let key_line = format!("{}:", self.yaml_string(&new_key, None, None, 0));
+            let lines = |indent: usize| self.new_member_lines(&key_line, &keys, indent);
+            return self.member_insert(plan, request, &selector, parent, container, &lines);
+        }
         if keys.is_empty() {
             return refuse(format!("A new {} would have no keys to write.", rule.type_name));
         }
@@ -495,7 +501,11 @@ impl Family {
                     "The {selector} would go inside a flow mapping, which takes no insert."
                 ));
             }
-            return self.ensure_container(plan, insert, &selector, parent, &keys);
+            let lines = |inside: usize| {
+                let dash = (inside as i64 - self.step() as i64 + self.sequence_offset() as i64).max(0) as usize;
+                self.item(&keys, dash, dash + 2)
+            };
+            return self.ensure_container(plan, insert, &selector, parent, &lines);
         };
         let value = self.value_of(container);
         match value.style {
@@ -561,6 +571,105 @@ impl Family {
             "The {selector} of this file is not a list a {} can be added to.",
             rule.type_name
         ))
+    }
+
+    /// *(FBL 0.14)* An insert that adds a member to a mapping (FBL section 6.2, *A new member*): where `place` puts it among
+    /// the container's members, `lines` writing it at the indentation they have. A container written as its key alone
+    /// takes it as the first of a block mapping, and a missing one is created as `create` says.
+    fn member_insert(
+        &self,
+        plan: &mut Plan<'_>,
+        request: &InsertRequest,
+        selector: &str,
+        parent: Option<EntryId>,
+        container: Option<EntryId>,
+        lines: &dyn Fn(usize) -> Vec<String>,
+    ) -> Planning {
+        let reading = plan.reading;
+        let rule = self.rule(request.rule);
+        let insert = rule.insert.as_ref().expect("an insertable rule");
+        let Some(container) = container else {
+            if parent.is_some_and(|p| self.value_of(p).style == ValueStyle::FlowMapping) {
+                return refuse(format!(
+                    "The {selector} would go inside a flow mapping, which takes no insert."
+                ));
+            }
+            return self.ensure_container(plan, insert, selector, parent, lines);
+        };
+        let value = self.value_of(container);
+        if value.via_alias {
+            return refuse(format!(
+                "The {selector} is reached through an alias, so it is read-only."
+            ));
+        }
+        if value.style == ValueStyle::FlowMapping {
+            return refuse(format!(
+                "The {selector} of this file is written as a flow mapping, which takes no insert."
+            ));
+        }
+        let (offset, indent) = if value.style == ValueStyle::Empty {
+            if self.entries[container].tree().is_root {
+                (self.text.len(), 0)
+            } else {
+                (
+                    self.line_end_after(container),
+                    self.entries[container].indent + self.step(),
+                )
+            }
+        } else if value.kind == ValueKind::Mapping && !value.entries.is_empty() {
+            let siblings = &value.entries;
+            let before = match insert.place.as_str() {
+                "start" => Some(siblings[0]),
+                "before" => insert
+                    .before
+                    .as_ref()
+                    .and_then(|key| self.member(self.entries[container].tree().value, key)),
+                _ => None,
+            };
+            let last = *siblings.last().expect("members");
+            match before {
+                Some(before) => {
+                    let Some(line) = self.entries[before].line_span else {
+                        return refuse(format!(
+                            "A new {} cannot be written before a member that shares its line.",
+                            rule.type_name
+                        ));
+                    };
+                    (line.start, self.entries[before].indent)
+                }
+                None => {
+                    let previous = siblings
+                        .iter()
+                        .copied()
+                        .rfind(|s| insert.place == "after-last" && reading.claimed_by(*s) == Some(rule.name.as_str()))
+                        .unwrap_or(last);
+                    (self.line_end_after(previous), self.entries[previous].indent)
+                }
+            }
+        } else {
+            return refuse(format!(
+                "The {selector} of this file is not a mapping a {} can be added to.",
+                rule.type_name
+            ));
+        };
+        plan.add(
+            Operation::InsertEntry,
+            offset,
+            offset,
+            self.yaml_new_line(offset, &lines(indent)),
+        );
+        Ok(())
+    }
+
+    /// A new member at `indent`: its key's line, and below it, one step deeper, what the member holds.
+    fn new_member_lines(&self, key_line: &str, keys: &[String], indent: usize) -> Vec<String> {
+        let deeper = indent + self.step();
+        let mut lines = vec![format!("{}{key_line}", self.indentation(indent))];
+        lines.extend(
+            keys.iter()
+                .map(|line| format!("{}{}", self.indentation(deeper), self.nested(line, deeper))),
+        );
+        lines
     }
 
     /// An insert into a flow sequence (FBL 0.10 section 6.2, *Flow sequences*): an empty one is opened into a block
@@ -662,13 +771,15 @@ impl Family {
         None
     }
 
+    /// Creates a missing container as `create` says, and the new entry in it, which `lines` writes given the indentation
+    /// of what the container holds.
     fn ensure_container(
         &self,
         plan: &mut Plan<'_>,
         insert: &InsertSettings,
         selector: &str,
         parent: Option<EntryId>,
-        keys: &[String],
+        lines: &dyn Fn(usize) -> Vec<String>,
     ) -> Planning {
         let Some(create) = &insert.create else {
             return refuse(
@@ -713,13 +824,7 @@ impl Family {
                 for level in levels {
                     plan.add(Operation::EnsureContainer, at, at, self.yaml_new_line(at, &[level]));
                 }
-                let first = (inside as i64 - self.step() as i64 + self.sequence_offset() as i64).max(0) as usize;
-                plan.add(
-                    Operation::InsertEntry,
-                    at,
-                    at,
-                    self.yaml_new_line(at, &self.item(keys, first, first + 2)),
-                );
+                plan.add(Operation::InsertEntry, at, at, self.yaml_new_line(at, &lines(inside)));
                 return Ok(());
             }
             "end-of-document" => (
@@ -771,12 +876,11 @@ impl Family {
             offset,
             self.yaml_new_line(offset, &[container_text]),
         );
-        let dash = indent + self.sequence_offset();
         plan.add(
             Operation::InsertEntry,
             offset,
             offset,
-            self.yaml_new_line(offset, &self.item(keys, dash, dash + 2)),
+            self.yaml_new_line(offset, &lines(indent + self.step())),
         );
         Ok(())
     }

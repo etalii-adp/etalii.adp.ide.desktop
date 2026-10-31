@@ -253,6 +253,37 @@ impl Family {
         })
     }
 
+    /// *(FBL 0.14)* The key of the new member an insert of a rule whose `at` ends in a capture adds: the value the add gives
+    /// the attribute bound to that capture, and None for any other rule. An add without one, or with a key the `container`
+    /// already holds, compared as written text, is refused (FBL section 6.2).
+    pub fn new_member_key(&self, request: &InsertRequest, container: Option<EntryId>) -> Planning<Option<String>> {
+        let rule = self.rule(request.rule);
+        let insert = rule.insert.as_ref().expect("an insertable rule");
+        if rule.member_capture().is_none() {
+            return Ok(None);
+        }
+        let attribute = rule.member_key_attribute();
+        let value = attribute.and_then(|name| request.values.get(name));
+        let Some(value) = value.filter(|v| !new_text::is_empty(v)) else {
+            return refuse(
+                insert
+                    .refusal_key
+                    .clone()
+                    .unwrap_or_else(|| format!("A {} needs a key.", rule.type_name)),
+            );
+        };
+        let key = new_text::plain(value, attribute.and_then(|name| rule.attribute(name)));
+        if container.is_some_and(|c| self.member(self.entries[c].tree().value, &key).is_some()) {
+            return refuse(
+                insert
+                    .refusal_duplicate
+                    .clone()
+                    .unwrap_or_else(|| format!("A {} with the key '{key}' is already there.", rule.type_name)),
+            );
+        }
+        Ok(Some(key))
+    }
+
     /// The levels of a new entry that its attributes bound with `child` make, each with the keys below it, those that
     /// reach one level sharing it in the order of their bindings (FBL 0.10 section 6.2). A level a `*` or a capture
     /// names gives no key to write, and the add is refused.

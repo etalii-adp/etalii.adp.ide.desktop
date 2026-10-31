@@ -156,7 +156,7 @@
           },
           "insert": {
             "place": "end-of-document",
-            "emit": "component {name} [{visibility}, {maturity}]"
+            "emit": "component {name} \\[{visibility}, {maturity}\\]"
           },
           "remove": {
             "cascade": [
@@ -244,7 +244,7 @@
           },
           "insert": {
             "place": "end-of-document",
-            "emit": "anchor {name} [{visibility}, {maturity}]"
+            "emit": "anchor {name} \\[{visibility}, {maturity}\\]"
           },
           "remove": {
             "cascade": [
@@ -332,7 +332,7 @@
           },
           "insert": {
             "place": "end-of-document",
-            "emit": "submap {name} [{visibility}, {maturity}]"
+            "emit": "submap {name} \\[{visibility}, {maturity}\\]"
           },
           "remove": {
             "cascade": [
@@ -492,7 +492,7 @@
           },
           "insert": {
             "place": "last-child",
-            "emit": "component {name} [{maturity}]"
+            "emit": "component {name} \\[{maturity}\\]"
           },
           "remove": {}
         },
@@ -527,7 +527,7 @@
           },
           "insert": {
             "place": "end-of-document",
-            "emit": "note {text} [{visibility}, {maturity}]"
+            "emit": "note {text} \\[{visibility}, {maturity}\\]"
           },
           "remove": {}
         },
@@ -576,7 +576,7 @@
           },
           "insert": {
             "place": "end-of-document",
-            "emit": "annotation {number} [{positions}][ {text}]"
+            "emit": "annotation {number} \\[{positions}\\][ {text}]"
           },
           "remove": {}
         },
@@ -634,7 +634,7 @@
           },
           "insert": {
             "place": "end-of-document",
-            "emit": "accelerator {name} [{visibility}, {maturity}]"
+            "emit": "accelerator {name} \\[{visibility}, {maturity}\\]"
           },
           "remove": {}
         },
@@ -672,7 +672,7 @@
           },
           "insert": {
             "place": "end-of-document",
-            "emit": "deaccelerator {name} [{visibility}, {maturity}]"
+            "emit": "deaccelerator {name} \\[{visibility}, {maturity}\\]"
           },
           "remove": {}
         },

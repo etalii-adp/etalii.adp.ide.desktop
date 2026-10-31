@@ -155,12 +155,15 @@ const KNOWLEDGE_STEPS: [(&str, usize, usize); 4] = [
 
 /// The fixtures of the Wardley map's binding (FBL 0.12): segments in any order, items, a brace on its own line, and
 /// identities in the legacy file, run by [`the_wardley_map_fixtures_pass`].
-const WARDLEY_FIXTURES: [&str; 11] = [
+const WARDLEY_FIXTURES: [&str; 14] = [
     "wardley-annotation-positions",
+    "wardley-brace-ending",
     "wardley-comments/comments-everywhere",
     "wardley-comments/trailing-comments",
     "wardley-duplicate-names/duplicate-names",
+    "wardley-duplicate-names/same-key-twice",
     "wardley-legacy-identities",
+    "wardley-pipelines",
     "wardley-rename-identity",
     "wardley-strategy-identities",
     "wardley-trailer/decorators",
@@ -169,34 +172,37 @@ const WARDLEY_FIXTURES: [&str; 11] = [
     "wardley-unclosed-pipeline",
 ];
 
-/// The fixtures whose adds wardley-map.fbl writes with a bracket FBL reads otherwise than they state. Its `insert.emit`s
-/// hold `[{visibility}, {maturity}]` unescaped, which FBL section 6.2 reads as an optional segment and writes without
-/// its brackets, where these fixtures expect `component Water [0.4, 0.8]`: FBL's own way to write the bracket is `\[`, as
-/// hierarchical-requirement.fbl does. [`the_wardley_map_fixtures_pass_when_its_brackets_are_escaped`] runs them against
-/// a copy of the binding with those brackets escaped; each moves to [`WARDLEY_FIXTURES`] when etalii.adp's binding does.
-const WARDLEY_UNESCAPED_FIXTURES: [&str; 3] = [
-    "wardley-brace-ending",
-    "wardley-duplicate-names/same-key-twice",
-    "wardley-pipelines",
+/// The fixtures of a new member of a mapping (FBL 0.14 section 6.2), named by its key, in both families that have one,
+/// run by [`the_fixtures_of_a_new_member_pass`].
+const MEMBER_FIXTURES: [&str; 4] = [
+    "databricks-resource-add/bundle",
+    "databricks-resource-add/fresh",
+    "databricks-resource-add/no-jobs",
+    "insert-member-json",
 ];
 
 /// The fixtures of features this port does not have yet: FBL 0.8's constants an insert writes (section 6.2), and one
 /// the standalone host does not vendor either. They are out of scope here, not failing: etalii.adp's splice replay
 /// (`fixtures.rs`) still runs every one of them. The hierarchical-requirement tool type's fixtures are run by
 /// [`hierarchical_requirement`], through the stand-in for its DESL interpreter.
-const NOT_SUPPORTED: [&str; 7] = [
-    // FBL 0.14, a new member of a yaml or json mapping named by its key: etalii.adp has them, and this host does not read
-    // FBL 0.14 yet.
-    "databricks-resource-add/bundle",
-    "databricks-resource-add/fresh",
-    "databricks-resource-add/no-jobs",
-    "insert-member-json",
+const NOT_SUPPORTED: [&str; 13] = [
     // The standalone host does not vendor this one at a7fdf03 either: its Retry's attempts is read as the text "1",
     // as every value of a lines or bullets group is, and the fixture reads the number 1, which the specification's
     // type gives it above FBL (agent-behavior-modelling.dis, `Retry.attempts: int`).
     "behavior-tree-read",
     "insert-constant-json",
     "insert-constant-yaml",
+    // A causal loop's flow properties belong to etalii.adp spec 074, which the desktop host takes up on its own branch.
+    "causal-loop-flow-default",
+    "causal-loop-flow-legacy/findings",
+    "causal-loop-flow-legacy/on-call",
+    "causal-loop-flow-legacy/reference",
+    "causal-loop-flow-older",
+    "causal-loop-flow-range",
+    "causal-loop-flow-read",
+    "causal-loop-flow-set",
+    "causal-loop-flow-set/lf",
+    "causal-loop-flow-unknown",
 ];
 
 fn vendor() -> PathBuf {
@@ -1167,7 +1173,7 @@ fn every_vendored_fixture_is_run_or_named_as_not_supported() {
         .chain(GRAMMAR_FIXTURES.iter())
         .chain(READINGS_FIXTURES.iter())
         .chain(WARDLEY_FIXTURES.iter())
-        .chain(WARDLEY_UNESCAPED_FIXTURES.iter())
+        .chain(MEMBER_FIXTURES.iter())
         .chain(NOT_SUPPORTED.iter())
         .copied()
         .chain(designer.iter().map(String::as_str))
@@ -1275,6 +1281,24 @@ fn the_wardley_map_fixtures_pass() {
     );
 }
 
+#[test]
+fn the_fixtures_of_a_new_member_pass() {
+    let mut failures = Vec::new();
+    for name in MEMBER_FIXTURES {
+        let folder = fixture_folder(name);
+        let fixture = read_json(&folder.join("fixture.json"));
+        if let Err(problem) = run(name, &folder, &fixture) {
+            failures.push(problem);
+        }
+    }
+    assert!(
+        failures.is_empty(),
+        "{} failed:\n{}",
+        failures.len(),
+        failures.join("\n\n")
+    );
+}
+
 /// FBL section 5.7: a rename to a name an element of another rule holds, which one reference names with it, is refused.
 #[test]
 fn a_rename_to_the_name_of_an_anchor_is_refused() {
@@ -1298,66 +1322,6 @@ fn a_rename_to_the_name_of_an_anchor_is_refused() {
     assert!(matches!(result, PlanResult::Refused(_)), "{result:?}");
 }
 
-/// The steps that write a new entry of wardley-map.fbl: see [`WARDLEY_UNESCAPED_FIXTURES`]. Without the copy they are
-/// refused, since the text the binding gives, without its brackets, does not read back.
-#[test]
-fn the_wardley_map_fixtures_pass_when_its_brackets_are_escaped() {
-    let bindings = vendor().join("specifications/fbl");
-    let folder = std::env::temp_dir().join(format!("adp-wardley-escaped-{}", std::process::id()));
-    fs::create_dir_all(&folder).unwrap();
-    let text = fs::read_to_string(bindings.join("wardley-map.fbl")).unwrap();
-    let escaped = text
-        .replace(r#" [{visibility}, {maturity}]""#, r#" \\[{visibility}, {maturity}\\]""#)
-        .replace(r#" [{maturity}]""#, r#" \\[{maturity}\\]""#)
-        .replace("[{positions}]", r"\\[{positions}\\]");
-    assert_ne!(text, escaped);
-    fs::write(folder.join("wardley-map.fbl"), escaped).unwrap();
-    fs::copy(bindings.join("wardley-map.lark"), folder.join("wardley-map.lark")).unwrap();
-    let reference = format!("{}#map", folder.join("wardley-map.fbl").display());
-
-    // In an insert's `emit`, the placeholder of an `items` attribute is every item, joined by its separator (FBL 0.12).
-    let (binding, _) = documents::resolve_reference(&reference, &folder.join("fixture.json")).unwrap();
-    let mut body = OpenBody::open(
-        b"title A\n".to_vec(),
-        Rc::new(binding),
-        Rc::new(options_of("map", "a.owm", None)),
-    );
-    let add = read_change(
-        &serde_json::json!({ "add": {
-            "type": "Annotation",
-            "attributes": {
-                "number": 3,
-                "positions": [{ "visibility": 0.1, "maturity": 0.2 }, { "visibility": 0.3, "maturity": 0.4 }],
-                "text": "Two places"
-            }
-        }}),
-        None,
-    )
-    .unwrap();
-    assert!(matches!(body.change(&add), PlanResult::Planned(_)));
-    assert_eq!(
-        String::from_utf8_lossy(body.bytes()),
-        "title A\nannotation 3 [[0.1,0.2],[0.3,0.4]] Two places\n"
-    );
-
-    let mut failures = Vec::new();
-    for name in WARDLEY_UNESCAPED_FIXTURES {
-        let fixture_at = fixture_folder(name);
-        let mut fixture = read_json(&fixture_at.join("fixture.json"));
-        fixture["binding"] = Json::from(reference.as_str());
-        if let Err(problem) = run(name, &fixture_at, &fixture) {
-            failures.push(problem);
-        }
-    }
-    fs::remove_dir_all(&folder).ok();
-    assert!(
-        failures.is_empty(),
-        "{} failed:\n{}",
-        failures.len(),
-        failures.join("\n\n")
-    );
-}
-
 /// The documents a host must refuse for naming an origin the binding does not claim (FBL 0.10 section 14.1).
 #[test]
 fn a_binding_that_names_an_origin_it_does_not_claim_is_refused() {
@@ -1369,6 +1333,21 @@ fn a_binding_that_names_an_origin_it_does_not_claim_is_refused() {
                 .iter()
                 .any(|p| p.severity == ProblemSeverity::Error
                     && p.message.contains("is not one of the binding's claims")),
+            "{name}: {problems:?}"
+        );
+    }
+}
+
+/// The documents a host must refuse for what they say of a new member (FBL 0.14 section 14.1).
+#[test]
+fn a_binding_that_says_otherwise_of_a_new_member_is_refused() {
+    for name in ["insert-member-without-capture.fbl", "insert-refusals-not-member.fbl"] {
+        let path = vendor().join("specifications/fbl/refused").join(name);
+        let (problems, _) = documents::load_file(&path);
+        assert!(
+            problems
+                .iter()
+                .any(|p| p.severity == ProblemSeverity::Error && p.message.contains("FBL 0.14")),
             "{name}: {problems:?}"
         );
     }
