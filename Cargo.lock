@@ -239,6 +239,7 @@ dependencies = [
  "adp-scene",
  "indexmap",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
@@ -468,6 +469,7 @@ dependencies = [
 name = "adp-diagram-c4"
 version = "1.0.0"
 dependencies = [
+ "adp-atd-runtime",
  "adp-context",
  "adp-core",
  "adp-diagram",
