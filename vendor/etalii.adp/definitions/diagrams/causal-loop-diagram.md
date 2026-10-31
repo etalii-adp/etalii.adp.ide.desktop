@@ -195,6 +195,8 @@ The diagram still simulates nothing itself: no host moves its variables. A flow 
 | a variable | Outside push | `push` | -4 to 4 | 0 | `push=<n>` in its line |
 | a link | Weight | `weight` | limited to 0 to 3 in a page | 1 in a page, none in the file | `weight=<n>` in its line |
 
+A Starting level only affects a variable no link points to: the flow page keeps the prototype's Reset, which puts every other variable back at 0.5 (FR-036, the maintainer's ruling of 2026-10-31).
+
 A value out of range is kept as written and reported under `causal-loop.flow-value-out-of-range`, and the page uses the nearest value in range; on a variable the finding stands on its line, and on the diagram it has none, since a finding on the diagram names no line. The property grid refuses such a value with the range. A `flow` statement with a word the rule does not read is no `flow` statement: the last rule keeps it byte for byte and it is reported on its line. Of two `flow` statements the last that states a key wins for that key, and an edit goes there. Nothing tells a person that an earlier statement is overruled, since neither FBL nor DISL can state that and a host adds no finding of its own for it.
 
 A host with the older binding reads a file that holds them and loses nothing: a `title` or `flow` line is its last rule's, kept byte for byte and reported as unread, and a variable's words are its unbound rest, kept byte for byte and not reported (the fixture `causal-loop-flow-older`). A variable whose label is not quoted may not hold `=` from this version on, so that `variable a start=0.7` reads no label.
