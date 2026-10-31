@@ -27,7 +27,7 @@ pub mod text;
 
 pub use documents::{FblBinding, FblDocument};
 pub use history::{OpenBody, UndoResult};
-pub use model::{FblElement, FblModel, FblOptions, Finding, FindingSeverity, IdRequest};
+pub use model::{FblBodyView, FblElement, FblModel, FblOptions, Finding, FindingSeverity, IdRequest};
 pub use planning::{ModelChange, PlanResult, PlannedEdit, Setting, SettingPosition};
 pub use registration::document::OpenDocument;
 pub use registration::{OpenRegistration, RegistrationDocument};

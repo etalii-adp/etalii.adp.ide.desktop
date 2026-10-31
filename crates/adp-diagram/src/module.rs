@@ -79,6 +79,11 @@ pub struct ExportOutput {
 /// The residue of one tool type: what its module implements beside its specification. Each method's default is the
 /// session's generic behaviour.
 pub trait DiagramModule {
+    /// The size of `element` where the module measures it; none leaves it to the notation's own default.
+    fn size_of(&self, _document: &DiagramDocument, _element: &DislElement) -> Option<(f64, f64)> {
+        None
+    }
+
     /// Whether the module reads, draws and edits the documents of its tool type itself, so that the host loads no
     /// specification for it and opens it through [`DiagramModule::open`]; false for a tool type drawn from its
     /// specification.

@@ -8,7 +8,7 @@ use std::collections::HashSet;
 use std::rc::Rc;
 
 use adp_fbl::FblBinding;
-use adp_fbl::model::AttributeType;
+use adp_fbl::model::{AttributeType, Many};
 
 use super::type_map::TypeMap;
 use crate::loading::specification::DislSpecification;
@@ -33,6 +33,23 @@ pub fn of(specification: &DislSpecification) -> AttributeType {
             metamodel.type_of(&mapping.as_type).map(|t| &t.attributes)
         };
         attributes.and_then(|a| a.get(name)).map(|d| d.type_name.clone())
+    })
+}
+
+/// Whether attribute `attribute` of binding type `type` holds a list (FBL 0.7 section 4.6), through `persistence.typeMap`.
+pub fn many(specification: &DislSpecification) -> Many {
+    let specification = specification.clone();
+    let map = TypeMap::of(&specification);
+    Rc::new(move |type_name: &str, attribute: &str| {
+        let mapping = map.mapping(type_name);
+        let name = mapping.renamed(attribute);
+        let metamodel = specification.metamodel();
+        let attributes = if mapping.as_type == "diagram" {
+            Some(&metamodel.diagram_attributes)
+        } else {
+            metamodel.type_of(&mapping.as_type).map(|t| &t.attributes)
+        };
+        attributes.and_then(|a| a.get(name)).is_some_and(|d| d.many)
     })
 }
 

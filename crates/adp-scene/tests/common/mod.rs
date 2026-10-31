@@ -80,6 +80,7 @@ pub fn scene_selecting(
         folding: &folding,
         metrics: &EstimatedMetrics,
         plugins: &StandardRoutePlugins,
+        shown: None,
     };
     build_scene(definition, &evaluator(definition), diagram, &positions, &options)
 }

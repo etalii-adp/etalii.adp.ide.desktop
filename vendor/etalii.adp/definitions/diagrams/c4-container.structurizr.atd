@@ -11,8 +11,8 @@ part of c4/container
 /// block that is never closed ends at the end of the body (recover). Elements, relationships and the declaration's
 /// positional arguments are read by name, quoted or bare, with their escapes; a tags argument holds the tags its text
 /// is cut into at its commas (FBL 0.13, split), as Structurizr reads it; an absent argument is written in its place,
-/// padded with empty ones. Each view kind is a view of the body for the reading of its tool type, and the selected
-/// view's include, exclude, title and autoLayout statements, its scope and environment, which the tool types map onto
+/// padded with empty ones. Each view kind is a view of the body, which a reading of any tool type shows, as the module
+/// does, and the selected view's include, exclude, title and autoLayout statements, its scope and environment, which the tool types map onto
 /// the diagram's attributes, and its interactions are read for it alone. Which elements a view shows, and relationships
 /// lifted to the nearest drawn ancestor, are the viewpoint's and DISL's. !include, !script and other directives, styles
 /// and properties are unbound statements: kept byte for byte, never followed. This part is
@@ -35,7 +35,6 @@ binding structurizr family grammar {
 
   block systemLandscapeView {
     at: "/workspace/views/system_landscape_view"
-    origins: ["c4/system-landscape"]
     view: { node: "key", match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?", escape: { with: "\\", quote: "\"" } }
     insert: {
       place: end,
@@ -45,12 +44,10 @@ binding structurizr family grammar {
   }
   block systemLandscapeViewWithoutKey {
     at: "/workspace/views/system_landscape_view_default"
-    origins: ["c4/system-landscape"]
     view: { value: "'landscape'" }
   }
   block systemContextView {
     at: "/workspace/views/system_context_view"
-    origins: ["c4/context"]
     view: { node: "key", match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?", escape: { with: "\\", quote: "\"" } }
     insert: {
       place: end,
@@ -60,12 +57,10 @@ binding structurizr family grammar {
   }
   block systemContextViewWithoutKey {
     at: "/workspace/views/system_context_view_default"
-    origins: ["c4/context"]
     view: { value: "'systemcontext'" }
   }
   block containerView {
     at: "/workspace/views/container_view"
-    origins: ["c4/container"]
     view: { node: "key", match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?", escape: { with: "\\", quote: "\"" } }
     insert: {
       place: end,
@@ -73,14 +68,9 @@ binding structurizr family grammar {
       emit: "container {scope} \"{key}\" {\n    include *\n    autoLayout lr\n}"
     }
   }
-  block containerViewWithoutKey {
-    at: "/workspace/views/container_view_default"
-    origins: ["c4/container"]
-    view: { value: "'container'" }
-  }
+  block containerViewWithoutKey { at: "/workspace/views/container_view_default" view: { value: "'container'" } }
   block componentView {
     at: "/workspace/views/component_view"
-    origins: ["c4/component"]
     view: { node: "key", match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?", escape: { with: "\\", quote: "\"" } }
     insert: {
       place: end,
@@ -88,14 +78,9 @@ binding structurizr family grammar {
       emit: "component {scope} \"{key}\" {\n    include *\n    autoLayout lr\n}"
     }
   }
-  block componentViewWithoutKey {
-    at: "/workspace/views/component_view_default"
-    origins: ["c4/component"]
-    view: { value: "'component'" }
-  }
+  block componentViewWithoutKey { at: "/workspace/views/component_view_default" view: { value: "'component'" } }
   block dynamicView {
     at: "/workspace/views/dynamic_view"
-    origins: ["c4/dynamic"]
     view: { node: "key", match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?", escape: { with: "\\", quote: "\"" } }
     insert: {
       place: end,
@@ -103,14 +88,9 @@ binding structurizr family grammar {
       emit: "dynamic {scope} \"{key}\" {\n    include *\n    autoLayout lr\n}"
     }
   }
-  block dynamicViewWithoutKey {
-    at: "/workspace/views/dynamic_view_default"
-    origins: ["c4/dynamic"]
-    view: { value: "'dynamic'" }
-  }
+  block dynamicViewWithoutKey { at: "/workspace/views/dynamic_view_default" view: { value: "'dynamic'" } }
   block deploymentView {
     at: "/workspace/views/deployment_view"
-    origins: ["c4/deployment"]
     view: { node: "key", match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?", escape: { with: "\\", quote: "\"" } }
     insert: {
       place: end,
@@ -120,7 +100,6 @@ binding structurizr family grammar {
   }
   block deploymentViewWithoutKey {
     at: "/workspace/views/deployment_view_default"
-    origins: ["c4/deployment"]
     view: { node: "environment", match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?", escape: { with: "\\", quote: "\"" } }
   }
 
@@ -549,6 +528,28 @@ binding structurizr family grammar {
       escape: { with: "\\", quote: "\"" }
       readOnly: true
     }
+  }
+
+  /// The kind of the selected view, which the tool types map onto the diagram's viewpoint. A rule beyond
+  /// `structurizr.fbl`, which says a view's kind by the reading it is for; the cases, recorded from the module, show a
+  /// view of any kind in every reading.
+  element ViewInclude as viewKind at "/workspace/views/*" {
+    selectedView: true
+    attribute viewpoint from value({
+      'system_landscape_view': 'systemLandscape',
+      'system_landscape_view_default': 'systemLandscape',
+      'system_context_view': 'systemContext',
+      'system_context_view_default': 'systemContext',
+      'container_view': 'container',
+      'container_view_default': 'container',
+      'component_view': 'component',
+      'component_view_default': 'component',
+      'dynamic_view': 'dynamic',
+      'dynamic_view_default': 'dynamic',
+      'deployment_view': 'deployment',
+      'deployment_view_default': 'deployment'
+    }
+    [entry.type])
   }
 
   /// An `!include` the body names, which ADP does not follow: `includeNotFollowed` reports it. A rule beyond

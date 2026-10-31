@@ -9,13 +9,24 @@
   },
   "args": {
     "mode": {
-      "type": "enum",
-      "values": [
-        "enclose",
-        "nest"
-      ],
-      "default": "enclose",
-      "doc": "Whether one boundary encloses its nodes within a single ranked set, with the other nodes moved out of it, or boundaries nest to any depth, each set of siblings ranked on its own."
+      "type": "query",
+      "default": "'enclose'",
+      "doc": "`enclose` or `nest`, evaluated over the diagram: whether one boundary encloses its nodes within a single ranked set, with the other nodes moved out of it, or boundaries nest to any depth, each set of siblings ranked on its own."
+    },
+    "boundary": {
+      "type": "query",
+      "default": "false",
+      "doc": "Whether a node is a boundary, evaluated for each node: the host lays it out as the boundary node `boundary:<id>`, drawn around the nodes it holds, whether or not the view shows it."
+    },
+    "sequence": {
+      "type": "query",
+      "default": "0",
+      "doc": "A number that says where a node goes among the nodes, evaluated for each node: the host gives the nodes in ascending order of it, keeping the order of the model between equal ones."
+    },
+    "edges": {
+      "type": "query",
+      "default": "!self.derived",
+      "doc": "Whether the ranks follow a relation, evaluated for each relation, derived ones included; without it, every stored relation."
     },
     "direction": {
       "type": "query",

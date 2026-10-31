@@ -561,3 +561,24 @@ fn a_failing_from_derives_nothing() {
     assert_eq!(DERIVED_FAILED, findings[0].code);
     assert!(diagram.relations().is_empty());
 }
+
+/// Items with equal keys yield one element, the first of them its `item`, all of them its `group` (section 4.11.3).
+#[test]
+fn a_derived_relation_with_a_key_is_one_element_per_key() {
+    let specification = loaded(&with(
+        r#""metamodel": { "types": { "Thing": { "attributes": { "name": { "type": "string" } } } },
+            "relations": { "Pair": { "from": "Thing", "to": "Thing", "attributes": { "count": { "type": "int" } },
+              "derived": { "from": "diagram.nodes", "key": "item.name.substring(0, 1)", "id": "'pair:' + item.name",
+                           "source": "item", "target": "item", "attributes": { "count": "group.size()" } } } } }"#,
+    ));
+    let diagram = DislDiagram::new(&specification);
+    for name in ["a1", "b1", "a2"] {
+        diagram.add_node("Thing", name, attrs([("name", name.into())])).unwrap();
+    }
+
+    let findings = builder::complete(&diagram);
+
+    assert!(findings.is_empty(), "{findings:?}");
+    assert_eq!(vec!["pair:a1", "pair:b1"], ids(&diagram.relations()));
+    assert_eq!(Value::Int(2), diagram.relations()[0].value_of("count"));
+}

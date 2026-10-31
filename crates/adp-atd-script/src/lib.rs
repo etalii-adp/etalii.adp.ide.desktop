@@ -103,7 +103,11 @@ impl Script {
                         return result;
                     }
                     let inner = weak.upgrade().ok_or("The script is gone.")?;
-                    inner.detached(&called, call.arguments)
+                    let reading = Reading {
+                        diagram: call.variables.get("diagram"),
+                        env: call.variables.get("env"),
+                    };
+                    inner.detached(reading, &called, call.arguments)
                 };
                 environment.add_function(Function::new(name, Style::Global, arity, arity, Some(Rc::new(body))));
             }
@@ -191,8 +195,7 @@ impl Gesture<'_> {
 impl Inner {
     /// A function of the description called from an expression outside a script (a label, a constraint, a derived
     /// attribute): it runs in a gesture of its own, which may only read (ATD §12.7).
-    fn detached(&self, function: &str, arguments: &[Value]) -> Result<Value, String> {
-        let mut host = Reading;
+    fn detached(&self, mut host: Reading, function: &str, arguments: &[Value]) -> Result<Value, String> {
         let run = Run::new(&mut host);
         self.invoke(&run, function, arguments).map_err(|stop| stop.message)
     }
@@ -272,12 +275,20 @@ impl Inner {
     }
 }
 
-/// The host of a function called where nothing may change.
-struct Reading;
+/// The host of a function called where nothing may change: it reads what the expression that calls it reads of the
+/// whole model and of the view, `diagram` and `env`.
+struct Reading {
+    diagram: Option<Value>,
+    env: Option<Value>,
+}
 
 impl Host for Reading {
-    fn variable(&self, _name: &str) -> Option<Value> {
-        None
+    fn variable(&self, name: &str) -> Option<Value> {
+        match name {
+            "diagram" => self.diagram.clone(),
+            "env" => self.env.clone(),
+            _ => None,
+        }
     }
 
     fn perform(&mut self, action: &Action<'_>) -> Result<Performed, String> {
@@ -305,7 +316,8 @@ fn identifiers_of(ast: &Json, environment: &Environment, out: &mut Vec<String>) 
             }
             let qualified = match (object.get("call"), object.get("target").and_then(|t| t.get("ident"))) {
                 (Some(Json::String(call)), Some(Json::String(head))) => {
-                    environment.function(&format!("{head}.{call}"), Style::Global).is_some()
+                    (head == "cel" && call == "bind")
+                        || environment.function(&format!("{head}.{call}"), Style::Global).is_some()
                 }
                 _ => false,
             };

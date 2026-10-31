@@ -3394,6 +3394,13 @@
         "description": {
           "type": "string"
         },
+        "recordedFrom": {
+          "description": "The kind of host that recorded the case: `module`, a module that opens its own documents, whose reading and drawing are compared by what they mean; `declared`, the default, a tool drawn from its specification, every part compared exactly (ATD §2.3, §2.4).",
+          "enum": [
+            "module",
+            "declared"
+          ]
+        },
         "inputs": {
           "description": "The input files of the case by role (`body`, `registration`, …): paths relative to the case's folder, kept byte for byte.",
           "type": "object",

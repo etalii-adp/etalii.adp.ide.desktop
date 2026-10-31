@@ -5,7 +5,7 @@
 //! 0.01. Moved from the shell's canvas, so that a host without a window (`atd`, the language server, the validation
 //! of a description) records what the shell's canvas draws.
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 use adp_diagram::{DiagramDocuments, DiagramElement, DiagramSession, ElementKind};
 use adp_disl::DislEnv;
@@ -356,26 +356,35 @@ pub fn notation_scene(
         SceneTheme::of(&definition.specification, None),
         DislEnv::default(),
     );
+    let diagram = &document.model().diagram;
+    let module = document.tool().module.as_deref();
     let positions: HashMap<String, Rect> = elements
         .iter()
         .filter(|e| e.kind == ElementKind::Node)
         .filter_map(|e| {
-            let (width, height) = default_size(definition.element_type(&e.element_type)?);
-            Some((e.id.clone(), Rect::new(e.x, e.y, width, height)))
+            let measured = module.and_then(|m| m.size_of(document, &diagram.element_by_id(&e.id)?));
+            let Some((width, height)) = measured else {
+                let (width, height) = default_size(definition.element_type(&e.element_type)?);
+                return Some((e.id.clone(), Rect::new(e.x, e.y, width, height)));
+            };
+            // A size the module measures goes with a position that is the node's centre.
+            Some((
+                e.id.clone(),
+                Rect::new(e.x - width / 2.0, e.y - height / 2.0, width, height),
+            ))
         })
         .collect();
+    // The view draws what its viewpoint shows (DISL section 3.5).
+    let shown: Option<HashSet<String>> = session
+        .uses_viewpoint(specification)
+        .then(|| diagram.shown_in(session.viewpoint()).iter().map(|e| e.id()).collect());
     let folding = Folding::default();
     let options = SceneOptions {
         selection: &[],
         folding: &folding,
         metrics: &EstimatedMetrics,
         plugins: &StandardRoutePlugins,
+        shown: shown.as_ref(),
     };
-    Ok(build_scene(
-        &definition,
-        &evaluator,
-        &document.model().diagram,
-        &positions,
-        &options,
-    ))
+    Ok(build_scene(&definition, &evaluator, diagram, &positions, &options))
 }

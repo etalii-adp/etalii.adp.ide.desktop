@@ -12,4 +12,5 @@ pub(crate) mod knots;
 pub mod natural_ids;
 pub(crate) mod type_map;
 pub(crate) mod values;
+pub(crate) mod views;
 pub(crate) mod written;

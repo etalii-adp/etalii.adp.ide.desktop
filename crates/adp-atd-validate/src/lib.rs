@@ -5,11 +5,13 @@
 //! and after each step, what the runtime gives is compared with what the case states: the bytes, byte for byte, the
 //! splices, the reading, the findings, the refusal and the drawing (as ATD §2.4 defines its equality). Each
 //! difference is reported with its step, its part, the expected and the actual value, for bytes the first line that
-//! differs, and the construct of the description that produced the value (`attribution`). Nothing is read from or
-//! written to the file system.
+//! differs, and the construct of the description that produced the value (`attribution`). A case recorded from a module
+//! that opens its own documents states its reading and its drawing in that module's terms, and they are compared by what
+//! they mean (`meaning`). Nothing is read from or written to the file system.
 
 pub mod attribution;
 pub mod cases;
+pub mod meaning;
 pub mod parts;
 
 use std::cell::RefCell;
@@ -117,8 +119,10 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
         case.files.get(body_name).cloned().unwrap_or_default(),
         registration_name.and_then(|r| case.files.get(r).cloned()),
         &|path| {
-            let name = path.strip_prefix(ROOT).ok()?.to_str()?;
-            case.files.get(name).cloned()
+            // A file beside the body is named by its absolute path, which on Windows has a drive before the root.
+            let root = std::path::absolute(ROOT).unwrap_or_else(|_| PathBuf::from(ROOT));
+            let name = path.strip_prefix(root).ok()?.to_str()?.replace('\\', "/");
+            case.files.get(&name).cloned()
         },
     );
     let mut replay = Replay {
@@ -136,20 +140,46 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
     let read = &case.fixture["read"];
     let read_by = |item: &Json| constructs.rule(item["type"].as_str());
     let found_by = |item: &Json| constructs.code(item["rule"].as_str());
-    compare(
-        &mut differences,
-        (None, "reading"),
-        &read["elements"],
-        &Json::Array(nodes),
-        &read_by,
-    );
-    compare(
-        &mut differences,
-        (None, "reading"),
-        &read["relations"],
-        &Json::Array(relations),
-        &read_by,
-    );
+    let from_module = case.fixture["recordedFrom"] == "module";
+    let (nodes, relations) = (Json::Array(nodes), Json::Array(relations));
+    if from_module {
+        let case_draws = drawing_of(case, &case.fixture["drawing"]).map(|drawing| meaning::drawn_ids(&drawing));
+        let description_draws = replay.drawing().ok().map(|drawing| meaning::drawn_ids(&drawing));
+        let stated = meaning::stated_by(read);
+        for (expected, actual) in [(&read["elements"], &nodes), (&read["relations"], &relations)] {
+            let reading = meaning::Reading {
+                expected,
+                actual,
+                case_draws: case_draws.as_ref(),
+                description_draws: description_draws.as_ref(),
+                stated: &stated,
+            };
+            let specification = runtime.tool.definition.specification();
+            for (want, got, id) in meaning::reading_differences(specification, &reading) {
+                let read_as = actual
+                    .as_array()
+                    .into_iter()
+                    .flatten()
+                    .find(|item| item["id"] == id.as_str());
+                differences.push(Difference {
+                    step: None,
+                    part: "reading",
+                    expected: want,
+                    actual: got,
+                    at: read_as.and_then(read_by),
+                });
+            }
+        }
+    } else {
+        compare(&mut differences, (None, "reading"), &read["elements"], &nodes, &read_by);
+        compare(
+            &mut differences,
+            (None, "reading"),
+            &read["relations"],
+            &relations,
+            &read_by,
+        );
+    }
     let findings = parts::findings(&replay.session, replay.workspace.documents());
     compare(
         &mut differences,
@@ -159,7 +189,7 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
         &found_by,
     );
     if let Some(expected) = drawing_of(case, &case.fixture["drawing"]) {
-        replay.compare_drawing(&mut differences, None, &expected, &constructs);
+        replay.compare_drawing(&mut differences, None, &expected, &constructs, from_module);
     }
 
     // The steps.
@@ -254,7 +284,7 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
             );
         }
         if let Some(expected) = step.get("drawing").and_then(|d| drawing_of(case, d)) {
-            replay.compare_drawing(&mut differences, number, &expected, &constructs);
+            replay.compare_drawing(&mut differences, number, &expected, &constructs, from_module);
         }
     }
     differences
@@ -404,8 +434,19 @@ impl Replay {
         step: Option<usize>,
         expected: &Json,
         constructs: &Constructs,
+        from_module: bool,
     ) {
         let difference = match self.drawing() {
+            Ok(actual) if from_module => meaning::drawing_difference(expected, &actual).map(|(want, got, id)| {
+                let type_of =
+                    |item: &Json| (item["id"] == id.as_str()).then(|| item["type"].as_str().map(str::to_owned));
+                let drawn = ["elements", "edges"]
+                    .iter()
+                    .flat_map(|part| actual[*part].as_array().into_iter().flatten())
+                    .find_map(type_of)
+                    .flatten();
+                (want, got, drawn)
+            }),
             Ok(actual) => drawing_difference(expected, &actual),
             Err(reason) => Some(("a drawing".to_owned(), format!("none: {reason}"), None)),
         };

@@ -1385,6 +1385,12 @@ impl Lowerer<'_> {
         if let Some(names) = self.find(node, "names") {
             o.insert("names".into(), self.names(names));
         }
+        if let Some(extends) = self.find(node, "extends") {
+            o.insert(
+                "extends".into(),
+                self.names(self.find(extends, "names").expect("names")),
+            );
+        }
         let own_names = self.find_all(node, "name");
         if let Some(name) = own_names.first() {
             o.insert("name".into(), self.name(name));

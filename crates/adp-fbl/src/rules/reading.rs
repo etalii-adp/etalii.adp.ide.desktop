@@ -15,7 +15,8 @@ use crate::documents::types::{AttributeBinding, FblBinding, Slot};
 use crate::expressions::{self, CelContext};
 use crate::families::{EntryId, EntryKind, Family, FamilyKind};
 use crate::model::{
-    FblElement, FblModel, FblOptions, FblView, Finding, FindingSeverity, IdRequest, RuleEvent, SourceLocation, codes,
+    FblBodyView, FblElement, FblModel, FblOptions, FblView, Finding, FindingSeverity, IdRequest, RuleEvent,
+    SourceLocation, codes,
 };
 use crate::planning::new_text;
 use crate::rules::read_mode::{self, ReadMode};
@@ -71,6 +72,8 @@ pub struct BodyReading {
     by_entry: HashMap<EntryId, usize>,
     /// The views the body's view blocks define (FBL section 4.7), in document order.
     views: Vec<FblView>,
+    /// Every view of the body, of every reading, in document order (spec 067, FR-013).
+    body_views: Vec<FblBodyView>,
     /// *(FBL 0.11)* The entry of the view the reading shows, which `selectedView` rules read inside (FBL section 9.3).
     selected_view: Option<EntryId>,
     /// The values of the binding's resource capture (FBL section 8.2) in document order.
@@ -85,6 +88,8 @@ pub struct BodyReading {
 
 impl BodyReading {
     pub fn read(bytes: Vec<u8>, binding: Rc<FblBinding>, options: Rc<FblOptions>) -> BodyReading {
+        let bytes_of_views = (!options.selected_view_alone && binding.blocks.iter().any(|b| b.view_slot.is_some()))
+            .then(|| bytes.clone());
         let text = BodyText::new(bytes);
         let family = Family::create(text, binding.clone(), options.clone());
         let mut reading = BodyReading {
@@ -94,6 +99,7 @@ impl BodyReading {
             claims: HashMap::new(),
             by_entry: HashMap::new(),
             views: Vec::new(),
+            body_views: Vec::new(),
             selected_view: None,
             resources: Vec::new(),
             resource: None,
@@ -170,7 +176,32 @@ impl BodyReading {
         findings.append(&mut reading.findings);
         reading.findings = findings;
         reading.compact();
+        if let Some(bytes) = bytes_of_views {
+            reading.read_each_view(&bytes);
+        }
         reading
+    }
+
+    /// Each view of the body the reading does not show read as the reading that shows it would read it, so that its
+    /// statements are data for it (spec 067, FR-013). A body with no such view is read once.
+    fn read_each_view(&mut self, bytes: &[u8]) {
+        let binding = self.family.binding.clone();
+        let shown = self.selected_view.map(|entry| self.family.entries[entry].own);
+        let shown_name = shown.and_then(|span| self.views.iter().find(|v| v.span == span).map(|v| v.name.clone()));
+        let options = self.options().clone();
+        for view in &mut self.body_views {
+            if view.admitted && shown_name.as_deref() == Some(view.name.as_str()) {
+                continue;
+            }
+            let mut other = options.clone();
+            other.selected_view_alone = true;
+            other.view = Some(view.name.clone());
+            if !view.admitted {
+                other.origin = view.origins.first().cloned();
+            }
+            let read = BodyReading::read(bytes.to_vec(), binding.clone(), Rc::new(other));
+            view.reading = Some(Rc::new(read.to_model()));
+        }
     }
 
     /// The registration's `resource` header, when it names a resource the body does not hold (FBL 0.10 section 8.2).
@@ -416,21 +447,33 @@ impl BodyReading {
 
     /// The views a binding's blocks name by a slot (FBL 0.11 sections 4.9, 9.3), of the block rules that admit the
     /// reading's origin, in document order, and the one the reading shows: the one the `view` header names, ignoring
-    /// the case of ASCII letters, without it the first.
+    /// the case of ASCII letters, without it the first. The views of the other readings are kept beside them.
     fn read_views(&mut self) {
         let binding = self.family.binding.clone();
         let mut views: Vec<(EntryId, FblView)> = Vec::new();
+        let mut every: Vec<(usize, FblBodyView)> = Vec::new();
         for (index, block) in binding.blocks.iter().enumerate() {
             let Some(slot) = &block.view_slot else { continue };
-            if !self.options().admits(&block.origins) {
-                continue;
-            }
+            let admitted = self.options().admits(&block.origins);
             for candidate in self.family.block_candidates(index) {
                 let read = self.read_slot_unchecked(&candidate, slot, None, 0);
                 if !read.present {
                     continue;
                 }
                 let own = self.family.entries[candidate.entry].own;
+                every.push((
+                    own.start,
+                    FblBodyView {
+                        name: read.written(),
+                        block: block.name.clone(),
+                        origins: block.origins.clone(),
+                        admitted,
+                        reading: None,
+                    },
+                ));
+                if !admitted {
+                    continue;
+                }
                 views.push((
                     candidate.entry,
                     FblView {
@@ -442,6 +485,8 @@ impl BodyReading {
                 ));
             }
         }
+        every.sort_by_key(|(start, _)| *start);
+        self.body_views = every.into_iter().map(|(_, view)| view).collect();
         views.sort_by_key(|(_, view)| view.span.start);
         self.selected_view = match &self.options().view {
             Some(header) => views.iter().find(|(_, v)| v.name.eq_ignore_ascii_case(header)),
@@ -488,7 +533,7 @@ impl BodyReading {
                     if rule.selected_view
                         && !self
                             .selected_view
-                            .is_some_and(|view| self.family.enclosing(entry).contains(&view))
+                            .is_some_and(|view| view == entry || self.family.enclosing(entry).contains(&view))
                     {
                         continue;
                     }
@@ -568,6 +613,18 @@ impl BodyReading {
                             span: own,
                             line: self.family.text.position(own.start).0,
                         });
+                        self.body_views.push(FblBodyView {
+                            name: view.to_owned(),
+                            block: block.name.clone(),
+                            origins: block.origins.clone(),
+                            admitted: true,
+                            reading: None,
+                        });
+                    }
+                    // A view's entry is a view whatever else reads it: a rule with `selectedView` reads the view itself.
+                    if block.view_slot.is_some() {
+                        error = None;
+                        continue;
                     }
                 }
                 error = None;
@@ -1371,6 +1428,7 @@ impl BodyReading {
             findings: self.findings.clone(),
             unreadable: self.unreadable.is_some(),
             views: self.views.clone(),
+            body_views: self.body_views.clone(),
             resources: self.resources.clone(),
             file: Some(self.options().file_name.clone()),
         }

@@ -641,3 +641,54 @@ fn an_item_of_a_read_only_slot_is_refused() {
 
     assert!(matches!(result, PlanResult::Refused(_)), "{result:?}");
 }
+
+/// Every view of the body is listed whichever the reading shows, with its statements as data for it (spec 067, FR-013).
+#[test]
+fn a_reading_keeps_every_view_with_its_statements() {
+    let model = views(Some("o/a"), None);
+    let found: Vec<(&str, bool)> = model.body_views.iter().map(|v| (v.name.as_str(), v.admitted)).collect();
+    assert_eq!(found, [("First", true), ("bee", false)]);
+    assert!(
+        model.body_views[0].reading.is_none(),
+        "the view this reading shows is this reading"
+    );
+    let other = model.body_views[1].reading.as_ref().expect("the other view's reading");
+    assert_eq!(lines_of(other), [5, 6]);
+    assert_eq!(lines_of(&model), [2]);
+}
+
+/// A rule with `selectedView` may read the view's own entry, which stays the view.
+#[test]
+fn a_selected_view_rule_reads_the_view_itself() {
+    let document = json!({
+        "fbl": "0.11",
+        "bindings": {
+            "items": {
+                "claims": { "extensions": [".items"], "origins": ["o/a"] },
+                "body": { "kind": "file", "family": "grammar", "grammar": GRAMMAR },
+                "reader": "declared",
+                "blocks": [{ "name": "a", "at": "/item", "view": { "node": "title", "match": MATCH } }],
+                "elements": [{
+                    "name": "kind", "type": "Kind", "at": "/item", "selectedView": true,
+                    "attributes": { "kind": { "value": "'first'" } }
+                }]
+            }
+        }
+    });
+    let (problems, loaded) = load(document.to_string().as_bytes());
+    let binding = loaded
+        .unwrap_or_else(|| panic!("{problems:?}"))
+        .bindings
+        .into_iter()
+        .next()
+        .unwrap()
+        .1;
+    let model = OpenBody::open(
+        b"a \"First\" {\n  x\n}\n".to_vec(),
+        Rc::new(binding),
+        Rc::new(FblOptions::default()),
+    )
+    .model();
+    assert_eq!(model.views.len(), 1);
+    assert_eq!(lines_of(&model), [1]);
+}

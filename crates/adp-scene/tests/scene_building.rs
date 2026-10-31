@@ -289,6 +289,7 @@ fn a_theme_mode_repaints_by_token() {
         folding: &folding,
         metrics: &EstimatedMetrics,
         plugins: &(),
+        shown: None,
     };
     let scene = adp_scene::build_scene(&definition, &evaluator, &diagram, &positions, &options);
     let Some(Primitive::Shape(body)) = with_role(&scene, &element("c1"), &Role::Body) else {
@@ -706,6 +707,7 @@ fn a_heading_the_reader_opened_shows_its_rows() {
         folding: &folding,
         metrics: &EstimatedMetrics,
         plugins: &(),
+        shown: None,
     };
     let scene = adp_scene::build_scene(
         &definition,
@@ -767,6 +769,7 @@ fn drawn_twice(
         folding: &folding,
         metrics: &EstimatedMetrics,
         plugins: &adp_scene::scene::StandardRoutePlugins,
+        shown: None,
     };
     let positions = |at: &[(&str, Rect)]| at.iter().map(|(id, r)| ((*id).to_owned(), *r)).collect();
     let first =
@@ -867,5 +870,99 @@ fn a_truncating_budget_leaves_out_what_it_cuts_and_the_lines_to_it() {
     assert!(
         scene.of(&relation("b-c")).next().is_none(),
         "a line to what is cut is not drawn"
+    );
+}
+
+/// `person` draws a head, before the body it stands behind, and the bounds are the body (DISL 0.5, *The person shape*).
+#[test]
+fn a_person_is_a_rounded_body_with_a_head_above_it() {
+    let specification = json!({
+        "disl": "0.5",
+        "language": { "id": "test", "version": "1.0.0" },
+        "metamodel": { "types": { "Person": {} } },
+        "notation": { "nodes": { "Person": { "shape": { "type": "person", "params": { "radius": 4 } } } } },
+    });
+    let definition = definition_of(&specification);
+    let diagram = DislDiagram::new(&definition.specification);
+    diagram.add_node("Person", "ann", attrs(&[])).unwrap();
+    let evaluator = adp_scene::Evaluator::new(
+        &definition.specification,
+        adp_scene::Theme::of(&definition.specification, None),
+        adp_disl::DislEnv::default(),
+    );
+    let bounds = adp_scene::Rect::new(0.0, 0.0, 160.0, 100.0);
+    let positions = [("ann".to_owned(), bounds)].into_iter().collect();
+    let folding = Default::default();
+    let options = adp_scene::SceneOptions {
+        selection: &[],
+        folding: &folding,
+        metrics: &EstimatedMetrics,
+        plugins: &(),
+        shown: None,
+    };
+    let scene = adp_scene::build_scene(&definition, &evaluator, &diagram, &positions, &options);
+    let shapes: Vec<&adp_scene::scene::ShapePrimitive> = scene
+        .primitives
+        .iter()
+        .filter_map(|p| match p {
+            Primitive::Shape(shape) if shape.owner == Owner::Element("ann".to_owned()) => Some(shape),
+            _ => None,
+        })
+        .collect();
+    let head = shapes.iter().position(|s| s.role == Role::BodyPart).expect("a head");
+    let body = shapes.iter().position(|s| s.role == Role::Body).expect("a body");
+    assert!(head < body, "the head is painted first");
+    let around = shapes[head].path.bounds().unwrap();
+    assert_eq!(
+        (around.x, around.y, around.width, around.height),
+        (70.0, -18.0, 20.0, 20.0)
+    );
+    let body = shapes[body].path.bounds().unwrap();
+    assert_eq!((body.x, body.y, body.width, body.height), (0.0, 0.0, 160.0, 100.0));
+}
+
+/// A view draws what it shows, the elements and the lines, when the host says what that is.
+#[test]
+fn what_a_view_does_not_show_is_not_drawn() {
+    let specification = json!({
+        "disl": "0.5",
+        "language": { "id": "test", "version": "1.0.0" },
+        "metamodel": { "types": { "Thing": {} } },
+        "notation": { "nodes": { "Thing": { "shape": "rect" } } },
+    });
+    let definition = definition_of(&specification);
+    let diagram = DislDiagram::new(&definition.specification);
+    diagram.add_node("Thing", "shown", attrs(&[])).unwrap();
+    diagram.add_node("Thing", "hidden", attrs(&[])).unwrap();
+    let evaluator = adp_scene::Evaluator::new(
+        &definition.specification,
+        adp_scene::Theme::of(&definition.specification, None),
+        adp_disl::DislEnv::default(),
+    );
+    let at = adp_scene::Rect::new(0.0, 0.0, 10.0, 10.0);
+    let positions = [("shown".to_owned(), at), ("hidden".to_owned(), at)]
+        .into_iter()
+        .collect();
+    let folding = Default::default();
+    let shown = ["shown".to_owned()].into_iter().collect();
+    let options = adp_scene::SceneOptions {
+        selection: &[],
+        folding: &folding,
+        metrics: &EstimatedMetrics,
+        plugins: &(),
+        shown: Some(&shown),
+    };
+    let scene = adp_scene::build_scene(&definition, &evaluator, &diagram, &positions, &options);
+    assert!(
+        scene
+            .primitives
+            .iter()
+            .any(|p| p.owner() == &Owner::Element("shown".to_owned()))
+    );
+    assert!(
+        !scene
+            .primitives
+            .iter()
+            .any(|p| p.owner() == &Owner::Element("hidden".to_owned()))
     );
 }

@@ -114,6 +114,20 @@ pub struct FblView {
     pub line: usize,
 }
 
+/// A view the body defines, whichever reading shows it (spec 067, FR-013): what `diagram.views` lists.
+#[derive(Debug, Clone)]
+pub struct FblBodyView {
+    pub name: String,
+    pub block: String,
+    /// The readings the view is for (FBL 0.11 section 5.1), its block rule's `origins`; empty for every reading.
+    pub origins: Vec<String>,
+    /// Whether this reading's origin is among them.
+    pub admitted: bool,
+    /// The body read as the reading that shows this view would read it, this view's statements its own; none when
+    /// that is this very reading.
+    pub reading: Option<Rc<FblModel>>,
+}
+
 /// What reading a body gives: its elements and relations in document order, and its findings.
 #[derive(Debug, Clone, Default)]
 pub struct FblModel {
@@ -122,6 +136,8 @@ pub struct FblModel {
     pub unreadable: bool,
     /// The views a blocks body defines (FBL section 4.7), in document order.
     pub views: Vec<FblView>,
+    /// Every view the body defines, of every reading, in document order, with its statements as data (spec 067, FR-013).
+    pub body_views: Vec<FblBodyView>,
     /// The resources a body holds (FBL section 8.2): the values of the binding's resource capture.
     pub resources: Vec<String>,
     /// The file the body was read from, as the caller names it (`FblOptions::file_name`); none for a reading that
@@ -194,6 +210,8 @@ pub struct FblOptions {
     pub origin: Option<String>,
     /// The registration's `view` header (FBL section 9.3), which selects the view `selectedView` rules read inside.
     pub view: Option<String>,
+    /// Whether to read the selected view alone, and not each other view's statements as well (spec 067, FR-013).
+    pub selected_view_alone: bool,
     /// Whether the tool type's specification gives `ids.missing: "ephemeral"` (DISL section 11.5): an entry a rule
     /// reads no stored id for is then addressed by its place without `std.missingId`.
     pub ephemeral_missing_ids: bool,
@@ -250,6 +268,7 @@ impl Default for FblOptions {
             many: None,
             origin: None,
             view: None,
+            selected_view_alone: false,
             ephemeral_missing_ids: false,
             unreadable_types: HashSet::new(),
             time_attributes: HashSet::new(),
