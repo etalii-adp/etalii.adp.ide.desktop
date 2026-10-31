@@ -60,7 +60,11 @@ const STANDALONE_FIXTURES: [&str; 21] = [
 
 /// The fixtures of the `grammar` family (FBL 0.9 section 4.9), which no host but this one is required to read: run
 /// as the standalone host's are, by [`the_grammar_family_fixtures_pass`].
-const GRAMMAR_FIXTURES: [&str; 2] = ["w3c-turtle-grammar", "w3c-turtle-grammar-partial"];
+const GRAMMAR_FIXTURES: [&str; 3] = [
+    "grammar-comment-start",
+    "w3c-turtle-grammar",
+    "w3c-turtle-grammar-partial",
+];
 
 /// The fixtures the library departs from, which [`the_yaml_family_departs_from_the_fixture_only_as_recorded`] and
 /// [`the_json_family_departs_from_the_fixture_only_as_recorded`] run with the departure written out, as the
@@ -92,7 +96,7 @@ const KNOWLEDGE_STEPS: [(&str, usize, usize); 4] = [
 /// the standalone host does not vendor either. They are out of scope here, not failing: etalii.adp's splice replay
 /// (`fixtures.rs`) still runs every one of them. The hierarchical-requirement tool type's fixtures are run by
 /// [`hierarchical_requirement`], through the stand-in for its DESL interpreter.
-const NOT_SUPPORTED: [&str; 61] = [
+const NOT_SUPPORTED: [&str; 60] = [
     // The standalone host does not vendor this one at a7fdf03 either: its Retry's attempts is read as the text "1",
     // as every value of a lines or bullets group is, and the fixture reads the number 1, which the specification's
     // type gives it above FBL (agent-behavior-modelling.dis, `Retry.attempts: int`).
@@ -102,8 +106,8 @@ const NOT_SUPPORTED: [&str; 61] = [
     "insert-constant-yaml",
     "insert-constant-yaml-read",
     // FBL 0.10 to 0.12 (etalii.adp spec 066), which this port does not have: the grammar binding of Structurizr, the
-    // readings of one Databricks file, and the Wardley map. Most edit several files at once, which `fixtures.rs` leaves
-    // out as well, so nothing here runs them yet.
+    // readings of one Databricks file, and the Wardley map. This port reads none of them yet,
+    // and their splices are replayed by `fixtures.rs` only, each leaving this list as its construct is written.
     "structurizr-open-block",
     "databricks-flow-empty/job",
     "databricks-flow-empty/read-back",
@@ -128,7 +132,6 @@ const NOT_SUPPORTED: [&str; 61] = [
     "databricks-secondary/both",
     "databricks-secondary/legacy",
     "databricks-template-key",
-    "grammar-comment-start",
     "grammar-remove-part",
     "structurizr-absent-arguments",
     "structurizr-add-view",
