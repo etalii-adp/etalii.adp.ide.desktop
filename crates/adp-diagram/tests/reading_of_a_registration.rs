@@ -61,6 +61,7 @@ const WORKSPACE: &str = "workspace \"W\" {
     views {
         systemLandscape \"Landscape\" {
             include a
+            title \"The landscape\"
         }
         container b \"First\" {
             include c
@@ -118,15 +119,17 @@ fn the_registrations_view_selects_what_selected_view_rules_read() {
     assert_eq!(titles(&documents, &body), ["The second"]);
 }
 
+/// A reading shows a view of any kind, as the module does (spec 067, FR-015): `structurizr.fbl`'s view blocks have no
+/// `origins`, so the first view of the body is the one a reading without a header shows.
 #[test]
-fn a_reading_without_a_view_header_reads_the_first_view_of_its_origin() {
+fn a_reading_without_a_view_header_reads_the_first_view_of_the_body() {
     let tool = structurizr("c4/container", "c4-container.dis");
     let mut documents = DiagramDocuments::in_memory();
     let body = open(&tool, &mut documents, WORKSPACE, "c4/container\nbody: w.dsl\n", &[]);
     let document = documents.get(&body).unwrap();
     let views: Vec<&str> = document.fbl().views.iter().map(|v| v.name.as_str()).collect();
-    assert_eq!(views, ["First", "Second"], "the landscape is a view of another origin");
-    assert_eq!(titles(&documents, &body), ["The first"]);
+    assert_eq!(views, ["Landscape", "First", "Second"]);
+    assert_eq!(titles(&documents, &body), ["The landscape"]);
 }
 
 #[test]

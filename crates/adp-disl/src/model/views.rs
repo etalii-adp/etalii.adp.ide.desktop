@@ -2,12 +2,14 @@
 //! belongs to a view when its type passes the viewpoint's `include` and `exclude` and its `members` holds for it, and a
 //! relation only when both its ends do. `diagram.views` lists every view of the body, whichever one this reading shows:
 //! each view's statements are data for it, read as the reading that shows it reads them, and its members are what the
-//! viewpoint selects there, as the elements of this diagram.
+//! viewpoint selects there, as the elements of this diagram. A view also exposes the scope it is written with and where
+//! it stands (spec 067, FR-016), so that a rule about the model can say something about the view itself.
 
+use std::any::Any;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
-use adp_cel::{Map, Value};
+use adp_cel::{Map, Object, Value};
 use adp_fbl::FblBodyView;
 use serde_json::Value as Json;
 
@@ -96,12 +98,73 @@ impl DislDiagram {
         let shown = shows.shown_in(&specification.default_viewpoint());
         // The elements of this diagram: a rule compares its elements with them.
         let members: Vec<DislElement> = shown.iter().filter_map(|e| self.element_by_id(&e.id())).collect();
-        let mut value = Map::default();
-        value.insert("id", Value::String(view.name.clone()));
-        value.insert("name", Value::String(view.name.clone()));
-        value.insert("viewpoint", Value::String(viewpoint));
-        value.insert("members", list(members));
-        Value::map(value)
+        // The diagram attribute `scope` of the view's reading, as written: a reference that names nothing stays as read.
+        let scope = match shows.stored_attribute("scope") {
+            Some(Value::String(scope)) => scope,
+            _ => String::new(),
+        };
+        // A SourceLocation always names a file (section 8.6).
+        let location = self.file().or_else(|| self.read_from()).map(|file| {
+            let mut location = Map::default();
+            location.insert("file", Value::String(file));
+            location.insert("line", Value::Int(view.line as i64));
+            Value::map(location)
+        });
+        Value::Object(Rc::new(View {
+            id: view.name.clone(),
+            viewpoint,
+            scope,
+            members: list(members),
+            location,
+        }))
+    }
+}
+
+/// A `View` of section 12.2, as a rule reads it.
+#[derive(Debug)]
+struct View {
+    id: String,
+    viewpoint: String,
+    scope: String,
+    members: Value,
+    location: Option<Value>,
+}
+
+impl Object for View {
+    fn into_any(self: Rc<Self>) -> Rc<dyn Any> {
+        self
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn member(&self, name: &str) -> Option<Value> {
+        match name {
+            "id" | "name" => Some(Value::String(self.id.clone())),
+            "viewpoint" => Some(Value::String(self.viewpoint.clone())),
+            "scope" => Some(Value::String(self.scope.clone())),
+            "members" => Some(self.members.clone()),
+            _ => None,
+        }
+    }
+
+    fn has_member(&self, name: &str) -> bool {
+        matches!(name, "id" | "name" | "viewpoint" | "scope" | "members")
+    }
+
+    fn invoke(&self, name: &str, arguments: &[Value]) -> Option<Result<Value, String>> {
+        match (name, arguments.len()) {
+            ("location", 0) => Some(Ok(match &self.location {
+                Some(location) => Value::some(location.clone()),
+                None => Value::none(),
+            })),
+            _ => None,
+        }
+    }
+
+    fn text(&self) -> String {
+        self.id.clone()
     }
 }
 

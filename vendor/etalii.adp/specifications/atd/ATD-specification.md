@@ -76,7 +76,7 @@ Today a tool engineer specifies a tool type in up to three JSON files, each in a
 
 ### 1.3 Relation to the other specifications
 
-DISL, DID, DESL, DED, EDSL, EDD and FBL remain specifications of this repository. ATD carries every construct of DISL 0.6, DESL 0.2 and FBL 0.14 (Appendix C maps each of their properties to the ATD construct that carries it), and the constructs an editor needs, which EDSL, a placeholder, does not yet have (section 10). ATD reuses their schemas: a setting of an ATD construct is checked against the `$defs` entry of DISL, DESL or FBL for the same thing (section 14.6), and a binding in ATD is an FBL binding written as text. Tools keep storing their documents in DID, DED or a body a binding reads; a tool description replaces none of them.
+DISL, DID, DESL, DED, EDSL, EDD and FBL remain specifications of this repository. ATD carries every construct of DISL 0.7, DESL 0.2 and FBL 0.14 (Appendix C maps each of their properties to the ATD construct that carries it), and the constructs an editor needs, which EDSL, a placeholder, does not yet have (section 10). ATD reuses their schemas: a setting of an ATD construct is checked against the `$defs` entry of DISL, DESL or FBL for the same thing (section 14.6), and a binding in ATD is an FBL binding written as text. Tools keep storing their documents in DID, DED or a body a binding reads; a tool description replaces none of them.
 
 ---
 

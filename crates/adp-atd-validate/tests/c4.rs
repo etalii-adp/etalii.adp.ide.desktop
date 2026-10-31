@@ -14,13 +14,10 @@ fn diagrams() -> PathBuf {
 }
 
 /// The differences of the cases of the six descriptions, by case, each as `step:part`, the reading's as `read:part`.
-const LISTED: [(&str, &[&str]); 8] = [
-    // `c4.unknown-view-scope` and the line of `c4.empty-view`: a rule about the model cannot read the scope a view is
-    // written with, nor where it stands, of a `View` (DISL 12.2, the companions' gap 13). A language's to answer.
-    ("finding-order", &["read:findings"]),
-    ("view-without-key", &["read:findings"]),
+const LISTED: [(&str, &[&str]); 7] = [
     // The same findings in another order: the module reports element by element, DISL by rule (the companions' gap 10).
-    // A language's to answer.
+    // A quirk of the module's, by Peter's ruling (spec 067), for which DISL does not change.
+    ("finding-order", &["read:findings"]),
     ("misplaced-container", &["read:findings"]),
     ("trailing-comments", &["read:findings"]),
     // The module reads two elements under the one id `api`, of which FBL's reading gives the second its place.

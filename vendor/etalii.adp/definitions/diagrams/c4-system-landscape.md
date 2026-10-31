@@ -12,7 +12,7 @@ The definition raises `language.limits.celCost` to 10 000 000 from DISL's defaul
 
 ## The gaps
 
-Sixteen, each a candidate change for this repository: the twelve the conversion's requirements list (C1 to C12, in their order), three found while writing the definitions and one found while binding the format. None is worked around in the `.dis` by stating something the tool does not do. FBL 0.11 (etalii.adp's feature `066-fbl-conversion-gaps`) answers gaps 1 to 8, and FBL 0.13, of the same feature, gap 16, each below with the section that answers it and the fixture under `specifications/fbl/fixtures/` that shows it: the format is bound in the `grammar` family by [`structurizr.fbl`](../../specifications/fbl/structurizr.fbl), whose grammar is [`structurizr.lark`](../../specifications/fbl/structurizr.lark), written from the conversion's appendix draft in FBL 0.11's constructs. Gap 12 stays unsupported on purpose; gaps 9 to 11 and 13 to 15 are DISL's and stay open.
+Sixteen, each a candidate change for this repository: the twelve the conversion's requirements list (C1 to C12, in their order), three found while writing the definitions and one found while binding the format. None is worked around in the `.dis` by stating something the tool does not do. FBL 0.11 (etalii.adp's feature `066-fbl-conversion-gaps`) answers gaps 1 to 8, and FBL 0.13, of the same feature, gap 16, each below with the section that answers it and the fixture under `specifications/fbl/fixtures/` that shows it: the format is bound in the `grammar` family by [`structurizr.fbl`](../../specifications/fbl/structurizr.fbl), whose grammar is [`structurizr.lark`](../../specifications/fbl/structurizr.lark), written from the conversion's appendix draft in FBL 0.11's constructs. DISL 0.7 (etalii.adp's feature `067-desktop-fbl-bindings`) answers gap 13. Gap 12 stays unsupported on purpose; gaps 9 to 11, 14 and 15 are DISL's and stay open.
 
 | # | Language | Construct | Finding | Status |
 | --- | --- | --- | --- | --- |
@@ -28,7 +28,7 @@ Sixteen, each a candidate change for this repository: the twelve the conversion'
 | 10 | DISL | Findings ordered by element | A11 | Open; DISL's, since the order of findings comes from how a specification is evaluated, not from how a body is read |
 | 11 | DISL | The identifier of a new element made from its name | A9 | Open; DISL's, since a new element's identifier is made by the specification's id strategy (DISL 11.5.1), which no binding changes |
 | 12 | Both | An id that depends on a directive of the body | B12 | Unsupported on purpose, as today |
-| 13 | DISL | What a view exposes to a rule about the model | found while writing | Open; DISL's, since what a rule reads of a view is DISL's `View` (12.2), which a binding does not shape |
+| 13 | DISL | What a view exposes to a rule about the model | found while writing | Answered by DISL 0.7 (`findings/finding-order.dsl`, `findings/view-without-key.dsl`) |
 | 14 | DISL | The text an unset end was written with | found while writing | Open; DISL's, since the binding reads an end as it is written, and no CEL function of DISL returns that text for an end that names nothing |
 | 15 | DISL | The order of a view's members and of its legend entries | found while writing | Open; DISL's, since a view's members and its legend are ordered by DISL's evaluation of the model (3.5, 6.13), not by the reading |
 | 16 | FBL | Several items written in one argument | found while binding the format | Answered by FBL 0.13 (`structurizr-split-tags`, `grammar-split-slot`) |
@@ -120,14 +120,14 @@ Sixteen, each a candidate change for this repository: the twelve the conversion'
 
 ### 13. DISL 12.2: what a view exposes to a rule about the model
 
-- **Construct.** A rule about every view reads `diagram.views`, whose `View` has `id`, `viewpoint`, `name` and `members` only. The tool's view findings need more of each view: `c4.unknown-view-scope` names the scope the view is written with and is located at the view's line, and `c4.empty-view` is located at the view's line. A view's own statements are diagram attributes of the reading that shows it, and no rule about the model can read them for another view.
+- **Construct.** A rule about every view read `diagram.views`, whose `View` had `id`, `viewpoint`, `name` and `members` only. The tool's view findings need more of each view: `c4.unknown-view-scope` names the scope the view is written with and is located at the view's line, and `c4.empty-view` is located at the view's line. A view's own statements are diagram attributes of the reading that shows it, and no rule about the model could read them for another view.
 - **Shown by.** `findings/finding-order.dsl` (`c4.unknown-view-scope` at line 20, `c4.empty-view` at line 26), `findings/view-without-key.dsl`, the new `c4/container` and `c4/dynamic` documents.
-- **Would resolve it.** `View` exposing its reading's diagram attributes and a `location()`.
-- **Meanwhile.** `emptyView` is a rule without the line, its subject the view's key, and `c4.unknown-view-scope` is not a rule of the definition; the module reports both from its reading, the empty view at the line of the view its subject names.
+- **Answered.** DISL 0.7 (8.2, 12.2): `View` has `scope`, the scope as written, also when it names nothing, and `location()`, where its declaration stands. `unknownViewScope` and `emptyView` state both findings as rules of the definition, at the view's line.
+- **Meanwhile.** The module still reports both from its reading, the empty view at the line of the view its subject names, until the body is read through the binding.
 
 ### 14. DISL 11.2: the text an unset end was written with
 
-- **Construct.** A relation whose mapped end names nothing is created with that end unset (11.2), and the identifier the body writes there is then nowhere in the model. The tool's sentence names it ("The relationship on line 11 names 'missing', which the model does not declare."), and the ids of a relationship and of an interaction are their ends as written. The same holds for a reference attribute: the scope a view names when it names nothing (gap 13).
+- **Construct.** A relation whose mapped end names nothing is created with that end unset (11.2), and the identifier the body writes there is then nowhere in the model. The tool's sentence names it ("The relationship on line 11 names 'missing', which the model does not declare."), and the ids of a relationship and of an interaction are their ends as written. The same holds for a reference attribute: the scope a view names when it names nothing, which `View.scope` gives a rule (gap 13).
 - **Shown by.** `findings/dangling-both-ends.dsl`, `findings/nested-relationships.dsl`, `findings/hierarchical-identifiers.dsl`.
 - **Would resolve it.** The written text of an unset end or reference, readable in CEL, such as `self.written('source')`.
 - **Meanwhile.** The plugin function `writtenEnd(relation, end)`, which the module supplies from its reading, as the timeline does (`timeline.md`, gap 4).
@@ -154,7 +154,7 @@ Code that stands in for a gap while it stands, named so that nobody reads it as 
 | --- | --- | --- |
 | `C4Disl` | Gaps 1, 2 and 6 (Q5), and gap 3 for a body with a block comment: the module builds this definition's model from its own reading of the body | The module, until the body is read through the binding |
 | `C4FindingOrder` | Gap 10: today's order of findings (Q4) | The module, ordering what `C4Definitions.Problems` evaluates |
-| `c4.unknown-view-scope` and the empty view's line, from the reading | Gap 13: what a view exposes to a rule about the model | The module (`C4Definitions.Problems`) |
+| `c4.unknown-view-scope` and the empty view's line, from the reading | Gap 13: what a view exposes to a rule about the model. It can go with DISL 0.7, once the body is read through the binding | The module (`C4Definitions.Problems`) |
 | The statement order of `C4Definitions.Drawing` | Gap 15: a view's members and legend entries in the order of its statements | The module |
 | `C4Placement.IdentifierFor` | Gap 11: a new element's identifier | The module, handed to the operation |
 | `AddC4ViewCommand` and its inverse `RemoveC4ViewCommand` | Gap 8: adding a view block, and the registration that opens it. It can go with etalii.adp's spec 066, FR-012 (a block rule's `insert`), once the body is written by splices; the registration stays the host's | The module |

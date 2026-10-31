@@ -544,9 +544,7 @@ diagram c4/deployment version "0.2.0" {
 
   /// Every rule is about the model, never about one reading of it, so every C4 definition reports the same findings for
   /// a workspace whichever view is open. The tool reports them element by element, which DISL's order by rule cannot
-  /// state (companion, gap 10). Its finding `c4.unknown-view-scope` ("The '<key>' view is scoped to '<id>', which the
-  /// model does not declare.", at the view's line) is not a rule here: a View exposes neither the scope it was written
-  /// with nor its line (companion, gaps 13 and 14).
+  /// state (companion, gap 10).
   constraints {
     defaults: { severity: warning, timing: [live, save] }
     blockSaveOn: never
@@ -678,6 +676,18 @@ diagram c4/deployment version "0.2.0" {
     /// Only an element a view's `include` names can be of a kind the view does not permit; `include *` selects
     /// permitted kinds only. The subject is the view's key: the tool reports a view's findings together (companion, gap
     /// 10).
+    /// A view's scope as written, also when it names nothing: the reference attribute `scope` is then null (DISL 12.2,
+    /// `View.scope`; companion, gap 13). Located at the view's line, which only the view knows.
+    constraint unknownViewScope for diagram {
+      label "Unknown view scope"
+      message ("The '" + item.id + "' view is scoped to '" + item.scope + "', which the model does not declare.")
+      code: "c4.unknown-view-scope"
+      over: model
+      forEach: (diagram.views.filter(v, v.scope != '' && !diagram.nodes.exists(n, sameId(n.id, v.scope))))
+      subject: (item.id)
+      location: (item.location())
+    }
+
     constraint kindNotPermitted for Element {
       label "Kind not permitted on the view"
       message ("The '" + item.id + "' view shows '" + shownName(self) + "', which is a " + spelled(self.type) + ". A " + viewSpelled(item.viewpoint) + " view shows " + permitted(item.viewpoint).map(t, spelled(t)).join(', ') + ".")
@@ -688,8 +698,7 @@ diagram c4/deployment version "0.2.0" {
       subject: (item.id)
     }
 
-    /// The subject is the view's key, a finding having neither a target nor a location otherwise (8.6). The tool
-    /// locates the finding at the view's line, which a View does not expose (companion, gap 13).
+    /// Located at the view's line (DISL 12.2, `View.location()`; companion, gap 13), its subject the view's key.
     constraint emptyView for diagram {
       label "Empty view"
       message ("The '" + item.id + "' view is empty.")
@@ -697,6 +706,7 @@ diagram c4/deployment version "0.2.0" {
       over: model
       forEach: (diagram.views.filter(v, !v.members.exists(m, m.kind == 'node')))
       subject: (item.id)
+      location: (item.location())
     }
 
     /// Silent while the model declares no view. An instance is drawn or not on account of its node and what it

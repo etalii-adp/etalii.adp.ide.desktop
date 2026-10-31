@@ -123,6 +123,8 @@ pub struct FblBodyView {
     pub origins: Vec<String>,
     /// Whether this reading's origin is among them.
     pub admitted: bool,
+    /// The 1-based line the view's entry starts on.
+    pub line: usize,
     /// The body read as the reading that shows this view would read it, this view's statements its own; none when
     /// that is this very reading.
     pub reading: Option<Rc<FblModel>>,

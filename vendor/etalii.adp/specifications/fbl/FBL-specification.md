@@ -450,7 +450,7 @@ An absolute selector is matched from the root, so `/statement` selects the root'
 *(FBL 0.11)* **Views.** A binding of this family may have `blocks` (section 4.7), which name nodes that produce no element:
 
 - A BlockRule of the family has `at` and no `line`. With `view`, a `{node}` or `{value}` slot, its entries are **views** of the body, each named by the slot's value, which a registration's `view` header selects (section 9.3); a `{value}` slot gives the name of a view written without one. With `origins` (section 5.1), it is a view for readings of those origins only.
-- An element or relation rule with `selectedView: true` matches only entries inside the entry of the view the reading shows (section 9.3); in every other view the same entries are not read, and are unbound for that reading.
+- An element or relation rule with `selectedView: true` matches only the entry of the view the reading shows and the entries inside it (section 9.3); in every other view the same entries are not read, and are unbound for that reading. A rule so reads what the view's own entry says, such as the kind of view it is, as well as its statements.
 - Every view is still an entry of the body, whichever view a reading shows, so a rule about the model (DISL's `View`) sees all of them, and an element rule may select the same node.
 - A BlockRule's `insert` adds one of its entries from its `emit`, at the place it states, planned and undone as an element's insert is (section 6.2); the new entry produces no element, and adding a view creates no registration (section 8.4).
 
@@ -499,7 +499,7 @@ An element rule turns entries into elements of one node type:
 | `line`            | Regex                       | lines, blocks: the statement; bullets: the statement, or with `within` the item's text (section 4.8). Exactly one of `at` and `line`. |
 | `within`          | Name[]                      | blocks: the block rules or element rules whose block encloses the statement (section 4.7); *(FBL 0.7)* bullets: the sections whose items the rule matches (section 4.8). |
 | `opens`, `caseInsensitive` | | `opens`: blocks (section 4.7), *(FBL 0.11)* or in grammar `{open, close}`, the text of a block written around a first child (section 4.9); `caseInsensitive`: lines, blocks and bullets. |
-| `selectedView`    | bool                        | *(FBL 0.11)* grammar: the rule matches only entries inside the entry of the view the reading shows (sections 4.9, 9.3). |
+| `selectedView`    | bool                        | *(FBL 0.11)* grammar: the rule matches only the entry of the view the reading shows and the entries inside it (sections 4.9, 9.3). |
 | `files`           | Name[]                      | Folder subjects: the file rules whose files this rule reads (section 10). |
 | `when`            | Expression                  | The entry is matched only when this holds. |
 | `origins`         | origin[]                    | *(FBL 0.10)* The readings the rule is read for, as origins of the binding's `claims.origins` (section 12.1). Absent: every reading. |
