@@ -728,3 +728,7 @@ fn captures_map(candidate: &Candidate) -> Value {
             .collect(),
     )
 }
+
+#[cfg(test)]
+#[path = "member_tests.rs"]
+mod member_tests;

@@ -1,0 +1,76 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A pipeline added to a bundle file that has no resources (databricks.fbl#configuration; FBL 0.14, section 6.2; spec 066, FR-039). Its body is the document of etalii.adp.ide.standalone's BundleWriter test AddResourceSkeleton_OnAFileWithoutResources_CreatesTheSection at edbddc92e (src/diagrams/databricks/backend/EtAlii.Adp.Diagram.Databricks.Tests/BundleWriter.Tests.cs), its text byte for byte.",
+  "binding": "../../../databricks.fbl#configuration",
+  "input": "fresh.adp",
+  "steps": [
+    {
+      "doc": "In a bundle without resources, the add creates resources: at the end of the body and pipelines: below it, as create's end and the missing levels write them, then the member, all at one offset (FBL 0.4 and 0.14, section 6.2).",
+      "edit": {
+        "add": {
+          "type": "Resource",
+          "attributes": {
+            "resourceKind": "pipelines",
+            "key": "first"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "file": "../fresh.yml",
+          "start": 24,
+          "end": 24,
+          "text": "resources:\r\n"
+        },
+        {
+          "operation": "ensure-container",
+          "file": "../fresh.yml",
+          "start": 24,
+          "end": 24,
+          "text": "  pipelines:\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "file": "../fresh.yml",
+          "start": 24,
+          "end": 24,
+          "text": "    first:\r\n      name: first\r\n      libraries:\r\n        - notebook:\r\n            path: transformations/first\r\n"
+        }
+      ],
+      "expectFiles": {
+        "../fresh.yml": "bundle:\r\n  name: fresh\r\nresources:\r\n  pipelines:\r\n    first:\r\n      name: first\r\n      libraries:\r\n        - notebook:\r\n            path: transformations/first\r\n"
+      }
+    },
+    {
+      "doc": "Undo puts back the bytes the add or removal replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "file": "../fresh.yml",
+          "start": 24,
+          "end": 36,
+          "text": ""
+        },
+        {
+          "operation": "ensure-container",
+          "file": "../fresh.yml",
+          "start": 36,
+          "end": 50,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "file": "../fresh.yml",
+          "start": 50,
+          "end": 161,
+          "text": ""
+        }
+      ],
+      "expectFiles": {
+        "../fresh.yml": "bundle:\r\n  name: fresh\r\n"
+      }
+    }
+  ]
+}

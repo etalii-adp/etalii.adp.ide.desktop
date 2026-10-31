@@ -1,0 +1,172 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A job and a pipeline added to a Databricks bundle as members of the mappings resources.jobs and resources.pipelines, each named by its key, and a job removed (databricks.fbl#configuration, the jobResource and pipelineResource rules; FBL 0.14, section 6.2; spec 066, FR-039). The input is the bundle reading's registration; its body, bundle.yml, is etalii.adp.ide.standalone's src/diagrams/databricks/backend/EtAlii.Adp.Diagram.Databricks.Tests/Fixtures/bundle.yml at edbddc92e, byte for byte (CRLF), the file BundleWriter.AddResourceSkeleton is tested on there: a new job sits with the jobs, not at the end of the file, and arrives with a starter task.",
+  "binding": "../../../databricks.fbl#configuration",
+  "input": "bundle.adp",
+  "steps": [
+    {
+      "doc": "A job is added as a member of resources.jobs, named by the key the add gives the capture's attribute, right after the line span of the last job and before pipelines (place after-last), its value the insert's skeleton one step deeper than the key: one insert-entry (FBL 0.14, section 6.2).",
+      "edit": {
+        "add": {
+          "type": "Resource",
+          "attributes": {
+            "resourceKind": "jobs",
+            "key": "weekly_rollup"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "file": "../bundle.yml",
+          "start": 411,
+          "end": 411,
+          "text": "    weekly_rollup:\r\n      name: weekly_rollup\r\n      tasks:\r\n        - task_key: main\r\n          notebook_task:\r\n            notebook_path: notebooks/weekly_rollup\r\n"
+        }
+      ],
+      "expectFiles": {
+        "../bundle.yml": "# The nightly lakehouse bundle: one job, one pipeline, two targets.\r\nbundle:\r\n  name: lakehouse-nightly\r\n\r\ninclude:\r\n  - resources/*.yml\r\n\r\nvariables:\r\n  catalog:\r\n    description: The Unity Catalog written to.\r\n    default: lakehouse_dev\r\n  warehouse_id:\r\n    default: \"4b9b953939869799\"\r\n\r\nsync:\r\n  exclude:\r\n    - notebooks/scratch/**\r\n\r\nresources:\r\n  jobs:\r\n    nightly_ingest:\r\n      name: Nightly ingest\r\n    weekly_rollup:\r\n      name: weekly_rollup\r\n      tasks:\r\n        - task_key: main\r\n          notebook_task:\r\n            notebook_path: notebooks/weekly_rollup\r\n  pipelines:\r\n    bronze_to_gold:\r\n      name: Bronze to gold\r\n  experiments:\r\n    churn_model:\r\n      name: /Shared/churn\r\n\r\ntargets:\r\n  dev:\r\n    mode: development\r\n    default: true\r\n  prod:\r\n    mode: production\r\n    resources:\r\n      jobs:\r\n        nightly_ingest:\r\n          schedule:\r\n            quartz_cron_expression: \"0 0 2 * * ?\"\r\n"
+      }
+    },
+    {
+      "doc": "Undo puts back the bytes the add or removal replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "file": "../bundle.yml",
+          "start": 411,
+          "end": 576,
+          "text": ""
+        }
+      ],
+      "expectFiles": {
+        "../bundle.yml": "# The nightly lakehouse bundle: one job, one pipeline, two targets.\r\nbundle:\r\n  name: lakehouse-nightly\r\n\r\ninclude:\r\n  - resources/*.yml\r\n\r\nvariables:\r\n  catalog:\r\n    description: The Unity Catalog written to.\r\n    default: lakehouse_dev\r\n  warehouse_id:\r\n    default: \"4b9b953939869799\"\r\n\r\nsync:\r\n  exclude:\r\n    - notebooks/scratch/**\r\n\r\nresources:\r\n  jobs:\r\n    nightly_ingest:\r\n      name: Nightly ingest\r\n  pipelines:\r\n    bronze_to_gold:\r\n      name: Bronze to gold\r\n  experiments:\r\n    churn_model:\r\n      name: /Shared/churn\r\n\r\ntargets:\r\n  dev:\r\n    mode: development\r\n    default: true\r\n  prod:\r\n    mode: production\r\n    resources:\r\n      jobs:\r\n        nightly_ingest:\r\n          schedule:\r\n            quartz_cron_expression: \"0 0 2 * * ?\"\r\n"
+      }
+    },
+    {
+      "doc": "A pipeline is added after the last pipeline, before experiments, which no rule reads and which stays byte for byte.",
+      "edit": {
+        "add": {
+          "type": "Resource",
+          "attributes": {
+            "resourceKind": "pipelines",
+            "key": "silver"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "file": "../bundle.yml",
+          "start": 474,
+          "end": 474,
+          "text": "    silver:\r\n      name: silver\r\n      libraries:\r\n        - notebook:\r\n            path: transformations/silver\r\n"
+        }
+      ],
+      "expectFiles": {
+        "../bundle.yml": "# The nightly lakehouse bundle: one job, one pipeline, two targets.\r\nbundle:\r\n  name: lakehouse-nightly\r\n\r\ninclude:\r\n  - resources/*.yml\r\n\r\nvariables:\r\n  catalog:\r\n    description: The Unity Catalog written to.\r\n    default: lakehouse_dev\r\n  warehouse_id:\r\n    default: \"4b9b953939869799\"\r\n\r\nsync:\r\n  exclude:\r\n    - notebooks/scratch/**\r\n\r\nresources:\r\n  jobs:\r\n    nightly_ingest:\r\n      name: Nightly ingest\r\n  pipelines:\r\n    bronze_to_gold:\r\n      name: Bronze to gold\r\n    silver:\r\n      name: silver\r\n      libraries:\r\n        - notebook:\r\n            path: transformations/silver\r\n  experiments:\r\n    churn_model:\r\n      name: /Shared/churn\r\n\r\ntargets:\r\n  dev:\r\n    mode: development\r\n    default: true\r\n  prod:\r\n    mode: production\r\n    resources:\r\n      jobs:\r\n        nightly_ingest:\r\n          schedule:\r\n            quartz_cron_expression: \"0 0 2 * * ?\"\r\n"
+      }
+    },
+    {
+      "doc": "Undo puts back the bytes the add or removal replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "file": "../bundle.yml",
+          "start": 474,
+          "end": 588,
+          "text": ""
+        }
+      ],
+      "expectFiles": {
+        "../bundle.yml": "# The nightly lakehouse bundle: one job, one pipeline, two targets.\r\nbundle:\r\n  name: lakehouse-nightly\r\n\r\ninclude:\r\n  - resources/*.yml\r\n\r\nvariables:\r\n  catalog:\r\n    description: The Unity Catalog written to.\r\n    default: lakehouse_dev\r\n  warehouse_id:\r\n    default: \"4b9b953939869799\"\r\n\r\nsync:\r\n  exclude:\r\n    - notebooks/scratch/**\r\n\r\nresources:\r\n  jobs:\r\n    nightly_ingest:\r\n      name: Nightly ingest\r\n  pipelines:\r\n    bronze_to_gold:\r\n      name: Bronze to gold\r\n  experiments:\r\n    churn_model:\r\n      name: /Shared/churn\r\n\r\ntargets:\r\n  dev:\r\n    mode: development\r\n    default: true\r\n  prod:\r\n    mode: production\r\n    resources:\r\n      jobs:\r\n        nightly_ingest:\r\n          schedule:\r\n            quartz_cron_expression: \"0 0 2 * * ?\"\r\n"
+      }
+    },
+    {
+      "doc": "An add whose key resources.jobs already holds is refused with the insert's refusals.duplicate, and nothing is written; the job of the same key under targets.prod.resources is no member of the container.",
+      "edit": {
+        "add": {
+          "type": "Resource",
+          "attributes": {
+            "resourceKind": "jobs",
+            "key": "nightly_ingest"
+          }
+        }
+      },
+      "refused": "A job with that key is already there.",
+      "splices": [],
+      "expectFiles": {
+        "../bundle.yml": "# The nightly lakehouse bundle: one job, one pipeline, two targets.\r\nbundle:\r\n  name: lakehouse-nightly\r\n\r\ninclude:\r\n  - resources/*.yml\r\n\r\nvariables:\r\n  catalog:\r\n    description: The Unity Catalog written to.\r\n    default: lakehouse_dev\r\n  warehouse_id:\r\n    default: \"4b9b953939869799\"\r\n\r\nsync:\r\n  exclude:\r\n    - notebooks/scratch/**\r\n\r\nresources:\r\n  jobs:\r\n    nightly_ingest:\r\n      name: Nightly ingest\r\n  pipelines:\r\n    bronze_to_gold:\r\n      name: Bronze to gold\r\n  experiments:\r\n    churn_model:\r\n      name: /Shared/churn\r\n\r\ntargets:\r\n  dev:\r\n    mode: development\r\n    default: true\r\n  prod:\r\n    mode: production\r\n    resources:\r\n      jobs:\r\n        nightly_ingest:\r\n          schedule:\r\n            quartz_cron_expression: \"0 0 2 * * ?\"\r\n"
+      }
+    },
+    {
+      "doc": "An add that gives the key the empty text is refused with the insert's refusals.key, and nothing is written.",
+      "edit": {
+        "add": {
+          "type": "Resource",
+          "attributes": {
+            "resourceKind": "jobs",
+            "key": ""
+          }
+        }
+      },
+      "refused": "A resource needs a key.",
+      "splices": [],
+      "expectFiles": {
+        "../bundle.yml": "# The nightly lakehouse bundle: one job, one pipeline, two targets.\r\nbundle:\r\n  name: lakehouse-nightly\r\n\r\ninclude:\r\n  - resources/*.yml\r\n\r\nvariables:\r\n  catalog:\r\n    description: The Unity Catalog written to.\r\n    default: lakehouse_dev\r\n  warehouse_id:\r\n    default: \"4b9b953939869799\"\r\n\r\nsync:\r\n  exclude:\r\n    - notebooks/scratch/**\r\n\r\nresources:\r\n  jobs:\r\n    nightly_ingest:\r\n      name: Nightly ingest\r\n  pipelines:\r\n    bronze_to_gold:\r\n      name: Bronze to gold\r\n  experiments:\r\n    churn_model:\r\n      name: /Shared/churn\r\n\r\ntargets:\r\n  dev:\r\n    mode: development\r\n    default: true\r\n  prod:\r\n    mode: production\r\n    resources:\r\n      jobs:\r\n        nightly_ingest:\r\n          schedule:\r\n            quartz_cron_expression: \"0 0 2 * * ?\"\r\n"
+      }
+    },
+    {
+      "doc": "Removing the only job removes its line span, and remove-empty-levels removes jobs: which it leaves empty; resources: still holds pipelines and stays (FBL 0.4, section 6.2).",
+      "edit": {
+        "remove": {
+          "element": "resource:jobs/nightly_ingest"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-container",
+          "file": "../bundle.yml",
+          "start": 353,
+          "end": 362,
+          "text": ""
+        },
+        {
+          "operation": "remove-entry",
+          "file": "../bundle.yml",
+          "start": 362,
+          "end": 411,
+          "text": ""
+        }
+      ],
+      "expectFiles": {
+        "../bundle.yml": "# The nightly lakehouse bundle: one job, one pipeline, two targets.\r\nbundle:\r\n  name: lakehouse-nightly\r\n\r\ninclude:\r\n  - resources/*.yml\r\n\r\nvariables:\r\n  catalog:\r\n    description: The Unity Catalog written to.\r\n    default: lakehouse_dev\r\n  warehouse_id:\r\n    default: \"4b9b953939869799\"\r\n\r\nsync:\r\n  exclude:\r\n    - notebooks/scratch/**\r\n\r\nresources:\r\n  pipelines:\r\n    bronze_to_gold:\r\n      name: Bronze to gold\r\n  experiments:\r\n    churn_model:\r\n      name: /Shared/churn\r\n\r\ntargets:\r\n  dev:\r\n    mode: development\r\n    default: true\r\n  prod:\r\n    mode: production\r\n    resources:\r\n      jobs:\r\n        nightly_ingest:\r\n          schedule:\r\n            quartz_cron_expression: \"0 0 2 * * ?\"\r\n"
+      }
+    },
+    {
+      "doc": "Undo puts back the bytes the add or removal replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-container",
+          "file": "../bundle.yml",
+          "start": 353,
+          "end": 353,
+          "text": "  jobs:\r\n"
+        },
+        {
+          "operation": "remove-entry",
+          "file": "../bundle.yml",
+          "start": 353,
+          "end": 353,
+          "text": "    nightly_ingest:\r\n      name: Nightly ingest\r\n"
+        }
+      ],
+      "expectFiles": {
+        "../bundle.yml": "# The nightly lakehouse bundle: one job, one pipeline, two targets.\r\nbundle:\r\n  name: lakehouse-nightly\r\n\r\ninclude:\r\n  - resources/*.yml\r\n\r\nvariables:\r\n  catalog:\r\n    description: The Unity Catalog written to.\r\n    default: lakehouse_dev\r\n  warehouse_id:\r\n    default: \"4b9b953939869799\"\r\n\r\nsync:\r\n  exclude:\r\n    - notebooks/scratch/**\r\n\r\nresources:\r\n  jobs:\r\n    nightly_ingest:\r\n      name: Nightly ingest\r\n  pipelines:\r\n    bronze_to_gold:\r\n      name: Bronze to gold\r\n  experiments:\r\n    churn_model:\r\n      name: /Shared/churn\r\n\r\ntargets:\r\n  dev:\r\n    mode: development\r\n    default: true\r\n  prod:\r\n    mode: production\r\n    resources:\r\n      jobs:\r\n        nightly_ingest:\r\n          schedule:\r\n            quartz_cron_expression: \"0 0 2 * * ?\"\r\n"
+      }
+    }
+  ]
+}

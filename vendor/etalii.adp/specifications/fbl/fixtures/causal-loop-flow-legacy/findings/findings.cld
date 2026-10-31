@@ -1,0 +1,27 @@
+causal-loop 1
+
+# Every finding a document can produce, and cycles whose order is the finder's.
+variable a "A"
+variable b "B"
+variable c "C"
+variable d "D"
+variable e "E"
+
+link a -> b +
+link b -> c -
+link c -> d +
+link d -> a +
+link a -> c +
+link c -> a -
+link b -> d
+link d -> b +
+link e -> nowhere +
+
+bogus statement
+link a b
+link a -> b weight=heavy
+variable ""
+
+loop R1 "Says reinforcing" a b c d
+loop B2 "Undecidable" b d
+loop R3 "Not a cycle" a e

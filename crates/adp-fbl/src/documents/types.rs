@@ -268,6 +268,22 @@ impl Rule {
         self.attributes.iter().position(|(n, _)| n == name)
     }
 
+    /// *(FBL 0.14)* The capture a tree rule's `at` ends in: an insert of the rule adds a member of that mapping, named by
+    /// its key (FBL section 6.2).
+    pub fn member_capture(&self) -> Option<&str> {
+        let last = self.at.as_deref()?.rsplit('/').next()?;
+        last.strip_prefix('{')?.strip_suffix('}')
+    }
+
+    /// *(FBL 0.14)* The name of the attribute bound to the capture a new member's key is the value of.
+    pub fn member_key_attribute(&self) -> Option<&str> {
+        let capture = self.member_capture()?;
+        self.attributes
+            .iter()
+            .find(|(_, a)| a.capture.as_deref() == Some(capture))
+            .map(|(name, _)| name.as_str())
+    }
+
     /// The order a new entry's keys or attributes are written in, as the names they are written under:
     /// `insert.keys`, or, for a rule that writes its entry from `emit`, the order of the text's placeholders. A key
     /// or attribute added to an existing entry takes its place in this order (FBL section 6.1). Empty for a rule
@@ -511,6 +527,8 @@ pub struct CreateChild {
 pub struct InsertSettings {
     /// "after-last", "end", "start", "last-child", "next-sibling", "end-of-document" or "before".
     pub place: String,
+    /// With `place` "before": the member of the container that the new entry goes before.
+    pub before: Option<String>,
     pub container: Option<String>,
     pub create: Option<CreateContainer>,
     pub keys: Vec<String>,
@@ -521,6 +539,10 @@ pub struct InsertSettings {
     pub refusal_when: Option<String>,
     /// *(FBL 0.10)* The sentence of a refusal because the container is missing and there is no `create`.
     pub refusal_container: Option<String>,
+    /// *(FBL 0.14)* The sentence of a refusal because a new member's key is missing or empty.
+    pub refusal_key: Option<String>,
+    /// *(FBL 0.14)* The sentence of a refusal because the mapping already holds a new member's key.
+    pub refusal_duplicate: Option<String>,
 }
 
 /// How a missing container is created: `at` is "end-of-document", "before", "after", "under" or (FBL 0.4) "end".

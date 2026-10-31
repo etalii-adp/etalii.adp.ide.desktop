@@ -1,0 +1,16 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A .cld written before the flow properties: read and saved without an edit, it is byte-identical (FR-029).",
+  "binding": "../../../causal-loop-diagram.fbl#cld",
+  "input": "on-call.cld",
+  "steps": [
+    {
+      "doc": "Nothing changes on a save.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "causal-loop 1\n\n# Why an on-call rotation gets worse on its own.\n#\n# Written for this repository, from the pattern any engineer who has carried a\n# pager will recognise. Every loop here is labelled correctly; the reference\n# example beside this one is where a deliberately wrong label lives.\n\nvariable incidents \"Incidents\"\nvariable onCallLoad \"On-call load\"\nvariable fatigue \"Fatigue\"\nvariable mistakes \"Mistakes\"\nvariable attrition \"Attrition\"\nvariable teamSize \"Team size\"\nvariable automation \"Automation work\"\nvariable toil \"Manual toil\"\n\n# ---- the spiral --------------------------------------------------------------\n# Incidents wake people up, tired people make mistakes, mistakes cause\n# incidents. Nothing in this path is negative, so it compounds.\n\nlink incidents -> onCallLoad + weight=1\nlink onCallLoad -> fatigue +\nlink fatigue -> mistakes + weight=1.5 \"the tired-hands effect\"\nlink mistakes -> incidents +\n\nloop R1 \"Tired hands make more work\" incidents onCallLoad fatigue mistakes\n\n# ---- the drain ---------------------------------------------------------------\n# Fatigue also costs people, and a smaller team carries more each. The delay is\n# the point: nobody quits the week they get tired, so the load rises long\n# before the cause is visible in a headcount report.\n\nlink fatigue -> attrition + delayed \"people leave months later, not days\"\nlink attrition -> teamSize -\nlink teamSize -> onCallLoad -\n\nloop R2 \"Fewer hands, heavier rota\" onCallLoad fatigue attrition teamSize\n\n# ---- the exit that closes behind you -----------------------------------------\n# The obvious reading of this path is \"automation is the way out, if only there\n# were time\" - a balancing loop being starved. The arithmetic says otherwise,\n# and the arithmetic is right.\n#\n# Two negative links, and two is even: load falls automation, automation falls\n# toil, toil raises load. That is REINFORCING. The exit does not merely fail to\n# open - the busier the team gets, the faster it closes.\n#\n# This label was originally written as B3 and ADP reported the disagreement.\n# The tool was right and the author was wrong, which is the case Requirement 3.3\n# exists for.\n\nlink toil -> onCallLoad +\nlink automation -> toil - delayed\nlink onCallLoad -> automation - \"no time to fix the thing that has no time\"\n\nloop R3 \"Too busy to stop being busy\" onCallLoad automation toil\n"
+    }
+  ]
+}

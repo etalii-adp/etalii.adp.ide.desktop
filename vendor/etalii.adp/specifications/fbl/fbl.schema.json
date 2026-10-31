@@ -32,7 +32,7 @@
           "type": "string"
         },
         "fbl": {
-          "description": "The FBL version the document is written in: 0.1 to 0.13 (draft); 0.3 names the tool type's specification in place of DISL, lets a specification name one binding per format family, and spells a reference to a stored id as by: \"id\". 0.4 creates and removes the missing levels of a nested container or child mapping. 0.5 defines a scalar's written text, read with read, and adds quoted and fallback to an attribute binding. 0.6 applies an attribute binding's empty rule to an insert as well as to a set. 0.7 adds the bullets family and the drift check before an edit. 0.8 lets an insert of the yaml and json families write a constant. 0.9 adds the grammar family. 0.10 lets one binding serve readings of different metamodels (origins on a rule, resource.byOrigin, one model per origin of one open body), inserts into a yaml flow sequence, gives a refusal its sentence, writes a nested mapping on an add, and adds secondary, {key:lower} and a fixture's template and expectFiles. 0.11 extends the grammar family so that Structurizr DSL is bound in it (comments owned and kept, recovery inside blocks, escapes, absent and positional parts, several nodes for a many attribute, a block written around a first child, views and the statements of the selected view, a view block that can be added, a value gathered from several places), and says how the legacy layout's keys, numbers and stale entries are written. 0.12 extends the grammar family so that the Wardley map's .owm is bound in it (a block brace on the next line, segments in any order, a slot's items and separator, a sidecar id's kind and ordinal, an identity entry that moves with its key), and reads the legacy identities file as the array of {id, kind, key} its tool writes, no longer as an object. 0.13 lets a {node} slot of a many attribute read several items from one node with split, cut at that text, and write a set of them into the node by splices (Structurizr's tags \"Extra, More\"). See FBL 0.13, section 2.7.",
+          "description": "The FBL version the document is written in: 0.1 to 0.14 (draft); 0.3 names the tool type's specification in place of DISL, lets a specification name one binding per format family, and spells a reference to a stored id as by: \"id\". 0.4 creates and removes the missing levels of a nested container or child mapping. 0.5 defines a scalar's written text, read with read, and adds quoted and fallback to an attribute binding. 0.6 applies an attribute binding's empty rule to an insert as well as to a set. 0.7 adds the bullets family and the drift check before an edit. 0.8 lets an insert of the yaml and json families write a constant. 0.9 adds the grammar family. 0.10 lets one binding serve readings of different metamodels (origins on a rule, resource.byOrigin, one model per origin of one open body), inserts into a yaml flow sequence, gives a refusal its sentence, writes a nested mapping on an add, and adds secondary, {key:lower} and a fixture's template and expectFiles. 0.11 extends the grammar family so that Structurizr DSL is bound in it (comments owned and kept, recovery inside blocks, escapes, absent and positional parts, several nodes for a many attribute, a block written around a first child, views and the statements of the selected view, a view block that can be added, a value gathered from several places), and says how the legacy layout's keys, numbers and stale entries are written. 0.12 extends the grammar family so that the Wardley map's .owm is bound in it (a block brace on the next line, segments in any order, a slot's items and separator, a sidecar id's kind and ordinal, an identity entry that moves with its key), and reads the legacy identities file as the array of {id, kind, key} its tool writes, no longer as an object. 0.13 lets a {node} slot of a many attribute read several items from one node with split, cut at that text, and write a set of them into the node by splices (Structurizr's tags \"Extra, More\"). 0.14 lets an insert of the yaml and json families add a member to a mapping, under the key the add gives the attribute bound to the capture its rule's at ends in, refusing a missing, empty or duplicate key with refusals.key and refusals.duplicate. See FBL 0.14, section 2.7.",
           "enum": [
             "0.1",
             "0.2",
@@ -46,7 +46,8 @@
             "0.10",
             "0.11",
             "0.12",
-            "0.13"
+            "0.13",
+            "0.14"
           ]
         },
         "doc": {
@@ -2100,13 +2101,19 @@
           "$ref": "#/$defs/Expression"
         },
         "refusals": {
-          "description": "FBL 0.10, section 6.4: the sentence a host shows for each refusal of this insert: when, the add refused because when is false; container, the add refused because the container is missing and the insert has no create.",
+          "description": "FBL 0.10, section 6.4: the sentence a host shows for each refusal of this insert: when, the add refused because when is false; container, the add refused because the container is missing and the insert has no create; (FBL 0.14) key, a new member's key missing or empty, and duplicate, a new member's key that the mapping already holds (section 6.2).",
           "type": "object",
           "properties": {
             "when": {
               "$ref": "#/$defs/LocalizedText"
             },
             "container": {
+              "$ref": "#/$defs/LocalizedText"
+            },
+            "key": {
+              "$ref": "#/$defs/LocalizedText"
+            },
+            "duplicate": {
               "$ref": "#/$defs/LocalizedText"
             }
           },

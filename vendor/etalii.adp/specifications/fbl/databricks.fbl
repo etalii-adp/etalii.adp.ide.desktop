@@ -1,7 +1,7 @@
 {
   "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
-  "fbl": "0.10",
-  "doc": "One Databricks Asset Bundle file read as three diagrams through one binding (FBL 0.10, sections 5.1, 8.2 and 9.1): the bundle (definitions/diagrams/databricks-bundle.dis), one job (databricks-job.dis) and one pipeline (databricks-pipeline.dis), each editable, sharing one open body and its history. Written from the binding drafted in the appendix of etalii.adp.ide.standalone's .spec-workflow/specs/databricks-disl-fbl/requirements.md (at ad1a4680a), with what that draft marked as not FBL said in FBL 0.10: a rule's origins in place of the gap of one binding for three metamodels, registration.resource.byOrigin in place of a capture map, read as text (FBL 0.5) in place of as: text, secondary in place of its fallback for a pipeline's schema, refusals for the module's own sentences, a library written as a nested mapping on an add, and template.byOrigin with {key:lower}. Every rule names the readings it serves, so an entry under resources is a Resource to the bundle and the job or the pipeline itself to its own reading. Its types are the metamodels' own, except Job, the job reading's diagram, which the job definition maps as: \"diagram\" (DISL 11.2) as the draft's persistence does. A library of a bare settings file is read here and added through databricks-pipeline.fbl: an insert's when sees the attributes of the add and not the body, so the keyed pipeline's library rules, which come first, plan every library add of this binding.",
+  "fbl": "0.14",
+  "doc": "One Databricks Asset Bundle file read as three diagrams through one binding (FBL 0.10, sections 5.1, 8.2 and 9.1): the bundle (definitions/diagrams/databricks-bundle.dis), one job (databricks-job.dis) and one pipeline (databricks-pipeline.dis), each editable, sharing one open body and its history. Written from the binding drafted in the appendix of etalii.adp.ide.standalone's .spec-workflow/specs/databricks-disl-fbl/requirements.md (at ad1a4680a), with what that draft marked as not FBL said in FBL 0.10: a rule's origins in place of the gap of one binding for three metamodels, registration.resource.byOrigin in place of a capture map, read as text (FBL 0.5) in place of as: text, secondary in place of its fallback for a pipeline's schema, refusals for the module's own sentences, a library written as a nested mapping on an add, and template.byOrigin with {key:lower}. Every rule names the readings it serves, so an entry under resources is a Resource to the bundle and the job or the pipeline itself to its own reading. Its types are the metamodels' own, except Job, the job reading's diagram, which the job definition maps as: \"diagram\" (DISL 11.2) as the draft's persistence does. A library of a bare settings file is read here and added through databricks-pipeline.fbl: an insert's when sees the attributes of the add and not the body, so the keyed pipeline's library rules, which come first, plan every library add of this binding. The bundle reading adds a job or a pipeline as a member of resources.jobs or resources.pipelines, named by the key the add gives it, after the last of its kind, with a skeleton complete enough to open, and creates the levels it needs at the end of their parents (FBL 0.14, section 6.2); removing the last of a kind removes the levels it leaves empty.",
   "bindings": {
     "configuration": {
       "title": "Databricks configuration",
@@ -37,7 +37,16 @@
           "attributes": {
             "resourceKind": { "value": "'jobs'" },
             "key": { "capture": "job", "readOnly": "A resource is renamed in the file." }
-          }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/resources/jobs",
+            "when": "attributes.resourceKind == 'jobs'",
+            "create": { "at": "end" },
+            "skeleton": "name: {key}\ntasks:\n  - task_key: main\n    notebook_task:\n      notebook_path: notebooks/{key}\n",
+            "refusals": { "key": "A resource needs a key.", "duplicate": "A job with that key is already there." }
+          },
+          "remove": { "container": "remove-empty-levels" }
         },
         {
           "name": "pipelineResource",
@@ -47,7 +56,16 @@
           "attributes": {
             "resourceKind": { "value": "'pipelines'" },
             "key": { "capture": "pipeline", "readOnly": "A resource is renamed in the file." }
-          }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/resources/pipelines",
+            "when": "attributes.resourceKind == 'pipelines'",
+            "create": { "at": "end" },
+            "skeleton": "name: {key}\nlibraries:\n  - notebook:\n      path: transformations/{key}\n",
+            "refusals": { "key": "A resource needs a key.", "duplicate": "A pipeline with that key is already there." }
+          },
+          "remove": { "container": "remove-empty-levels" }
         },
         {
           "name": "target",

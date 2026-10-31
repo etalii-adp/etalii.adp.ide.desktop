@@ -1,0 +1,8 @@
+causal-loop 1
+title "T"
+flow strength=4 delay=6.5 heatmap=pressure
+
+variable a "A" start=0.7 push=-1.5
+variable b "B"
+
+link a -> b + weight=1.5
