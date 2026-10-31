@@ -596,6 +596,23 @@ fn a_diagram_canvas_is_one_named_node_beside_its_toolbar_and_its_panes() {
     assert!(entries.iter().all(|(role, _)| *role == Role::MenuItem), "{entries:?}");
 }
 
+/// The ribbon's export button is a named button that says whether it can run and, when it cannot, why (etalii.adp spec 074,
+/// FR-006).
+#[test]
+fn the_export_button_is_a_named_button_with_its_state() {
+    let body = "causal-loop 1\r\nvariable a \"A\"\r\n";
+    let mut window = Window::open(&[("loop.adp", "systems/causal-loop-diagram\r\n"), ("loop.cld", body)]);
+    let (_, disabled) = window.find(Role::Button, "Export flow page");
+    assert!(disabled.is_disabled(), "no diagram is open");
+    assert_eq!(
+        disabled.description(),
+        Some("Open a causal loop diagram to export its flow page.")
+    );
+    window.click(Role::TreeItem, "loop.cld");
+    let (_, enabled) = window.find(Role::Button, "Export flow page");
+    assert!(!enabled.is_disabled(), "{}", window.outline());
+}
+
 /// The activity bar switches the side bar between the explorer and the search view, as the standalone host's Hierarchy
 /// and Search tabs do (P-015, T101); each is a tab that says whether it is the one shown, and the search view says what
 /// it is for, as the standalone host's placeholder does.

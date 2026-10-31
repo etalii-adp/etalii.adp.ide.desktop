@@ -54,6 +54,28 @@ pub struct ModulePlacement {
     pub new_bounds: Map,
 }
 
+/// A file a tool type's module can write from an open document (etalii.adp spec 074, FR-002): the frame shows one ribbon
+/// button per export and writes what it gives beside the document, without knowing what the tool type or the file is.
+#[derive(Clone)]
+pub struct Export {
+    /// What the ribbon asks it by.
+    pub id: String,
+    pub label: String,
+    /// What the button says while it can run.
+    pub hint: String,
+    /// Why it cannot run while the active document is of another tool type, or none is open.
+    pub elsewhere: String,
+    /// The file `document` gives.
+    pub write: Rc<dyn Fn(&DiagramDocument) -> ExportOutput>,
+}
+
+/// What an export gives: the file's name, beside the document, and its bytes.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ExportOutput {
+    pub file_name: String,
+    pub bytes: Vec<u8>,
+}
+
 /// The residue of one tool type: what its module implements beside its specification. Each method's default is the
 /// session's generic behaviour.
 pub trait DiagramModule {
@@ -82,6 +104,11 @@ pub trait DiagramModule {
     ) -> Result<(OpenedDiagram, Rc<dyn ModuleView>), String> {
         let _ = (root, path, origin, documents);
         Err(crate::workspace::CANNOT_OPEN.to_owned())
+    }
+
+    /// The files the module can write from an open document of its tool type; none by default.
+    fn exports(&self) -> Vec<Export> {
+        Vec::new()
     }
 
     /// The persistence plugin with id `plugin_id` (FBL section 11), when the module provides it.

@@ -33,6 +33,18 @@ const SERIES: usize = 7;
 /// How many cycles a diagram without declared loops lists at most, as the definition's cycle search is bounded.
 const CYCLE_BOUND: usize = 1000;
 
+/// The name of a page exported at `moment`, in the time zone it carries: `FILENAME {yyyy-mm-dd hh.mm}.html` (FR-004).
+pub fn page_name(file_stem: &str, moment: time::OffsetDateTime) -> String {
+    format!(
+        "{file_stem} {{{:04}-{:02}-{:02} {:02}.{:02}}}.html",
+        moment.year(),
+        u8::from(moment.month()),
+        moment.day(),
+        moment.hour(),
+        moment.minute(),
+    )
+}
+
 /// The flow page of `document`, whose file name without its extension is `file_stem`.
 pub fn generate(document: &DiagramDocument, metrics: &Metrics, file_stem: &str) -> String {
     let diagram = &document.model().diagram;

@@ -5,7 +5,7 @@ mod common;
 
 use std::fs;
 
-use adp_diagram_causal_loop::flow_page::{TEMPLATE, generate};
+use adp_diagram_causal_loop::flow_page::{TEMPLATE, generate, page_name};
 use adp_diagram_causal_loop::metrics::Metrics;
 use adp_diagram_causal_loop::positions;
 use common::{Diagram, fixture, open, open_with};
@@ -32,6 +32,34 @@ fn data_of(text: &str) -> Value {
 
 fn hex(bytes: &[u8]) -> String {
     bytes.iter().map(|b| format!("{b:02x}")).collect()
+}
+
+#[test]
+fn a_page_is_named_for_its_file_and_the_minute_of_the_export() {
+    let moment = time::macros::datetime!(2026-10-31 14:05:59 +01:00);
+    assert_eq!(
+        page_name("mental-health", moment),
+        "mental-health {2026-10-31 14.05}.html"
+    );
+    assert_eq!(page_name("a b.c é", moment), "a b.c é {2026-10-31 14.05}.html");
+    let early = time::macros::datetime!(2026-01-02 03:04:00 UTC);
+    assert_eq!(page_name("x", early), "x {2026-01-02 03.04}.html");
+}
+
+#[test]
+fn the_module_offers_the_export_with_a_page_named_for_its_file() {
+    let diagram = open("causal-loop 1\r\nvariable a\r\n");
+    let document = diagram.workspace.documents().get(&diagram.body).unwrap();
+    let exports = adp_diagram_causal_loop::module().exports();
+    assert_eq!(exports.len(), 1);
+    assert_eq!(exports[0].label, "Export flow page");
+    let output = (exports[0].write)(document);
+    assert!(
+        output.file_name.starts_with("feedback {") && output.file_name.ends_with("}.html"),
+        "{}",
+        output.file_name
+    );
+    assert!(String::from_utf8(output.bytes).unwrap().starts_with("<!doctype html>"));
 }
 
 #[test]
