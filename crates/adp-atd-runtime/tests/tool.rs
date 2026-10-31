@@ -93,10 +93,9 @@ fn the_mind_maps_binding_is_fbls_example_but_for_what_the_description_leaves_out
 }
 
 /// One binding reads the six C4 tool types (research R6): the lowered binding part of each is `structurizr.fbl`, its
-/// grammar a copy of `structurizr.lark`, but for what the cases, recorded from the module, ask of it. Ignored until the
-/// etalii.adp commit that holds the binding is vendored; `ETALII_ADP` runs it on another clone before that.
+/// grammar a copy of `structurizr.lark`, but for what the cases, recorded from the module, ask of it. `ETALII_ADP` runs it on
+/// another clone.
 #[test]
-#[ignore = "runs once etalii.adp's C4 bindings are vendored (spec 067, T028)"]
 fn the_six_c4_bindings_are_structurizr_fbl_but_for_what_the_cases_ask() {
     let root = etalii();
     let written = read_json(&root.join("specifications/fbl/structurizr.fbl"));
