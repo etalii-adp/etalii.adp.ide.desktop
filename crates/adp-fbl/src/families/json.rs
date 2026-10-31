@@ -494,8 +494,8 @@ impl Family {
         let reading = plan.reading;
         let rule = self.rule(request.rule);
         let insert = rule.insert.as_ref().expect("an insertable rule");
-        // FBL section 5's place: {before: key} is not implemented here yet.
-        if insert.place == "before" {
+        // FBL section 5's place: {before: key} is implemented here for a new member alone.
+        if insert.place == "before" && rule.member_capture().is_none() {
             return refuse(format!(
                 "A {} body cannot place a new entry '{}'.",
                 self.family_name(),
@@ -503,10 +503,17 @@ impl Family {
             ));
         }
         let parent_entry = request.parent.map(|p| reading.element(p).entry());
-        let container = insert
-            .container
+        let selector = insert.container.clone().or_else(|| {
+            rule.member_capture()
+                .map(|_| crate::families::yaml::container_of(rule.at.as_deref()))
+        });
+        let container = selector
             .as_ref()
             .and_then(|c| self.container(c, parent_entry, &Family::captures_of(plan)));
+        if let Some(key) = self.new_member_key(request, container)? {
+            let selector = selector.as_deref().unwrap_or("/");
+            return self.json_member_insert(plan, request, selector, parent_entry, container, &key);
+        }
         let text = match &insert.emit {
             Some(emit) => new_text::render(emit, &|name| match name {
                 "id" => request.id.as_ref().map(|id| escape(id)),
@@ -519,16 +526,7 @@ impl Family {
                     .map(|v| escape(&new_text::plain(v, rule.attribute(name)))),
             }),
             None => {
-                let mut levels = self.new_levels(request)?;
-                let mut members: Vec<String> = Vec::new();
-                for key in &insert.keys {
-                    if let Some(at) = levels.iter().position(|l| l.key() == key) {
-                        members.push(member_text(&levels.remove(at)));
-                    } else if let Some(value) = self.json_wire_value(plan, request, key) {
-                        members.push(format!("{}: {value}", quote(key)));
-                    }
-                }
-                members.extend(levels.iter().map(member_text));
+                let members = self.json_new_members(plan, request, &member_text)?;
                 format!("{{ {} }}", members.join(", "))
             }
         };
@@ -580,6 +578,256 @@ impl Family {
         let (offset, inserted) = self.new_member(self.entries[container].tree().value, &text);
         plan.add(Operation::InsertEntry, offset, offset, inserted);
         Ok(())
+    }
+
+    /// The members of a new entry in `insert.keys` order, with a level of an attribute bound with `child` as `level` writes
+    /// it (FBL 0.10 section 6.2).
+    fn json_new_members<'a>(
+        &'a self,
+        plan: &Plan<'_>,
+        request: &InsertRequest,
+        level: &dyn Fn(&NewMember<'a>) -> String,
+    ) -> Planning<Vec<String>> {
+        let insert = self.rule(request.rule).insert.as_ref().expect("an insertable rule");
+        let mut levels = self.new_levels(request)?;
+        let mut members: Vec<String> = Vec::new();
+        for key in &insert.keys {
+            if let Some(at) = levels.iter().position(|l| l.key() == key) {
+                members.push(level(&levels.remove(at)));
+            } else if let Some(value) = self.json_wire_value(plan, request, key) {
+                members.push(format!("{}: {value}", quote(key)));
+            }
+        }
+        members.extend(levels.iter().map(level));
+        Ok(members)
+    }
+
+    /// *(FBL 0.14)* An insert that adds a member to an object (FBL section 6.2, *A new member*): its key as a string and an
+    /// object holding the entry's keys, one member per line as its siblings are, where `place` puts it. FBL gives a
+    /// skeleton's lines no json form, so a rule with one is refused, as a one-line flow sequence refuses it in yaml.
+    fn json_member_insert(
+        &self,
+        plan: &mut Plan<'_>,
+        request: &InsertRequest,
+        selector: &str,
+        parent: Option<EntryId>,
+        container: Option<EntryId>,
+        key: &str,
+    ) -> Planning {
+        let reading = plan.reading;
+        let rule = self.rule(request.rule);
+        let insert = rule.insert.as_ref().expect("an insertable rule");
+        if insert.skeleton.is_some() {
+            return refuse(format!(
+                "A new {} with a skeleton cannot be written in a json body.",
+                rule.type_name
+            ));
+        }
+        let Some(container) = container else {
+            return self.json_member_in_new_levels(plan, request, selector, parent, key);
+        };
+        let value = self.value_of(container);
+        if value.kind != ValueKind::Mapping {
+            return refuse(format!(
+                "The {selector} of this file is not an object a {} can be added to.",
+                rule.type_name
+            ));
+        }
+        let Some(&last) = value.entries.last() else {
+            let offset = value.span.start + 1;
+            let (lines, indent) = self.lines_of_empty(container);
+            let text = if lines {
+                let inside = indent + self.step();
+                let newline = self.newline_at(offset);
+                let member = self.json_member_text(plan, request, key, Some((inside, &newline)))?;
+                format!(
+                    "{newline}{}{member}{newline}{}",
+                    self.indentation(inside),
+                    self.indentation(indent)
+                )
+            } else {
+                self.json_member_text(plan, request, key, None)?
+            };
+            plan.add(Operation::InsertEntry, offset, offset, text);
+            return Ok(());
+        };
+        let before = match insert.place.as_str() {
+            "start" => value.entries.first().copied(),
+            "before" => insert
+                .before
+                .as_ref()
+                .and_then(|k| self.member(self.entries[container].tree().value, k)),
+            _ => None,
+        };
+        let sibling = before.unwrap_or_else(|| {
+            value
+                .entries
+                .iter()
+                .copied()
+                .rfind(|s| insert.place == "after-last" && reading.claimed_by(*s) == Some(rule.name.as_str()))
+                .unwrap_or(last)
+        });
+        let sibling = &self.entries[sibling];
+        let offset = if before.is_some() {
+            sibling.own.start
+        } else {
+            sibling.own.end
+        };
+        let newline = self.newline_at(offset);
+        let lines = sibling.line_span.is_some();
+        let member = self.json_member_text(plan, request, key, lines.then_some((sibling.indent, newline.as_str())))?;
+        let separator = if lines {
+            format!(",{newline}{}", self.indentation(sibling.indent))
+        } else {
+            ", ".into()
+        };
+        let text = if before.is_some() {
+            member + &separator
+        } else {
+            separator + &member
+        };
+        plan.add(Operation::InsertEntry, offset, offset, text);
+        Ok(())
+    }
+
+    /// Whether an empty object takes its members one per line, as the root and one on a line of its own do, and the
+    /// indentation of the line that opens it.
+    fn lines_of_empty(&self, object: EntryId) -> (bool, usize) {
+        let entry = &self.entries[object];
+        (
+            entry.tree().is_root || entry.line_span.is_some(),
+            if entry.tree().is_root { 0 } else { entry.indent },
+        )
+    }
+
+    /// A new member in a container that is missing (FBL 0.4 section 6.2, *Missing levels*): only `create.at` `end` writes
+    /// levels in json, each `"key": {` and its closing `}`, on lines of their own where the level above holds its members
+    /// so, the openings outermost first, then the member, then the closings innermost first, all at one offset.
+    fn json_member_in_new_levels(
+        &self,
+        plan: &mut Plan<'_>,
+        request: &InsertRequest,
+        selector: &str,
+        parent: Option<EntryId>,
+        key: &str,
+    ) -> Planning {
+        let rule = self.rule(request.rule);
+        let insert = rule.insert.as_ref().expect("an insertable rule");
+        let no_place = || format!("The file has no place to create {selector} in.");
+        let Some(create) = &insert.create else {
+            return refuse(insert.refusal_container.clone().unwrap_or_else(|| {
+                format!(
+                    "The {} file has no {selector} to add the {} to.",
+                    self.binding.name, rule.type_name
+                )
+            }));
+        };
+        let from = if selector.starts_with('/') {
+            self.tree_root()
+        } else {
+            parent
+        };
+        let Some(mut level) = from.filter(|_| create.at == "end" && create.text.is_none()) else {
+            return refuse(no_place());
+        };
+        let segments: Vec<&str> = selector.trim_matches('/').split('/').collect();
+        let mut reached = 0;
+        while let Some(member) = segments
+            .get(reached)
+            .and_then(|s| self.member(self.entries[level].tree().value, s))
+        {
+            level = member;
+            reached += 1;
+        }
+        let missing = &segments[reached..];
+        let value = self.value_of(level);
+        if value.kind != ValueKind::Mapping || missing.iter().any(|s| *s == "*" || s.starts_with('{')) {
+            return refuse(no_place());
+        }
+        let last = value.entries.last().map(|l| &self.entries[*l]);
+        let (empty_lines, empty_indent) = self.lines_of_empty(level);
+        let (offset, lines, mut indent) = match last {
+            Some(last) => (last.own.end, last.line_span.is_some(), last.indent),
+            None => (value.span.start + 1, empty_lines, empty_indent + self.step()),
+        };
+        let newline = self.newline_at(offset);
+        let start_of = |indent: usize| {
+            if lines {
+                format!("{newline}{}", self.indentation(indent))
+            } else {
+                String::new()
+            }
+        };
+        let mut closings = Vec::new();
+        for (i, segment) in missing.iter().enumerate() {
+            // The first level follows what stands in the level above with its separator.
+            let separator = if i == 0 && last.is_some() { "," } else { "" };
+            let space = if !lines && !separator.is_empty() { " " } else { "" };
+            plan.add(
+                Operation::EnsureContainer,
+                offset,
+                offset,
+                format!("{separator}{space}{}{}: {{", start_of(indent), quote(segment)),
+            );
+            closings.push(format!("{}}}", start_of(indent)));
+            indent += self.step();
+        }
+        let member = self.json_member_text(plan, request, key, lines.then_some((indent, newline.as_str())))?;
+        plan.add(Operation::InsertEntry, offset, offset, start_of(indent) + &member);
+        // The closing of the outermost level leaves the `}` of an empty object above it on a line of its own.
+        if last.is_none() && lines {
+            closings[0].push_str(&start_of(empty_indent));
+        }
+        for closing in closings.into_iter().rev() {
+            plan.add(Operation::EnsureContainer, offset, offset, closing);
+        }
+        Ok(())
+    }
+
+    /// A new member as text: its key and an object holding the entry's keys, one per line given the indentation of its key
+    /// and the line ending to write, else on one line.
+    fn json_member_text(
+        &self,
+        plan: &Plan<'_>,
+        request: &InsertRequest,
+        key: &str,
+        lines: Option<(usize, &str)>,
+    ) -> Planning<String> {
+        let Some((indent, newline)) = lines else {
+            let members = self.json_new_members(plan, request, &member_text)?;
+            return Ok(format!("{}: {{ {} }}", quote(key), members.join(", ")));
+        };
+        let level = |member: &NewMember<'_>| self.member_on_lines(member, indent + self.step(), newline);
+        let members = self.json_new_members(plan, request, &level)?;
+        Ok(format!(
+            "{}: {}",
+            quote(key),
+            self.object_on_lines(&members, indent, newline)
+        ))
+    }
+
+    /// `members` as an object one member per line, whose closing `}` stands at `indent`.
+    fn object_on_lines(&self, members: &[String], indent: usize, newline: &str) -> String {
+        if members.is_empty() {
+            return "{}".into();
+        }
+        let pad = self.indentation(indent + self.step());
+        let inside = members.join(&format!(",{newline}{pad}"));
+        format!("{{{newline}{pad}{inside}{newline}{}}}", self.indentation(indent))
+    }
+
+    /// A key of a new member's object at `indent`, a level as an object one member per line.
+    fn member_on_lines(&self, member: &NewMember<'_>, indent: usize, newline: &str) -> String {
+        match member {
+            NewMember::Value { .. } => member_text(member),
+            NewMember::Level { key, members } => {
+                let members: Vec<String> = members
+                    .iter()
+                    .map(|m| self.member_on_lines(m, indent + self.step(), newline))
+                    .collect();
+                format!("{}: {}", quote(key), self.object_on_lines(&members, indent, newline))
+            }
+        }
     }
 
     /// Where a missing container is created and how it opens (FBL section 6.2 `create`): a list under the

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A flow statement with a word the rule does not read, an unknown key or a value that does not read, is no flow statement: the last rule keeps it byte for byte, and the definition reports it on its line.",
+  "binding": "../../causal-loop-diagram.fbl#cld",
+  "input": "flow-unknown.cld",
+  "read": {
+    "elements": [
+      {
+        "id": "header@1",
+        "type": "Header"
+      },
+      {
+        "id": "unreadable@2",
+        "type": "Unreadable"
+      },
+      {
+        "id": "unreadable@3",
+        "type": "Unreadable"
+      },
+      {
+        "id": "unreadable@4",
+        "type": "Unreadable"
+      },
+      {
+        "id": "variable:a",
+        "type": "Variable"
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Nothing changes on a save.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "causal-loop 1\r\nflow strength=4 sparkle=2\r\nflow heatmap=hot\r\nflow delay=wide\r\nvariable a \"A\"\r\n"
+    }
+  ]
+}

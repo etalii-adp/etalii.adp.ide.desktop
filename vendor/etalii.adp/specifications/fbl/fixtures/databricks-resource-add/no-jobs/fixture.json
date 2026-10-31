@@ -1,0 +1,62 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A job added to a bundle whose resources hold pipelines and no jobs (databricks.fbl#configuration; FBL 0.14, section 6.2; spec 066, FR-039; finding B11). Its body is written here, as the case of finding B11 of etalii.adp.ide.standalone's databricks-disl-fbl requirements: a new resource kind goes at the end of resources in FBL, where the module wrote it directly under resources:, by the conversion's question Q1, defaulted to what FBL writes.",
+  "binding": "../../../databricks.fbl#configuration",
+  "input": "no-jobs.adp",
+  "steps": [
+    {
+      "doc": "A missing resource kind is created at the end of resources: (create at end), after pipelines, and the job is its first member, one step deeper.",
+      "edit": {
+        "add": {
+          "type": "Resource",
+          "attributes": {
+            "resourceKind": "jobs",
+            "key": "nightly"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "file": "../no-jobs.yml",
+          "start": 59,
+          "end": 59,
+          "text": "  jobs:\r\n"
+        },
+        {
+          "operation": "insert-entry",
+          "file": "../no-jobs.yml",
+          "start": 59,
+          "end": 59,
+          "text": "    nightly:\r\n      name: nightly\r\n      tasks:\r\n        - task_key: main\r\n          notebook_task:\r\n            notebook_path: notebooks/nightly\r\n"
+        }
+      ],
+      "expectFiles": {
+        "../no-jobs.yml": "resources:\r\n  pipelines:\r\n    bronze:\r\n      name: Bronze\r\n  jobs:\r\n    nightly:\r\n      name: nightly\r\n      tasks:\r\n        - task_key: main\r\n          notebook_task:\r\n            notebook_path: notebooks/nightly\r\n"
+      }
+    },
+    {
+      "doc": "Undo puts back the bytes the add or removal replaced.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "file": "../no-jobs.yml",
+          "start": 59,
+          "end": 68,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "file": "../no-jobs.yml",
+          "start": 68,
+          "end": 215,
+          "text": ""
+        }
+      ],
+      "expectFiles": {
+        "../no-jobs.yml": "resources:\r\n  pipelines:\r\n    bronze:\r\n      name: Bronze\r\n"
+      }
+    }
+  ]
+}

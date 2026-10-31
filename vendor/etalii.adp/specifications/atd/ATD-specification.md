@@ -76,7 +76,7 @@ Today a tool engineer specifies a tool type in up to three JSON files, each in a
 
 ### 1.3 Relation to the other specifications
 
-DISL, DID, DESL, DED, EDSL, EDD and FBL remain specifications of this repository. ATD carries every construct of DISL 0.6, DESL 0.2 and FBL 0.13 (Appendix C maps each of their properties to the ATD construct that carries it), and the constructs an editor needs, which EDSL, a placeholder, does not yet have (section 10). ATD reuses their schemas: a setting of an ATD construct is checked against the `$defs` entry of DISL, DESL or FBL for the same thing (section 14.6), and a binding in ATD is an FBL binding written as text. Tools keep storing their documents in DID, DED or a body a binding reads; a tool description replaces none of them.
+DISL, DID, DESL, DED, EDSL, EDD and FBL remain specifications of this repository. ATD carries every construct of DISL 0.6, DESL 0.2 and FBL 0.14 (Appendix C maps each of their properties to the ATD construct that carries it), and the constructs an editor needs, which EDSL, a placeholder, does not yet have (section 10). ATD reuses their schemas: a setting of an ATD construct is checked against the `$defs` entry of DISL, DESL or FBL for the same thing (section 14.6), and a binding in ATD is an FBL binding written as text. Tools keep storing their documents in DID, DED or a body a binding reads; a tool description replaces none of them.
 
 ---
 
@@ -608,7 +608,7 @@ The text's model is the description's model: its element types are what the edit
 
 ## 11. Bindings
 
-A binding (`grammar/binding.lark`) is an FBL 0.13 binding written as text (FBL §3 to §13): every property of FBL's `Binding` has its ATD form in Appendix C. Its meaning, reading and writing are FBL's, unchanged.
+A binding (`grammar/binding.lark`) is an FBL 0.14 binding written as text (FBL §3 to §13): every property of FBL's `Binding` has its ATD form in Appendix C. Its meaning, reading and writing are FBL's, unchanged.
 
 ### 11.1 The binding
 
@@ -644,7 +644,7 @@ A **slot** is `<kind> [<argument>]`: `key "<key>"`, `attribute "<name>"`, `text`
 
 ### 11.5 Inserting and removing
 
-`insert { … }` and `remove { … }` are FBL's `Insert` and `Remove` (FBL §6.2), as settings: `place`, `container`, `emit`, `keys`, `create`, `skeleton`, `constant`, *(FBL 0.10)* `refusals` (`when`, `container`), `cascade`.
+`insert { … }` and `remove { … }` are FBL's `Insert` and `Remove` (FBL §6.2), as settings: `place`, `container`, `emit`, `keys`, `create`, `skeleton`, `constant`, *(FBL 0.10)* `refusals` (`when`, `container`, *(FBL 0.14)* `key`, `duplicate`), `cascade`. *(FBL 0.14)* In the `yaml` and `json` families, the `insert` of a rule whose `at` ends in a capture adds a member to a mapping under the key the add gives the attribute bound to that capture (FBL §6.2); ATD writes it with no setting of its own.
 
 ### 11.6 Registration and template
 
@@ -1089,6 +1089,7 @@ An agent writing a description is given `grammar/atd.flat.lark`, with which a mo
 - **0.1, amendment of 2026-10-29, FBL 0.11** (spec 066, pull request A, for the C4 conversions): FBL 0.11's constructs of the `grammar` family, as settings and with no change under `grammar/` but the tables of `structurizr.lark` (§11.9): `recover`'s `nested` and `unclosed`, a slot's and an attribute binding's `escape`, an attribute binding's `create` with `emit`, `after` and `pad` and its `gather`, a rule's `opens` as a settings map and its `selectedView`, and a block rule's `at`, `view`, `origins` and `insert` in `block <name> { … }` (§11.3, §11.4, §11.9); C.3 is FBL 0.11's, with a row for each new property. Every description that checked before still checks, with the same meaning.
 - **0.1, amendment of 2026-10-29, FBL 0.12** (spec 066, pull request C, for the Wardley map conversion): FBL 0.12's constructs of the `grammar` family, as settings and with no change under `grammar/` but the tables of `wardley-map.lark` (§11.9): a slot's and an attribute binding's `items` and `separator`, a sidecar id's `kind` and `ordinal`, and `legacyIdentities` read as the array the tool writes (§11.6, §11.9); C.3 is FBL 0.12's, with a row for each new property. Every description that checked before still checks, with the same meaning.
 - **0.1, amendment of 2026-10-30, FBL 0.13** (spec 066, gap 16 of the C4 conversions, by the maintainer's ruling of 2026-10-30): FBL 0.13's `split` of a slot and of an attribute binding of the `grammar` family, as a setting and with no change under `grammar/` (§11.3, §11.9); C.3 is FBL 0.13's, with a row for each. A setting is checked against FBL's `$defs` (§14.6), so a description gains it with the schema. Every description that checked before still checks, with the same meaning.
+- **0.1, amendment of 2026-10-30, FBL 0.14** (spec 066, databricks-disl-fbl task 12, written to the recommended answer of the maintainer's pending card): FBL 0.14's member insert of the `yaml` and `json` families, which needs no setting of its own, and the sentences `key` and `duplicate` of an insert's `refusals`, as settings and with no change under `grammar/` (§11.5); C.3 is FBL 0.14's, its count unchanged, since `refusals` gains keys and no property. Every description that checked before still checks, with the same meaning.
 
 
 ---
@@ -3144,14 +3145,14 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `desl.schema.json#/$defs/CelValue/properties/resultType` | the key `resultType` in a value of CelValue (a settings map, §6.4) | §6.4 |
 | `desl.schema.json#/$defs/CelValue/properties/doc` | the key `doc` in a value of CelValue (a settings map, §6.4) | §6.4 |
 
-### C.3 FBL 0.13
+### C.3 FBL 0.14
 
 241 properties.
 
 | JSON pointer | ATD | Section |
 |---|---|---|
 | `fbl.schema.json#/$defs/Document/properties/$schema` | none | §11.1 |
-| `fbl.schema.json#/$defs/Document/properties/fbl` | the header `atd <version>` (§5.1); a binding is FBL 0.13's in ATD 0.1 | §11.1 |
+| `fbl.schema.json#/$defs/Document/properties/fbl` | the header `atd <version>` (§5.1); a binding is FBL 0.14's in ATD 0.1 | §11.1 |
 | `fbl.schema.json#/$defs/Document/properties/doc` | `doc` and `///` | §11.1 |
 | `fbl.schema.json#/$defs/Document/properties/bindings` | `binding` | §11.1 |
 | `fbl.schema.json#/$defs/Binding/properties/title` | `label` | §11.1 |
@@ -3329,7 +3330,7 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `fbl.schema.json#/$defs/Insert/properties/constant` | the setting `constant` of `insert` | §11.5 |
 | `fbl.schema.json#/$defs/Insert/properties/skeleton` | the setting `skeleton` of `insert` | §11.5 |
 | `fbl.schema.json#/$defs/Insert/properties/when` | the setting `when` of `insert` | §11.5 |
-| `fbl.schema.json#/$defs/Insert/properties/refusals` | *(FBL 0.10)* the setting `refusals` of `insert` (`when`, `container`) | §11.5 |
+| `fbl.schema.json#/$defs/Insert/properties/refusals` | *(FBL 0.10)* the setting `refusals` of `insert` (`when`, `container`; *(FBL 0.14)* `key`, `duplicate`) | §11.5 |
 | `fbl.schema.json#/$defs/Remove/properties/cascade` | the setting `cascade` of `remove` | §11.5 |
 | `fbl.schema.json#/$defs/Remove/properties/container` | the setting `container` of `remove` | §11.5 |
 | `fbl.schema.json#/$defs/RegistrationSettings/properties/headers` | the setting `headers` of `registration` | §11.6 |

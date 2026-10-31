@@ -48,7 +48,7 @@ fn error(pointer: impl Into<String>, message: impl Into<String>) -> LoadProblem 
 const SUPPORTED_MAJOR: i64 = 0;
 
 /// The newest minor version this library reads in full; a document of a newer one loads with a warning.
-const KNOWN_MINOR: i64 = 13;
+const KNOWN_MINOR: i64 = 14;
 
 /// Loads the document at `path`.
 pub fn load_file(path: &Path) -> (Vec<LoadProblem>, Option<FblDocument>) {
@@ -700,7 +700,8 @@ fn read_text(json: &Json) -> TextDefaults {
 }
 
 fn read_insert(ins: &Json) -> InsertSettings {
-    // {before: key} is recognised so every family can refuse it; no family places by it yet.
+    // {before: key} is recognised so every family can refuse it; only a new member is placed by it (FBL 0.14).
+    let before = ins.get("place").and_then(|p| s(p, "before"));
     let place = match ins.get("place") {
         Some(Json::Object(_)) => "before".to_owned(),
         Some(Json::String(p)) => p.clone(),
@@ -732,6 +733,7 @@ fn read_insert(ins: &Json) -> InsertSettings {
     });
     InsertSettings {
         place,
+        before,
         container: s(ins, "container"),
         create,
         keys: strings(ins, "keys"),
@@ -740,6 +742,8 @@ fn read_insert(ins: &Json) -> InsertSettings {
         when: s(ins, "when"),
         refusal_when: ins.get("refusals").and_then(|r| localized(r, "when")),
         refusal_container: ins.get("refusals").and_then(|r| localized(r, "container")),
+        refusal_key: ins.get("refusals").and_then(|r| localized(r, "key")),
+        refusal_duplicate: ins.get("refusals").and_then(|r| localized(r, "duplicate")),
     }
 }
 
@@ -1136,6 +1140,7 @@ fn check(binding: &FblBinding, pointer: &str, problems: &mut Vec<LoadProblem>) {
                 ));
             }
         }
+        check_new_member(binding, rule, &at, problems);
         if let Some(source) = &rule.source {
             check_slot(source, context, &format!("{at}/source"), problems);
         }
@@ -1220,6 +1225,33 @@ fn families_of(binding: &FblBinding, rule: &Rule) -> Vec<Family> {
         return vec![family];
     }
     binding.body.files.iter().filter_map(|f| f.family).collect()
+}
+
+/// *(FBL 0.14)* A rule of the yaml or json family that adds a member binds an attribute to the capture its `at` ends in,
+/// and only such a rule has the sentences of a member's key (FBL section 14.1).
+fn check_new_member(binding: &FblBinding, rule: &Rule, pointer: &str, problems: &mut Vec<LoadProblem>) {
+    let Some(insert) = &rule.insert else {
+        return;
+    };
+    let tree = families_of(binding, rule)
+        .iter()
+        .any(|f| matches!(f, Family::Yaml | Family::Json));
+    let adds_member = tree && rule.member_capture().is_some();
+    if adds_member && rule.member_key_attribute().is_none() {
+        problems.push(error(
+            format!("{pointer}/at"),
+            format!(
+                "A rule that adds a member of a mapping binds an attribute to {{capture: {}}} (FBL 0.14 section 14.1).",
+                rule.member_capture().unwrap_or_default()
+            ),
+        ));
+    }
+    if !adds_member && (insert.refusal_key.is_some() || insert.refusal_duplicate.is_some()) {
+        problems.push(error(
+            format!("{pointer}/insert/refusals"),
+            "'key' and 'duplicate' are the sentences of an insert that adds a member (FBL 0.14 section 14.1).",
+        ));
+    }
 }
 
 /// FBL 0.5 section 5.2: `read`, `quoted` and `fallback` are given only on a slot of the yaml or json family that

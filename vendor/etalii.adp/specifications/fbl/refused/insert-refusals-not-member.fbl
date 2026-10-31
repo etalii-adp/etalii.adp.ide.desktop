@@ -1,0 +1,54 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.14",
+  "doc": "Refused by FBL 0.14, section 14.1, step 6: the rule card reads the items of the list cards, so its insert adds no member, and refusals.key and refusals.duplicate, which are the sentences of a member's key, stand on no add it can refuse (section 6.2). The same insert without them loads.",
+  "bindings": {
+    "lanes": {
+      "title": "Cards, a member's refusals on a list",
+      "claims": {
+        "registrationOnly": true
+      },
+      "body": {
+        "kind": "file",
+        "family": "json"
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "crlf",
+        "indent": 2,
+        "finalNewline": true
+      },
+      "elements": [
+        {
+          "name": "card",
+          "type": "Card",
+          "at": "/cards/*",
+          "id": {
+            "from": {
+              "key": "id"
+            }
+          },
+          "attributes": {
+            "title": {
+              "key": "title",
+              "empty": "keep"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/cards",
+            "keys": [
+              "id",
+              "title"
+            ],
+            "refusals": {
+              "key": "A lane needs a key.",
+              "duplicate": "A lane with that key is already there."
+            }
+          },
+          "remove": {}
+        }
+      ]
+    }
+  }
+}

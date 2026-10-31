@@ -1,0 +1,53 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.14",
+  "doc": "Refused by FBL 0.14, section 14.1, step 6: the rule lane reads the members of the object lanes by the capture lane and adds one, but binds no attribute to {capture: lane}, so an add has no key to write the new member under (section 6.2). The same rule with its key attribute loads.",
+  "bindings": {
+    "lanes": {
+      "title": "Lanes, a member added with no key attribute",
+      "claims": {
+        "registrationOnly": true
+      },
+      "body": {
+        "kind": "file",
+        "family": "json"
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "crlf",
+        "indent": 2,
+        "finalNewline": true
+      },
+      "elements": [
+        {
+          "name": "lane",
+          "type": "Lane",
+          "at": "/lanes/{lane}",
+          "id": {
+            "from": {
+              "capture": "lane"
+            }
+          },
+          "attributes": {
+            "title": {
+              "key": "title",
+              "empty": "keep"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/lanes",
+            "keys": [
+              "title"
+            ],
+            "refusals": {
+              "key": "A lane needs a key.",
+              "duplicate": "A lane with that key is already there."
+            }
+          },
+          "remove": {}
+        }
+      ]
+    }
+  }
+}

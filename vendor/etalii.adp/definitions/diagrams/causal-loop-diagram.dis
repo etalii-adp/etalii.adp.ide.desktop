@@ -3,12 +3,12 @@
   "disl": "0.3",
   "language": {
     "id": "net.etalii.adp.systems.causal-loop-diagram",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "origin": "systems/causal-loop-diagram",
     "label": "Causal loop diagram",
     "doc": {
       "summary": "How the parts of a system feed back on each other: variables joined by polarised causal links, with the loops they form identified as reinforcing or balancing.",
-      "description": "The entry notation of system dynamics, drawn the established way: polarity on the link, `R` or `B` on the loop, two strokes across a delayed arrow and a circular arrow around each loop identifier.\n\nWhat this diagram type adds is the check. Whether a loop reinforces or balances is a mechanical property of its arrows (**reinforcing on an even count of negative links, zero included, and balancing on an odd count**), so the polarity of every loop is computed rather than trusted, a loop whose stated letter its own arrows contradict is reported, and every feedback cycle nobody named is reported too. Nothing is ever corrected for the author: the label may be the intent and an arrow the mistake.\n\nThe diagram states structure and simulates nothing. There are no stocks, flows or equations, and a weight is an annotation.\n\nThe `.cld` body is read and written through the FBL binding the standalone module ships. Every sentence, label and code below is the standalone tool's, as its parity transcript records them. What DISL 0.3 cannot state is written down in `causal-loop-diagram.md` beside this file, and the wire ids the standalone client and backend share are declared under `x-cld`.",
+      "description": "The entry notation of system dynamics, drawn the established way: polarity on the link, `R` or `B` on the loop, two strokes across a delayed arrow and a circular arrow around each loop identifier.\n\nWhat this diagram type adds is the check. Whether a loop reinforces or balances is a mechanical property of its arrows (**reinforcing on an even count of negative links, zero included, and balancing on an odd count**), so the polarity of every loop is computed rather than trusted, a loop whose stated letter its own arrows contradict is reported, and every feedback cycle nobody named is reported too. Nothing is ever corrected for the author: the label may be the intent and an arrow the mistake.\n\nThe diagram states structure and simulates nothing itself. There are no stocks, flows or equations. Its flow properties are the values a flow page exported from it starts from, and a weight is its link's starting strength there.\n\nThe `.cld` body is read and written through the FBL binding the standalone module ships. Every sentence, label and code below is the standalone tool's, as its parity transcript records them. What DISL 0.3 cannot state is written down in `causal-loop-diagram.md` beside this file, and the wire ids the standalone client and backend share are declared under `x-cld`.",
       "tags": ["systems", "system dynamics", "feedback", "causality"],
       "seeAlso": [
         { "title": "What DISL cannot express for this tool", "href": "causal-loop-diagram.md" },
@@ -138,6 +138,39 @@
 
   "metamodel": {
     "doc": "Three things exist: variables, the causal links between them, and the loops an author claims. Which cycles the links form, and whether each reinforces or balances, is computed from these and never stored.",
+    "diagram": {
+      "doc": "The diagram's own title and the values a flow page exported from it starts from. Each is optional, and a file states only what differs from the default. They are written in the `title` and `flow` statements, right after the header.",
+      "attributes": {
+          "title": {
+            "type": "string", "pattern": "^[^\"\\r\\n]*$", "label": "Title", "group": "Identity", "order": 1,
+            "doc": "The diagram's own title, which a flow page exported from it carries; without one the page uses the file name. Written in a `title` statement."
+          },
+          "strength": {
+            "type": "number", "default": 3, "min": 0.5, "max": 8, "label": "Link strength", "group": "Flow page", "order": 1,
+            "doc": "How strongly a variable answers its inputs in a flow page. Between 0.5 and 8; 3 when the file states none."
+          },
+          "delayLength": {
+            "type": "number", "default": 5, "min": 1, "max": 12, "label": "Delay length", "group": "Flow page", "order": 2,
+            "doc": "How many times slower a delayed link is than a plain one in a flow page. Between 1 and 12; 5 when the file states none."
+          },
+          "inertia": {
+            "type": "number", "default": 1.2, "min": 0.2, "max": 5, "label": "Inertia", "group": "Flow page", "order": 3,
+            "doc": "How many seconds a variable takes to answer its inputs in a flow page. Between 0.2 and 5; 1.2 when the file states none."
+          },
+          "speed": {
+            "type": "number", "default": 1, "min": 0.1, "max": 4, "label": "Simulation speed", "group": "Flow page", "order": 4,
+            "doc": "How fast a flow page runs. Between 0.1 and 4; 1 when the file states none."
+          },
+          "density": {
+            "type": "number", "default": 3, "min": 0.5, "max": 8, "label": "Dot density", "group": "Flow page", "order": 5,
+            "doc": "How many dots a link of a flow page sends. Between 0.5 and 8; 3 when the file states none."
+          },
+          "heatmap": {
+            "type": "HeatmapReading", "default": "backlog", "label": "Heatmap reading", "group": "Flow page", "order": 6,
+            "doc": "The reading a flow page opens on."
+          }
+      }
+    },
     "enums": {
       "Polarity": {
         "doc": {
@@ -148,6 +181,15 @@
           "positive": { "label": "Same direction (+)", "doc": "An increase in the cause produces an increase in the effect, all else equal. Written + or s." },
           "negative": { "label": "Opposite direction (−)", "doc": "An increase in the cause produces a decrease in the effect, all else equal. Written - or o." },
           "unstated": { "label": "Unstated", "doc": "No polarity was written. Every loop through this link is undecidable." }
+        }
+      },
+      "HeatmapReading": {
+        "doc": "What the colours of a flow page show.",
+        "values": {
+          "backlog": { "label": "Backlog", "doc": "The influence in transit towards each variable, relative to the busiest." },
+          "pressure": { "label": "Pressure", "doc": "How far each variable is from where its inputs push it." },
+          "throughput": { "label": "Throughput", "doc": "The influence arriving at each variable per second, relative to the busiest." },
+          "level": { "label": "Level", "doc": "Each variable's own level, from 0 to 1." }
         }
       },
       "LoopPolarity": {
@@ -178,6 +220,14 @@
           "display": {
             "type": "string", "derived": "self.label != '' ? self.label : self.name",
             "doc": "The text drawn on the variable: its label, or its identifier where no label is written."
+          },
+          "start": {
+            "type": "number", "default": 0.5, "min": 0, "max": 1, "label": "Starting level", "group": "Flow page", "order": 1,
+            "doc": "The level this variable starts at in a flow page, and the place of its slider. It only affects a variable no link points to; one that a link points to starts at 0.5, as the page's Reset puts it back there. Between 0 and 1; 0.5 when the file states none."
+          },
+          "push": {
+            "type": "number", "default": 0, "min": -4, "max": 4, "label": "Outside push", "group": "Flow page", "order": 2,
+            "doc": "What pushes this variable up or down from outside the diagram in a flow page. Between -4 and 4; 0 when the file states none."
           }
         }
       },
@@ -261,8 +311,8 @@
           "weight": {
             "type": "number", "label": "Weight", "group": "Causality", "order": 4,
             "doc": {
-              "summary": "An author's annotation of strength. Recorded, never evaluated.",
-              "rationale": "This diagram states structure and simulates nothing, so the number is an annotation and nothing reads it as a coefficient. Absent and zero differ: an unweighted link is not a link of weight zero."
+              "summary": "An author's statement of strength, and this link's starting strength in a flow page. No host evaluates it.",
+              "rationale": "This diagram states structure and simulates nothing itself, so only a flow page exported from it reads the number: limited there to 0 to 3, and an absent weight starts at 1. Absent and zero differ: an unweighted link is not a link of weight zero."
             }
           },
           "note": {
@@ -437,6 +487,23 @@
   },
 
   "forms": {
+    "diagram": {
+      "for": "diagram",
+      "usage": ["inspector"],
+      "items": [
+        { "kind": "section", "label": "Identity", "items": [
+          {"attribute": "title", "id": "diagramTitle", "label": "Title", "widget": "text", "parse": {"accepts": "!value.matches('[\"\\\\x00-\\\\x1F\\\\x7F-\\\\x9F]')", "write": [{"unset": ["title"], "when": "value == ''"}, {"set": {"title": "value"}, "when": "value != ''"}], "refusal": "A title cannot hold a double quote or a line break, because it is written between double quotes on one line.", "doc": "The empty text removes the title's statement."}}
+        ] },
+        { "kind": "section", "label": "Flow page", "items": [
+          {"attribute": "strength", "label": "Link strength", "widget": "text", "parse": {"accepts": "value.trim() == '' || (value.trim().matches('^[+-]?([0-9]+\\\\.?[0-9]*|\\\\.[0-9]+)([eE][+-]?[0-9]+)?$') && double(value.trim()) >= 0.5 && double(value.trim()) <= 8.0)", "write": [{"unset": ["strength"], "when": "value.trim() == '' || double(value.trim()) == 3.0"}, {"set": {"strength": "double(value.trim())"}, "when": "value.trim() != '' && double(value.trim()) != 3.0"}], "refusal": {"cel": "'Link strength is ' + value + '; it must be between 0.5 and 8.'"}, "doc": "A number between 0.5 and 8; 3 or an empty row removes it, so a file states only what differs from the default."}},
+          {"attribute": "delayLength", "label": "Delay length", "widget": "text", "parse": {"accepts": "value.trim() == '' || (value.trim().matches('^[+-]?([0-9]+\\\\.?[0-9]*|\\\\.[0-9]+)([eE][+-]?[0-9]+)?$') && double(value.trim()) >= 1.0 && double(value.trim()) <= 12.0)", "write": [{"unset": ["delayLength"], "when": "value.trim() == '' || double(value.trim()) == 5.0"}, {"set": {"delayLength": "double(value.trim())"}, "when": "value.trim() != '' && double(value.trim()) != 5.0"}], "refusal": {"cel": "'Delay length is ' + value + '; it must be between 1 and 12.'"}, "doc": "A number between 1 and 12; 5 or an empty row removes it, so a file states only what differs from the default."}},
+          {"attribute": "inertia", "label": "Inertia", "widget": "text", "parse": {"accepts": "value.trim() == '' || (value.trim().matches('^[+-]?([0-9]+\\\\.?[0-9]*|\\\\.[0-9]+)([eE][+-]?[0-9]+)?$') && double(value.trim()) >= 0.2 && double(value.trim()) <= 5.0)", "write": [{"unset": ["inertia"], "when": "value.trim() == '' || double(value.trim()) == 1.2"}, {"set": {"inertia": "double(value.trim())"}, "when": "value.trim() != '' && double(value.trim()) != 1.2"}], "refusal": {"cel": "'Inertia is ' + value + '; it must be between 0.2 and 5.'"}, "doc": "A number between 0.2 and 5; 1.2 or an empty row removes it, so a file states only what differs from the default."}},
+          {"attribute": "speed", "label": "Simulation speed", "widget": "text", "parse": {"accepts": "value.trim() == '' || (value.trim().matches('^[+-]?([0-9]+\\\\.?[0-9]*|\\\\.[0-9]+)([eE][+-]?[0-9]+)?$') && double(value.trim()) >= 0.1 && double(value.trim()) <= 4.0)", "write": [{"unset": ["speed"], "when": "value.trim() == '' || double(value.trim()) == 1.0"}, {"set": {"speed": "double(value.trim())"}, "when": "value.trim() != '' && double(value.trim()) != 1.0"}], "refusal": {"cel": "'Simulation speed is ' + value + '; it must be between 0.1 and 4.'"}, "doc": "A number between 0.1 and 4; 1 or an empty row removes it, so a file states only what differs from the default."}},
+          {"attribute": "density", "label": "Dot density", "widget": "text", "parse": {"accepts": "value.trim() == '' || (value.trim().matches('^[+-]?([0-9]+\\\\.?[0-9]*|\\\\.[0-9]+)([eE][+-]?[0-9]+)?$') && double(value.trim()) >= 0.5 && double(value.trim()) <= 8.0)", "write": [{"unset": ["density"], "when": "value.trim() == '' || double(value.trim()) == 3.0"}, {"set": {"density": "double(value.trim())"}, "when": "value.trim() != '' && double(value.trim()) != 3.0"}], "refusal": {"cel": "'Dot density is ' + value + '; it must be between 0.5 and 8.'"}, "doc": "A number between 0.5 and 8; 3 or an empty row removes it, so a file states only what differs from the default."}},
+          {"attribute": "heatmap", "label": "Heatmap reading", "widget": "select", "options": ["Backlog", "Pressure", "Throughput", "Level"], "display": {"cel": "value == 'pressure' ? 'Pressure' : (value == 'throughput' ? 'Throughput' : (value == 'level' ? 'Level' : 'Backlog'))"}, "parse": {"accepts": "value.trim().upperAscii() in ['BACKLOG', 'PRESSURE', 'THROUGHPUT', 'LEVEL']", "write": [{"unset": ["heatmap"], "when": "value.trim().upperAscii() == 'BACKLOG'"}, {"set": {"heatmap": "value.trim().upperAscii() == 'PRESSURE' ? 'pressure' : (value.trim().upperAscii() == 'THROUGHPUT' ? 'throughput' : 'level')"}, "when": "value.trim().upperAscii() != 'BACKLOG'"}], "refusal": {"cel": "'\\'' + value + '\\' is not a heatmap reading.'"}, "doc": "Backlog, the default, removes the word."}}
+        ] }
+      ]
+    },
     "variable": {
       "for": "Variable",
       "usage": ["inspector"],
@@ -445,6 +512,10 @@
           { "attribute": "label", "label": "Label", "widget": "text" },
           { "attribute": "name", "label": "Identifier", "widget": "text",
             "doc": "The identifier links and loops refer to. Restating it here carries them with it; renaming on the canvas edits the label and leaves it alone." }
+        ] },
+        { "kind": "section", "label": "Flow page", "items": [
+          {"attribute": "start", "label": "Starting level", "widget": "text", "parse": {"accepts": "value.trim() == '' || (value.trim().matches('^[+-]?([0-9]+\\\\.?[0-9]*|\\\\.[0-9]+)([eE][+-]?[0-9]+)?$') && double(value.trim()) >= 0.0 && double(value.trim()) <= 1.0)", "write": [{"unset": ["start"], "when": "value.trim() == '' || double(value.trim()) == 0.5"}, {"set": {"start": "double(value.trim())"}, "when": "value.trim() != '' && double(value.trim()) != 0.5"}], "refusal": {"cel": "'Starting level is ' + value + '; it must be between 0 and 1.'"}, "doc": "A number between 0 and 1; 0.5 or an empty row removes it, so a file states only what differs from the default."}},
+          {"attribute": "push", "label": "Outside push", "widget": "text", "parse": {"accepts": "value.trim() == '' || (value.trim().matches('^[+-]?([0-9]+\\\\.?[0-9]*|\\\\.[0-9]+)([eE][+-]?[0-9]+)?$') && double(value.trim()) >= -4.0 && double(value.trim()) <= 4.0)", "write": [{"unset": ["push"], "when": "value.trim() == '' || double(value.trim()) == 0.0"}, {"set": {"push": "double(value.trim())"}, "when": "value.trim() != '' && double(value.trim()) != 0.0"}], "refusal": {"cel": "'Outside push is ' + value + '; it must be between -4 and 4.'"}, "doc": "A number between -4 and 4; 0 or an empty row removes it, so a file states only what differs from the default."}}
         ] }
       ]
     },
@@ -488,7 +559,7 @@
                 { "unset": ["weight"], "when": "value.trim() == ''" },
                 { "set": { "weight": "double(value.trim())" }, "when": "value.trim() != ''" }
               ],
-              "refusal": { "cel": "'\\'' + value + '\\' is not a number. A weight is an annotation this diagram records and never evaluates; leave it empty to remove it.'" },
+              "refusal": { "cel": "'\\'' + value + '\\' is not a number. A weight is this link\\'s starting strength in a flow page; leave it empty to remove it.'" },
               "doc": "A decimal number, signed, with or without an exponent; an empty row removes the weight. How the number is shown and written is the companion, Other differences: numbers."
             }
           }
@@ -625,9 +696,10 @@
   },
 
   "constraints": {
-    "doc": "The seven findings of the standalone tool, with its codes, severities and sentences, and nothing else: the built-ins that would add a finding the tool does not give are switched off (requirements Q4), and their refusals are declared gesture rules with the tool's sentences.",
+    "doc": "The seven findings of the standalone tool, with its codes, severities and sentences, and the flow properties' ranges, and nothing else: the built-ins that would add a finding the tool does not give are switched off (requirements Q4), and their refusals are declared gesture rules with the tool's sentences.",
     "groups": {
-      "feedback": { "label": "Feedback", "doc": "The check this diagram type exists for: loop labels against the arrows, and loops nobody named." }
+      "feedback": { "label": "Feedback", "doc": "The check this diagram type exists for: loop labels against the arrows, and loops nobody named." },
+      "flowPage": { "label": "Flow page", "doc": "A value a flow page starts from, outside its range. It is kept as written, and the page uses the nearest value in range." }
     },
     "order": ["causal-loop.unreadable-line", "causal-loop.dangling-link", "causal-loop.cycle-bound-reached"],
     "builtIn": {
@@ -660,6 +732,13 @@
       }
     },
     "rules": [
+      {"id": "strengthInRange", "code": "causal-loop.flow-value-out-of-range", "label": "Link strength is in range", "group": "flowPage", "scope": "diagram", "rule": "diagram.strength >= 0.5 && diagram.strength <= 8.0", "severity": "warning", "message": {"cel": "'Link strength is ' + string(diagram.strength) + '; it must be between 0.5 and 8.'"}},
+      {"id": "delayLengthInRange", "code": "causal-loop.flow-value-out-of-range", "label": "Delay length is in range", "group": "flowPage", "scope": "diagram", "rule": "diagram.delayLength >= 1.0 && diagram.delayLength <= 12.0", "severity": "warning", "message": {"cel": "'Delay length is ' + string(diagram.delayLength) + '; it must be between 1 and 12.'"}},
+      {"id": "inertiaInRange", "code": "causal-loop.flow-value-out-of-range", "label": "Inertia is in range", "group": "flowPage", "scope": "diagram", "rule": "diagram.inertia >= 0.2 && diagram.inertia <= 5.0", "severity": "warning", "message": {"cel": "'Inertia is ' + string(diagram.inertia) + '; it must be between 0.2 and 5.'"}},
+      {"id": "speedInRange", "code": "causal-loop.flow-value-out-of-range", "label": "Simulation speed is in range", "group": "flowPage", "scope": "diagram", "rule": "diagram.speed >= 0.1 && diagram.speed <= 4.0", "severity": "warning", "message": {"cel": "'Simulation speed is ' + string(diagram.speed) + '; it must be between 0.1 and 4.'"}},
+      {"id": "densityInRange", "code": "causal-loop.flow-value-out-of-range", "label": "Dot density is in range", "group": "flowPage", "scope": "diagram", "rule": "diagram.density >= 0.5 && diagram.density <= 8.0", "severity": "warning", "message": {"cel": "'Dot density is ' + string(diagram.density) + '; it must be between 0.5 and 8.'"}},
+      {"id": "startInRange", "code": "causal-loop.flow-value-out-of-range", "label": "Starting level is in range", "group": "flowPage", "scope": "Variable", "rule": "self.start >= 0.0 && self.start <= 1.0", "severity": "warning", "attribute": "start", "message": {"cel": "'Starting level is ' + string(self.start) + '; it must be between 0 and 1.'"}},
+      {"id": "pushInRange", "code": "causal-loop.flow-value-out-of-range", "label": "Outside push is in range", "group": "flowPage", "scope": "Variable", "rule": "self.push >= -4.0 && self.push <= 4.0", "severity": "warning", "attribute": "push", "message": {"cel": "'Outside push is ' + string(self.push) + '; it must be between -4 and 4.'"}},
       {
         "id": "cycleBoundReached",
         "code": "causal-loop.cycle-bound-reached",
@@ -964,6 +1043,8 @@
     "view": { "store": ["bounds"] },
     "typeMap": {
       "Header": { "as": "header", "doc": "Every `causal-loop` statement, wherever it stands; a missing or repeated one raises nothing." },
+      "Title": { "as": "diagram", "attributes": { "title": "title" }, "doc": "The `title` statement." },
+      "Flow": { "as": "diagram", "attributes": { "strength": "strength", "delayLength": "delayLength", "inertia": "inertia", "speed": "speed", "density": "density", "heatmap": "heatmap" }, "doc": "A `flow` statement. Of two, the last one that states a key wins for that key." },
       "Variable": { "as": "Variable" },
       "Link": { "as": "CausalLink", "attributes": { "from": "source", "to": "target" }, "doc": "Read as an entry with reference attributes, so a link whose end names no variable is kept and reported by `std.references`." },
       "Loop": { "as": "Loop" },
@@ -1026,6 +1107,15 @@
       "Loop/delete": "causal-loop.remove-loop"
     },
     "properties": {
+      "diagramTitle": "causal-loop.diagram-title",
+      "strength": "causal-loop.flow-strength",
+      "delayLength": "causal-loop.flow-delay",
+      "inertia": "causal-loop.flow-inertia",
+      "speed": "causal-loop.flow-speed",
+      "density": "causal-loop.flow-density",
+      "heatmap": "causal-loop.flow-heatmap",
+      "start": "causal-loop.variable-start",
+      "push": "causal-loop.variable-push",
       "label": "causal-loop.variable-label",
       "name": "causal-loop.variable-id",
       "Cause (from)": "causal-loop.link-from",

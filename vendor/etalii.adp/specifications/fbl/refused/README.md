@@ -16,3 +16,5 @@ The FBL documents in this folder are valid against [`fbl.schema.json`](../fbl.sc
 | `items-not-many.fbl` | *(FBL 0.12)* Section 14.1, step 6: `items` on an attribute that the tool type the binding is read for declares single-valued (section 5.2). |
 | `split-not-many.fbl` | *(FBL 0.13)* Section 14.1, step 6: `split` on an attribute that the tool type the binding is read for declares single-valued (sections 4.9, 5.2). |
 | `split-escape-collision.fbl` | *(FBL 0.13)* Section 14.1, step 6: a slot's `split` holds a character of its `escape` (section 4.9). |
+| `insert-member-without-capture.fbl` | *(FBL 0.14)* Section 14.1, step 6: a rule that adds a member of a mapping binds no attribute to the capture its `at` ends in (section 6.2). |
+| `insert-refusals-not-member.fbl` | *(FBL 0.14)* Section 14.1, step 6: `refusals.key` and `refusals.duplicate` on an insert that adds no member (section 6.2). |

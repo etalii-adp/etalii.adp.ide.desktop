@@ -1,0 +1,142 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "Each property set back to its default: the file then states only what differs, and is the bytes it was before they were set.",
+  "binding": "../../causal-loop-diagram.fbl#cld",
+  "input": "flow-default.cld",
+  "steps": [
+    {
+      "doc": "A property set back to its default leaves the file: its word goes with the whitespace before it.",
+      "edit": {
+        "set": {
+          "element": "flow@3",
+          "attributes": {
+            "strength": null
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 30,
+          "end": 41,
+          "text": ""
+        }
+      ],
+      "expect": "causal-loop 1\r\ntitle \"T\"\r\nflow delay=6.5 heatmap=pressure\r\n\r\nvariable a \"A\" start=0.7 push=-1.5\r\nvariable b \"B\"\r\n\r\nlink a -> b + weight=1.5\r\n"
+    },
+    {
+      "doc": "The next.",
+      "edit": {
+        "set": {
+          "element": "flow@3",
+          "attributes": {
+            "heatmap": null
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 40,
+          "end": 57,
+          "text": ""
+        }
+      ],
+      "expect": "causal-loop 1\r\ntitle \"T\"\r\nflow delay=6.5\r\n\r\nvariable a \"A\" start=0.7 push=-1.5\r\nvariable b \"B\"\r\n\r\nlink a -> b + weight=1.5\r\n"
+    },
+    {
+      "doc": "A flow statement left with nothing to state is removed with its line.",
+      "edit": {
+        "remove": {
+          "element": "flow@3"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 26,
+          "end": 42,
+          "text": ""
+        }
+      ],
+      "expect": "causal-loop 1\r\ntitle \"T\"\r\n\r\nvariable a \"A\" start=0.7 push=-1.5\r\nvariable b \"B\"\r\n\r\nlink a -> b + weight=1.5\r\n"
+    },
+    {
+      "doc": "So is a title set to the empty text.",
+      "edit": {
+        "remove": {
+          "element": "title@2"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 15,
+          "end": 26,
+          "text": ""
+        }
+      ],
+      "expect": "causal-loop 1\r\n\r\nvariable a \"A\" start=0.7 push=-1.5\r\nvariable b \"B\"\r\n\r\nlink a -> b + weight=1.5\r\n"
+    },
+    {
+      "doc": "A variable's word goes too, and the other stays.",
+      "edit": {
+        "set": {
+          "element": "variable:a",
+          "attributes": {
+            "start": null
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 31,
+          "end": 41,
+          "text": ""
+        }
+      ],
+      "expect": "causal-loop 1\r\n\r\nvariable a \"A\" push=-1.5\r\nvariable b \"B\"\r\n\r\nlink a -> b + weight=1.5\r\n"
+    },
+    {
+      "doc": "Then the other.",
+      "edit": {
+        "set": {
+          "element": "variable:a",
+          "attributes": {
+            "push": null
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 31,
+          "end": 41,
+          "text": ""
+        }
+      ],
+      "expect": "causal-loop 1\r\n\r\nvariable a \"A\"\r\nvariable b \"B\"\r\n\r\nlink a -> b + weight=1.5\r\n"
+    },
+    {
+      "doc": "A link's weight goes as it always did.",
+      "edit": {
+        "set": {
+          "element": "link:a|b",
+          "attributes": {
+            "weight": null
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-key",
+          "start": 64,
+          "end": 75,
+          "text": ""
+        }
+      ],
+      "expect": "causal-loop 1\r\n\r\nvariable a \"A\"\r\nvariable b \"B\"\r\n\r\nlink a -> b +\r\n"
+    }
+  ]
+}
