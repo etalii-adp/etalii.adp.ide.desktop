@@ -31,7 +31,7 @@ pub use expressions::contexts;
 pub use expressions::number_format::format_number;
 pub use expressions::plugins::DislPluginFunctions;
 pub use loading::diagnostic::{DislDiagnostic, DislSeverity};
-pub use loading::loader::{DislLoadResult, DislLoader};
+pub use loading::loader::{DislLoadResult, DislLoader, is_reserved};
 pub use loading::metamodel::{
     DislAttribute, DislEnum, DislEnumValue, DislExpression, DislFunctionDeclaration, DislIdRule, DislMetamodel,
     DislParameter, DislRecursion, DislRelationEnd, DislType,

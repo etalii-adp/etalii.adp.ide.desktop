@@ -15,7 +15,7 @@ fn diagrams() -> PathBuf {
 }
 
 /// Differences that are a module's quirk, by case: `description/case`, each place `step:part`, the reading's `read:part`.
-const QUIRKS: [(&str, &[&str]); 4] = [
+const QUIRKS: [(&str, &[&str]); 7] = [
     // The YAML parser's own sentence and line for a body that does not parse, which are not FBL's.
     ("databricks-bundle/unparseable", &["read:findings"]),
     ("databricks-job/unparseable", &["read:findings"]),
@@ -23,42 +23,16 @@ const QUIRKS: [(&str, &[&str]); 4] = [
     // The same findings in another order: the module reports task by task, DISL by rule. A quirk of the module's, by
     // Peter's ruling (spec 067), for which DISL does not change.
     ("databricks-job/finding-order", &["read:findings"]),
-];
-
-/// What waits for a ruling: no description can state it, and it is not the module's quirk alone.
-const AWAITING_RULING: [(&str, &[&str]); 16] = [
-    // ATD §2.3: "A list of the reading whose case states attributes and has none of them in common with the description
-    // is a difference." These cases' relations state only `kind`, which DISL §2.2 reserves, and the pipeline's elements
-    // only what the module paints (`role`, `label`, `badges`), so no description can have one in common.
-    ("databricks-bundle/empty", &["read:nothing-in-common"]),
-    ("databricks-bundle/findings", &["read:nothing-in-common"]),
-    ("databricks-bundle/lakehouse", &["read:nothing-in-common"]),
-    ("databricks-bundle/unparseable", &["read:nothing-in-common"]),
-    ("databricks-job/cycle", &["read:nothing-in-common"]),
-    ("databricks-job/fresh-key", &["read:nothing-in-common"]),
-    ("databricks-pipeline/findings", &["read:nothing-in-common"]),
-    ("databricks-pipeline/lakehouse", &["read:nothing-in-common"]),
-    ("databricks-pipeline/legacy-target", &["read:nothing-in-common"]),
-    ("databricks-pipeline/library-ids", &["read:nothing-in-common"]),
-    ("databricks-pipeline/settings", &["read:nothing-in-common"]),
-    // A dependency on a task nobody declares (the companion's gap 8, "Open; DISL's"): the placeholder is derived, and DISL
-    // 4.9 keeps the end unset, so the end reads as written (`ghost`, not `task:ghost`) and the edge from the placeholder
-    // is not drawn. `finding-order` also holds a repeated task key, which the module reads under one id and FBL's reading
-    // gives its place, the quirk of C4's `hierarchical-identifiers`.
-    ("databricks-job/missing-upstream", &["read:drawing", "read:reading"]),
-    (
-        "databricks-job/finding-order",
-        &["read:drawing", "read:nothing-in-common", "read:reading"],
-    ),
     // Under the bundle and pipeline readings the module reports the findings of the whole file, every job's, the bundle's
-    // and every pipeline's (the companion's gap 9, "Open; DISL's"), and runs the job reading's commands on the file, which
-    // those readings' models cannot state: an operation of one reading writing another's types.
+    // and every pipeline's, whichever reading asked (the companion's gap 9), and runs the job reading's commands on the
+    // file, which those readings' models cannot state: an operation of one reading writing another's types. The bundle's
+    // case also orders its unknown nodes after the resources. A quirk of the module's, by Peter's ruling (spec 067), for
+    // which no language changes.
     (
         "databricks-bundle/job-commands",
         &[
             "read:drawing",
             "read:findings",
-            "read:nothing-in-common",
             "1:drawing",
             "1:findings",
             "1:refused",
@@ -77,7 +51,6 @@ const AWAITING_RULING: [(&str, &[&str]); 16] = [
         "databricks-pipeline/job-commands",
         &[
             "read:findings",
-            "read:nothing-in-common",
             "1:bytes",
             "1:findings",
             "2:bytes",
@@ -89,11 +62,11 @@ const AWAITING_RULING: [(&str, &[&str]); 16] = [
             "4:refused",
         ],
     ),
-    // Three things together. The case's moves are in the module's units, the unit square, where the description's canvas
+    // Three things together, a quirk of the module's by Peter's ruling (spec 067), and the case stays as recorded. The case's moves are in the module's units, the unit square, where the description's canvas
     // and the case's own drawing are 1000 units a side, so the bytes differ from the first move on. A rename gives the
     // module's links new ids where FBL 8.6 keeps them ("the ids stay", its fixture `wardley-rename-identity`), so step 15
-    // names a link the description knows by its old id. And the module draws a note and an accelerator as their label
-    // alone, with no box.
+    // names a link the description knows by its old id. And the module draws a note and an accelerator at size 0, as
+    // their label alone, with no box.
     (
         "wardley-map/strategy-vocabulary",
         &[
@@ -153,6 +126,20 @@ const AWAITING_RULING: [(&str, &[&str]); 16] = [
             "25:drawing",
         ],
     ),
+];
+
+/// What waits for a ruling: no description can state it, and it is not the module's quirk alone.
+const AWAITING_RULING: [(&str, &[&str]); 4] = [
+    // ATD §2.3's "nothing in common" with a statement left: the module states `resourceKind` on `bundle`, which is neither
+    // reserved nor painted, and the description's `Bundle` does not declare it, and these two cases have no other element.
+    ("databricks-bundle/empty", &["read:nothing-in-common"]),
+    ("databricks-bundle/unparseable", &["read:nothing-in-common"]),
+    // A dependency on a task nobody declares (the companion's gap 8, "Open; DISL's"): the placeholder is derived, and DISL
+    // 4.9 keeps the end unset, so the end reads as written (`ghost`, not `task:ghost`) and the edge from the placeholder
+    // is not drawn. `finding-order` also holds a repeated task key, which the module reads under one id and FBL's reading
+    // gives its place, the quirk of C4's `hierarchical-identifiers`.
+    ("databricks-job/missing-upstream", &["read:drawing", "read:reading"]),
+    ("databricks-job/finding-order", &["read:drawing", "read:reading"]),
 ];
 
 /// Where `name`'s cases differ, by case.
