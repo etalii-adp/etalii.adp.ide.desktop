@@ -1,7 +1,7 @@
 {
   "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
   "fbl": "0.13",
-  "doc": "A Structurizr DSL workspace (definitions/diagrams/c4-*.dis, c4-container.md), read by the grammar structurizr.lark beside this document: FBL 0.11's grammar family (section 4.9), one binding shared by six readings. Every C4 specification names 'structurizr.fbl#workspace' as its binding, so a host opens one model and one history per .dsl file however many C4 views of it are open (section 9). Comments are owned and kept wherever they stand; a statement that does not parse is skipped to its line's end, inside blocks too, and a block that is never closed ends at the end of the body (recover). Elements, relationships and the declaration's positional arguments are read by name, quoted or bare, with their escapes; a tags argument holds the tags its text is cut into at its commas (FBL 0.13, split), as Structurizr reads it; an absent argument is written in its place, padded with empty ones. Each view kind is a view of the body for the reading of its tool type, and the selected view's include, exclude, title and autoLayout statements, its scope and environment, which the tool types map onto the diagram's attributes, and its interactions are read for it alone. Which elements a view shows, and relationships lifted to the nearest drawn ancestor, are the viewpoint's and DISL's. !include, !script and other directives, styles and properties are unbound statements: kept byte for byte, never followed.",
+  "doc": "A Structurizr DSL workspace (definitions/diagrams/c4-*.dis, c4-container.md), read by the grammar structurizr.lark beside this document: FBL 0.11's grammar family (section 4.9), one binding shared by six readings. Every C4 specification names 'structurizr.fbl#workspace' as its binding, so a host opens one model and one history per .dsl file however many C4 views of it are open (section 9). Comments are owned and kept wherever they stand; a statement that does not parse is skipped to its line's end, inside blocks too, and a block that is never closed ends at the end of the body (recover). Elements, relationships and the declaration's positional arguments are read by name, quoted or bare, with their escapes; a tags argument holds the tags its text is cut into at its commas (FBL 0.13, split), as Structurizr reads it; an absent argument is written in its place, padded with empty ones. Each view kind is a view of the body, which a reading of any tool type shows (spec 067, FR-015), and the selected view's include, exclude, title and autoLayout statements, its scope and environment, which the tool types map onto the diagram's attributes, and its interactions are read for it alone. Which elements a view shows, and relationships lifted to the nearest drawn ancestor, are the viewpoint's and DISL's. !include, !script and other directives, styles and properties are unbound statements: kept byte for byte, never followed.",
   "bindings": {
     "workspace": {
       "title": "Structurizr DSL workspace",
@@ -52,9 +52,6 @@
         {
           "name": "systemLandscapeView",
           "at": "/workspace/views/system_landscape_view",
-          "origins": [
-            "c4/system-landscape"
-          ],
           "view": {
             "node": "key",
             "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
@@ -72,9 +69,6 @@
         {
           "name": "systemLandscapeViewWithoutKey",
           "at": "/workspace/views/system_landscape_view_default",
-          "origins": [
-            "c4/system-landscape"
-          ],
           "view": {
             "value": "'landscape'"
           }
@@ -82,9 +76,6 @@
         {
           "name": "systemContextView",
           "at": "/workspace/views/system_context_view",
-          "origins": [
-            "c4/context"
-          ],
           "view": {
             "node": "key",
             "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
@@ -102,9 +93,6 @@
         {
           "name": "systemContextViewWithoutKey",
           "at": "/workspace/views/system_context_view_default",
-          "origins": [
-            "c4/context"
-          ],
           "view": {
             "value": "'systemcontext'"
           }
@@ -112,9 +100,6 @@
         {
           "name": "containerView",
           "at": "/workspace/views/container_view",
-          "origins": [
-            "c4/container"
-          ],
           "view": {
             "node": "key",
             "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
@@ -132,9 +117,6 @@
         {
           "name": "containerViewWithoutKey",
           "at": "/workspace/views/container_view_default",
-          "origins": [
-            "c4/container"
-          ],
           "view": {
             "value": "'container'"
           }
@@ -142,9 +124,6 @@
         {
           "name": "componentView",
           "at": "/workspace/views/component_view",
-          "origins": [
-            "c4/component"
-          ],
           "view": {
             "node": "key",
             "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
@@ -162,9 +141,6 @@
         {
           "name": "componentViewWithoutKey",
           "at": "/workspace/views/component_view_default",
-          "origins": [
-            "c4/component"
-          ],
           "view": {
             "value": "'component'"
           }
@@ -172,9 +148,6 @@
         {
           "name": "dynamicView",
           "at": "/workspace/views/dynamic_view",
-          "origins": [
-            "c4/dynamic"
-          ],
           "view": {
             "node": "key",
             "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
@@ -192,9 +165,6 @@
         {
           "name": "dynamicViewWithoutKey",
           "at": "/workspace/views/dynamic_view_default",
-          "origins": [
-            "c4/dynamic"
-          ],
           "view": {
             "value": "'dynamic'"
           }
@@ -202,9 +172,6 @@
         {
           "name": "deploymentView",
           "at": "/workspace/views/deployment_view",
-          "origins": [
-            "c4/deployment"
-          ],
           "view": {
             "node": "key",
             "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
@@ -222,9 +189,6 @@
         {
           "name": "deploymentViewWithoutKey",
           "at": "/workspace/views/deployment_view_default",
-          "origins": [
-            "c4/deployment"
-          ],
           "view": {
             "node": "environment",
             "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",

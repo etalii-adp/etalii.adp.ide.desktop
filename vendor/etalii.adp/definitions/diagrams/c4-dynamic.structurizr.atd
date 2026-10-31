@@ -530,9 +530,9 @@ binding structurizr family grammar {
     }
   }
 
-  /// The kind of the selected view, which the tool types map onto the diagram's viewpoint. A rule beyond
-  /// `structurizr.fbl`, which says a view's kind by the reading it is for; the cases, recorded from the module, show a
-  /// view of any kind in every reading.
+  /// The kind of the selected view, which the tool types map onto the diagram's viewpoint: a reading shows a view of any
+  /// kind, and `selectedView` matches the view's own entry too (FBL 4.9). A rule beyond `structurizr.fbl`, which reads
+  /// no view's kind.
   element ViewInclude as viewKind at "/workspace/views/*" {
     selectedView: true
     attribute viewpoint from value({
