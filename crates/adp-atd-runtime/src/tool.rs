@@ -202,6 +202,10 @@ struct CapabilityLayout {
 struct ScaledPlacement {
     x: ScaledAxis,
     y: ScaledAxis,
+    /// The part of the node, as fractions of its size, that stands where its values say (`anchor`, DISL section 5.8).
+    anchor: (f64, f64),
+    /// The attributes of the opposite corner of a node drawn between two points (`x2`, `y2`, DISL section 5.8).
+    opposite: Option<(ScaledAxis, ScaledAxis)>,
 }
 
 #[derive(Debug, Clone)]
@@ -211,17 +215,21 @@ struct ScaledAxis {
     scale: f64,
     /// Whether a value along the axis is whole (`precision: 0`).
     whole: bool,
+    /// The values the axis runs between, where it runs from its maximum to its minimum (`reversed`): their sum.
+    reversed: Option<f64>,
 }
 
 impl ScaledAxis {
     /// The canvas coordinate of `element`'s value along this axis; 0 for one that does not read as a number.
     fn canvas(&self, element: &DislElement) -> f64 {
-        element.value_of(&self.attribute).as_number().unwrap_or_default() * self.scale
+        let value = element.value_of(&self.attribute).as_number().unwrap_or_default();
+        self.reversed.map_or(value, |sum| sum - value) * self.scale
     }
 
     /// The value a canvas coordinate means along this axis: the nearest whole one on a whole axis.
     fn value(&self, canvas: f64) -> Value {
         let value = canvas / self.scale;
+        let value = self.reversed.map_or(value, |sum| sum - value);
         if self.whole {
             Value::Int(value.round() as i64)
         } else {
@@ -236,11 +244,14 @@ fn scaled_placements(specification: &Json) -> HashMap<String, ScaledPlacement> {
     let coordinates = &specification["coordinates"];
     let axis = |placement: &Json, system: &str, name: &str| -> Option<ScaledAxis> {
         let attribute = placement[name]["attribute"].as_str()?.to_owned();
-        let axis = &coordinates["axes"][coordinates["systems"][system][name].as_str()?];
+        let along = name.trim_end_matches('2');
+        let axis = &coordinates["axes"][coordinates["systems"][system][along].as_str()?];
         Some(ScaledAxis {
             attribute,
             scale: axis["scale"].as_f64().filter(|s| *s != 0.0).unwrap_or(1.0),
             whole: axis["precision"].as_i64() == Some(0),
+            reversed: (axis["reversed"] == true)
+                .then(|| axis["min"].as_f64().unwrap_or(0.0) + axis["max"].as_f64().unwrap_or(0.0)),
         })
     };
     let default = coordinates["default"].as_str().unwrap_or_default();
@@ -254,6 +265,15 @@ fn scaled_placements(specification: &Json) -> HashMap<String, ScaledPlacement> {
             let scaled = ScaledPlacement {
                 x: axis(placement, system, "x")?,
                 y: axis(placement, system, "y")?,
+                anchor: match placement["anchor"].as_str() {
+                    Some("center") => (0.5, 0.5),
+                    Some("left") => (0.0, 0.5),
+                    Some("right") => (1.0, 0.5),
+                    Some("top") => (0.5, 0.0),
+                    Some("bottom") => (0.5, 1.0),
+                    _ => (0.0, 0.0),
+                },
+                opposite: axis(placement, system, "x2").zip(axis(placement, system, "y2")),
             };
             (scaled.x.scale != 1.0 || scaled.y.scale != 1.0).then(|| (name.clone(), scaled))
         })
@@ -343,6 +363,16 @@ impl RuntimeModule {
         }))
     }
 
+    /// The fixed size a node's notation states, else the size it is measured at.
+    fn stated_size(element: &DislElement) -> (f64, f64) {
+        let specification = element.diagram().specification();
+        let fixed = &specification.root()["notation"]["nodes"][element.type_name()]["size"]["fixed"];
+        match (fixed[0].as_f64(), fixed[1].as_f64()) {
+            (Some(width), Some(height)) => (width, height),
+            _ => Self::size(&specification, element),
+        }
+    }
+
     /// The size of a node that fits its content (DISL section 6.6, `autoSize: fitContent`), measured in its own style's
     /// font and padding: as wide as its widest unwrapped label, or its wrapped ones up to what the maximum leaves them,
     /// within its minimum and maximum, and as tall as its lines: one for an unwrapped label, however short, and for a
@@ -420,20 +450,44 @@ impl RuntimeModule {
 impl DiagramModule for RuntimeModule {
     /// A node that fits its content, measured as the layout measures it.
     fn size_of(&self, document: &DiagramDocument, element: &DislElement) -> Option<(f64, f64)> {
+        if let Some(placement) = self.scaled.get(&element.type_name())
+            && let Some((x2, y2)) = &placement.opposite
+        {
+            return Some((
+                (x2.canvas(element) - placement.x.canvas(element)).abs(),
+                (y2.canvas(element) - placement.y.canvas(element)).abs(),
+            ));
+        }
         Self::fitted(document.tool().definition.specification(), element)
     }
 
     /// A node on an axis with a `scale`: its values in the axis's canvas units (ATD §8.1).
     fn position(&self, element: &DislElement) -> Option<(f64, f64)> {
         let placement = self.scaled.get(&element.type_name())?;
-        Some((placement.x.canvas(element), placement.y.canvas(element)))
+        if let Some((x2, y2)) = &placement.opposite {
+            // The middle of the two points: a node of a size of its own is drawn around where it is placed.
+            return Some((
+                (placement.x.canvas(element) + x2.canvas(element)) / 2.0,
+                (placement.y.canvas(element) + y2.canvas(element)) / 2.0,
+            ));
+        }
+        let (width, height) = Self::stated_size(element);
+        Some((
+            placement.x.canvas(element) - placement.anchor.0 * width,
+            placement.y.canvas(element) - placement.anchor.1 * height,
+        ))
     }
 
     /// What a gesture to a canvas point writes of a node on an axis with a `scale`: the values the point means.
     fn placement(&self, element: &DislElement, x: f64, y: f64) -> Option<Result<ModulePlacement, String>> {
         let placement = self.scaled.get(&element.type_name())?;
+        let (width, height) = Self::stated_size(element);
+        let (x, y) = (x + placement.anchor.0 * width, y + placement.anchor.1 * height);
         let (new_x, new_y) = (placement.x.value(x), placement.y.value(y));
-        let canvas = |axis: &ScaledAxis, value: &Value| value.as_number().unwrap_or_default() * axis.scale;
+        let canvas = |axis: &ScaledAxis, value: &Value| {
+            let value = value.as_number().unwrap_or_default();
+            axis.reversed.map_or(value, |sum| sum - value) * axis.scale
+        };
         let bounds =
             |x: f64, y: f64| -> Map { [("x", Value::Double(x)), ("y", Value::Double(y))].into_iter().collect() };
         let new_bounds = bounds(canvas(&placement.x, &new_x), canvas(&placement.y, &new_y));
