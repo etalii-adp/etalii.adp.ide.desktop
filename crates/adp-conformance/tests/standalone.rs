@@ -10,9 +10,11 @@
 //! What FBL leaves to the host or to a tool type's specification is supplied here, as the standalone host's test
 //! support does: the DISL id derivations ([`natural_id`], [`knowledge_id`]), the attribute types read from
 //! `timeline.dis` and `knowledge.des`, the attributes typed as a date-time, and DISL's default deletion policy,
-//! which clears the references to a removed element. None of them is an edit to a fixture.
+//! which clears the references to a removed element, and of the Wardley map, whose specification reads its body by a
+//! plugin yet: the types of its attributes ([`wardley_type`], from `wardley-map.dis`), that decorators are many, and its
+//! random ids, by which a fixture names each element at its place ([`named_ids`]). None of them is an edit to a fixture.
 
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
@@ -34,8 +36,10 @@ mod hierarchical_requirement;
 /// of: `sankey-written-text` and `supply-chain-written-text`, which etalii.adp added with the Sankey and supply chain
 /// bindings, and the bullets family's (FBL 0.7 section 4.8, etalii.adp spec 036), with `behavior-tree-read/first-add`,
 /// which etalii.adp holds and the standalone host does not vendor.
-const STANDALONE_FIXTURES: [&str; 31] = [
+const STANDALONE_FIXTURES: [&str; 33] = [
     "behavior-tree-read/first-add",
+    "insert-constant-json-read",
+    "insert-constant-yaml-read",
     "bullets-edits",
     "bullets-edits/no-section",
     "bullets-read",
@@ -70,9 +74,10 @@ const STANDALONE_FIXTURES: [&str; 31] = [
 
 /// The fixtures of the `grammar` family (FBL 0.9 section 4.9), which no host but this one is required to read: run
 /// as the standalone host's are, by [`the_grammar_family_fixtures_pass`].
-const GRAMMAR_FIXTURES: [&str; 19] = [
+const GRAMMAR_FIXTURES: [&str; 21] = [
     "grammar-comment-start",
     "grammar-remove-part",
+    "grammar-split-slot",
     "structurizr-open-block",
     "structurizr-absent-arguments",
     "structurizr-add-view",
@@ -84,6 +89,7 @@ const GRAMMAR_FIXTURES: [&str; 19] = [
     "structurizr-recover-edges",
     "structurizr-recover-nested",
     "structurizr-rename",
+    "structurizr-split-tags",
     "structurizr-trailing-comments",
     "structurizr-view-statements",
     "structurizr-view-without-key/default-key",
@@ -147,12 +153,40 @@ const KNOWLEDGE_STEPS: [(&str, usize, usize); 4] = [
     ("knowledge-xml", 150, 150),
 ];
 
+/// The fixtures of the Wardley map's binding (FBL 0.12): segments in any order, items, a brace on its own line, and
+/// identities in the legacy file, run by [`the_wardley_map_fixtures_pass`].
+const WARDLEY_FIXTURES: [&str; 11] = [
+    "wardley-annotation-positions",
+    "wardley-comments/comments-everywhere",
+    "wardley-comments/trailing-comments",
+    "wardley-duplicate-names/duplicate-names",
+    "wardley-legacy-identities",
+    "wardley-rename-identity",
+    "wardley-strategy-identities",
+    "wardley-trailer/decorators",
+    "wardley-trailer/label-twice",
+    "wardley-trailer/lenient-trailer",
+    "wardley-unclosed-pipeline",
+];
+
+/// The fixtures whose adds wardley-map.fbl writes with a bracket FBL reads otherwise than they state. Its `insert.emit`s
+/// hold `[{visibility}, {maturity}]` unescaped, which FBL section 6.2 reads as an optional segment and writes without
+/// its brackets, where these fixtures expect `component Water [0.4, 0.8]`: FBL's own way to write the bracket is `\[`, as
+/// hierarchical-requirement.fbl does. [`the_wardley_map_fixtures_pass_when_its_brackets_are_escaped`] runs them against
+/// a copy of the binding with those brackets escaped; each moves to [`WARDLEY_FIXTURES`] when etalii.adp's binding does.
+const WARDLEY_UNESCAPED_FIXTURES: [&str; 3] = [
+    "wardley-brace-ending",
+    "wardley-duplicate-names/same-key-twice",
+    "wardley-pipelines",
+];
+
 /// The fixtures of features this port does not have yet: FBL 0.8's constants an insert writes (section 6.2), and one
 /// the standalone host does not vendor either. They are out of scope here, not failing: etalii.adp's splice replay
 /// (`fixtures.rs`) still runs every one of them. The hierarchical-requirement tool type's fixtures are run by
 /// [`hierarchical_requirement`], through the stand-in for its DESL interpreter.
-const NOT_SUPPORTED: [&str; 25] = [
-    // FBL 0.14, a new member of a yaml or json mapping named by its key: etalii.adp has them, and this host does not read FBL 0.14 yet.
+const NOT_SUPPORTED: [&str; 7] = [
+    // FBL 0.14, a new member of a yaml or json mapping named by its key: etalii.adp has them, and this host does not read
+    // FBL 0.14 yet.
     "databricks-resource-add/bundle",
     "databricks-resource-add/fresh",
     "databricks-resource-add/no-jobs",
@@ -162,28 +196,7 @@ const NOT_SUPPORTED: [&str; 25] = [
     // type gives it above FBL (agent-behavior-modelling.dis, `Retry.attempts: int`).
     "behavior-tree-read",
     "insert-constant-json",
-    "insert-constant-json-read",
     "insert-constant-yaml",
-    "insert-constant-yaml-read",
-    // FBL 0.10 to 0.13 (etalii.adp spec 066), which this port does not have yet: the Wardley map, and several items
-    // written in one argument. Their splices are replayed by `fixtures.rs` only, each leaving this list as its construct
-    // is written.
-    "wardley-annotation-positions",
-    "wardley-brace-ending",
-    "wardley-comments/comments-everywhere",
-    "wardley-comments/trailing-comments",
-    "wardley-duplicate-names/duplicate-names",
-    "wardley-duplicate-names/same-key-twice",
-    "wardley-legacy-identities",
-    "wardley-pipelines",
-    "wardley-rename-identity",
-    "wardley-strategy-identities",
-    "wardley-trailer/decorators",
-    "wardley-trailer/label-twice",
-    "wardley-trailer/lenient-trailer",
-    "wardley-unclosed-pipeline",
-    "grammar-split-slot",
-    "structurizr-split-tags",
 ];
 
 fn vendor() -> PathBuf {
@@ -398,7 +411,8 @@ fn json_value(value: &Json) -> Value {
             .unwrap_or_else(|| Value::Double(n.as_f64().unwrap_or(0.0))),
         Json::Bool(b) => Value::Bool(*b),
         Json::Array(items) => Value::list(items.iter().map(json_value).collect()),
-        _ => Value::Null,
+        Json::Object(_) => Value::map(attributes(value)),
+        Json::Null => Value::Null,
     }
 }
 
@@ -417,6 +431,21 @@ fn in_body_order(mut splices: Vec<Splice>) -> Vec<Splice> {
     let mut indexed: Vec<(usize, Splice)> = splices.drain(..).enumerate().collect();
     indexed.sort_by_key(|(i, s)| (s.start, *i));
     indexed.into_iter().map(|(_, s)| s).collect()
+}
+
+/// A step's splices by the files they name, sorted by name, each in body order.
+fn files_of(step: &Json) -> Vec<(String, Vec<Splice>)> {
+    let mut files: BTreeMap<String, Vec<Splice>> = BTreeMap::new();
+    for splice in step["splices"].as_array().into_iter().flatten() {
+        if let Some(file) = splice["file"].as_str() {
+            let splice = serde_json::from_value(splice.clone()).expect("a fixture's splice");
+            files.entry(file.to_owned()).or_default().push(splice);
+        }
+    }
+    files
+        .into_iter()
+        .map(|(file, splices)| (file, in_body_order(splices)))
+        .collect()
 }
 
 fn describe(splices: &[Splice]) -> String {
@@ -440,21 +469,49 @@ enum Subject {
     Registration(Box<OpenDocument>),
 }
 
+/// The ids a fixture names the elements of a tool type by whose ids are random (the Wardley map's `persistence.ids`,
+/// wardley-map.dis, `uuid-v4`), by each element's type and line: the fixture's `read` lists them in reading order, and an
+/// id the strategy would make is one no fixture can state (FBL 0.12, wardley-pipelines' `doc`).
+type NamedIds = Rc<HashMap<(String, usize), String>>;
+
+/// The attributes wardley-map.dis gives a number, an int or a bool, and those of a position's items, by name: the binding
+/// names its types otherwise than the specification, which has no `typeMap` while it stays a plugin. FBL leaves a value's
+/// type to the specification (section 5.2).
+fn wardley_type(_: &str, attribute: &str) -> Option<String> {
+    let name = attribute.rsplit('.').next().unwrap_or(attribute);
+    match name {
+        "visibility" | "maturity" | "visibility1" | "maturity1" | "visibility2" | "maturity2" => Some("number".into()),
+        "number" | "width" | "height" => Some("int".into()),
+        "inertia" => Some("bool".into()),
+        _ => None,
+    }
+}
+
 /// What a binding's tool type gives a body's reading, as FBL leaves it to the specification (DISL section 11.5).
-fn options_of(binding_name: &str, file_name: &str) -> FblOptions {
+fn options_of(binding_name: &str, file_name: &str, named: Option<NamedIds>) -> FblOptions {
     let derive_name = binding_name.to_owned();
+    let wardley = binding_name == "map";
     FblOptions {
         file_name: file_name.to_owned(),
-        derive_id: Some(Rc::new(move |request: &IdRequest<'_>| {
-            natural_id(&derive_name, request)
+        derive_id: Some(Rc::new(move |request: &IdRequest<'_>| match &named {
+            Some(named) => named.get(&(request.type_name.to_owned(), request.line)).cloned(),
+            None => natural_id(&derive_name, request),
         })),
         time_attributes: time_attributes(binding_name),
-        attribute_type: (binding_name == "timeline").then(|| type_of(timeline_types())),
+        attribute_type: if binding_name == "timeline" {
+            Some(type_of(timeline_types()))
+        } else if wardley {
+            let types: adp_fbl::model::AttributeType = Rc::new(wardley_type);
+            Some(types)
+        } else {
+            None
+        },
         // The C4 types' `persistence.ids.missing`, and the attributes of their `ViewInclude` that hold lists.
         ephemeral_missing_ids: binding_name == "workspace",
-        many: (binding_name == "workspace").then(|| {
+        many: (binding_name == "workspace" || wardley).then(|| {
+            // A component's decorators are one set (FBL 0.12 section 4.9), which wardley-map.dis holds as five flags.
             let many: adp_fbl::model::Many = Rc::new(|element: &str, attribute: &str| {
-                element == "ViewInclude" && matches!(attribute, "members" | "excludes")
+                element == "ViewInclude" && matches!(attribute, "members" | "excludes") || attribute == "decorators"
             });
             many
         }),
@@ -465,8 +522,19 @@ fn options_of(binding_name: &str, file_name: &str) -> FblOptions {
 impl Subject {
     /// `origin` is the reading a body without a registration is read as: a fixture's `template` names it.
     fn open(input: Vec<u8>, name: &str, binding: Rc<FblBinding>, folder: &Path, origin: Option<&str>) -> Subject {
+        Self::open_named(input, name, binding, folder, origin, None)
+    }
+
+    fn open_named(
+        input: Vec<u8>,
+        name: &str,
+        binding: Rc<FblBinding>,
+        folder: &Path,
+        origin: Option<&str>,
+        named: Option<NamedIds>,
+    ) -> Subject {
         if name.to_lowercase().ends_with(".adp") {
-            let options = options_of(&binding.name, name);
+            let options = options_of(&binding.name, name, named);
             return Subject::Registration(Box::new(OpenDocument::open(
                 input,
                 &folder.join(name),
@@ -477,7 +545,7 @@ impl Subject {
         }
         let options = FblOptions {
             origin: origin.map(str::to_owned),
-            ..options_of(&binding.name, name)
+            ..options_of(&binding.name, name, named)
         };
         Subject::Body {
             body: Box::new(OpenBody::open(input, binding.clone(), Rc::new(options))),
@@ -528,11 +596,19 @@ impl Subject {
         }
     }
 
-    /// The name of the file the last edit wrote, when it is not the fixture's input (FBL 0.10 section 15.3).
-    fn edited_file(&self) -> Option<&str> {
+    /// The names of the files the last edit wrote (FBL 0.10 section 15.3).
+    fn edited_files(&self) -> Vec<String> {
         match self {
-            Subject::Body { .. } => None,
-            Subject::Registration(document) => document.last_file(),
+            Subject::Body { .. } => Vec::new(),
+            Subject::Registration(document) => document.last_files().into_iter().map(str::to_owned).collect(),
+        }
+    }
+
+    /// The splices the last edit wrote to a file of the document (FBL 0.12 section 8.6: one edit may write several).
+    fn edited_splices(&self, name: &str) -> Vec<Splice> {
+        match self {
+            Subject::Body { .. } => Vec::new(),
+            Subject::Registration(document) => document.last_splices(name).map(<[Splice]>::to_vec).unwrap_or_default(),
         }
     }
 
@@ -755,7 +831,12 @@ fn same_value(actual: &Value, expected: &Json) -> bool {
             Value::List(list) => list.len() == items.len() && list.iter().zip(items).all(|(a, e)| same_value(a, e)),
             _ => false,
         },
-        Json::Object(_) => false,
+        Json::Object(fields) => match actual {
+            Value::Map(map) => fields
+                .iter()
+                .all(|(name, e)| map.get(name).is_some_and(|a| same_value(a, e))),
+            _ => false,
+        },
     }
 }
 
@@ -765,6 +846,10 @@ fn check_attributes(element: &adp_fbl::FblElement, attributes: &Json, name: &str
     for (attribute, expected) in attributes.as_object().into_iter().flatten() {
         let label = format!("{name}: '{attribute}' of '{}'", element.id);
         let Some(actual) = element.attributes.get(attribute) else {
+            // A slot that is absent, with no default, is stated as null.
+            if expected.is_null() {
+                continue;
+            }
             return Err(format!("{label} was not read."));
         };
         let same = same_value(actual, expected);
@@ -902,6 +987,26 @@ fn check_read(model: &FblModel, read: &Json, name: &str) -> Result<(), String> {
     Ok(())
 }
 
+/// The ids of a fixture of a tool type whose ids are random: read once to learn each element's type and line, whose id
+/// is the one at its place in the fixture's `read`.
+fn named_ids(input: &[u8], name: &str, binding: &Rc<FblBinding>, folder: &Path, fixture: &Json) -> Option<NamedIds> {
+    if binding.name != "map" {
+        return None;
+    }
+    let model = Subject::open(input.to_vec(), name, binding.clone(), folder, None).model()?;
+    let listed = fixture.pointer("/read/elements")?.as_array()?;
+    let named = model
+        .elements
+        .iter()
+        .zip(listed)
+        .filter_map(|(element, listed)| {
+            let id = listed["id"].as_str()?;
+            Some(((element.type_name.clone(), element.line), id.to_owned()))
+        })
+        .collect();
+    Some(Rc::new(named))
+}
+
 /// Runs a fixture's reading and steps as `ConformanceFixturesTests.Run` does.
 fn run(name: &str, folder: &Path, fixture: &Json) -> Result<usize, String> {
     let (binding, binding_text) = load_binding(fixture, folder)?;
@@ -919,7 +1024,8 @@ fn run(name: &str, folder: &Path, fixture: &Json) -> Result<usize, String> {
             return Err(format!("{name}: the template does not write the input."));
         }
     }
-    let mut subject = Subject::open(input, input_name, binding, folder, origin);
+    let named = named_ids(&input, input_name, &binding, folder, fixture);
+    let mut subject = Subject::open_named(input, input_name, binding, folder, origin, named);
     if let Some(read) = fixture.get("read")
         && let Some(model) = subject.model()
     {
@@ -969,24 +1075,34 @@ fn run(name: &str, folder: &Path, fixture: &Json) -> Result<usize, String> {
                 }
             }
         };
-        if expected != actual {
-            return Err(format!(
-                "{label}: expected splices\n  {}\nbut planned\n  {}",
-                describe(&expected),
-                describe(&actual)
-            ));
-        }
-        for file in step["splices"]
-            .as_array()
-            .into_iter()
-            .flatten()
-            .filter_map(|s| s["file"].as_str())
-        {
-            if subject.edited_file() != Some(file) {
+        // A fixture's splices that name their files are compared file by file (FBL 0.12 section 8.6).
+        let named = files_of(step);
+        if named.is_empty() {
+            if expected != actual {
                 return Err(format!(
-                    "{label}: the splices are of {file}, and the edit wrote {:?}.",
-                    subject.edited_file()
+                    "{label}: expected splices\n  {}\nbut planned\n  {}",
+                    describe(&expected),
+                    describe(&actual)
                 ));
+            }
+        } else {
+            let mut wrote = subject.edited_files();
+            wrote.sort();
+            if wrote != named.iter().map(|(file, _)| file.clone()).collect::<Vec<_>>() {
+                return Err(format!(
+                    "{label}: the splices are of {:?}, and the edit wrote {wrote:?}.",
+                    named.iter().map(|(file, _)| file).collect::<Vec<_>>()
+                ));
+            }
+            for (file, splices) in &named {
+                let actual = subject.edited_splices(file);
+                if *splices != actual {
+                    return Err(format!(
+                        "{label}: expected splices of {file}\n  {}\nbut planned\n  {}",
+                        describe(splices),
+                        describe(&actual)
+                    ));
+                }
             }
         }
         for (file, bytes) in step.get("expectFiles").and_then(Json::as_object).into_iter().flatten() {
@@ -1050,6 +1166,8 @@ fn every_vendored_fixture_is_run_or_named_as_not_supported() {
         .chain(KNOWLEDGE_FIXTURES.iter())
         .chain(GRAMMAR_FIXTURES.iter())
         .chain(READINGS_FIXTURES.iter())
+        .chain(WARDLEY_FIXTURES.iter())
+        .chain(WARDLEY_UNESCAPED_FIXTURES.iter())
         .chain(NOT_SUPPORTED.iter())
         .copied()
         .chain(designer.iter().map(String::as_str))
@@ -1131,6 +1249,107 @@ fn the_fixtures_of_one_binding_with_several_readings_pass() {
             failures.push(problem);
         }
     }
+    assert!(
+        failures.is_empty(),
+        "{} failed:\n{}",
+        failures.len(),
+        failures.join("\n\n")
+    );
+}
+
+#[test]
+fn the_wardley_map_fixtures_pass() {
+    let mut failures = Vec::new();
+    for name in WARDLEY_FIXTURES {
+        let folder = fixture_folder(name);
+        let fixture = read_json(&folder.join("fixture.json"));
+        if let Err(problem) = run(name, &folder, &fixture) {
+            failures.push(problem);
+        }
+    }
+    assert!(
+        failures.is_empty(),
+        "{} failed:\n{}",
+        failures.len(),
+        failures.join("\n\n")
+    );
+}
+
+/// FBL section 5.7: a rename to a name an element of another rule holds, which one reference names with it, is refused.
+#[test]
+fn a_rename_to_the_name_of_an_anchor_is_refused() {
+    let name = "wardley-rename-identity";
+    let folder = fixture_folder(name);
+    let fixture = read_json(&folder.join("fixture.json"));
+    let (binding, _) = load_binding(&fixture, &folder).unwrap();
+    let input = fs::read(folder.join("annotations-and-labels.adp")).unwrap();
+    let mut subject = Subject::open(input, "annotations-and-labels.adp", binding, &folder, None);
+    let rename = read_change(
+        &serde_json::json!({ "set": {
+            "element": "avuvz18xgys3ql9t62tp3rghb",
+            "attributes": { "name": "Customer" }
+        }}),
+        None,
+    )
+    .unwrap();
+
+    let result = subject.change(&rename);
+
+    assert!(matches!(result, PlanResult::Refused(_)), "{result:?}");
+}
+
+/// The steps that write a new entry of wardley-map.fbl: see [`WARDLEY_UNESCAPED_FIXTURES`]. Without the copy they are
+/// refused, since the text the binding gives, without its brackets, does not read back.
+#[test]
+fn the_wardley_map_fixtures_pass_when_its_brackets_are_escaped() {
+    let bindings = vendor().join("specifications/fbl");
+    let folder = std::env::temp_dir().join(format!("adp-wardley-escaped-{}", std::process::id()));
+    fs::create_dir_all(&folder).unwrap();
+    let text = fs::read_to_string(bindings.join("wardley-map.fbl")).unwrap();
+    let escaped = text
+        .replace(r#" [{visibility}, {maturity}]""#, r#" \\[{visibility}, {maturity}\\]""#)
+        .replace(r#" [{maturity}]""#, r#" \\[{maturity}\\]""#)
+        .replace("[{positions}]", r"\\[{positions}\\]");
+    assert_ne!(text, escaped);
+    fs::write(folder.join("wardley-map.fbl"), escaped).unwrap();
+    fs::copy(bindings.join("wardley-map.lark"), folder.join("wardley-map.lark")).unwrap();
+    let reference = format!("{}#map", folder.join("wardley-map.fbl").display());
+
+    // In an insert's `emit`, the placeholder of an `items` attribute is every item, joined by its separator (FBL 0.12).
+    let (binding, _) = documents::resolve_reference(&reference, &folder.join("fixture.json")).unwrap();
+    let mut body = OpenBody::open(
+        b"title A\n".to_vec(),
+        Rc::new(binding),
+        Rc::new(options_of("map", "a.owm", None)),
+    );
+    let add = read_change(
+        &serde_json::json!({ "add": {
+            "type": "Annotation",
+            "attributes": {
+                "number": 3,
+                "positions": [{ "visibility": 0.1, "maturity": 0.2 }, { "visibility": 0.3, "maturity": 0.4 }],
+                "text": "Two places"
+            }
+        }}),
+        None,
+    )
+    .unwrap();
+    assert!(matches!(body.change(&add), PlanResult::Planned(_)));
+    assert_eq!(
+        String::from_utf8_lossy(body.bytes()),
+        "title A\nannotation 3 [[0.1,0.2],[0.3,0.4]] Two places\n"
+    );
+
+    let mut failures = Vec::new();
+    for name in WARDLEY_UNESCAPED_FIXTURES {
+        let fixture_at = fixture_folder(name);
+        let mut fixture = read_json(&fixture_at.join("fixture.json"));
+        fixture["binding"] = Json::from(reference.as_str());
+        if let Err(problem) = run(name, &fixture_at, &fixture) {
+            failures.push(problem);
+        }
+    }
+    fs::remove_dir_all(&folder).ok();
     assert!(
         failures.is_empty(),
         "{} failed:\n{}",

@@ -19,7 +19,7 @@ use crate::model::{
 };
 use crate::planning::new_text;
 use crate::rules::read_mode::{self, ReadMode};
-use crate::rules::{Candidate, Node, ReadElement, SlotRead, capture, scalar_conversion};
+use crate::rules::{Candidate, IdentityKey, Node, ReadElement, SlotRead, capture, scalar_conversion};
 use crate::text::{BodyText, Span};
 
 /// The value a binding's JSON gives, as an attribute value.
@@ -45,6 +45,19 @@ type MakeVariable = fn(&Family, &Candidate) -> Value;
 enum ParentKey {
     Element(usize),
     Entry(EntryId),
+}
+
+/// An element of a rule with `id.sidecar` as a reading has it (FBL 0.12 section 8.6).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct ElementIdentity {
+    pub key: IdentityKey,
+    pub id: String,
+    /// Whether the id was read from an entry.
+    pub stored: bool,
+    /// Whether the id is the one the specification's strategy made.
+    pub derived: bool,
+    /// The first byte of the element's own span.
+    pub start: usize,
 }
 
 /// A body read through a binding.
@@ -501,6 +514,8 @@ impl BodyReading {
                         id: String::new(),
                         id_stored: false,
                         id_read: None,
+                        id_derived: false,
+                        identity: None,
                         key: String::new(),
                         key_attribute: None,
                         slots: Vec::new(),
@@ -715,11 +730,13 @@ impl BodyReading {
         for (name, attribute) in &rule.attributes {
             observe(element, first);
             first = false;
-            // A grammar slot that gathers or splits holds a list by its binding (FBL 0.11 section 5.2, 0.13 section 4.9).
+            // A grammar slot that gathers, reads items or splits holds a list by its binding (FBL 0.11 and 0.12 section
+            // 5.2, 0.13 section 4.9).
             let many = !attribute.flag
                 && ((attribute.word.is_some() || attribute.node.is_some())
                     && self.options().many(&rule.type_name, name)
                     || attribute.split.is_some()
+                    || !attribute.items.is_empty()
                     || !attribute.gather.is_empty());
             let read = if many {
                 self.read_many(&element.candidate, attribute, element.rule)
@@ -754,9 +771,16 @@ impl BodyReading {
             {
                 value = Value::list(words.iter().map(|w| Value::from(w.text.as_str())).collect());
             }
+            // A grammar's wire value no key of the map holds, as a keyword read in another case, is kept as written.
+            let unmapped = self.family.family_name() == "grammar"
+                && attribute
+                    .map
+                    .as_ref()
+                    .is_some_and(|map| map.iter().all(|(_, m)| value.as_str() != Some(m)));
             if read.present
                 && !attribute.flag
                 && read.items.is_none()
+                && !unmapped
                 && mode == ReadMode::Typed
                 && let Some(type_name) = self.options().attribute_type(&rule.type_name, name)
             {
@@ -768,12 +792,20 @@ impl BodyReading {
                     continue;
                 }
                 value = self.convert(element, name, attribute, &read, &type_name, value, scalar);
+                if self.family.family_name() == "grammar" {
+                    value = scalar_conversion::from_text(&type_name, value);
+                }
             }
             if !read.present
                 && !attribute.flag
                 && let Some(fallback) = &attribute.default
             {
                 value = from_json(fallback);
+                if self.family.family_name() == "grammar"
+                    && let Some(type_name) = self.options().attribute_type(&rule.type_name, name)
+                {
+                    value = scalar_conversion::from_text(&type_name, value);
+                }
             }
             if read.present || attribute.flag || attribute.default.is_some() {
                 element.attributes.insert(name.clone(), value);
@@ -988,6 +1020,7 @@ impl BodyReading {
             positions.insert(slot, position + 1);
             self.elements[index].position_in_slot = position;
         }
+        self.read_identities();
         let (relations, elements): (Vec<usize>, Vec<usize>) =
             self.order.iter().partition(|i| self.elements[**i].is_relation);
         for &index in &elements {
@@ -1081,17 +1114,15 @@ impl BodyReading {
             self.elements[index].id = self.place_id(index);
             return;
         }
-        if let Some(key_expression) = rule.id.as_ref().and_then(|i| i.sidecar_key.as_deref()) {
-            let (key, _) = self.evaluate(key_expression, &element.candidate);
-            if let Some(key) = key
-                && !key.is_null()
-                && let Some(stored) = self.options().identities.get(&new_text::plain(&key, None))
-            {
-                let stored = stored.clone();
-                self.elements[index].id = stored;
-                self.elements[index].id_stored = true;
-                return;
-            }
+        if let Some(stored) = element
+            .identity
+            .as_ref()
+            .and_then(|identity| self.options().identities.get(&identity.entry()))
+        {
+            let stored = stored.clone();
+            self.elements[index].id = stored;
+            self.elements[index].id_stored = true;
+            return;
         }
         let parent_id = element.parent.map(|p| self.elements[p].id.clone());
         let source_id = element.source_element.map(|p| self.elements[p].id.clone());
@@ -1110,8 +1141,59 @@ impl BodyReading {
                 position_in_slot: element.position_in_slot,
             })
         });
+        self.elements[index].id_derived = derived.is_some();
         let id = derived.unwrap_or_else(|| self.place_id(index));
         self.elements[index].id = id;
+    }
+
+    /// What keys each stored id (FBL 0.12 section 8.6): the holders of one key counted per kind in document order, each
+    /// later holder's key followed by its rule's `ordinal` with its place. Without `ordinal` the holders share the key,
+    /// and the later ones are reported as duplicates when their ids are.
+    fn read_identities(&mut self) {
+        let binding = self.family.binding.clone();
+        let mut holders: HashMap<(Option<String>, String), usize> = HashMap::new();
+        for index in self.order.clone() {
+            let element = &self.elements[index];
+            let Some(id) = binding.rules[element.rule].id.as_ref() else {
+                continue;
+            };
+            let Some(expression) = id.sidecar_key.as_deref() else {
+                continue;
+            };
+            let Some(natural) = self
+                .evaluate(expression, &element.candidate)
+                .0
+                .filter(|key| !key.is_null())
+            else {
+                continue;
+            };
+            let natural = new_text::plain(&natural, None);
+            let holder = holders.entry((id.sidecar_kind.clone(), natural.clone())).or_insert(0);
+            *holder += 1;
+            let key = match id.sidecar_ordinal.as_deref().filter(|_| *holder > 1) {
+                Some(ordinal) => format!("{natural}{}", ordinal.replace("{n}", &holder.to_string())),
+                None => natural,
+            };
+            self.elements[index].identity = Some(IdentityKey {
+                kind: id.sidecar_kind.clone(),
+                key,
+            });
+        }
+    }
+
+    /// The elements of rules with `id.sidecar`, in document order (FBL 0.12 section 8.6).
+    pub(crate) fn identities(&self) -> Vec<ElementIdentity> {
+        self.elements()
+            .filter_map(|element| {
+                Some(ElementIdentity {
+                    key: element.identity.clone()?,
+                    id: element.id.clone(),
+                    stored: element.id_stored,
+                    derived: element.id_derived,
+                    start: self.family.entries[element.entry()].own.start,
+                })
+            })
+            .collect()
     }
 
     /// The value references name an element by: the attribute its own rule, else any rule of the binding,

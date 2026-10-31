@@ -264,6 +264,27 @@ impl RegistrationDocument {
     /// Layout entries for ids the model does not have (FBL section 8.5), and the entries of the declared blocks
     /// keyed by ids (FBL 0.7 section 8.1): reported as `fbl.stale-view-data`, applied to nothing, and removed at the
     /// registration's next write.
+    /// The entries of the `identities` block whose key names no element (FBL 0.12 section 8.6, as section 8.5 has it of
+    /// a layout entry), reported as `fbl.stale-view-data`.
+    pub(crate) fn stale_identities(&self, keys: &HashSet<String>, file_name: &str) -> Vec<Finding> {
+        self.identities
+            .iter()
+            .flat_map(|block| &block.entries)
+            .filter(|entry| !keys.contains(&entry.key))
+            .map(|entry| {
+                self.located(
+                    codes::STALE_VIEW_DATA,
+                    format!(
+                        "The identities keep an id for '{}', which the file no longer has; it is removed at the next write of the body.",
+                        entry.key
+                    ),
+                    entry.key_span,
+                    file_name,
+                )
+            })
+            .collect()
+    }
+
     pub fn stale_entries(
         &self,
         ids: &HashSet<String>,
@@ -536,6 +557,60 @@ impl OpenRegistration {
             }
         }
         result
+    }
+
+    /// Moves and prunes the entries of the `identities` block and writes a new one, as one edit (FBL 0.12 section 8.6): a
+    /// moved entry by a `replace-value` of its key, a pruned one by a `remove-entry` of its line.
+    pub(crate) fn change_identities(
+        &mut self,
+        moves: &[(String, String)],
+        pruned: &[String],
+        new: Option<(&str, &str)>,
+    ) -> PlanResult {
+        let mut splices = Vec::new();
+        for entry in self.document.identities.iter().flat_map(|block| &block.entries) {
+            if let Some((_, to)) = moves.iter().find(|(from, _)| *from == entry.key) {
+                splices.push(splice(
+                    Operation::ReplaceValue,
+                    entry.key_span.start,
+                    entry.key_span.end,
+                    to.clone(),
+                ));
+            } else if pruned.contains(&entry.key) {
+                splices.push(splice(
+                    Operation::RemoveEntry,
+                    entry.line.start,
+                    entry.line.end,
+                    String::new(),
+                ));
+            }
+        }
+        if let Some((key, id)) = new {
+            splices.extend(self.plan_identify(key, id));
+        }
+        let edit = PlannedEdit {
+            splices: ordered(splices),
+            snapshot: false,
+        };
+        match self.file.apply(&edit) {
+            Ok(true) => self.reread(),
+            Ok(false) => {}
+            Err(problem) => return PlanResult::Invalid(problem),
+        }
+        PlanResult::Planned(edit)
+    }
+
+    /// Stores an id read without an entry (FBL 0.12 section 8.6): written with the next write of the body, and no step
+    /// of the history.
+    pub(crate) fn store_identity(&mut self, key: &str, id: &str) -> Vec<Splice> {
+        let edit = PlannedEdit {
+            splices: self.plan_identify(key, id),
+            snapshot: false,
+        };
+        if matches!(self.file.apply_outside_history(&edit), Ok(true)) {
+            self.reread();
+        }
+        edit.splices
     }
 
     pub fn undo(&mut self) -> UndoResult {

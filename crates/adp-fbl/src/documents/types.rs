@@ -313,6 +313,10 @@ pub struct OpensText {
 pub struct IdBinding {
     pub from: Option<Slot>,
     pub sidecar_key: Option<String>,
+    /// *(FBL 0.12)* The key space of the rule's identities (FBL section 8.6).
+    pub sidecar_kind: Option<String>,
+    /// *(FBL 0.12)* What follows the natural key of each later holder of one key, `{n}` its ordinal (FBL section 8.6).
+    pub sidecar_ordinal: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -345,6 +349,10 @@ pub struct Slot {
     pub escape: Option<SlotEscape>,
     /// *(FBL 0.13)* With `node`: the text a node's value is cut into items at (FBL section 4.9).
     pub split: Option<String>,
+    /// *(FBL 0.12)* With `node`: the item attributes of each node reached, each a slot relative to it (FBL section 5.2).
+    pub items: Vec<(String, Slot)>,
+    /// *(FBL 0.12)* With `items` or `split`: the text written between two items, `", "` when none is given.
+    pub separator: Option<String>,
 }
 
 /// A `{node}` slot's `escape` (FBL 0.11 section 4.9): the escape character and the quote it escapes.
@@ -544,6 +552,8 @@ pub struct RegistrationSettings {
     /// resource (FBL section 8.2). Empty when the capture is the same for every reading.
     pub resource_by_origin: Vec<(String, Option<String>)>,
     pub legacy_layout: Option<String>,
+    /// *(FBL 0.12)* The legacy identities file, as `{base}.identities.json` (FBL section 8.7).
+    pub legacy_identities: Option<String>,
 }
 
 impl RegistrationSettings {

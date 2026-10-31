@@ -45,6 +45,21 @@ pub(crate) fn convert(
     }
 }
 
+/// A text of the `grammar` family read as the type the specification gives its attribute (FBL 0.9 section 5.2), which
+/// [`convert`] has said it converts to: a value of any other type is kept as it is.
+pub(crate) fn from_text(type_name: &str, value: Value) -> Value {
+    let Some(text) = value.as_str().map(str::trim) else {
+        return value;
+    };
+    let typed = match type_name {
+        "int" => text.parse().ok().map(Value::Int),
+        "number" => text.parse().ok().map(Value::Double),
+        "bool" => text.parse().ok().map(Value::Bool),
+        _ => None,
+    };
+    typed.unwrap_or(value)
+}
+
 /// What a value of each type is called in a finding: "'wide' is not a whole number".
 pub(crate) fn describe(type_name: &str) -> String {
     match type_name {

@@ -1,14 +1,16 @@
 //! The `grammar` family (FBL 0.9 section 4.9): a body read by the grammar its binding carries, whose nodes and
 //! tokens are the entries rules select by their names; a value is the text of a node, or the group `value` of its
-//! `match`, with its escapes resolved (FBL 0.11); new entries are written from `emit` and removed with their lines, an
-//! absent part from its binding's `create`, a block around a first child from its rule's `opens`, and every write is
-//! read again before it is made.
+//! `match`, with its escapes resolved (FBL 0.11), or several items, each a node, a structured value (FBL 0.12) or a piece
+//! of a node's value (FBL 0.13), of which a set writes the difference; new entries are written from `emit` and removed
+//! with their lines, an absent part from its binding's `create`, a block around a first child from its rule's `opens`,
+//! and every write is read again before it is made.
 
 use std::collections::HashMap;
 use std::sync::Arc;
 
 use adp_cel::{Map, Value};
 
+use super::lines::common_subsequence;
 use super::{Entry, EntryId, EntryKind, Family, FamilyKind};
 use crate::documents::types::{AttributeBinding, HeaderSettings, InsertSettings, OpensText, Slot};
 use crate::grammar::{self, Grammar, Reading};
@@ -16,9 +18,14 @@ use crate::model::{FindingSeverity, codes};
 use crate::planning::new_text;
 use crate::planning::plan::{Plan, Planning, refuse};
 use crate::rules::selector;
-use crate::rules::{Candidate, InsertRequest, ReadElement, SlotChange, SlotRead, Word, WordItem};
+use crate::rules::{
+    Candidate, InsertRequest, ItemPart, ReadElement, SlotChange, SlotRead, Word, WordItem, scalar_conversion,
+};
 use crate::splice::Operation;
 use crate::text::Span;
+
+/// A splice of a set of several items, before it is read again.
+type Pending = (Operation, Span, String);
 
 /// A node or token of the tree, as an entry has it.
 #[derive(Debug, Clone)]
@@ -395,14 +402,22 @@ impl Family {
     }
 
     /// Every item of a `many` attribute's slot and of its `gather`, in order (FBL 0.11 section 5.2, FBL 0.13 section
-    /// 4.9): each node a slot reaches, or the pieces of it `split` cuts, with the escapes resolved per item. The
-    /// attribute is present with no item too: it holds the empty list.
+    /// 4.9): each node a slot reaches, or the pieces of it `split` cuts, with the escapes resolved per item, or *(FBL
+    /// 0.12)* the structured value `items` reads from each node. The attribute is present with no item too: it holds
+    /// the empty list.
     pub(super) fn grammar_read_many(&self, candidate: &Candidate, attribute: &AttributeBinding) -> SlotRead {
         let equals = |e: EntryId, p: &str, v: &str| self.path_equals(e, p, v);
         let mut items = Vec::new();
+        let mut values = Vec::new();
         for slot in std::iter::once(&attribute.slot).chain(&attribute.gather) {
             let Some(node) = &slot.node else { continue };
             for (target, _) in selector::matches(&self.entries, candidate.entry, node, Some(&equals)) {
+                if !slot.items.is_empty() {
+                    let (item, value) = self.structured_item(candidate, target, slot, node);
+                    items.push(item);
+                    values.push(value);
+                    continue;
+                }
                 let Some((value, span)) = self.node_value(target, slot) else {
                     continue;
                 };
@@ -415,6 +430,7 @@ impl Family {
                         Some(escape) => escape.read(piece),
                         None => piece.to_owned(),
                     };
+                    values.push(Value::from(read.as_str()));
                     items.push(WordItem {
                         value_span: piece_span,
                         word: Word {
@@ -423,18 +439,64 @@ impl Family {
                             quoted: false,
                         },
                         value: read,
+                        node: target,
+                        parts: Vec::new(),
                     });
                 }
             }
         }
-        let mut read = SlotRead::new(
-            Value::list(items.iter().map(|item| Value::from(item.value.as_str())).collect()),
-            None,
-            true,
-            true,
-        );
+        let mut read = SlotRead::new(Value::list(values), None, true, true);
         read.items = Some(std::rc::Rc::new(items));
         read
+    }
+
+    /// One item of a slot with `items` (FBL 0.12 section 5.2): a map of its item attributes, each the text of the node
+    /// its slot reaches from `node`, typed as the specification types `attribute.item`, and each with its span.
+    fn structured_item(&self, candidate: &Candidate, node: EntryId, slot: &Slot, path: &str) -> (WordItem, Value) {
+        let own = self.entries[node].own;
+        let type_of = |name: &str| {
+            let rule = self.rule(candidate.rule?);
+            let attribute = rule
+                .attributes
+                .iter()
+                .find(|(_, a)| a.slot.node.as_deref() == Some(path))?;
+            let item = format!("{}.{name}", attribute.0);
+            self.options.attribute_type(&rule.type_name, &item)
+        };
+        let mut parts = Vec::new();
+        let mut value = Map::default();
+        for (name, item) in &slot.items {
+            let Some((text, span)) = item
+                .node
+                .as_deref()
+                .and_then(|n| self.grammar_reach(node, n))
+                .and_then(|target| self.node_value(target, item))
+            else {
+                continue;
+            };
+            let read = match type_of(name) {
+                Some(type_name) => scalar_conversion::from_text(&type_name, Value::from(text.as_str())),
+                None => Value::from(text.as_str()),
+            };
+            value.insert(name.clone(), read);
+            parts.push(ItemPart {
+                name: name.clone(),
+                text,
+                span,
+            });
+        }
+        let item = WordItem {
+            value: self.node_text(node).to_owned(),
+            value_span: own,
+            word: Word {
+                text: self.node_text(node).to_owned(),
+                span: own,
+                quoted: false,
+            },
+            node,
+            parts,
+        };
+        (item, Value::map(value))
     }
 
     pub(super) fn grammar_header_holds(&self, header: &HeaderSettings) -> bool {
@@ -453,8 +515,29 @@ impl Family {
     /// A value as the slot writes it: as text, with every quote and escape character escaped by the slot's `escape`
     /// (FBL 0.11 section 6.3).
     pub(super) fn grammar_format(&self, binding: Option<&AttributeBinding>, value: &Value) -> String {
-        let text = new_text::plain(value, binding);
+        if let (Some(binding), Value::List(items)) = (binding, value) {
+            let items: Vec<String> = items.iter().map(|item| self.new_item(binding, item)).collect();
+            return items.join(separator(&binding.slot));
+        }
+        let text = grammar_value(binding, value);
         match binding.and_then(|b| b.slot.escape.as_ref()) {
+            Some(escape) => escape.write(&text),
+            None => text,
+        }
+    }
+
+    /// An item as a slot writes it (FBL 0.12 and 0.13 section 6.3): by the `create.emit` of a slot with `items`, each
+    /// placeholder an item attribute's value; else as a value, escaped by the slot's `escape`.
+    fn new_item(&self, binding: &AttributeBinding, item: &Value) -> String {
+        if !binding.slot.items.is_empty()
+            && let (Some(create), Value::Map(values)) = (&binding.create, item)
+        {
+            return values.iter().fold(create.emit.clone(), |text, (name, value)| {
+                text.replace(&format!("{{{name}}}"), &new_text::plain(value, None))
+            });
+        }
+        let text = new_text::plain(item, None);
+        match &binding.slot.escape {
             Some(escape) => escape.write(&text),
             None => text,
         }
@@ -473,12 +556,9 @@ impl Family {
             .flat_map(|c| self.padded_parts(element, c.binding))
             .collect();
         for change in changes {
-            if change.read.items.is_some() {
-                return refuse(format!(
-                    "The {} of a {} holds several values, which this file's binding cannot change yet.",
-                    change.attribute,
-                    self.rule(change.rule).type_name
-                ));
+            if let Some(items) = &change.read.items {
+                self.grammar_write_items(plan, element, change, items)?;
+                continue;
             }
             if !change.read.present {
                 if padded.contains(&change.attribute.as_str()) {
@@ -508,7 +588,7 @@ impl Family {
                 continue;
             }
             let written = self.grammar_format(Some(change.binding), &change.value);
-            let value = new_text::plain(&change.value, Some(change.binding));
+            let value = grammar_value(Some(change.binding), &change.value);
             if !self.reads_back(element, change, span.start, span.end, &written, Some(&value)) {
                 return refuse(format!(
                     "The new {} would not read back from the text.",
@@ -518,6 +598,226 @@ impl Family {
             plan.add_span(Operation::ReplaceValue, span, written);
         }
         Ok(())
+    }
+
+    /// A set of a slot of several items (FBL 0.11 section 5.2, FBL 0.12 and 0.13 section 6.3): the difference between the
+    /// items held and the new list, read again before it is made. The items of their longest common subsequence stay;
+    /// between two of them, an item removed and one added are one change, and the rest are removals and additions.
+    fn grammar_write_items(
+        &self,
+        plan: &mut Plan<'_>,
+        element: &ReadElement,
+        change: &SlotChange<'_>,
+        items: &[WordItem],
+    ) -> Planning {
+        let slot = &change.binding.slot;
+        let one;
+        let values: &[Value] = match &change.value {
+            Value::List(values) => values,
+            Value::Null => &[],
+            value => {
+                one = [value.clone()];
+                &one
+            }
+        };
+        let wanted: Vec<String> = values.iter().map(|value| wanted_item(slot, value)).collect();
+        let held_items: Vec<String> = items.iter().map(held_item).collect();
+        let held: Vec<&str> = held_items.iter().map(String::as_str).collect();
+        let kept = common_subsequence(&held, &wanted);
+        let mut pending = Vec::new();
+        let mut gone = Vec::new();
+        let mut added = Vec::new();
+        let (mut i, mut j) = (0, 0);
+        for (anchor_held, anchor_wanted) in kept.into_iter().chain(std::iter::once((held.len(), wanted.len()))) {
+            let paired = (anchor_held - i).min(anchor_wanted - j);
+            for k in 0..paired {
+                self.changed_item(&mut pending, &items[i + k], &values[j + k], slot);
+            }
+            gone.extend(i + paired..anchor_held);
+            added.extend(&values[j + paired..anchor_wanted]);
+            i = anchor_held + 1;
+            j = anchor_wanted + 1;
+        }
+        self.removed_items(&mut pending, slot, items, &gone);
+        self.added_items(&mut pending, element, change, items, &added)?;
+        if !self.items_read_back(element, change, &pending, &wanted) {
+            return refuse(format!(
+                "The new {} would not read back from the text.",
+                change.attribute
+            ));
+        }
+        for (operation, span, text) in pending {
+            plan.add_span(operation, span, text);
+        }
+        Ok(())
+    }
+
+    /// A changed item: a `replace-value` of its span, or of each value of a slot with `items` that changes.
+    fn changed_item(&self, pending: &mut Vec<Pending>, item: &WordItem, value: &Value, slot: &Slot) {
+        if slot.items.is_empty() {
+            let text = new_text::plain(value, None);
+            let written = match &slot.escape {
+                Some(escape) => escape.write(&text),
+                None => text,
+            };
+            pending.push((Operation::ReplaceValue, item.value_span, written));
+            return;
+        }
+        let Value::Map(values) = value else { return };
+        for part in &item.parts {
+            let Some(new) = values.get(&part.name).map(|v| new_text::plain(v, None)) else {
+                continue;
+            };
+            if comparable(&new) != comparable(&part.text) {
+                pending.push((Operation::ReplaceValue, part.span, new));
+            }
+        }
+    }
+
+    /// The removals of a set. A node that is one item goes with the whitespace before it. Among the items of one node
+    /// of a slot with `split`, or those of a slot with `items`, a run after an item that stays goes from that item's
+    /// end to the run's end, and a run before one, from the run's start to that item's start; a node of a slot with
+    /// `split` left with no item goes as a node does.
+    fn removed_items(&self, pending: &mut Vec<Pending>, slot: &Slot, items: &[WordItem], gone: &[usize]) {
+        if slot.split.is_none() && slot.items.is_empty() {
+            for &item in gone {
+                let own = self.entries[items[item].node].own;
+                pending.push((Operation::RemoveKey, self.with_space_before(own), String::new()));
+            }
+            return;
+        }
+        let same_group = |a: usize, b: usize| slot.split.is_none() || items[a].node == items[b].node;
+        let mut at = 0;
+        while at < gone.len() {
+            let first = gone[at];
+            let mut last = first;
+            while gone
+                .get(at + 1)
+                .is_some_and(|&next| next == last + 1 && same_group(next, first))
+            {
+                at += 1;
+                last = gone[at];
+            }
+            at += 1;
+            let before = first.checked_sub(1).filter(|&b| same_group(b, first));
+            let after = Some(last + 1).filter(|&a| a < items.len() && same_group(a, first));
+            let span = match (before, after) {
+                (Some(before), _) => Span::new(items[before].value_span.end, items[last].value_span.end),
+                (None, Some(after)) => Span::new(items[first].value_span.start, items[after].value_span.start),
+                (None, None) if slot.split.is_some() => self.with_space_before(self.entries[items[first].node].own),
+                (None, None) => Span::new(items[first].value_span.start, items[last].value_span.end),
+            };
+            pending.push((Operation::RemoveKey, span, String::new()));
+        }
+    }
+
+    /// The additions of a set: after the slot's last item, by `separator` and the item where a node holds several, by
+    /// the slot's `create` where each is a node. Where no node holds an item, a slot with `split` writes all of them
+    /// into the value of the last node it reaches, or, reaching none, into the one node its `create` writes.
+    fn added_items(
+        &self,
+        pending: &mut Vec<Pending>,
+        element: &ReadElement,
+        change: &SlotChange<'_>,
+        items: &[WordItem],
+        added: &[&Value],
+    ) -> Planning {
+        if added.is_empty() {
+            return Ok(());
+        }
+        let binding = change.binding;
+        let slot = &binding.slot;
+        let cut = slot.split.is_some();
+        if let Some(last) = items.last()
+            && (cut || !slot.items.is_empty())
+        {
+            let at = Span::new(last.value_span.end, last.value_span.end);
+            for value in added {
+                let text = format!("{}{}", separator(slot), self.new_item(binding, value));
+                pending.push((Operation::InsertKey, at, text));
+            }
+            return Ok(());
+        }
+        let joined = || {
+            let written: Vec<String> = added.iter().map(|value| self.new_item(binding, value)).collect();
+            written.join(separator(slot))
+        };
+        if cut {
+            let equals = |e: EntryId, p: &str, v: &str| self.path_equals(e, p, v);
+            let reached = slot.node.as_deref().map_or(Vec::new(), |node| {
+                selector::matches(&self.entries, element.entry(), node, Some(&equals))
+            });
+            if let Some((_, span)) = reached.last().and_then(|(node, _)| self.node_value(*node, slot)) {
+                pending.push((Operation::ReplaceValue, span, joined()));
+                return Ok(());
+            }
+        }
+        let cannot = || {
+            refuse(format!(
+                "The {} has no {} in this file to set.",
+                self.rule(change.rule).type_name,
+                change.attribute
+            ))
+        };
+        let Some(create) = binding.create.as_ref() else {
+            return cannot();
+        };
+        let offset = match items.last() {
+            Some(last) => Some(self.entries[last.node].own.end),
+            None => create.after.iter().find_map(|name| self.end_of_part(element, name)),
+        };
+        let Some(offset) = offset else {
+            return cannot();
+        };
+        let at = Span::new(offset, offset);
+        if cut {
+            pending.push((Operation::InsertKey, at, create_text(&create.emit, &joined())));
+            return Ok(());
+        }
+        for value in added {
+            let written = self.new_item(binding, value);
+            pending.push((Operation::InsertKey, at, create_text(&create.emit, &written)));
+        }
+        Ok(())
+    }
+
+    /// Whether the body with `pending` reads as it did, the changed entry holding the items `wanted` (FBL 0.9 section
+    /// 4.9).
+    fn items_read_back(
+        &self,
+        element: &ReadElement,
+        change: &SlotChange<'_>,
+        pending: &[Pending],
+        wanted: &[String],
+    ) -> bool {
+        let candidates = self.candidates(element.rule);
+        let Some(place) = candidates.iter().position(|c| c.entry == element.entry()) else {
+            return false;
+        };
+        let mut ordered: Vec<&Pending> = pending.iter().collect();
+        ordered.sort_by_key(|(_, span, _)| (span.start, usize::from(span.start != span.end)));
+        let body = self.text.text(0, self.text.len());
+        let mut changed = String::with_capacity(body.len() + 64);
+        let mut position = 0;
+        for (_, span, text) in ordered {
+            if span.start < position {
+                return false;
+            }
+            changed.push_str(&body[position..span.start]);
+            changed.push_str(text);
+            position = span.end;
+        }
+        changed.push_str(&body[position..]);
+        let Some(after) = self.grammar_read_again(changed) else {
+            return false;
+        };
+        let again = after.candidates(element.rule);
+        if again.len() != candidates.len() {
+            return false;
+        }
+        let read = after.grammar_read_many(&again[place], change.binding);
+        read.items
+            .is_some_and(|items| items.iter().map(held_item).eq(wanted.iter().cloned()))
     }
 
     /// An absent part (FBL 0.11 section 4.9, *Writing*): one `insert-key` right after the last token of the first
@@ -556,7 +856,7 @@ impl Family {
         }
         let written = self.grammar_format(Some(change.binding), &change.value);
         text.push_str(&create_text(&create.emit, &written));
-        let value = new_text::plain(&change.value, Some(change.binding));
+        let value = grammar_value(Some(change.binding), &change.value);
         if !self.reads_back(element, change, offset, offset, &text, Some(&value)) {
             return refuse(format!(
                 "The new {} would not read back from the text.",
@@ -595,12 +895,7 @@ impl Family {
             .as_deref()
             .and_then(|n| self.grammar_reach(entry, n))
             .map_or(value, |target| self.entries[target].own);
-        let bytes = self.text.bytes();
-        let mut start = own.start;
-        while start > 0 && matches!(bytes[start - 1], b' ' | b'\t') {
-            start -= 1;
-        }
-        Span::new(start, own.end)
+        self.with_space_before(own)
     }
 
     /// Whether the body reads as it did with `start` to `end` replaced by `written`, and the changed entry holds
@@ -689,8 +984,9 @@ impl Family {
                         };
                         !emit.contains(&format!("{{{name}}}"))
                             || binding.slot.node.is_none()
+                            || matches!(value, Value::List(_))
                             || after.grammar_read(c, &binding.slot).value.as_str()
-                                == Some(new_text::plain(value, Some(binding)).as_str())
+                                == Some(grammar_value(Some(binding), value).as_str())
                     })
                 })
         };
@@ -776,13 +1072,25 @@ impl Family {
         }
         let children = &self.entries[container].children;
         let insert_entry = |(offset, new): (usize, String)| vec![(Operation::InsertEntry, offset, new)];
-        // A block holds statements on lines of their own; a container's other children are its arguments.
+        // A block holds statements on lines of their own; a container's other children are its arguments, and the
+        // tokens that open and close it, which a grammar may name (FBL 0.11 section 4.9, `recover.nested`).
+        let nested = self
+            .binding
+            .body
+            .grammar
+            .as_ref()
+            .and_then(|g| g.recover.as_ref())
+            .and_then(|r| r.nested.as_ref());
+        let delimits = |name: Option<&String>| {
+            nested.is_some_and(|nested| name.is_some_and(|name| *name == nested.open || *name == nested.close))
+        };
         let statements = || {
             let start = self.entries[container].own.start;
-            children
-                .iter()
-                .copied()
-                .rfind(|&c| self.entries[c].line_span.is_some() && self.entries[c].own.start > start)
+            children.iter().copied().rfind(|&c| {
+                self.entries[c].line_span.is_some()
+                    && self.entries[c].own.start > start
+                    && !delimits(self.entries[c].name.as_ref())
+            })
         };
         let splices = match insert.place.as_str() {
             "start" => insert_entry(match children.first() {
@@ -1011,6 +1319,49 @@ fn split_items<'a>(value: &'a str, span: Span, split: &str) -> Vec<(&'a str, Spa
         start = end + split.len();
     }
     items
+}
+
+/// A value as a slot holds it on the wire: through the binding's `map`, else as text (FBL section 5.2).
+fn grammar_value(binding: Option<&AttributeBinding>, value: &Value) -> String {
+    binding
+        .and_then(|b| new_text::wire(b, value, None))
+        .unwrap_or_else(|| new_text::plain(value, binding))
+}
+
+/// The text written between two items (FBL 0.12 section 5.2).
+fn separator(slot: &Slot) -> &str {
+    slot.separator.as_deref().unwrap_or(", ")
+}
+
+/// A number as a set compares it, however it is spelled; any other text as it is.
+fn comparable(text: &str) -> String {
+    match text.parse::<f64>() {
+        Ok(number) if number.is_finite() => new_text::number(number, None),
+        _ => text.to_owned(),
+    }
+}
+
+/// An item as a set compares it: its value, or those of its item attributes in the slot's order.
+fn held_item(item: &WordItem) -> String {
+    if item.parts.is_empty() {
+        return item.value.clone();
+    }
+    let values: Vec<String> = item.parts.iter().map(|part| comparable(&part.text)).collect();
+    values.join("\u{1f}")
+}
+
+/// A new item as a set compares it with [`held_item`].
+fn wanted_item(slot: &Slot, value: &Value) -> String {
+    let Value::Map(values) = value else {
+        return new_text::plain(value, None);
+    };
+    let values: Vec<String> = slot
+        .items
+        .iter()
+        .filter_map(|(name, _)| values.get(name))
+        .map(|value| comparable(&new_text::plain(value, None)))
+        .collect();
+    values.join("\u{1f}")
 }
 
 /// A part's `create.emit` with its value (FBL 0.11 section 4.9).
