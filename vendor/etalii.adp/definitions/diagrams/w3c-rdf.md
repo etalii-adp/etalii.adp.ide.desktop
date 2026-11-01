@@ -78,4 +78,6 @@ The description `w3c-rdf.atd` no longer reads through the plugin: its part `w3c-
 - **Gap 3, a writable value shared by several elements.** FBL 0.15 reads and writes a value above the entry. FBL 0.16 gives each triple of a `,` or `;` list a place of its own (FBL §5.3), and a removal takes only what is the triple's alone (FBL §6.3), so what the others share stays.
 - **Gap 4, a splice for a separator or a terminator.** A new triple continues its subject's last statement by the operation `replace-separator` and a line of its own, so a comment after the terminator stays where it is (FBL §6.1, §6.3), and a removed triple takes its separator, or the whole statement when it is the last.
 
+Three cases keep differences listed as the module's quirks by Peter's ruling of 2026-11-01: `nobel-1903` (a set to the same value in the module's history), `prov-o` (an id only the module's action reads) and `turtle-edits-skos` (the module's per-language label row, where the description has one `prefLabel` field).
+
 The gaps stand for the plugin binding `w3c-turtle.fbl`, which the description no longer uses. Gaps 2, 5, 6 and 7 stand as they are: gap 6 is the case `geographic-names`, which stays ignored, a grouping function to be proposed as its own specification (Peter, 2026-11-01). What of the module's cases still differs is listed by name in the desktop's tests.

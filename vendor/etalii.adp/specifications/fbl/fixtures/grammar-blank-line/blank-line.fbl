@@ -1,0 +1,57 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.16",
+  "doc": "The binding of the fixture grammar-blank-line (FBL 0.16, section 6.3): a new fact is a statement at the end of the body, with a blank line before it unless the body is empty or its last line is blank.",
+  "bindings": {
+    "blank-line": {
+      "title": "Facts as statements with a blank line between them",
+      "claims": {
+        "extensions": [
+          ".blankline"
+        ],
+        "origins": [
+          "example/blank-line"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "grammar",
+        "grammar": "start: statement*\nstatement: subject list \".\"\nsubject: NAME\nlist: pair (\";\" [pair])*\npair: NAME object (\",\" object)*\nobject: NAME | NUMBER\nNAME: /[a-z]+/\nNUMBER: /[0-9]+/\nWS: /[ \\n]+/\nCOMMENT: /#[^\\n]*/\n%ignore WS\n%ignore COMMENT\n",
+        "start": "start"
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "lf",
+        "indent": 2,
+        "finalNewline": true
+      },
+      "elements": [
+        {
+          "name": "fact",
+          "type": "Fact",
+          "at": "/statement/list/pair/object",
+          "attributes": {
+            "subject": {
+              "node": "../../../subject/NAME"
+            },
+            "verb": {
+              "node": "../NAME"
+            },
+            "value": {
+              "node": "NAME",
+              "or": [
+                {
+                  "node": "NUMBER"
+                }
+              ]
+            }
+          },
+          "insert": {
+            "place": "end-of-document",
+            "emit": "\n{subject} {verb} {value} ."
+          }
+        }
+      ]
+    }
+  }
+}

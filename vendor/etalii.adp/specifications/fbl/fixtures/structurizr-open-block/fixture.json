@@ -1,6 +1,6 @@
 {
   "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
-  "doc": "The blocks family: adding the first container to a one-line software system gives it a block; a quoted argument is replaced in place; the !include directive is kept and never followed.",
+  "doc": "The blocks family: adding the first container to a one-line software system gives it a block; a quoted argument is replaced in place; the !include directive is read as the file it names, an IncludedFile whose id its place gives, and is kept and never followed.",
   "binding": "../../structurizr.fbl#workspace",
   "input": "shop.dsl",
   "steps": [
@@ -108,6 +108,13 @@
       {
         "id": "shop",
         "type": "SoftwareSystem"
+      },
+      {
+        "id": "include@6",
+        "type": "IncludedFile",
+        "attributes": {
+          "path": "extras.dsl"
+        }
       }
     ]
   }

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.16, section 6.3: an emit's opening line feed is left out in an empty body.",
+  "binding": "../blank-line.fbl#blank-line",
+  "input": "facts.txt",
+  "read": {
+    "elements": []
+  },
+  "steps": [
+    {
+      "doc": "An empty body has no line to stand a blank line after.",
+      "edit": {
+        "add": {
+          "type": "Fact",
+          "attributes": {
+            "subject": "ann",
+            "verb": "knows",
+            "value": "bob"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 0,
+          "end": 0,
+          "text": "ann knows bob .\n"
+        }
+      ],
+      "expect": "ann knows bob .\n"
+    }
+  ]
+}
