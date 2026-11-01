@@ -1,0 +1,70 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL section 5.1 (parent), for etalii.adp spec 068 (finding B10, written here): a container or a component is the child of the nearest element whose block it stands in, whatever that element's kind, as the Structurizr parser and the C4 tool read it, so that the tool type can report a container inside a person (`c4.misplaced-element`); a group is no element and gives no parent. Saving without an edit writes the bytes that were read.",
+  "binding": "../../structurizr.fbl#workspace",
+  "input": "nesting.dsl",
+  "read": {
+    "elements": [
+      {
+        "id": "p",
+        "type": "Person",
+        "attributes": {
+          "name": "User"
+        }
+      },
+      {
+        "id": "inside",
+        "type": "Container",
+        "parent": "p",
+        "attributes": {
+          "name": "Inside",
+          "technology": "Go"
+        }
+      },
+      {
+        "id": "s",
+        "type": "SoftwareSystem",
+        "attributes": {
+          "name": "System"
+        }
+      },
+      {
+        "id": "api",
+        "type": "Container",
+        "parent": "s",
+        "attributes": {
+          "name": "API",
+          "technology": "Go"
+        }
+      },
+      {
+        "id": "db",
+        "type": "Component",
+        "parent": "api",
+        "attributes": {
+          "name": "Store",
+          "technology": "SQL"
+        }
+      },
+      {
+        "id": "loose",
+        "type": "Container",
+        "attributes": {
+          "name": "Loose",
+          "technology": "Go"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "workspace \"Parents\" {\n    model {\n        p = person \"User\" \"A user.\" {\n            inside = container \"Inside\" \"Under a person.\" \"Go\"\n        }\n        s = softwareSystem \"System\" \"A system.\" {\n            api = container \"API\" \"Answers.\" \"Go\" {\n                db = component \"Store\" \"Keeps.\" \"SQL\"\n            }\n        }\n        group \"A group\" {\n            loose = container \"Loose\" \"In a group.\" \"Go\"\n        }\n    }\n}\n"
+    }
+  ]
+}

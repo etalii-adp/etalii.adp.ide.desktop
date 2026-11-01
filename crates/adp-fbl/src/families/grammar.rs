@@ -1578,6 +1578,14 @@ impl Family {
         let end = self.text.len();
         let newline = self.newline_at(end);
         let body = self.text.text(0, end);
+        // FBL 0.16, section 6.3: an `emit`'s opening line feed is a blank line, left out where one would be a second.
+        let last_blank = body.is_empty()
+            || body.ends_with('\n') && body.split('\n').rev().nth(1).is_some_and(|last| last.trim().is_empty());
+        let text = if last_blank {
+            text.strip_prefix('\n').unwrap_or(text)
+        } else {
+            text
+        };
         let line = self.indented(text, "", &newline);
         if body.is_empty() || body.ends_with('\n') {
             (end, format!("{line}{newline}"))
