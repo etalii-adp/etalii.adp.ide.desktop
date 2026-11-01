@@ -11,8 +11,8 @@ part of databricks/job
 /// from the module, ask: a rule per task type carries that type's skeleton (databricks-job.md, gap 6), with new keys
 /// right after `task_key` and a new task at the end of the list; a task's source is read as `taskSource`; a task with
 /// no `task_key` is unreadable (`std.unreadableEntry`); and a dependency is read as an entry with two ends
-/// (`DependencyEntry`), so that one on a task the job does not declare is kept with that end unset, a relation rule
-/// reading nothing being the one that adds one.
+/// (`DependencyEntry`), so that one on a task the job does not declare has the placeholder for that end (DISL 0.8, 4.9),
+/// a relation rule reading nothing being the one that adds one.
 binding bundle family json {
   label "Databricks configuration"
   claims {

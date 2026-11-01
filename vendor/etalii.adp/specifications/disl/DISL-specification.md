@@ -7,11 +7,11 @@ parent: disl
 ---
 # DISL — Diagram Specification Language
 
-**Specification, version 0.7 (Draft)**
+**Specification, version 0.8 (Draft)**
 
 |                           |                                                                              |
 |---------------------------|------------------------------------------------------------------------------|
-| Date                      | 2026-10-31                                                                   |
+| Date                      | 2026-11-01                                                                   |
 | Specification schema      | `disl.schema.json` (JSON Schema, draft 2020-12), `$defs/Specification`       |
 | Definition language       | DID, the Diagram Definition Language, in [`../did/`](../did/DID-specification.md) |
 | Expression language       | CEL — Common Expression Language (https://cel.dev)                           |
@@ -23,7 +23,7 @@ parent: disl
 
 ## Status of this document
 
-This is a draft, version 0.7. It is complete enough to implement a conforming validator, a documentation generator and a reference runtime, but individual constructs may still change before version 1.0. DISL 0.1 continued the earlier combined format (DEDL became DISL and DID); section 18 lists the old identifiers that runtimes still read. DISL 0.2 adds declarative constructs to 0.1 (declared identity, findings that point at files, reasons the tool gives, derived elements, gestures and menus, view state, budgets, notation and time details). Every valid 0.1 specification is a valid 0.2 specification and keeps its meaning, except in the places listed in [Changes from 0.1](#changes-from-01), where 0.1 was silent or ambiguous and 0.2 now says what it means. DISL 0.3 adds the constructs that the Gartner hype cycle graph and Agent Behavior Modelling tools needed and 0.2 could not state (neighbour-aware bounds, standard row and tree layouts, a type map for format bindings, part tooltips, form fields that parse their own text, per-case built-in codes, geometric drop placement, typed retyping fields and pointer bindings for connect gestures, and, by the ruling of 2026-10-06, menu groups, form row ids, a declared order of findings, one finding per group of duplicates and the case of an endpoint finding); every valid 0.2 specification is a valid 0.3 specification with the same meaning, apart from the clarifications in [Changes from 0.2](#changes-from-02). DISL 0.4 adds what a diagram that agents write and a person arranges needs (items grouped inside a node with collapse defaults, a kept canvas filter, pinning as standard gestures, a layout in tiers, links that open, and view data kept in a format binding's body); every valid 0.3 specification is a valid 0.4 specification with the same meaning, apart from the clarifications in [Changes from 0.3](#changes-from-03). DISL 0.5 adds a built-in `person` shape, a rounded box with a round head above it, which the C4 diagram tool type needs; every valid 0.4 specification is a valid 0.5 specification with the same meaning, apart from the clarification in [Changes from 0.4](#changes-from-04). DISL 0.6 adds no construct and settles where a relation type's `directed`, `allowSelfLoops` and `allowParallel` come from: they are inherited along its C3 linearisation, else the section 4.9 default; a subtype may only narrow them; and supertypes whose values differ are a specification error unless the subtype states the flag (4.7). DISL 0.5 left this open, and two readings were in use, inheritance and the type's own declaration only; every valid 0.5 specification that neither widens a flag nor inherits two different values of one is a valid 0.6 specification, with the meaning of the first reading, apart from the clarifications in [Changes from 0.5](#changes-from-05). DISL 0.7 adds two members to `View`, the scope the view is written with and its location, so that a rule about the model can say something about a view that it holds no element for (8.2, 12.2); every valid 0.6 specification is a valid 0.7 specification with the same meaning, as [Changes from 0.6](#changes-from-06) says. Sections and paragraphs marked *(informative)* explain intent and give guidance; everything else is *normative*.
+This is a draft, version 0.8. It is complete enough to implement a conforming validator, a documentation generator and a reference runtime, but individual constructs may still change before version 1.0. DISL 0.1 continued the earlier combined format (DEDL became DISL and DID); section 18 lists the old identifiers that runtimes still read. DISL 0.2 adds declarative constructs to 0.1 (declared identity, findings that point at files, reasons the tool gives, derived elements, gestures and menus, view state, budgets, notation and time details). Every valid 0.1 specification is a valid 0.2 specification and keeps its meaning, except in the places listed in [Changes from 0.1](#changes-from-01), where 0.1 was silent or ambiguous and 0.2 now says what it means. DISL 0.3 adds the constructs that the Gartner hype cycle graph and Agent Behavior Modelling tools needed and 0.2 could not state (neighbour-aware bounds, standard row and tree layouts, a type map for format bindings, part tooltips, form fields that parse their own text, per-case built-in codes, geometric drop placement, typed retyping fields and pointer bindings for connect gestures, and, by the ruling of 2026-10-06, menu groups, form row ids, a declared order of findings, one finding per group of duplicates and the case of an endpoint finding); every valid 0.2 specification is a valid 0.3 specification with the same meaning, apart from the clarifications in [Changes from 0.2](#changes-from-02). DISL 0.4 adds what a diagram that agents write and a person arranges needs (items grouped inside a node with collapse defaults, a kept canvas filter, pinning as standard gestures, a layout in tiers, links that open, and view data kept in a format binding's body); every valid 0.3 specification is a valid 0.4 specification with the same meaning, apart from the clarifications in [Changes from 0.3](#changes-from-03). DISL 0.5 adds a built-in `person` shape, a rounded box with a round head above it, which the C4 diagram tool type needs; every valid 0.4 specification is a valid 0.5 specification with the same meaning, apart from the clarification in [Changes from 0.4](#changes-from-04). DISL 0.6 adds no construct and settles where a relation type's `directed`, `allowSelfLoops` and `allowParallel` come from: they are inherited along its C3 linearisation, else the section 4.9 default; a subtype may only narrow them; and supertypes whose values differ are a specification error unless the subtype states the flag (4.7). DISL 0.5 left this open, and two readings were in use, inheritance and the type's own declaration only; every valid 0.5 specification that neither widens a flag nor inherits two different values of one is a valid 0.6 specification, with the meaning of the first reading, apart from the clarifications in [Changes from 0.5](#changes-from-05). DISL 0.7 adds two members to `View`, the scope the view is written with and its location, so that a rule about the model can say something about a view that it holds no element for (8.2, 12.2); every valid 0.6 specification is a valid 0.7 specification with the same meaning, as [Changes from 0.6](#changes-from-06) says. DISL 0.8 adds no construct and lets a stored relation's end resolve to a derived node, so that a placeholder for what a relation names and nothing declares has its edge (4.9); every valid 0.7 specification is a valid 0.8 specification with the same meaning, apart from the clarification in [Changes from 0.7](#changes-from-07). Sections and paragraphs marked *(informative)* explain intent and give guidance; everything else is *normative*.
 
 The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **MAY** and **OPTIONAL** are to be interpreted as described in RFC 2119 and RFC 8174 when, and only when, they appear in bold capitals.
 
@@ -54,6 +54,7 @@ The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **
 - [Changes from 0.4](#changes-from-04)
 - [Changes from 0.5](#changes-from-05)
 - [Changes from 0.6](#changes-from-06)
+- [Changes from 0.7](#changes-from-07)
 18. [Deprecated aliases](#18-deprecated-aliases)
 - [Appendix A — JSON Schema](#appendix-a--json-schema)
 - [Appendix B — Built-in catalogues](#appendix-b--built-in-catalogues)
@@ -361,7 +362,7 @@ Any object in a specification or DID definition MAY contain properties whose nam
 
 ### 2.9 Versioning
 
-- `disl` (required) is the version of DISL the specification targets, as `"major.minor"`: `"0.1"`, `"0.2"`, `"0.3"`, `"0.4"`, `"0.5"`, `"0.6"` or `"0.7"`. A runtime MUST refuse a specification with a higher major version than it supports and SHOULD warn for a higher minor version. The deprecated alias of section 18 is still read.
+- `disl` (required) is the version of DISL the specification targets, as `"major.minor"`: `"0.1"`, `"0.2"`, `"0.3"`, `"0.4"`, `"0.5"`, `"0.6"`, `"0.7"` or `"0.8"`. A runtime MUST refuse a specification with a higher major version than it supports and SHOULD warn for a higher minor version. The deprecated alias of section 18 is still read.
 - DISL 0.2 is a superset of 0.1. A 0.2 runtime **MUST** read a specification that declares `"disl": "0.1"`, or whose `$schema` names the 0.1 schema (`https://etalii.net/adp/disl/schema/0.1/disl.schema.json`), as a 0.2 specification with the same meaning, apart from the clarifications listed in [Changes from 0.1](#changes-from-01). A validator **MUST** validate such a specification against the 0.2 schema and **MUST NOT** report its 0.1 version or schema address as deprecated.
 - DISL 0.3 is a superset of 0.2. A 0.3 runtime **MUST** read a specification that declares `"disl": "0.1"` or `"disl": "0.2"` with its meaning, apart from the clarifications listed in [Changes from 0.2](#changes-from-02). While 0.3 is a draft, its schema is published at the 0.2 address (`https://etalii.net/adp/disl/schema/0.2/disl.schema.json`), which accepts every 0.2 specification unchanged; a specification that uses a construct new in 0.3 **SHOULD** declare `"disl": "0.3"`, and a 0.2 runtime **SHOULD** warn about it as a newer minor version.
 - `language.version` (required) is the semantic version (SemVer 2.0.0) of the defined language. DID definitions record the language version they were written with; this drives migrations (section 11.9).
@@ -1014,6 +1015,22 @@ In a functional decomposition graph, no mix of `UiChild`, `OwnsData` and the oth
 
 An Ansible play that names a role the folder does not contain keeps its relation, drawn as a short stub labelled with the role as written.
 
+**Ends on derived nodes.** *(DISL 0.8)* An end of a stored relation **MAY** resolve to a derived node (4.11.2). When the end as stored or read names no stored element, it **MUST** resolve to the first derived node, in computation order (4.11.5), of a type that end allows, whose id is the end as written, or the end as written under the prefix of the node type's `natural` id rule (11.5). `self.source` or `self.target` is then that node, the relation is drawn like any other (6.1), and neither `std.references` nor `std.endpoints` reports the end; a rule tells it from a stored end by `derived` (4.11.4, 12.2). The stored end does not change: the relation is written with the end as written, never with the derived node's id (4.11.5). An end that names neither a stored element nor such a derived node is what it was: unset, as this section and 11.2 say.
+
+```json
+"UnresolvedTask": {
+  "extends": "Task",
+  "derived": {
+    "from": "diagram.relationsOfType('Dependency').filter(d, !has(d.source))",
+    "key": "item.upstreamKey",
+    "id": "'task:' + item.upstreamKey",
+    "attributes": { "key": "item.upstreamKey" }
+  }
+}
+```
+
+A Databricks job whose task depends on a task nobody declares draws a placeholder for the key, under the id a task of that key would have, with an edge from it to each task waiting on it. The specifications beside this one show it in [`placeholder-tasks.dis`](placeholder-tasks.dis).
+
 **Derived relations, expression form.** The 0.1 form of `derived` is an Expression, in the `derive` context (12.3), returning a list of maps. Each map **MUST** have `source` and `target` (elements) and yields one relation. Any other key that names an attribute of the relation type gives that attribute's value, and the keys `id`, `sources` and `owner` have the meanings of the object form (4.11.3); other keys are a specification error where statically known and are otherwise ignored. When `id` is absent, the id **MUST** be `<Type>:<source.id>-><target.id>`, where `<Type>` is the relation type's name, with `#2`, `#3`, … appended to the second and later maps that give the same id, in list order. The 0.1 meaning of the form is unchanged: this only fills what 0.1 left open (Changes from 0.1). The object form of 4.11.3 adds merging, provenance, ownership and edits.
 
 ### 4.10 Ports
@@ -1169,7 +1186,7 @@ A C4 view lifts each stored relationship to the nearest ancestor of each end tha
 
 #### 4.11.5 Computation
 
-- A runtime **MUST** compute derived elements when a model is loaded (14.2) and in the "recompute derived" step of every transaction (14.4), in declaration order: first the derived node types, in the order of `metamodel.types`, then the derived relation types, in the order of `metamodel.relations`. Each `from` sees the stored elements and the derived elements of every type computed before it. A reference to a derived type computed later is a specification error.
+- A runtime **MUST** compute derived elements when a model is loaded (14.2) and in the "recompute derived" step of every transaction (14.4), in declaration order: first the derived node types, in the order of `metamodel.types`, then, *(DISL 0.8)* once, the ends of stored relations that name a derived node (4.9), then the derived relation types, in the order of `metamodel.relations`. Each `from` sees the stored elements and the derived elements of every type computed before it; that of a derived node type sees those ends unset. A reference to a derived type computed later is a specification error.
 - The elements of one derived type are ordered by the position of their group's first item in `from`; that order is the type's order in `diagram.nodes`, `nodesOfType` and the other lists of 12.2 (12.5).
 - Two derived elements with the same id, or a derived id equal to a stored id, are a run-time error: the later one in computation order **MUST NOT** be drawn, and one `std.derivedId` finding names both.
 - Derived elements **MUST NOT** be written, to a DID definition or by a format binding, and **MUST NOT** enter the undo history; undoing a change to their sources recomputes them. A runtime **MAY** recompute incrementally, but the result **MUST** equal a full recomputation.
@@ -4316,7 +4333,7 @@ When `format` is `"fbl"`, the stored model is the body the binding describes, no
 
 - Without `typeMap`, an FBL type and attribute **MUST** have the name of a metamodel type and attribute.
 - With it, a reader maps each FBL element to the type `as` names. `as: "diagram"` writes its attributes to the diagram's; `"header"` and `"unreadable"` keep the entry out of the model, and an `unreadable` entry is reported by `std.unreadableEntry` (8.7). An attribute mapped to `id` is the element's id, and one mapped to `null` is not in the model.
-- A reference attribute mapped to `source` or `target` makes the element a relation of the type `as` names, with that end. A relation whose mapped end names nothing **MUST** still be created, with that end unset, and reported by `std.references` with `detail.end` naming the end; it is not drawn (6.1), and `std.endpoints` does not report the missing end.
+- A reference attribute mapped to `source` or `target` makes the element a relation of the type `as` names, with that end. A relation whose mapped end names nothing **MUST** still be created, with that end unset, and reported by `std.references` with `detail.end` naming the end; it is not drawn (6.1), and `std.endpoints` does not report the missing end. *(DISL 0.8)* An end that names a derived node resolves to it (4.9), and so does not name nothing.
 - `hostAttributes` are read and written by the binding but are not attributes of the model: they are not visible in CEL, forms or constraints, and a writer keeps their values.
 - A binding type that `typeMap` does not list keeps its name, as without `typeMap`.
 
@@ -4832,7 +4849,7 @@ Loading is tolerant of ids (11.5.4). A runtime **MUST** load a model in which id
 1. read the elements in reading order (8.6), reporting `std.missingId` for each element without a usable id and, following `persistence.ids.compare`, `std.duplicateId` for each second and later element with an id already used;
 2. give an element without a usable id a new id under `missing: "assign"` (held in memory and written with the next save, never on open) or treat it as ephemeral under `missing: "ephemeral"`, and treat every second and later holder of a duplicated id as ephemeral;
 3. compute the `derived` ids (11.5.2), nodes before relations, letting references follow a computed id that differs from the stored one;
-4. compute the derived elements (4.11.5), derived node types then derived relation types, each in declaration order;
+4. compute the derived elements (4.11.5), derived node types, then *(DISL 0.8)* the ends of stored relations that name a derived node (4.9), then derived relation types, each in declaration order;
 5. resolve view data, ignoring and reporting by `std.ephemeralViewData` any view data, style override or suppression keyed by an ephemeral id (11.5.3); a view key that names no element once derived elements are computed is kept and ignored.
 
 A model read through FBL is loaded in the same order, with FBL's reading order and FBL raising the reader findings.
@@ -4932,6 +4949,7 @@ Beside them, seven trimmed excerpts of real diagram specifications show the cons
 | `causal-loop.dis`               | Cycle enumeration with `diagram.cycles` and `diagram.knots` (12.4), one finding per cycle with `forEach` (8.2), a hook whose actions run per cycle (9.2, 9.4), drops onto a variable that are refused elsewhere (7.2), view membership (3.5) and the empty-canvas message (6.13). |
 | `databricks-job.dis`            | A simulated run (9.6), rules per item with `forEach` and file locations (8.2), `std.unreadableEntry` (8.7), enum stored forms (4.5), a stub for a relation whose target is optional (4.9, 6.10), Bézier reach (6.10) and context-menu entries generated per item (7.3). |
 | `service-calls.dis`, `service-calls.did`, `service-calls.findings.json` | Relation flags inherited from an abstract relation type, and restated under two supertypes that differ (4.7, 4.9), with a definition and the `std.endpoints` findings its flags give (8.7). |
+| `placeholder-tasks.dis`, `placeholder-tasks.did`, `placeholder-tasks.findings.json` | A relation's end resolving to a derived node, the placeholder for what the relation names and nothing declares (4.9, 4.11.5), and a rule telling that end from a stored one, with a definition and its finding. |
 | `findings.json`                 | Headless validator output (8.6), in the object form of `$defs/ValidatorOutput`: a parse failure with file, line and column, a finding on an undrawn subject, a finding on elements with a location, and a per-view finding. |
 | `../did/time-values.did`        | The DID 0.2 value forms: signed `yearMonth` values before year 1, `datetime` values kept at their written precision, a relation without a target, and a suppression keyed by `subject` (DID, section 10). |
 
@@ -6198,6 +6216,16 @@ DISL 0.7 (draft, 2026-10-31) adds the two members listed below, ruled by the pro
 | 2 | `View.location()` | A rule about a view could not locate its finding. | A `View` has the SourceLocation of its declaration, as an `Element` has. | A finding about a view stands at the view's line, as the C4 diagram tool types' `c4.empty-view` does. | 8.2, 12.2 |
 
 DISL 0.7 needs no change to DID, DESL or FBL: FBL's reading already keeps each view's statements and where it stands. The worked examples are [`c4-context.atd`](../../definitions/diagrams/c4-context.atd) and the five C4 descriptions beside it.
+
+## Changes from 0.7
+
+DISL 0.8 (draft, 2026-11-01) adds no construct and settles the one thing below, ruled by the product owner on 2026-11-01 (spec 067-desktop-fbl-bindings); every valid 0.7 specification is a valid 0.8 specification with the same meaning, apart from a stored relation whose end names a derived node, which 0.7 kept unset.
+
+| # | Change | 0.7 said | 0.8 says | Reason | Section |
+|---|--------|----------|----------|--------|---------|
+| 1 | An end of a stored relation that names a derived node | Only a derived relation's ends may be derived; a stored relation's end that names nothing stored is unset, so the relation is not drawn. | The end resolves to that derived node, and the relation is drawn; it is still written as it was written. | A placeholder for what a relation names and nothing declares has its edge, as `databricks/job` draws one to each task waiting on a task nobody declares. | 4.9, 4.11.5, 11.2, 14.2 |
+
+DISL 0.8 needs no change to DID, DESL or FBL: what a DID definition or a binding stores for the end is unchanged. The worked examples are [`placeholder-tasks.dis`](placeholder-tasks.dis) and [`databricks-job.atd`](../../definitions/diagrams/databricks-job.atd).
 
 ---
 

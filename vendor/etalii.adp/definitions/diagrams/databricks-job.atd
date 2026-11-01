@@ -172,7 +172,7 @@ diagram databricks/job version "0.2.0" {
   /// Whether every task this one waits for has finished in the previous step. A dependency on a task the job does not
   /// declare never finishes, and neither does one on the task itself, so either holds the task back for the whole run.
   fn upstreamSettled(t: Element, state: map<string, string>) -> bool {
-    return t.incomingOf('Dependency').all(d, d.source != null && d.source.id in state && state[d.source.id] in ['succeeded', 'failed', 'skipped'])
+    return t.incomingOf('Dependency').all(d, d.source != null && !d.source.derived && d.source.id in state && state[d.source.id] in ['succeeded', 'failed', 'skipped'])
   }
 
   /// Whether a task whose upstream tasks have settled runs or is skipped. Every condition task answers true, so a
@@ -221,10 +221,10 @@ diagram databricks/job version "0.2.0" {
       message: ('This is not configuration that can be read: ' + detail.reason)
     }
 
-    /// A `depends_on` entry naming a key no task of this job has: the relation is kept without a source and reported at
-    /// the entry's line.
+    /// A `depends_on` entry naming a key no task of this job has: its source is the placeholder `UnresolvedTask` for that
+    /// key (DISL 0.8, 4.9), and the entry is reported at its line.
     constraint missingTask for Dependency {
-      rule has(self.source)
+      rule has(self.source) && !self.source.derived
       severity error
       message ('\'' + self.target.key + '\' depends on \'' + self.upstreamKey + '\', which is not a task in this job. Fix the key or remove the dependency.')
       code: "databricks.missing-task"
@@ -448,7 +448,7 @@ diagram databricks/job version "0.2.0" {
       DependencyEntry: {
         as: Dependency
         attributes: { from: "source", to: "target" }
-        doc: "Read as an entry with two reference attributes, so that a dependency on a task the job does not declare is kept with that end unset (DISL 4.9, as the C4 descriptions read a relationship)."
+        doc: "Read as an entry with two reference attributes, so that a dependency on a task the job does not declare has the placeholder for that end (DISL 0.8, 4.9), as the C4 descriptions read a relationship."
       }
     }
   }
