@@ -370,6 +370,7 @@ pub fn complete(diagram: &DislDiagram) -> Vec<Finding> {
     let mut findings = Vec::new();
     derived_ids(diagram, &diagram.nodes(), &mut findings);
     derived_nodes(diagram, &mut findings);
+    ends_on_derived_nodes(diagram);
     derived_relations(diagram, &mut findings);
     let stored: Vec<DislElement> = diagram.relations().into_iter().filter(|r| !r.is_derived()).collect();
     derived_ids(diagram, &stored, &mut findings);
@@ -447,12 +448,67 @@ fn evaluate(
 
 fn allows(end: Option<&DislRelationEnd>, value: &Value) -> Option<DislElement> {
     let element = DislElement::from_value(value)?;
-    if element.is_relation() {
-        return None;
+    end_allows(end, &element).then_some(element)
+}
+
+/// Whether a relation type's end declaration allows `element` there.
+fn end_allows(end: Option<&DislRelationEnd>, element: &DislElement) -> bool {
+    !element.is_relation()
+        && end.is_none_or(|e| e.types.is_empty() || e.types.iter().any(|t| element.is_a(t)))
+        && end.is_none_or(|e| !e.exclude.iter().any(|t| element.is_a(t)))
+}
+
+/// A stored relation's end that names no stored element resolves to the derived node it names, of a type the end allows
+/// (section 4.9, DISL 0.8): by the node's id, or by what would be that id under the rule of the node's type, as a stored
+/// node's id is what was read under its prefix. The first such node in computation order; none leaves the end unset.
+fn ends_on_derived_nodes(diagram: &DislDiagram) {
+    let derived: Vec<DislElement> = diagram.nodes().into_iter().filter(DislElement::is_derived).collect();
+    if derived.is_empty() {
+        return;
     }
-    let types_ok = end.is_none_or(|e| e.types.is_empty() || e.types.iter().any(|t| element.is_a(t)));
-    let not_excluded = end.is_none_or(|e| !e.exclude.iter().any(|t| element.is_a(t)));
-    (types_ok && not_excluded).then_some(element)
+    let specification = diagram.specification();
+    let ignoring_case = specification
+        .root()
+        .pointer("/persistence/ids/compare")
+        .is_some_and(|compare| compare.as_str() == Some("ignore-case"));
+    let same = |a: &str, b: &str| {
+        if ignoring_case {
+            a.eq_ignore_ascii_case(b)
+        } else {
+            a == b
+        }
+    };
+    let named = |written: &str, end: Option<&DislRelationEnd>| {
+        derived
+            .iter()
+            .find(|node| {
+                let rule = specification.id_rule_of(&node.type_name());
+                let prefixed = rule
+                    .prefix
+                    .filter(|_| rule.strategy == "natural")
+                    .is_some_and(|prefix| same(&node.id(), &format!("{prefix}{written}")));
+                (prefixed || same(&node.id(), written)) && end_allows(end, node)
+            })
+            .cloned()
+    };
+    for relation in diagram.relations().into_iter().filter(|r| !r.is_derived()) {
+        let t = relation.element_type();
+        let source = relation
+            .source()
+            .is_none()
+            .then(|| relation.source_id())
+            .flatten()
+            .and_then(|written| named(&written, t.source.as_ref()));
+        let target = relation
+            .target()
+            .is_none()
+            .then(|| relation.target_id())
+            .flatten()
+            .and_then(|written| named(&written, t.target.as_ref()));
+        if source.is_some() || target.is_some() {
+            diagram.resolve_ends(&relation, source, target);
+        }
+    }
 }
 
 /// The groups of a derived type's items (section 4.11.2): items with equal keys yield one element, the first of them its

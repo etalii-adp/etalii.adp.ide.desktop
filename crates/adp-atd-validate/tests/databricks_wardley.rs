@@ -129,16 +129,13 @@ const QUIRKS: [(&str, &[&str]); 7] = [
 ];
 
 /// What waits for a ruling: no description can state it, and it is not the module's quirk alone.
-const AWAITING_RULING: [(&str, &[&str]); 4] = [
+const AWAITING_RULING: [(&str, &[&str]); 3] = [
     // ATD §2.3's "nothing in common" with a statement left: the module states `resourceKind` on `bundle`, which is neither
     // reserved nor painted, and the description's `Bundle` does not declare it, and these two cases have no other element.
     ("databricks-bundle/empty", &["read:nothing-in-common"]),
     ("databricks-bundle/unparseable", &["read:nothing-in-common"]),
-    // A dependency on a task nobody declares (the companion's gap 8, "Open; DISL's"): the placeholder is derived, and DISL
-    // 4.9 keeps the end unset, so the end reads as written (`ghost`, not `task:ghost`) and the edge from the placeholder
-    // is not drawn. `finding-order` also holds a repeated task key, which the module reads under one id and FBL's reading
-    // gives its place, the quirk of C4's `hierarchical-identifiers`.
-    ("databricks-job/missing-upstream", &["read:drawing", "read:reading"]),
+    // A repeated task key, which the module reads under one id and FBL's reading gives its place, the quirk of C4's
+    // `hierarchical-identifiers`.
     ("databricks-job/finding-order", &["read:drawing", "read:reading"]),
 ];
 

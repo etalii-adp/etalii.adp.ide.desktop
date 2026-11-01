@@ -296,6 +296,18 @@ impl DislDiagram {
         self.add_made(element)
     }
 
+    /// Sets a stored relation's ends that resolve only once the derived nodes are computed; each stays as it was written
+    /// in its `source_id` and `target_id` (section 4.9, DISL 0.8).
+    pub(crate) fn resolve_ends(
+        &self,
+        relation: &DislElement,
+        source: Option<DislElement>,
+        target: Option<DislElement>,
+    ) {
+        relation.resolve_ends(source, target);
+        self.changed();
+    }
+
     fn owns(&self, element: &DislElement) -> bool {
         element.0.diagram.upgrade().is_some_and(|d| Rc::ptr_eq(&d, &self.0))
     }

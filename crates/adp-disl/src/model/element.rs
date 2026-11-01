@@ -301,6 +301,17 @@ impl DislElement {
         self.0.state.borrow_mut().id_is_stored = stored;
     }
 
+    /// Gives a relation the ends that resolved late, leaving the others as they are.
+    pub(crate) fn resolve_ends(&self, source: Option<DislElement>, target: Option<DislElement>) {
+        let mut state = self.0.state.borrow_mut();
+        if source.is_some() {
+            state.source = source;
+        }
+        if target.is_some() {
+            state.target = target;
+        }
+    }
+
     /// A relation's source as stored.
     pub fn source_id(&self) -> Option<String> {
         self.0.state.borrow().source_id.clone()
