@@ -128,7 +128,11 @@ fn the_six_c4_bindings_are_structurizr_fbl_but_for_what_the_cases_ask() {
         let lowered = adp_atd_runtime::lowering::fbl::lower(&members).expect("a binding");
         let mut lowered = undocumented(&lowered["bindings"]["structurizr"]);
         assert_eq!(keys(&lowered), keys(&written), "FBL's order");
-        // The rules FBL's example leaves unbound come after every rule it has.
+        // The rules FBL's example leaves unbound come after every rule it has. An `!include` it now binds too, for the
+        // standalone host, and the description reads the path with slots where FBL's has an expression.
+        let mut written = written.clone();
+        let included = written["elements"].as_array_mut().unwrap().pop().unwrap();
+        assert_eq!(included["name"], "include");
         let elements = lowered["elements"].as_array_mut().unwrap();
         assert_eq!(elements.pop().unwrap()["name"], "includedFile");
         // So does the rule that reads the kind of the selected view, which the module goes by.
@@ -196,8 +200,10 @@ const C4_DIFFERENCES: &[&str] = &[
     // A relationship written inside an element's block has that element as its source, as FBL's example says in words.
     "+ /elements/9/attributes/from/secondary",
     // An element's parent is the element whose block it is in, of any kind, and `misplacedElement` says so.
-    "~ /elements/3/parent/rules",
-    "~ /elements/4/parent/rules",
+    "~ /elements/3/parent/rules/0",
+    "~ /elements/3/parent/rules/1",
+    "~ /elements/4/parent/rules/0",
+    "~ /elements/4/parent/rules/2",
     "~ /elements/5/parent/rules",
     "~ /elements/6/parent/rules",
     "~ /elements/7/parent/rules",

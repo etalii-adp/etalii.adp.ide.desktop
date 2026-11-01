@@ -74,7 +74,7 @@ const STANDALONE_FIXTURES: [&str; 33] = [
 
 /// The fixtures of the `grammar` family (FBL 0.9 section 4.9), which no host but this one is required to read: run
 /// as the standalone host's are, by [`the_grammar_family_fixtures_pass`].
-const GRAMMAR_FIXTURES: [&str; 33] = [
+const GRAMMAR_FIXTURES: [&str; 34] = [
     "grammar-comment-start",
     "grammar-remove-part",
     "grammar-split-slot",
@@ -92,6 +92,7 @@ const GRAMMAR_FIXTURES: [&str; 33] = [
     "grammar-remove-parts",
     "grammar-remove-parts/last-line",
     "structurizr-open-block",
+    "structurizr-parents",
     "structurizr-absent-arguments",
     "structurizr-add-view",
     "structurizr-block-comments",
