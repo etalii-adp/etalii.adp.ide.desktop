@@ -24,7 +24,7 @@ fn spec_dir() -> PathBuf {
 fn scopes_of(terminal: &str, text: &str) -> &'static [&'static str] {
     match terminal {
         "COMMENT" | "BLOCK_COMMENT" => &["comment."],
-        "STRING" | "BYTES" => &["string."],
+        "STRING" | "GRAMMAR_STRING" | "BYTES" => &["string."],
         "INT" | "UINT" | "DOUBLE" | "VERSION" | "LENGTH" => &["constant.numeric."],
         "CAPABILITY_RANGE" => &["constant.other.capability-range."],
         "ORIGIN" => &["entity.name.namespace.origin."],

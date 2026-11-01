@@ -609,7 +609,7 @@ pub fn describe(terminal: u16) -> &'static str {
         "NAME" => "a name",
         "KEY" => "a setting (`key:`)",
         "ASSIGN" => "an assignment (`name =`)",
-        "STRING" => "a string",
+        "STRING" | "GRAMMAR_STRING" => "a string",
         "INT" => "a whole number",
         "UINT" => "an unsigned number",
         "DOUBLE" => "a number",

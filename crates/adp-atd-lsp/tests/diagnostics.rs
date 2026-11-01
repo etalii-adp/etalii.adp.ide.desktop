@@ -180,3 +180,42 @@ fn new_description_answers_each_kinds_template() {
         "params": {"kind": "diagram", "origin": "widgets", "name": "Widgets"}}));
     assert_eq!(refused[0]["error"]["code"], -32602);
 }
+
+/// A string of a binding's inline grammar is a string to the editor, whichever terminal the grammar reads it with
+/// (ATD §3.3; `GRAMMAR_STRING` since the amendment of 2026-11-01, which admits `"x"i`).
+#[test]
+fn a_string_in_an_inline_grammar_is_a_string_token() {
+    let path = spec_dir().join("binding-grammar.atd");
+    let text = std::fs::read_to_string(&path).unwrap();
+    let mut server = Server::new();
+    let initialized: Value = server.handle(&json!({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"capabilities": {}}}))[0]["result"].clone();
+    let legend = initialized["capabilities"]["semanticTokensProvider"]["legend"]["tokenTypes"].clone();
+    server.handle(&json!({"jsonrpc": "2.0", "method": "textDocument/didOpen",
+        "params": {"textDocument": {"uri": path_to_uri(&path), "languageId": "atd", "version": 1, "text": text.clone()}}}));
+    let tokens: Value = server.handle(
+        &json!({"jsonrpc": "2.0", "id": 2, "method": "textDocument/semanticTokens/full",
+        "params": {"textDocument": {"uri": path_to_uri(&path)}}}),
+    )[0]["result"]
+        .clone();
+    let data: Vec<u64> = tokens["data"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|v| v.as_u64().unwrap())
+        .collect();
+    let (line, column) = text
+        .lines()
+        .enumerate()
+        .find_map(|(i, l)| l.find("\"@prefix\"").map(|c| (i as u64, c as u64)))
+        .expect("the example's grammar has \"@prefix\"");
+    let (mut at_line, mut at_column) = (0u64, 0u64);
+    let mut kind = None;
+    for token in data.chunks(5) {
+        at_column = if token[0] == 0 { at_column + token[1] } else { token[1] };
+        at_line += token[0];
+        if (at_line, at_column) == (line, column) {
+            kind = legend[token[3] as usize].as_str().map(str::to_owned);
+        }
+    }
+    assert_eq!(kind.as_deref(), Some("string"), "{legend}");
+}
