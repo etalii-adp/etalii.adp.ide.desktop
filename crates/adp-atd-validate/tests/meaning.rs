@@ -135,6 +135,67 @@ fn a_case_with_no_attribute_in_common_is_a_difference() {
     assert!(differences[0].0.contains("caption"), "{differences:?}");
 }
 
+/// Reserved names and painted values are no statement a description could answer (ATD §2.3), alone or together.
+#[test]
+fn a_case_stating_only_reserved_names_and_painted_values_has_nothing_to_have_in_common() {
+    for attributes in [
+        json!({"kind": "depends"}),
+        json!({"source": "a", "_own": "1", "$own": "2"}),
+        json!({"role": "task", "label": "A", "badges": "serverless", "width": "200", "height": "56"}),
+        json!({"kind": "notebook", "label": "A"}),
+    ] {
+        let differences = unlike(
+            json!([{"id": "a", "type": "mine/model+node", "parent": null, "attributes": attributes}]),
+            json!([topic("a", None, "A")]),
+            &["a"],
+            &["a"],
+        );
+        assert_eq!(differences, vec![], "{attributes}");
+    }
+}
+
+/// Another attribute beside them is still a statement, and the difference names it alone.
+#[test]
+fn another_attribute_beside_them_with_nothing_in_common_is_a_difference() {
+    let differences = unlike(
+        json!([{"id": "a", "type": "mine/model+node", "parent": null,
+                "attributes": {"kind": "notebook", "label": "A", "caption": "A"}}]),
+        json!([topic("a", None, "A")]),
+        &["a"],
+        &["a"],
+    );
+    assert_eq!(
+        differences,
+        vec![("attributes in common with caption".to_owned(), "none".to_owned())]
+    );
+}
+
+/// A painted value a description does declare is compared like any other.
+#[test]
+fn a_painted_value_the_description_declares_is_still_compared() {
+    let spec = adp_disl::DislLoader::load(
+        r#"{ "disl": "0.7", "language": { "id": "t", "name": "T", "version": "1.0.0" },
+             "metamodel": { "types": { "Node": { "attributes": { "label": { "type": "string" } } } } } }"#,
+    )
+    .specification
+    .expect("it loads");
+    let read = json!({"elements": [{"id": "a", "type": "m", "parent": null, "attributes": {"label": "A"}}]});
+    let actual = json!([{"id": "a", "type": "Node", "parent": null, "attributes": {"label": "B"}}]);
+    let stated = stated_by(&read);
+    let differences = reading_differences(
+        &spec,
+        &Reading {
+            expected: &read["elements"],
+            actual: &actual,
+            case_draws: None,
+            description_draws: None,
+            stated: &stated,
+        },
+    );
+    assert_eq!(differences.len(), 1, "{differences:?}");
+    assert!(differences[0].0.contains("label"), "{differences:?}");
+}
+
 #[test]
 fn an_element_the_case_draws_and_the_description_lacks_is_a_difference() {
     let differences = unlike(json!([wire("a", None, "A")]), json!([]), &["a"], &[]);

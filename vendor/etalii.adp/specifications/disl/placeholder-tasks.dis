@@ -1,0 +1,58 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.8",
+  "language": {
+    "id": "org.example.placeholder-tasks",
+    "version": "1.0.0",
+    "label": "Placeholder tasks",
+    "doc": {
+      "summary": "Tasks and what each waits for, used to show a relation's end resolving to a derived node (DISL 0.8, 4.9).",
+      "description": "A dependency on a task nobody declares names no stored element, and `Placeholder` derives one node for each such name, under that id. The dependency's source is then that node, so its edge is drawn, and the rule `declaredUpstream` tells it from a stored source by `derived`."
+    }
+  },
+  "metamodel": {
+    "types": {
+      "Task": {
+        "doc": "A task of the plan.",
+        "attributes": {
+          "name": { "type": "string", "required": true, "key": true }
+        }
+      },
+      "Placeholder": {
+        "extends": "Task",
+        "doc": "One per name a dependency states and no task has.",
+        "derived": {
+          "from": "diagram.relationsOfType('Dependency').filter(d, !has(d.source))",
+          "key": "item.upstream",
+          "id": "item.upstream",
+          "attributes": { "name": "item.upstream" },
+          "reason": "This task is not declared; declare it, or remove the dependency."
+        }
+      }
+    },
+    "relations": {
+      "Dependency": {
+        "doc": "From the task waited for to the task that waits. `upstream` keeps the name as written.",
+        "source": "Task",
+        "target": "Task",
+        "attributes": {
+          "upstream": { "type": "string", "required": true }
+        }
+      }
+    }
+  },
+  "constraints": {
+    "builtIn": {
+      "std.references": { "enabled": false }
+    },
+    "rules": [
+      {
+        "id": "declaredUpstream",
+        "scope": "Dependency",
+        "rule": "has(self.source) && !self.source.derived",
+        "severity": "error",
+        "message": { "cel": "self.target.name + ' waits for ' + self.upstream + ', which is not declared.'" }
+      }
+    ]
+  }
+}

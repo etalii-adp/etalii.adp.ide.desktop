@@ -16,7 +16,7 @@ This page lists what DISL cannot express about this tool, in 0.3, in which the d
 
 **What the tool does.** A `depends_on` entry naming a key no task of the job has draws a node `task:<key>` with the badge `serverless`, one node per key however many entries name it, with an edge from it to each waiting task. The node can be moved, and its position is stored in the registration like any task's. It has no menu and no rows. A simulated run treats it as a task that never finishes, so the task waiting on it stays pending.
 
-**Why DISL 0.3 cannot say it.** DISL keeps such an entry as a relation without a source and reports it through `std.references`; it is not drawn. A stub (6.10) is drawn for a relation without a *target*, and as a line, not a node. The written key reaches the finding as `detail.missingId` and the relation's own attribute, and no derived node type can be built from a relation's missing end.
+**Why DISL 0.3 could not say it.** DISL kept such an entry as a relation without a source and reported it through `std.references`; it was not drawn. A stub (6.10) is drawn for a relation without a *target*, and as a line, not a node. DISL 0.8 (4.9) lets the end resolve to a derived node, and the description `databricks-job.atd` states the placeholder so: `UnresolvedTask`, whose edges are the dependencies naming it.
 
 **What the definition does instead.** The `Dependency` relation keeps the key as written in `upstreamKey`, so the finding's sentence, the "Disconnect from" entry and the edge's id `edge:<from>-><to>` are all stated, and the simulated run's `upstreamSettled` holds the waiting task back. The stub node itself is the host's.
 
@@ -41,7 +41,7 @@ Ten, each a candidate change for this repository: nine numbered as the conversio
 | 5 | FBL | A refusal's sentence | B19 | Answered by FBL 0.10, etalii.adp #618 (`5795b37`), shown by `databricks-refusals` |
 | 6 | FBL | Which rule plans an add; two containers created by one insert; a nested mapping written for a YAML sequence item | B17 | The first two answered by FBL 0.4, etalii.adp #109 (`2d5c11d`), and FBL 0.7, spec 028 (`dc921c9`); the third by FBL 0.10, etalii.adp #618 (`5795b37`), shown by `databricks-library-add`; a resource added under its key by FBL 0.14, etalii.adp #631 (`33f25e9`), shown by `databricks-resource-add` |
 | 7 | FBL | A slot read when another is absent; a lowercased key placeholder | B18, B20 | Answered by FBL 0.10, etalii.adp #618 (`5795b37`), shown by `databricks-secondary` and `databricks-template-key` |
-| 8 | DISL | A placeholder node for a reference that names nothing; an element with no entry of its own that keeps a stored position | A9, A10 | Open; DISL's, since what is drawn for an end that names nothing, and for an element with no entry, is the metamodel's to say and not a binding's |
+| 8 | DISL | A placeholder node for a reference that names nothing; an element with no entry of its own that keeps a stored position | A9, A10 | A9 closed by DISL 0.8 (4.9): a relation's end resolves to a derived placeholder. A10 open; DISL's, since what is drawn for an element with no entry is the metamodel's to say and not a binding's |
 | 9 | DISL | The order of findings across rules and readings; the first free name of a pattern | A7, A8, A11 | Open; DISL's, since the order of findings and a fresh name come from how a specification is evaluated, not from how a body is read |
 | 10 | FBL | A new member with a skeleton in a body written as JSON | Task 12 | Open; FBL's, since a skeleton is fixed text with no form per family |
 
@@ -99,7 +99,7 @@ Ten, each a candidate change for this repository: nine numbered as the conversio
 
 - **Construct.** A9: a `depends_on` naming no task draws one movable node per missing key, with a stored position, where DISL keeps a relation without a source and draws nothing, and a stub (6.10) is a line for a relation without a *target*. A10: the bundle reading always draws `bundle`, and the pipeline reading `target` and `compute`, each under a fixed id with a stored position, where DISL does not say whether a derived element may exist while its source entry does not. Both are written out on the companion pages: A9 on the [job's](databricks-job.md), A10 on the [bundle's](databricks-bundle.md) and the [pipeline's](databricks-pipeline.md).
 - **Shown by.** `missing-upstream.yml` (A9); `no-bundle-key.yml`, `empty.yml`, `broken.yml` (A10).
-- **Would resolve it.** A relation end that names nothing drawn as a placeholder node of a declared type, built from the written key, with view data under an id made from it; and a derived element allowed with no source entry, keeping the view data of its fixed id.
+- **Resolved for A9.** DISL 0.8 (4.9): the end resolves to a derived node, built from the written key, with view data under an id made from it (`UnresolvedTask` in `databricks-job.atd`). **Would resolve A10.** A derived element allowed with no source entry, keeping the view data of its fixed id.
 - **Meanwhile.** `DatabricksElementMapper` draws the missing task's stub; `DatabricksReadings.FixedBundle` and `FixedPipeline` emit the elements the file has no entry for.
 
 ### 9. DISL 8.6 and 11.5: the order of findings, and the first free name (A7, A8, A11)

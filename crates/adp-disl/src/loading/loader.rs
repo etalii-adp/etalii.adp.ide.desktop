@@ -77,7 +77,7 @@ const RESERVED: &[&str] = &[
 ];
 
 /// Whether `name` may not be an attribute name (section 2.2).
-pub(crate) fn is_reserved(name: &str) -> bool {
+pub fn is_reserved(name: &str) -> bool {
     RESERVED.contains(&name) || name.starts_with('_') || name.starts_with('$')
 }
 

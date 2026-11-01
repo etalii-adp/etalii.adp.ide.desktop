@@ -583,3 +583,98 @@ fn a_derived_relation_with_a_key_is_one_element_per_key() {
     assert_eq!(vec!["pair:a1", "pair:b1"], ids(&diagram.relations()));
     assert_eq!(Value::Int(2), diagram.relations()[0].value_of("count"));
 }
+
+/// A relation's end may name a derived node (section 4.9, DISL 0.8): the placeholder for what a relation names and
+/// nothing declares, here under its type's prefix.
+fn placeholders() -> DislSpecification {
+    loaded(&with(
+        r#""metamodel": {
+          "types": {
+            "Task": { "attributes": { "key": { "type": "string" } } },
+            "Placeholder": { "extends": "Task",
+              "derived": {
+                "from": "diagram.relationsOfType('Needs').filter(d, !has(d.source))",
+                "key": "item.written",
+                "id": "'task:' + item.written",
+                "attributes": { "key": "item.written" } } },
+            "Other": {
+              "derived": { "from": "['elsewhere']", "id": "item" } } },
+          "relations": {
+            "Needs": { "source": "Task", "target": { "types": ["Task"], "optional": true },
+                       "attributes": { "written": { "type": "string" } } },
+            "Points": { "source": "Task", "target": "Task" } } },
+        "persistence": { "ids": { "strategy": "natural", "prefix": { "Task": "task:" } },
+                         "typeMap": { "Task": { "as": "Task" },
+                                      "Needs": { "as": "Needs", "attributes": { "from": "source", "to": "target" } },
+                                      "Points": { "as": "Points", "attributes": { "from": "source", "to": "target" } } } }"#,
+    ))
+}
+
+fn needs(id: &str, from: &str, to: &str) -> FblElement {
+    fbl(
+        id,
+        "Needs",
+        attrs([
+            ("from", Value::from(from)),
+            ("to", Value::from(to)),
+            ("written", Value::from(from)),
+        ]),
+        None,
+        true,
+        None,
+        None,
+        true,
+    )
+}
+
+#[test]
+fn an_end_naming_a_derived_node_resolves_to_it_and_stays_as_written() {
+    let waiter = fbl("waiter", "Task", attrs([]), None, false, None, None, true);
+    let model = builder::from(
+        &reading(vec![waiter, needs("n", "ghost", "waiter")], vec![], false),
+        &placeholders(),
+    );
+    let relation = model.diagram.relations().remove(0);
+    let source = relation.source().expect("the end names the placeholder");
+    assert_eq!(source.id(), "task:ghost");
+    assert!(source.is_derived());
+    assert_eq!(relation.source_id().as_deref(), Some("ghost"), "as written");
+    assert_eq!(ids(&source.outgoing()), vec!["n"]);
+    assert_eq!(model.findings, vec![]);
+}
+
+#[test]
+fn an_end_naming_a_derived_node_its_type_does_not_allow_stays_unset() {
+    let waiter = fbl("waiter", "Task", attrs([]), None, false, None, None, true);
+    let pointer = fbl(
+        "p",
+        "Points",
+        attrs([("from", Value::from("elsewhere")), ("to", Value::from("waiter"))]),
+        None,
+        true,
+        None,
+        None,
+        true,
+    );
+    let model = builder::from(&reading(vec![waiter, pointer], vec![], false), &placeholders());
+    let relation = model.diagram.relations().remove(0);
+    assert_eq!(
+        relation.source(),
+        None,
+        "`elsewhere` is an `Other`, which the end does not allow"
+    );
+    assert_eq!(relation.source_id().as_deref(), Some("elsewhere"));
+    assert_eq!(relation.target().map(|t| t.id()).as_deref(), Some("task:waiter"));
+}
+
+#[test]
+fn an_end_naming_nothing_stored_or_derived_stays_unset() {
+    let waiter = fbl("waiter", "Task", attrs([]), None, false, None, None, true);
+    let model = builder::from(
+        &reading(vec![waiter, needs("n", "waiter", "nowhere")], vec![], false),
+        &placeholders(),
+    );
+    let relation = model.diagram.relations().remove(0);
+    assert_eq!(relation.target(), None);
+    assert_eq!(relation.target_id().as_deref(), Some("nowhere"));
+}

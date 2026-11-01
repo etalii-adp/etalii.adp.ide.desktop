@@ -1,0 +1,13 @@
+{
+  "$schema": "https://etalii.net/adp/did/schema/0.1/did.schema.json#/$defs/Definition",
+  "did": "0.1",
+  "language": { "id": "org.example.placeholder-tasks", "version": "1.0.0" },
+  "elements": [
+    { "id": "extract", "type": "Task", "attributes": { "name": "extract" } },
+    { "id": "load", "type": "Task", "attributes": { "name": "load" } }
+  ],
+  "relations": [
+    { "id": "dep-1", "type": "Dependency", "source": "extract", "target": "load", "attributes": { "upstream": "extract" } },
+    { "id": "dep-2", "type": "Dependency", "source": "ghost", "target": "load", "attributes": { "upstream": "ghost" } }
+  ]
+}

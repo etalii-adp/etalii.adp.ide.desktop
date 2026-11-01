@@ -5,7 +5,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use adp_disl::DislSpecification;
+use adp_disl::{DislSpecification, is_reserved};
 use serde_json::{Map, Value as Json};
 
 /// A list of elements or relations by its ids.
@@ -53,6 +53,15 @@ pub fn stated_by(read: &Json) -> BTreeSet<&str> {
         .flat_map(|item| item["attributes"].as_object().into_iter().flat_map(Map::keys))
         .map(String::as_str)
         .collect()
+}
+
+/// The values a module writes for its own drawing (ATD §2.3).
+const PAINTED: [&str; 5] = ["role", "label", "badges", "width", "height"];
+
+/// Whether an attribute a case states asks to have something in common with the description: not a name DISL §2.2
+/// reserves, which no description can declare, and not a painted value (ATD §2.3).
+fn asks_for_something_in_common(name: &str) -> bool {
+    !is_reserved(name) && !PAINTED.contains(&name)
 }
 
 /// The attributes both sides can state: those the case states anywhere in its reading that the description's model
@@ -110,19 +119,29 @@ pub fn reading_differences(specification: &DislSpecification, reading: &Reading)
             }
         }
     }
-    // What the case says of these and the description can state nothing of: nothing would be compared.
+    // What the case says of these and the description can state nothing of: nothing would be compared. A reserved name
+    // or a painted value alone is not such a statement (ATD §2.3).
     if !compared_any
         && let Some(id) = expected
             .iter()
             .find(|(id, item)| {
-                actual.contains_key(*id) && item["attributes"].as_object().is_some_and(|a| !a.is_empty())
+                actual.contains_key(*id)
+                    && item["attributes"]
+                        .as_object()
+                        .is_some_and(|a| a.keys().any(|name| asks_for_something_in_common(name)))
             })
             .map(|(id, _)| id)
     {
         differences.push((
             format!(
                 "attributes in common with {}",
-                reading.stated.iter().copied().collect::<Vec<_>>().join(", ")
+                reading
+                    .stated
+                    .iter()
+                    .copied()
+                    .filter(|name| asks_for_something_in_common(name))
+                    .collect::<Vec<_>>()
+                    .join(", ")
             ),
             "none".to_owned(),
             (*id).to_owned(),
