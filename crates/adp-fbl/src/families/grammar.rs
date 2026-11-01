@@ -14,7 +14,8 @@ use adp_cel::{Map, Value};
 use super::lines::common_subsequence;
 use super::{Entry, EntryId, EntryKind, Family, FamilyKind};
 use crate::documents::types::{
-    AttributeBinding, HeaderSettings, InsertSettings, OpensText, PrefixSettings, Slot, SlotEscape, SlotExpand,
+    AttributeBinding, ContinueSettings, HeaderSettings, InsertSettings, OpensText, PrefixSettings, Slot, SlotEscape,
+    SlotExpand,
 };
 use crate::grammar::{self, Grammar, Reading};
 use crate::iri;
@@ -1223,7 +1224,15 @@ impl Family {
         let reading = plan.reading;
         let rule = self.rule(request.rule);
         let insert = rule.insert.as_ref().expect("an insertable rule");
-        let Some(emit) = &insert.emit else {
+        let continued = insert.continues.as_ref().and_then(|continues| {
+            let statement = self.continued_statement(continues, request)?;
+            Some((continues, statement))
+        });
+        let emit = continued
+            .as_ref()
+            .map(|(continues, _)| &continues.emit)
+            .or(insert.emit.as_ref());
+        let Some(emit) = emit else {
             return refuse(format!(
                 "The binding gives no form to write a new {} in.",
                 rule.type_name
@@ -1269,6 +1278,15 @@ impl Family {
         };
         let check =
             |after: &Family, new: Span| after.candidates(request.rule).len() == count + 1 && holds_values(after, new);
+        if let Some((continues, statement)) = continued {
+            let Some(splices) = self.continue_statement(continues, statement, &text, &check) else {
+                return refuse(format!("The new {} would not read back from the text.", rule.type_name));
+            };
+            for (operation, span, new) in splices {
+                plan.add_span(operation, span, new);
+            }
+            return Ok(());
+        }
         let parent = request.parent.map(|p| {
             let parent = reading.element(p);
             (parent.entry(), self.rule(parent.rule).opens_text.as_ref())
@@ -1568,10 +1586,193 @@ impl Family {
         }
     }
 
+    /// The last statement of `continues.at`, in document order, whose slots of `same` read what the add gives their
+    /// attributes (FBL 0.16 section 6.3).
+    fn continued_statement(&self, continues: &ContinueSettings, request: &InsertRequest) -> Option<EntryId> {
+        let rule = self.rule(request.rule);
+        let wanted: Vec<(&Slot, String)> = continues
+            .same
+            .iter()
+            .map(|(name, slot)| {
+                let value = request.values.get(name).filter(|v| !v.is_null())?;
+                Some((slot, grammar_value(rule.attribute(name), value)))
+            })
+            .collect::<Option<_>>()?;
+        let root = self.grammar_data().root?;
+        let equals = |e: EntryId, p: &str, v: &str| self.path_equals(e, p, v);
+        selector::matches(&self.entries, root, &continues.at, Some(&equals))
+            .into_iter()
+            .map(|(entry, _)| entry)
+            .filter(|&entry| {
+                let candidate = Candidate {
+                    rule: None,
+                    block: None,
+                    entry,
+                    captures: Default::default(),
+                };
+                wanted.iter().all(|(slot, value)| {
+                    let read = self.grammar_read(&candidate, slot);
+                    read.present && read.value.as_str() == Some(value.as_str())
+                })
+            })
+            .max_by_key(|&entry| self.entries[entry].own.end)
+    }
+
+    /// The splices that write `text` into `statement` (FBL 0.16 section 6.3): its last token replaced by the separator,
+    /// and a line of its own after that token's line, none when the body would not read as `check` says.
+    fn continue_statement(
+        &self,
+        continues: &ContinueSettings,
+        statement: EntryId,
+        text: &str,
+        check: &dyn Fn(&Family, Span) -> bool,
+    ) -> Option<Vec<(Operation, Span, String)>> {
+        let own = self.entries[statement].own;
+        let tokens = &self.grammar_data().tokens;
+        let last = tokens[tokens.binary_search_by_key(&own.end, |t| t.end).ok()?];
+        let lines = self.text.lines();
+        let first_line = self.text.line_index_at(own.start);
+        let last_line = self.text.line_index_at(last.start);
+        let whitespace = |line: usize| -> String {
+            self.text
+                .text(lines[line].start, lines[line].content_end)
+                .chars()
+                .take_while(|c| c.is_whitespace())
+                .collect()
+        };
+        let indent = if last_line > first_line {
+            whitespace(first_line + 1)
+        } else {
+            format!("{}{}", whitespace(first_line), self.indentation(self.default_step()))
+        };
+        let line = lines[last_line];
+        let newline = self.newline_at(line.end);
+        let written = self.indented(text, &indent, &newline);
+        let (at, new) = if line.end == self.text.len() && !self.text.text(0, line.end).ends_with('\n') {
+            (line.end, format!("{newline}{indent}{written}"))
+        } else {
+            (line.end, format!("{indent}{written}{newline}"))
+        };
+        let body = self.text.text(0, self.text.len());
+        let changed = format!(
+            "{}{}{}{new}{}",
+            &body[..last.start],
+            continues.separator,
+            &body[last.end..at],
+            &body[at..]
+        );
+        let shift = continues.separator.len() as isize - (last.end - last.start) as isize;
+        let start = (at as isize + shift) as usize;
+        let after = self.grammar_read_again(changed)?;
+        check(&after, Span::new(start, start + new.len())).then(|| {
+            vec![
+                (Operation::ReplaceSeparator, last, continues.separator.clone()),
+                (Operation::InsertEntry, Span::new(at, at), new),
+            ]
+        })
+    }
+
     pub(super) fn grammar_remove(&self, plan: &mut Plan<'_>, element: usize) -> Planning {
-        let entry = plan.reading.element(element).entry();
-        plan.add_span(Operation::RemoveEntry, self.entries[entry].removal_span(), "");
+        let reading = plan.reading;
+        let target = reading.element(element);
+        let rule = self.rule(target.rule);
+        let entry = target.entry();
+        let settings = rule.remove.as_ref().filter(|remove| !remove.parts.is_empty());
+        let Some(settings) = settings else {
+            plan.add_span(Operation::RemoveEntry, self.entries[entry].removal_span(), "");
+            return Ok(());
+        };
+        let shared = settings.parts.iter().find_map(|part| {
+            let item = self.grammar_reach(entry, &part.item)?;
+            let name = &self.entries[item].name;
+            let list = self.entries[item].parent?;
+            self.entries[list]
+                .children
+                .iter()
+                .any(|&other| other != item && self.entries[other].name == *name)
+                .then_some((item, part.separator.as_str()))
+        });
+        let span = match shared {
+            Some((item, separator)) => self.part_removal(self.entries[item].own, separator),
+            None => {
+                let whole = settings
+                    .whole
+                    .as_deref()
+                    .and_then(|whole| self.grammar_reach(entry, whole));
+                self.whole_removal(self.entries[whole.unwrap_or(entry)].own)
+            }
+        };
+        let body = self.text.text(0, self.text.len());
+        let changed = format!("{}{}", &body[..span.start], &body[span.end..]);
+        if self.grammar_read_again(changed).is_none() {
+            return refuse(format!("The {} would not read back from the text.", rule.type_name));
+        }
+        plan.add_span(Operation::RemoveEntry, span, "");
         Ok(())
+    }
+
+    /// What a part of a list takes with it (FBL 0.16 section 6.3): one separator, the white space that binds it, and
+    /// the lines nothing but white space would be left of.
+    fn part_removal(&self, part: Span, separator: &str) -> Span {
+        let body = self.text.text(0, self.text.len());
+        let tokens = &self.grammar_data().tokens;
+        let before = tokens
+            .partition_point(|t| t.end <= part.start)
+            .checked_sub(1)
+            .map(|t| tokens[t]);
+        let horizontal = |c: char| c == ' ' || c == '\t';
+        let mut span = part;
+        match before
+            .filter(|t| self.text.text_of(*t) == separator && body[t.end..part.start].chars().all(char::is_whitespace))
+        {
+            Some(token) => span.start = token.start,
+            None => {
+                let rest = &body[part.end..];
+                let at = part.end + (rest.len() - rest.trim_start_matches(horizontal).len());
+                if body[at..].starts_with(separator) {
+                    let past = at + separator.len();
+                    let rest = &body[past..];
+                    span.end = past + (rest.len() - rest.trim_start_matches(horizontal).len());
+                }
+            }
+        }
+        let lines = self.text.lines();
+        let first = self.text.line_index_at(span.start);
+        let last = self.text.line_index_at(span.start.max(span.end.saturating_sub(1)));
+        let prefix = &body[lines[first].start..span.start];
+        let suffix = &body[span.end..lines[last].content_end];
+        if !prefix.trim().is_empty() && prefix.ends_with(char::is_whitespace) && suffix.starts_with(char::is_whitespace)
+        {
+            span.start -= prefix.len() - prefix.trim_end().len();
+        }
+        if prefix.trim().is_empty() && suffix.trim().is_empty() {
+            return self.lines_removal(first, last);
+        }
+        span
+    }
+
+    /// A statement that goes whole (FBL 0.16 section 6.3): the lines it stands on, with the comment that follows it there
+    /// and no comment above it, or its own span when something else stands on those lines.
+    fn whole_removal(&self, own: Span) -> Span {
+        if !self.grammar_only_trivia_before(own.start) {
+            return own;
+        }
+        let Some(last) = self.grammar_last_trivia_line(own.end) else {
+            return own;
+        };
+        self.lines_removal(self.text.line_index_at(own.start), last)
+    }
+
+    /// Whole lines with their endings: a last line without one takes the ending before it, so that the body still ends
+    /// without one.
+    fn lines_removal(&self, first: usize, last: usize) -> Span {
+        let lines = self.text.lines();
+        let end = lines[last].end;
+        let unterminated = end == self.text.len() && !self.text.text(0, end).ends_with('\n');
+        if unterminated && first > 0 {
+            return Span::new(lines[first - 1].content_end, end);
+        }
+        Span::new(lines[first].start, end)
     }
 }
 

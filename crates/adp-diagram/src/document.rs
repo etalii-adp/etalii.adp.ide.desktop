@@ -493,7 +493,12 @@ impl DiagramDocument {
             open
         });
         let mut steps = Vec::new();
-        for change in changes {
+        let opened = match &body {
+            Body::Declared(open) => Some(&**open),
+            _ => None,
+        };
+        let changes = self.removals_bottom_up(changes, opened);
+        for change in &changes {
             let (model_change, place, explicit) = match change {
                 DiagramChange::Disl(disl) => (
                     Some(self.addressed(write::to_fbl(specification, disl))),
@@ -540,6 +545,36 @@ impl DiagramDocument {
             body_path: self.body_path.clone(),
             steps,
         })
+    }
+
+    /// `changes` with each run of removals last in document order first (FBL 0.16 section 6.4), so that each is planned
+    /// against what the ones before it leave and the entries still to go keep their places. A run the reading does not
+    /// place stays as it is.
+    fn removals_bottom_up(&self, changes: &[DiagramChange], body: Option<&OpenBody>) -> Vec<DiagramChange> {
+        let specification = self.tool.definition.specification();
+        let place = |change: &DiagramChange| {
+            let DiagramChange::Disl(disl @ DislChange::Remove { .. }) = change else {
+                return None;
+            };
+            let ModelChange::Remove { id } = self.addressed(write::to_fbl(specification, disl)) else {
+                return None;
+            };
+            body?.offset_of(&id)
+        };
+        let is_removal = |change: &DiagramChange| matches!(change, DiagramChange::Disl(DislChange::Remove { .. }));
+        let mut ordered = Vec::with_capacity(changes.len());
+        for run in changes.chunk_by(|a, b| is_removal(a) && is_removal(b)) {
+            let places: Option<Vec<usize>> = run.iter().map(place).collect();
+            match places {
+                Some(places) if run.len() > 1 => {
+                    let mut placed: Vec<(usize, &DiagramChange)> = places.into_iter().zip(run).collect();
+                    placed.sort_by_key(|(at, _)| std::cmp::Reverse(*at));
+                    ordered.extend(placed.into_iter().map(|(_, change)| change.clone()));
+                }
+                _ => ordered.extend(run.iter().cloned()),
+            }
+        }
+        ordered
     }
 
     /// `change` as the binding addresses what it changes: an element whose id the specification derives (DISL section
@@ -620,7 +655,8 @@ impl DiagramDocument {
         .flatten()
         .collect();
         let mut steps = Vec::new();
-        for change in changes {
+        let changes = self.removals_bottom_up(changes, document.body());
+        for change in &changes {
             let (model_change, place) = match change {
                 DiagramChange::Disl(disl) => (
                     Some(self.addressed(write::to_fbl(specification, disl))),

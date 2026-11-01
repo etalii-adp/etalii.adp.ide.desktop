@@ -401,6 +401,10 @@ impl DiagramSession {
         let mut changes = Vec::with_capacity(moves.len());
         for (id, x, y) in moves {
             let element = document.element(id).ok_or_else(|| GONE.to_owned())?;
+            // The notation's refusal comes first (DISL section 8.4).
+            if let Some(reason) = gestures::notation_refusal(specification, &element, "move", Some(&self.env)) {
+                return Err(reason);
+            }
             if element.is_relation() {
                 // What the description says of moving one, else the host's own sentence (DISL section 8.4).
                 let bounds = Map::default;
@@ -417,6 +421,10 @@ impl DiagramSession {
                     .into_iter()
                     .next()
                     .map_or_else(|| NOT_MOVABLE.to_owned(), |r| r.message));
+            }
+            // A gesture that would store an ephemeral id is refused (DISL sections 8.4, 11.5.3).
+            if let Some(reason) = gestures::ephemeral(specification, &element, Some(&self.env)) {
+                return Err(reason);
             }
             let (old_x, old_y) = positions.get(id).copied().unwrap_or_default();
             if (old_x, old_y) == (*x, *y) && positions.contains_key(id) {
@@ -632,8 +640,12 @@ impl DiagramSession {
             Some(id) => Some(document.element(id).ok_or_else(|| GONE.to_owned())?),
             None => None,
         };
+        let specification = document.tool().definition.specification();
+        if let Some(reason) = gestures::notation_refusal(specification, &element, "reparent", Some(&self.env)) {
+            return Err(reason);
+        }
         let refusals = gestures::placement(
-            document.tool().definition.specification(),
+            specification,
             &element,
             "reparent",
             Map::default(),
@@ -1261,7 +1273,24 @@ impl DiagramSession {
                     };
                 }
                 match asked.as_slice() {
-                    [] => {}
+                    // An operation that asks nothing may still ask to be confirmed (DISL section 9.5).
+                    [] => {
+                        if let Some(confirmation) = deletion::operation_confirmation(
+                            specification,
+                            &operation,
+                            &working,
+                            element.as_ref(),
+                            Some(&self.env),
+                        ) {
+                            return ActionOutcome::Prompt(Prompt::Confirm {
+                                title: confirmation.title,
+                                icon: entry.icon.clone(),
+                                message: confirmation.message,
+                                confirm_label: confirmation.confirm_label,
+                                danger: confirmation.danger,
+                            });
+                        }
+                    }
                     [parameter] => {
                         let title = entry.label.trim_end_matches(['\u{2026}', '.']).trim_end().to_owned();
                         return ActionOutcome::Prompt(Prompt::Input {
@@ -1366,6 +1395,29 @@ impl DiagramSession {
                     operations::parameters(specification, &operation, &working, element.as_ref(), Some(&self.env));
                 let handed = given_arguments(&parameters, &entry);
                 let asked: Vec<_> = parameters.iter().filter(|p| !handed.contains_key(&p.name)).collect();
+                // The answer to a confirmation (DISL section 9.5): the operation runs as it would have.
+                if asked.is_empty()
+                    && deletion::operation_confirmation(
+                        specification,
+                        &operation,
+                        &working,
+                        element.as_ref(),
+                        Some(&self.env),
+                    )
+                    .is_some()
+                {
+                    let minted = adp_disl::behavior::ids::of(specification);
+                    let stand_ins = StandInIds::default();
+                    let ids: &dyn adp_disl::IdSource = match (&minted, given) {
+                        (Ok(_), Some(given)) => given,
+                        (Ok(minted), None) => minted,
+                        (Err(_), _) => &stand_ins,
+                    };
+                    return match self.run_operation(workspace, target, &entry, &operation, None, ids) {
+                        Ok(()) => ActionOutcome::Done,
+                        Err(refusal) => ActionOutcome::Refused(refusal),
+                    };
+                }
                 let [parameter] = asked.as_slice() else {
                     return ActionOutcome::Refused(format!("'{action_id}' asks for nothing."));
                 };
