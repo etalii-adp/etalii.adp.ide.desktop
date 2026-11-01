@@ -475,10 +475,11 @@ notation__grammar_alternative: notation__grammar_item_expression* ["->" NAME]
 ?notation__grammar_atom: "(" notation__grammar_alternatives ")"
              | "[" notation__grammar_alternatives "]" -> notation__grammar_maybe
              | NAME -> notation__grammar_reference
-             | STRING -> notation__grammar_string
+             | GRAMMAR_STRING -> notation__grammar_string
              | REGEXP -> notation__grammar_regexp
 INLINE_HEAD: /\?[a-z_][a-z0-9_]*[ \t]*:/
 PRIORITY_HEAD: /_?[A-Z][A-Z0-9_]*\.[0-9]+[ \t]*:/
+GRAMMAR_STRING: /"([^"\\\n\r]|\\[^\n\r])*"i?/
 REGEXP: /\/([^\/\\\n\r*]|\\[^\n\r])([^\/\\\n\r]|\\[^\n\r])*\//
 
 %ignore WHITESPACE

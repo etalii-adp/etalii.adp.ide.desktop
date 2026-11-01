@@ -19,10 +19,13 @@
 //   A link's first word is a SOURCE_WORD, which matches what WORD matches at a lower priority: a statement that ends
 //   in a name is then followed, in the grammar, by a statement that starts with a terminal of its own, and LALR(1)
 //   knows where the name ends.
-// - Keywords are matched in any case by their patterns, at a priority above WORD, so that a keyword wins where the
-//   parser's state can shift it and is a WORD elsewhere (ATD section 3.6).
+// - Keywords are strings matched in any case (`"title"i`), each at the priority of the word it stands in place of,
+//   which matches it whole: a statement's keyword at SOURCE_WORD's, a segment's (label, inertia, url) at WORD's. A
+//   word is read as that terminal and is a keyword only when it is spelled as one and the parser's state can shift
+//   it, so that `inertial` is a word, and `title Pipelines` a title, never `pipeline` and `s` (ATD section 3.6). The
+//   attitudes and the unmodelled statements are one terminal each, whose patterns keep a priority above SOURCE_WORD.
 // - A pipeline's block opens with OPEN, a `{` that the line ends before it may precede, so that `pipeline Kettle` with
-//   `{` on the line below and `pipeline Kettle {` read alike; OPEN wins over the line end by being longer. Nothing
+//   `{` on the line below and `pipeline Kettle {` read alike; OPEN wins over the line end by its priority. Nothing
 //   else opens a block: a `{` alone where a statement may start is a lone_brace, which the tool passes over without a
 //   word, and CLOSE, a `}`, wins over free text so that a `}` alone on a line is a CLOSE token, which recover reports
 //   as unmatched outside a block, as the tool reports that line.
@@ -149,23 +152,23 @@ height: NUMBER
 
 // --------------------------------------------------------------------------------------------------------- terminals
 
-_TITLE.3: /[Tt][Ii][Tt][Ll][Ee]/
-_STYLE.3: /[Ss][Tt][Yy][Ll][Ee]/
-_SIZE.3: /[Ss][Ii][Zz][Ee]/
-_COMPONENT.3: /[Cc][Oo][Mm][Pp][Oo][Nn][Ee][Nn][Tt]/
-_ANCHOR.3: /[Aa][Nn][Cc][Hh][Oo][Rr]/
-_SUBMAP.3: /[Ss][Uu][Bb][Mm][Aa][Pp]/
-_URL.3: /[Uu][Rr][Ll]/
-_URL_REF.4: /[Uu][Rr][Ll]/
-_EVOLVE.3: /[Ee][Vv][Oo][Ll][Vv][Ee]/
-_PIPELINE.3: /[Pp][Ii][Pp][Ee][Ll][Ii][Nn][Ee]/
-_NOTE.3: /[Nn][Oo][Tt][Ee]/
-_ANNOTATION.3: /[Aa][Nn][Nn][Oo][Tt][Aa][Tt][Ii][Oo][Nn]/
-_ANNOTATIONS.3: /[Aa][Nn][Nn][Oo][Tt][Aa][Tt][Ii][Oo][Nn][Ss]/
-_ACCELERATOR.3: /[Aa][Cc][Cc][Ee][Ll][Ee][Rr][Aa][Tt][Oo][Rr]/
-_DEACCELERATOR.3: /[Dd][Ee][Aa][Cc][Cc][Ee][Ll][Ee][Rr][Aa][Tt][Oo][Rr]/
-_LABEL.3: /[Ll][Aa][Bb][Ee][Ll]/
-_INERTIA.3: /[Ii][Nn][Ee][Rr][Tt][Ii][Aa]/
+_TITLE: "title"i
+_STYLE: "style"i
+_SIZE: "size"i
+_COMPONENT: "component"i
+_ANCHOR: "anchor"i
+_SUBMAP: "submap"i
+_URL: "url"i
+_URL_REF.1: "url"i
+_EVOLVE: "evolve"i
+_PIPELINE: "pipeline"i
+_NOTE: "note"i
+_ANNOTATION: "annotation"i
+_ANNOTATIONS: "annotations"i
+_ACCELERATOR: "accelerator"i
+_DEACCELERATOR: "deaccelerator"i
+_LABEL.1: "label"i
+_INERTIA.1: "inertia"i
 ATTITUDE.3: /[Pp][Ii][Oo][Nn][Ee][Ee][Rr][Ss]|[Ss][Ee][Tt][Tt][Ll][Ee][Rr][Ss]|[Tt][Oo][Ww][Nn][Pp][Ll][Aa][Nn][Nn][Ee][Rr][Ss]/
 UNMODELLED.3: /[Yy]_[Aa][Xx][Ii][Ss]|[Xx]_[Aa][Xx][Ii][Ss]|[Ee][Vv][Oo][Ll][Uu][Tt][Ii][Oo][Nn]|[Pp][Rr][Ee][Ss][Ee][Nn][Tt][Aa][Tt][Ii][Oo][Nn]/
 

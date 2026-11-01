@@ -2706,6 +2706,10 @@
               },
               "priority": {
                 "type": "integer"
+              },
+              "flags": {
+                "description": "The flags of a string terminal, present only when it has one: `i`, matched in any case (ATD §3.6, §4.1).",
+                "const": "i"
               }
             },
             "additionalProperties": false,

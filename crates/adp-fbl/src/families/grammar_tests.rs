@@ -490,7 +490,7 @@ WHITESPACE: /[ \t]+/
 %ignore WHITESPACE
 "#;
 
-fn segments() -> Rc<FblBinding> {
+fn segments(grammar: &str) -> Rc<FblBinding> {
     let document = json!({
         "fbl": "0.13",
         "bindings": { "things": {
@@ -498,7 +498,7 @@ fn segments() -> Rc<FblBinding> {
             "body": {
                 "kind": "file",
                 "family": "grammar",
-                "grammar": SEGMENTS,
+                "grammar": grammar,
                 "recover": { "unit": "unit", "sync": ["_NL"] }
             },
             "reader": "declared",
@@ -537,6 +537,10 @@ fn segments() -> Rc<FblBinding> {
 }
 
 fn things(text: &str) -> OpenBody {
+    things_of(SEGMENTS, text)
+}
+
+fn things_of(grammar: &str, text: &str) -> OpenBody {
     let options = FblOptions {
         many: Some(Rc::new(|_: &str, attribute: &str| attribute == "marks")),
         attribute_type: Some(Rc::new(|_: &str, attribute: &str| {
@@ -544,7 +548,7 @@ fn things(text: &str) -> OpenBody {
         })),
         ..FblOptions::default()
     };
-    OpenBody::open(text.as_bytes().to_vec(), segments(), Rc::new(options))
+    OpenBody::open(text.as_bytes().to_vec(), segments(grammar), Rc::new(options))
 }
 
 fn set_value(id: &str, attribute: &str, value: Value) -> ModelChange {
@@ -560,7 +564,8 @@ fn marks(values: &[&str]) -> Value {
     Value::list(values.iter().map(|v| Value::from(*v)).collect())
 }
 
-/// ATD section 3.6: the longest match wins, then the higher priority: `flagging` is a word, not `flag` and `ging`.
+/// ATD section 3.6, as Lark lexes: a keyword `"flag"i` at the priority of `NAME` is `NAME`'s keyword, so `flagging` is
+/// a word, not `flag` and `ging`, and `FLAG`, which `NAME` does not match, is the keyword.
 #[test]
 fn a_word_that_starts_with_a_keyword_is_the_word() {
     let model = things("thing a flagging\nthing b flag\nthing c FLAG\n").model();
@@ -577,6 +582,19 @@ fn a_word_that_starts_with_a_keyword_is_the_word() {
     assert_eq!(
         model.find("c").unwrap().attributes.get("flagged"),
         Some(&Value::from("FLAG"))
+    );
+}
+
+/// ATD section 3.6, as Lark lexes: a pattern at a higher priority wins before a longer match, so a keyword written at a
+/// raised priority takes the start of a longer word, `flagging` read as `flag` and `ging`.
+#[test]
+fn a_keyword_at_a_raised_priority_takes_the_start_of_a_longer_word() {
+    let grammar = SEGMENTS.replace("_FLAGGED: \"flag\"i", "_FLAGGED.2: /[Ff][Ll][Aa][Gg]/");
+    let model = things_of(&grammar, "thing a flagging\n").model();
+
+    assert_eq!(
+        model.find("a").unwrap().attributes.get("flagged"),
+        Some(&Value::Bool(true))
     );
 }
 

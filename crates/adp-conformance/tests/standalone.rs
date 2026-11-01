@@ -74,7 +74,7 @@ const STANDALONE_FIXTURES: [&str; 33] = [
 
 /// The fixtures of the `grammar` family (FBL 0.9 section 4.9), which no host but this one is required to read: run
 /// as the standalone host's are, by [`the_grammar_family_fixtures_pass`].
-const GRAMMAR_FIXTURES: [&str; 34] = [
+const GRAMMAR_FIXTURES: [&str; 35] = [
     "grammar-comment-start",
     "grammar-remove-part",
     "grammar-split-slot",
@@ -93,6 +93,8 @@ const GRAMMAR_FIXTURES: [&str; 34] = [
     "grammar-remove-parts/last-line",
     "structurizr-open-block",
     "structurizr-parents",
+    // ATD section 3.6 (amendment of 2026-11-01): keywords as case-insensitive strings.
+    "structurizr-keyword-prefixes",
     "structurizr-absent-arguments",
     "structurizr-add-view",
     "structurizr-block-comments",

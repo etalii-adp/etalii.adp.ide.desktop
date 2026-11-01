@@ -11,8 +11,9 @@
 // - Positional arguments are rules named by position (name, description, technology, tags, instances), so that a
 //   slot selects each by name; an argument is quoted (STRING) or bare (WORD). Arguments past the last named one are
 //   `extra`.
-// - Keywords are matched in any case by their patterns, since the notation has no flags, at a priority above WORD,
-//   so that a keyword wins where the parser's state can shift it and is a WORD elsewhere (ATD section 3.6).
+// - Keywords are strings matched in any case (`"group"i`), at WORD's priority, which WORD matches whole: a word is
+//   read as WORD and is a keyword only when it is spelled as one and the parser's state can shift it, so that
+//   `grouped` is an identifier and never `group` and `ed` (ATD section 3.6).
 // - A block is "{" after a statement, and only the statements below open one (FBL section 4.9).
 
 start: unit*
@@ -151,28 +152,28 @@ _arg: STRING
 
 // --------------------------------------------------------------------------------------------------------- terminals
 
-_WORKSPACE.2: /[Ww][Oo][Rr][Kk][Ss][Pp][Aa][Cc][Ee]/
-_MODEL.2: /[Mm][Oo][Dd][Ee][Ll]/
-_VIEWS.2: /[Vv][Ii][Ee][Ww][Ss]/
-_PERSON.2: /[Pp][Ee][Rr][Ss][Oo][Nn]/
-_SOFTWARE_SYSTEM.2: /[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee][Ss][Yy][Ss][Tt][Ee][Mm]/
-_CONTAINER.2: /[Cc][Oo][Nn][Tt][Aa][Ii][Nn][Ee][Rr]/
-_COMPONENT.2: /[Cc][Oo][Mm][Pp][Oo][Nn][Ee][Nn][Tt]/
-_DEPLOYMENT_ENVIRONMENT.2: /[Dd][Ee][Pp][Ll][Oo][Yy][Mm][Ee][Nn][Tt][Ee][Nn][Vv][Ii][Rr][Oo][Nn][Mm][Ee][Nn][Tt]/
-_DEPLOYMENT_NODE.2: /[Dd][Ee][Pp][Ll][Oo][Yy][Mm][Ee][Nn][Tt][Nn][Oo][Dd][Ee]/
-_INFRASTRUCTURE_NODE.2: /[Ii][Nn][Ff][Rr][Aa][Ss][Tt][Rr][Uu][Cc][Tt][Uu][Rr][Ee][Nn][Oo][Dd][Ee]/
-_CONTAINER_INSTANCE.2: /[Cc][Oo][Nn][Tt][Aa][Ii][Nn][Ee][Rr][Ii][Nn][Ss][Tt][Aa][Nn][Cc][Ee]/
-_SOFTWARE_SYSTEM_INSTANCE.2: /[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee][Ss][Yy][Ss][Tt][Ee][Mm][Ii][Nn][Ss][Tt][Aa][Nn][Cc][Ee]/
-_GROUP.2: /[Gg][Rr][Oo][Uu][Pp]/
-_TAGS.2: /[Tt][Aa][Gg][Ss]/
-_SYSTEM_LANDSCAPE.2: /[Ss][Yy][Ss][Tt][Ee][Mm][Ll][Aa][Nn][Dd][Ss][Cc][Aa][Pp][Ee]/
-_SYSTEM_CONTEXT.2: /[Ss][Yy][Ss][Tt][Ee][Mm][Cc][Oo][Nn][Tt][Ee][Xx][Tt]/
-_DYNAMIC.2: /[Dd][Yy][Nn][Aa][Mm][Ii][Cc]/
-_DEPLOYMENT.2: /[Dd][Ee][Pp][Ll][Oo][Yy][Mm][Ee][Nn][Tt]/
-_INCLUDE.2: /[Ii][Nn][Cc][Ll][Uu][Dd][Ee]/
-_EXCLUDE.2: /[Ee][Xx][Cc][Ll][Uu][Dd][Ee]/
-_TITLE.2: /[Tt][Ii][Tt][Ll][Ee]/
-_AUTO_LAYOUT.2: /[Aa][Uu][Tt][Oo][Ll][Aa][Yy][Oo][Uu][Tt]/
+_WORKSPACE: "workspace"i
+_MODEL: "model"i
+_VIEWS: "views"i
+_PERSON: "person"i
+_SOFTWARE_SYSTEM: "softwareSystem"i
+_CONTAINER: "container"i
+_COMPONENT: "component"i
+_DEPLOYMENT_ENVIRONMENT: "deploymentEnvironment"i
+_DEPLOYMENT_NODE: "deploymentNode"i
+_INFRASTRUCTURE_NODE: "infrastructureNode"i
+_CONTAINER_INSTANCE: "containerInstance"i
+_SOFTWARE_SYSTEM_INSTANCE: "softwareSystemInstance"i
+_GROUP: "group"i
+_TAGS: "tags"i
+_SYSTEM_LANDSCAPE: "systemLandscape"i
+_SYSTEM_CONTEXT: "systemContext"i
+_DYNAMIC: "dynamic"i
+_DEPLOYMENT: "deployment"i
+_INCLUDE: "include"i
+_EXCLUDE: "exclude"i
+_TITLE: "title"i
+_AUTO_LAYOUT: "autoLayout"i
 
 _ARROW: "->"
 DIRECTIVE: /![A-Za-z]+/
