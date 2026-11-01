@@ -1,0 +1,86 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.16, section 6.3: an emit's opening line feed is a blank line, left out after a body whose last line is blank.",
+  "binding": "blank-line.fbl#blank-line",
+  "input": "facts.txt",
+  "read": {
+    "elements": [
+      {
+        "id": "fact@1",
+        "type": "Fact",
+        "attributes": {
+          "subject": "ann",
+          "verb": "knows",
+          "value": "bob"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "ann knows bob .\n\n"
+    },
+    {
+      "doc": "The body's last line is blank already, so the opening line feed is left out.",
+      "edit": {
+        "add": {
+          "type": "Fact",
+          "attributes": {
+            "subject": "dan",
+            "verb": "knows",
+            "value": "eve"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 17,
+          "end": 17,
+          "text": "dan knows eve .\n"
+        }
+      ],
+      "expect": "ann knows bob .\n\ndan knows eve .\n"
+    },
+    {
+      "doc": "The body's last line is a statement, so the opening line feed writes a blank line.",
+      "edit": {
+        "add": {
+          "type": "Fact",
+          "attributes": {
+            "subject": "gus",
+            "verb": "knows",
+            "value": "hal"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 33,
+          "text": "\ngus knows hal .\n"
+        }
+      ],
+      "expect": "ann knows bob .\n\ndan knows eve .\n\ngus knows hal .\n"
+    },
+    {
+      "doc": "Undo restores every byte.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 33,
+          "end": 50,
+          "text": ""
+        }
+      ],
+      "expect": "ann knows bob .\n\ndan knows eve .\n"
+    }
+  ]
+}
