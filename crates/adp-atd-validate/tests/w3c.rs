@@ -21,65 +21,22 @@ fn diagrams() -> PathBuf {
 const TOO_LONG: &str = "geographic-names";
 
 /// Differences that are a module's quirk, by case: `description/case`, each place `step:part`, the reading's `read:part`.
-const QUIRKS: [(&str, &[&str]); 4] = [
+/// Peter ruled the last three so on 2026-11-01 (spec 067).
+const QUIRKS: [(&str, &[&str]); 7] = [
     // The hand-written parser's own sentence for a body that does not parse, which is not the grammar's: the same finding
     // at the same line.
     ("w3c-rdf/broken", &["read:findings"]),
     ("w3c-owl/broken", &["read:findings"]),
     ("w3c-shacl/broken", &["read:findings"]),
     ("w3c-skos/broken", &["read:findings"]),
-];
-
-/// What waits for a ruling: no description can state it in the languages as they are (spec 067).
-///
-/// - A new statement after a body whose last line is blank. The module writes a blank line before a statement of its own
-///   unless the last line is blank already, and `emit`'s line feed always writes one, so the bytes of `nobel-1903` from
-///   step 8 and of `prov-o` from step 4 keep one blank line more. FBL states nothing that reads the body's last line.
-/// - `nobel-1903`, steps 26 and 27: the module's history holds a set to the value already there (step 24), which writes
-///   nothing and so is no edit of the description's; the undos after it then undo one edit further.
-/// - `prov-o`, step 13 on: the module removes `res:…#servings`, an id only its action reads, where the case and the
-///   description draw that property's range as `dt:…#servings`, so that nothing has the id the step selects.
-/// - `turtle-edits-skos`, step 3 on: the row `skos.label:prefLabel:en` is the module's own, one per label and language,
-///   where the description has the one field `prefLabel`.
-const AWAITING_RULING: [(&str, &[&str]); 3] = [
-    (
-        "w3c-rdf/nobel-1903",
-        &[
-            "8:bytes",
-            "9:bytes",
-            "10:bytes",
-            "11:bytes",
-            "12:bytes",
-            "13:bytes",
-            "14:bytes",
-            "15:bytes",
-            "16:bytes",
-            "17:bytes",
-            "18:bytes",
-            "19:bytes",
-            "20:bytes",
-            "21:bytes",
-            "22:bytes",
-            "23:bytes",
-            "24:bytes",
-            "26:bytes",
-            "26:drawing",
-            "27:bytes",
-            "27:drawing",
-        ],
-    ),
+    // The module's history holds a set to the value already there (step 24), which writes nothing and so is no edit of the
+    // description's; the undos after it then undo one edit further.
+    ("w3c-rdf/nobel-1903", &["26:drawing", "27:drawing"]),
+    // The module removes `res:…#servings`, an id only its action reads, where the case and the description draw that
+    // property's range as `dt:…#servings`, so that nothing has the id the step selects.
     (
         "w3c-owl/prov-o",
         &[
-            "4:bytes",
-            "5:bytes",
-            "6:bytes",
-            "7:bytes",
-            "8:bytes",
-            "9:bytes",
-            "10:bytes",
-            "11:bytes",
-            "12:bytes",
             "13:refused",
             "13:bytes",
             "13:drawing",
@@ -99,6 +56,8 @@ const AWAITING_RULING: [(&str, &[&str]); 3] = [
             "20:drawing",
         ],
     ),
+    // The row `skos.label:prefLabel:en` is the module's own, one per label and language, where the description has the one
+    // field `prefLabel`.
     (
         "w3c-skos/turtle-edits-skos",
         &["3:refused", "3:bytes", "4:bytes", "5:bytes", "6:bytes", "7:bytes"],
@@ -133,7 +92,7 @@ fn differences_of(name: &str) -> BTreeMap<String, BTreeSet<String>> {
 
 fn check_description(name: &str, count: usize) {
     let mut listed: BTreeMap<&str, BTreeSet<String>> = BTreeMap::new();
-    for (case, places) in QUIRKS.iter().chain(AWAITING_RULING.iter()) {
+    for (case, places) in QUIRKS.iter() {
         listed
             .entry(case)
             .or_default()
