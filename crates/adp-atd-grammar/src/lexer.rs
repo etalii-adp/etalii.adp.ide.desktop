@@ -1,6 +1,7 @@
-//! The terminals of a grammar and Lark's lexer over them (ATD §3.6): among the candidates a parser state reads and the
-//! ignored terminals, the longest match wins, then the higher priority, then a string over a pattern, as Lark's
-//! lexer decides it.
+//! The terminals of a grammar and Lark's lexer over them (ATD §3.6, as amended on 2026-11-01): among the candidates a
+//! parser state reads and the ignored terminals, a string that a pattern of its priority matches whole is that
+//! pattern's keyword; the rest are tried by priority, then by the longest text they can match, and the first that
+//! matches wins, retyped to a keyword its text is. `etalii-lark`'s `BasicLexer` decides it, as Lark's does.
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};

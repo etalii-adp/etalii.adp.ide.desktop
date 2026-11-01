@@ -200,12 +200,21 @@ pub fn normalized(lark: &Lark, grammar_path: &str, start: &str, named: &dyn Fn(&
         .iter()
         .map(|t| {
             let name = names.terminal(&t.name);
+            // A terminal's flags, sorted, only when it has any (ATD §4.7).
+            let mut flags: Vec<char> = t.pattern.flags().chars().collect();
+            flags.sort_unstable();
+            let flags: String = flags.into_iter().collect();
             let line = format!(
-                "    {{\"name\": {}, \"kind\": {}, \"value\": {}, \"priority\": {}}}",
+                "    {{\"name\": {}, \"kind\": {}, \"value\": {}, \"priority\": {}{}}}",
                 json_string(&name),
                 json_string(if t.pattern.is_str() { "string" } else { "pattern" }),
                 json_string(t.pattern.value()),
-                t.priority
+                t.priority,
+                if flags.is_empty() {
+                    String::new()
+                } else {
+                    format!(", \"flags\": {}", json_string(&flags))
+                }
             );
             (name, line)
         })

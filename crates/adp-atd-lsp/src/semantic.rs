@@ -65,7 +65,7 @@ pub fn encode(text: &str, file: &str, index: &Index, encoding: Encoding, bounds:
                 _ if token.is_keyword() => ("keyword", 0),
                 "NAME" | "DASHED_WORD" => ("variable", 0),
                 "KEY" => ("property", 0),
-                "STRING" | "BYTES" => ("string", 0),
+                "STRING" | "GRAMMAR_STRING" | "BYTES" => ("string", 0),
                 "INT" | "UINT" | "DOUBLE" | "LENGTH" | "VERSION" => ("number", 0),
                 "ATTR_REF" => ("property", 0),
                 "TOKEN_REF" => ("variable", 2),

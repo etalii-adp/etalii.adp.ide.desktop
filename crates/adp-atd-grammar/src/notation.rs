@@ -198,14 +198,25 @@ fn tokenize(text: &str, first_line: usize) -> Result<Vec<Token>, NotationError> 
             if end > bytes.len() || !text[..end].ends_with('"') {
                 return Err(error(line, "a string that does not end".into()));
             }
-            if text[end..].starts_with(|c: char| c.is_ascii_lowercase()) {
-                return Err(error(
-                    line,
-                    "a string with flags, which ATD grammar notation does not admit".into(),
-                ));
+            // `i`, case-insensitive, is the one flag a string may carry, on ASCII text (ATD §4.1, amended 2026-11-01).
+            let flags_end = end
+                + text[end..]
+                    .find(|c: char| !c.is_ascii_lowercase())
+                    .unwrap_or(text.len() - end);
+            let value = string_value(raw, line)?;
+            match &text[end..flags_end] {
+                "" => {}
+                "i" if value.is_ascii() => {}
+                "i" => return Err(error(line, "a case-insensitive string whose text is not ASCII".into())),
+                flags => {
+                    return Err(error(
+                        line,
+                        format!("the flags `{flags}` of a string, which ATD grammar notation does not admit"),
+                    ));
+                }
             }
-            tokens.push(Token::Str(string_value(raw, line)?));
-            i = end;
+            tokens.push(Token::Str(value));
+            i = flags_end;
             continue;
         }
         if c == b'/' {
@@ -547,7 +558,9 @@ mod tests {
         for (text, expected) in [
             ("a.2: b\n", "rule priority"),
             ("!a: b\n", "keep-all-tokens"),
-            ("a: \"x\"i\n", "flags"),
+            ("a: \"x\"s\n", "flags"),
+            ("a: \"x\"il\n", "flags"),
+            ("a: \"\u{e9}\"i\n", "ASCII"),
             ("A: /x/i\n", "flags"),
             ("%declare A\n", "not admitted"),
             ("%import common.WS\n", "`.` expected"),
