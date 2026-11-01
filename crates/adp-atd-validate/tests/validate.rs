@@ -268,8 +268,8 @@ fn a_steps_splices_are_compared_and_attributed_to_its_gesture() {
     assert_eq!(short(&differences[0]), "mindmap.atd:280");
 }
 
-/// A refusal is compared exactly, unless both sides are one of the host's own "not offered" sentences (ATD §2.3, spec
-/// 067, FR-011): the differences of `refused` when a step made as the case states is expected to give `expected`.
+/// A refusal is compared exactly, unless the case's is one of the "not offered" sentences (ATD §2.3, spec 067, FR-011):
+/// the differences of `refused` when a step made as the case states is expected to give `expected`.
 fn refused_when_expecting(expected: &str) -> Vec<Difference> {
     let mut held = case("refusals");
     held.fixture["steps"].as_array_mut().unwrap().truncate(1);
@@ -286,6 +286,7 @@ fn the_hosts_sentences_that_a_gesture_is_not_offered_count_as_one_refusal() {
         "'mindmap.delete' does not apply to this selection.",
         "'another.action' does not apply to this selection.",
         "That action is not available for this item.",
+        "'mindmap.delete' cannot be edited on this selection.",
     ] {
         assert_eq!(refused_when_expecting(expected), vec![], "{expected}");
     }
@@ -310,11 +311,31 @@ fn any_other_reason_is_compared_exactly() {
 }
 
 #[test]
-fn a_descriptions_own_reason_against_the_hosts_sentence_is_a_difference() {
-    // Step 3 is refused by the description's own constraint; a host's sentence is not the same refusal.
+fn a_descriptions_own_reason_counts_as_a_sentence_that_a_gesture_is_not_offered() {
+    // Step 3 is refused by the description's own constraint: both tools refuse it (ATD §2.3, spec 067, FR-011).
+    for sentence in [
+        "Unknown action 'mindmap.move'.",
+        "'mindmap.move' does not apply to this selection.",
+        "'mindmap.move' cannot be edited on this selection.",
+        "That action is not available for this item.",
+    ] {
+        let mut held = case("refusals");
+        held.fixture["steps"].as_array_mut().unwrap().truncate(3);
+        held.fixture["steps"][2]["refused"]["reason"] = json!(sentence);
+        let differences = run(None, &held);
+        assert!(
+            !places(&differences).contains("3:refused"),
+            "{sentence}: {differences:#?}"
+        );
+    }
+}
+
+#[test]
+fn a_step_one_tool_refuses_and_the_other_makes_stays_a_difference() {
+    // The description refuses step 3, and the case says the module made it.
     let mut held = case("refusals");
     held.fixture["steps"].as_array_mut().unwrap().truncate(3);
-    held.fixture["steps"][2]["refused"]["reason"] = json!("Unknown action 'mindmap.move'.");
+    held.fixture["steps"][2].as_object_mut().unwrap().remove("refused");
     let differences = run(None, &held);
     assert!(places(&differences).contains("3:refused"), "{differences:#?}");
 }
@@ -421,6 +442,10 @@ fn a_delete_removes_what_it_names_and_refuses_what_it_may_not() {
         step.remove(key);
     }
     step.insert("delete".into(), json!([root]));
+    // Against the case's sentence that the action is not offered that is the same refusal (ATD §2.3), so a reason of
+    // the case's own shows what the description says.
+    assert_eq!(places(&run(None, &held)), BTreeSet::new());
+    held.fixture["steps"][0]["refused"]["reason"] = json!("The central topic stays.");
     let differences = run(None, &held);
     assert_eq!(places(&differences), BTreeSet::from(["1:refused".to_owned()]));
     assert!(differences[0].actual.contains("cannot be deleted"), "{differences:#?}");

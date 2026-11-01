@@ -74,7 +74,7 @@ const STANDALONE_FIXTURES: [&str; 33] = [
 
 /// The fixtures of the `grammar` family (FBL 0.9 section 4.9), which no host but this one is required to read: run
 /// as the standalone host's are, by [`the_grammar_family_fixtures_pass`].
-const GRAMMAR_FIXTURES: [&str; 27] = [
+const GRAMMAR_FIXTURES: [&str; 31] = [
     "grammar-comment-start",
     "grammar-remove-part",
     "grammar-split-slot",
@@ -84,6 +84,11 @@ const GRAMMAR_FIXTURES: [&str; 27] = [
     "grammar-ordinals",
     "grammar-string-sequences",
     "w3c-turtle-triples",
+    // FBL 0.16: Turtle's writes.
+    "grammar-continue",
+    "grammar-continue/last-line",
+    "grammar-remove-parts",
+    "grammar-remove-parts/last-line",
     "structurizr-open-block",
     "structurizr-absent-arguments",
     "structurizr-add-view",
