@@ -31,7 +31,7 @@ VERSION: /[0-9]+\.[0-9]+/
 %import .form (form_surface, name, type_ref, value, setting, settings_block, doc_member, label_member, STRING)
 %import .text (text_surface, name, qualified, names, setting, settings_block, doc_member, fix, STRING)
 %import .binding (binding, name, qualified, names, type_ref, value, setting, settings_block, doc_member, label_member, expr, grammar_text, STRING, INT, DASHED_WORD)
-%import .notation (grammar_text, name, KEY, STRING, NAME, INT, INLINE_HEAD, PRIORITY_HEAD, REGEXP)
+%import .notation (grammar_text, name, KEY, NAME, INT, INLINE_HEAD, PRIORITY_HEAD, REGEXP, GRAMMAR_STRING)
 
 %ignore WHITESPACE
 %ignore COMMENT

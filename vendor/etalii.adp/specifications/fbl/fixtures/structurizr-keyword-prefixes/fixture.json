@@ -1,0 +1,52 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "ATD section 3.6 (amendment of 2026-11-01): a keyword is a case-insensitive string terminal that WORD matches whole, so an identifier that starts with a keyword is a WORD, as the Structurizr parser reads it: `grouped`, `components`, `persons` and `modelled` are identifiers, not `group`, `component`, `person` or `model` and the rest of the word, and `GROUP` is the keyword in another case. Under the grammar's earlier keyword patterns at a priority above WORD, Lark read `grouped` as `group` and `ed`. Saving without an edit writes the bytes that were read.",
+  "binding": "../../structurizr.fbl#workspace",
+  "input": "keyword-prefixes.dsl",
+  "read": {
+    "elements": [
+      {
+        "id": "grouped",
+        "type": "Person",
+        "attributes": {
+          "name": "Grouped"
+        }
+      },
+      {
+        "id": "components",
+        "type": "SoftwareSystem",
+        "attributes": {
+          "name": "Components"
+        }
+      },
+      {
+        "id": "persons",
+        "type": "Container",
+        "parent": "components",
+        "attributes": {
+          "name": "Persons",
+          "technology": "Go"
+        }
+      },
+      {
+        "id": "modelled",
+        "type": "Container",
+        "attributes": {
+          "name": "Modelled",
+          "technology": "Go"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "workspace \"Keyword prefixes\" {\n    model {\n        grouped = person \"Grouped\" \"Its identifier starts with group.\"\n        components = softwareSystem \"Components\" \"Its identifier starts with component.\" {\n            persons = container \"Persons\" \"Its identifier starts with person.\" \"Go\"\n        }\n        GROUP \"A group\" {\n            modelled = container \"Modelled\" \"Its identifier starts with model.\" \"Go\"\n        }\n    }\n}\n"
+    }
+  ]
+}
