@@ -482,7 +482,7 @@ mark: "(" NAME ")"
 spot: "<" NUMBER "," NUMBER ">"
 other: NAME
 _THING.2: "thing"
-_FLAGGED.2: /[Ff][Ll][Aa][Gg]/
+_FLAGGED: "flag"i
 NUMBER: /[0-9]+(\.[0-9]+)?/
 NAME: /[a-z]+/
 _NL: /(\r?\n[ \t]*)+/

@@ -75,7 +75,7 @@ fn terminals_a_state_does_not_accept_together_do_not_collide() {
 }
 
 #[test]
-fn the_lexer_takes_the_longest_match_then_priority_then_a_string() {
+fn the_lexer_reads_as_lark_reads() {
     let built = build_single(
         "start: (WORD | \"if\" | \"=\" | \"==\" | NUM | DEC)*\nWORD: /[a-z]+/\nNUM: /[0-9]+/\nDEC.1: /[0-9]+/\n",
         "start",
@@ -88,11 +88,15 @@ fn the_lexer_takes_the_longest_match_then_priority_then_a_string() {
         let lexeme = lexer.next(text, 0, &all).expect("a token");
         (lexer.matchers[lexeme.terminal].name.clone(), lexeme.end)
     };
-    assert_eq!(name("iffy"), ("WORD".to_owned(), 4), "the longest match");
+    assert_eq!(
+        name("iffy"),
+        ("WORD".to_owned(), 4),
+        "a word that starts with a keyword of its priority"
+    );
     assert_eq!(
         name("if x"),
         ("\"if\"".to_owned(), 2),
-        "a string over a pattern of the same length"
+        "a keyword of the pattern that matches it whole"
     );
     assert_eq!(name("== 1"), ("\"==\"".to_owned(), 2), "the longest string");
     assert_eq!(name("42"), ("DEC".to_owned(), 2), "the higher priority");
@@ -110,7 +114,7 @@ fn a_filtered_rule_has_no_alias() {
 fn constructs_outside_the_notation_are_refused() {
     for text in [
         "start: a\na.2: \"x\"\n",
-        "start: \"x\"i\n",
+        "start: \"x\"s\n",
         "start: /x/i\n",
         "%declare X\nstart: \"x\"\n",
     ] {
@@ -119,4 +123,44 @@ fn constructs_outside_the_notation_are_refused() {
             "{text}"
         );
     }
+}
+
+/// ATD §4.1 as amended on 2026-11-01: a string may be case-insensitive, `"x"i`, and a keyword written so at the
+/// priority of the word it stands in for is that word's keyword in any case, as Lark's lexer reads it (§3.6).
+#[test]
+fn a_case_insensitive_string_is_a_keyword_in_any_case() {
+    let built = build_single(
+        "start: (_GROUP | WORD)*\n_GROUP: \"group\"i\nWORD: /[A-Za-z]+/\n_S: /[ ]+/\n%ignore _S\n",
+        "start",
+    )
+    .expect("builds");
+    let lexer = &built.lexer;
+    let all: Vec<usize> = (0..lexer.matchers.len()).collect();
+    let name = |text: &str| {
+        let lexeme = lexer.next(text, 0, &all).expect("a token");
+        (lexer.matchers[lexeme.terminal].name.clone(), lexeme.end)
+    };
+    assert_eq!(name("group x"), ("_GROUP".to_owned(), 5));
+    assert_eq!(name("GROUP x"), ("_GROUP".to_owned(), 5));
+    assert_eq!(name("Group x"), ("_GROUP".to_owned(), 5));
+    assert_eq!(
+        name("grouped x"),
+        ("WORD".to_owned(), 7),
+        "a word that starts with the keyword"
+    );
+}
+
+/// ATD §4.7: the normalized tables name a terminal's flags, as `atd-grammar.py --tables` does.
+#[test]
+fn the_tables_name_a_case_insensitive_string_by_its_flag() {
+    let built = build_single("start: _GROUP WORD\n_GROUP: \"group\"i\nWORD: /[a-z]+/\n", "start").expect("builds");
+    let tables = adp_atd_grammar::tables::to_json(&built.grammar, &built.tables, "g.lark");
+    assert!(
+        tables.contains(r#"{"name": "_GROUP", "kind": "string", "value": "group", "priority": 0, "flags": "i"}"#),
+        "{tables}"
+    );
+    assert!(
+        tables.contains(r#"{"name": "WORD", "kind": "pattern", "value": "[a-z]+", "priority": 0}"#),
+        "{tables}"
+    );
 }
