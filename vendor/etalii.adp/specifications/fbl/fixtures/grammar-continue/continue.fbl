@@ -1,0 +1,67 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.16",
+  "doc": "The binding of the fixture grammar-continue (FBL 0.16, sections 4.9, 6.2, 6.3): a new fact continues the last statement of its subject with `;` on a line of its own, and stands at the end of the body when the body has no statement of that subject.",
+  "bindings": {
+    "continue": {
+      "title": "Facts continued in their statements",
+      "claims": {
+        "extensions": [
+          ".continue"
+        ],
+        "origins": [
+          "example/continue"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "grammar",
+        "grammar": "start: statement*\nstatement: subject list \".\"\nsubject: NAME\nlist: pair (\";\" [pair])*\npair: NAME object (\",\" object)*\nobject: NAME | NUMBER\nNAME: /[a-z]+/\nNUMBER: /[0-9]+/\nWS: /[ \\n]+/\nCOMMENT: /#[^\\n]*/\n%ignore WS\n%ignore COMMENT\n",
+        "start": "start"
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "lf",
+        "indent": 2,
+        "finalNewline": true
+      },
+      "elements": [
+        {
+          "name": "fact",
+          "type": "Fact",
+          "at": "/statement/list/pair/object",
+          "attributes": {
+            "subject": {
+              "node": "../../../subject/NAME"
+            },
+            "verb": {
+              "node": "../NAME"
+            },
+            "value": {
+              "node": "NAME",
+              "or": [
+                {
+                  "node": "NUMBER"
+                }
+              ]
+            }
+          },
+          "insert": {
+            "place": "end-of-document",
+            "emit": "{subject} {verb} {value} .",
+            "continues": {
+              "at": "/statement",
+              "same": {
+                "subject": {
+                  "node": "subject/NAME"
+                }
+              },
+              "separator": ";",
+              "emit": "{verb} {value} ."
+            }
+          }
+        }
+      ]
+    }
+  }
+}

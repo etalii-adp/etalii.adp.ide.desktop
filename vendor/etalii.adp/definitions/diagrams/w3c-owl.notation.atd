@@ -564,7 +564,7 @@ layout {
     owner: (self.isA('Expression') && self.axiomOwner != null ? self.axiomOwner.id : '')
     pinnable: (self.id.startsWith('res:') || self.id.startsWith('ind:'))
     edges: (true)
-    sequence: (self.isA('Expression') ? 1000000 + owlExpressions().map(e, e[0]).indexOf(self.id) : 0)
+    sequence: (self.isA('Expression') ? 1000000 + owlExpressions().map(e, e[0]).indexOf(self.id) : (self.isA('Thing') && self.id.startsWith('res:') ? -1 : 0))
   }
   /// The declarative approximation of depthColumns, for a runtime without the capability: a layered layout over the subclass edges, which run from subclass to
   /// superclass, so direction left puts the roots on the left.

@@ -1,7 +1,7 @@
 {
   "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
-  "fbl": "0.15",
-  "doc": "FBL 0.9's grammar family (section 4.9): Turtle read by the grammar w3c-turtle.lark beside this document instead of by a persistence plugin, for the prefixes and the labelled resources of a W3C RDF graph (definitions/diagrams/w3c-rdf.dis). A statement whose subject is a resource, an IRI or a prefixed name, is a Resource, its id the subject as written and its label the first rdfs:label written in it; a prefix directive is a Prefix. Every other statement, and every other triple, is kept and binds nothing. A statement that does not parse is skipped to its '.' and reported at its line, and the rest is read (recover). w3c-turtle.fbl, the plugin binding the four W3C tool types run, stays as it is; spec 035 binds the W3C RDF type's Turtle with this family in its tool description. FBL 0.15's binding `triples` reads what w3c-turtle.fbl's plugin reads, with no plugin (spec 067, T037): a stored Triple per triple, each reaching up to its subject, its terms read through the file's directives, a blank node by its number and a literal unescaped, in the order a construct closes; a Prefix per directive and the Base. Four tool types read it, whose descriptions bind it in ATD (definitions/diagrams/w3c-*.turtle.atd), and a test holds them equal. It writes what FBL states: a value in place, a term under the file's prefixes, a new statement at the end of the body; a removal is not stated, so the rule refuses it.",
+  "fbl": "0.16",
+  "doc": "FBL 0.9's grammar family (section 4.9): Turtle read by the grammar w3c-turtle.lark beside this document instead of by a persistence plugin, for the prefixes and the labelled resources of a W3C RDF graph (definitions/diagrams/w3c-rdf.dis). A statement whose subject is a resource, an IRI or a prefixed name, is a Resource, its id the subject as written and its label the first rdfs:label written in it; a prefix directive is a Prefix. Every other statement, and every other triple, is kept and binds nothing. A statement that does not parse is skipped to its '.' and reported at its line, and the rest is read (recover). w3c-turtle.fbl, the plugin binding the four W3C tool types run, stays as it is; spec 035 binds the W3C RDF type's Turtle with this family in its tool description. FBL 0.15's binding `triples` reads what w3c-turtle.fbl's plugin reads, with no plugin (spec 067, T037): a stored Triple per triple, each reaching up to its subject, its terms read through the file's directives, a blank node by its number and a literal unescaped, in the order a construct closes; a Prefix per directive and the Base. Four tool types read it, whose descriptions bind it in ATD (definitions/diagrams/w3c-*.turtle.atd), and a test holds them equal. It writes as FBL 0.16 states: a value in place, a term under the file's prefixes, a new triple as a `;` continuation of its subject's last statement, or a statement of its own at the end of the body when the file has none, and a removed triple with its separator, the whole statement when it is the last.",
   "bindings": {
     "turtle": {
       "title": "RDF in Turtle, read by its grammar",
@@ -364,7 +364,31 @@
           "insert": {
             "when": "attributes.oKind == 'literal'",
             "place": "end-of-document",
-            "emit": "\n{s} {p} {o}[@{language}][^^{datatype}] ."
+            "emit": "\n{s} {p} {o}[@{language}][^^{datatype}] .",
+            "continues": {
+              "at": "/triples_statement",
+              "same": {
+                "s": {
+                  "node": "triples/subject/iri",
+                  "expand": true
+                }
+              },
+              "separator": ";",
+              "emit": "{p} {o}[@{language}][^^{datatype}] ."
+            }
+          },
+          "remove": {
+            "parts": [
+              {
+                "item": ".",
+                "separator": ","
+              },
+              {
+                "item": "../..",
+                "separator": ";"
+              }
+            ],
+            "whole": "../../../../.."
           },
           "doc": "A literal object in a statement: `s` reaches up to the statement's subject (FBL 0.15, section 4.9)."
         },
@@ -471,7 +495,31 @@
           },
           "insert": {
             "place": "end-of-document",
-            "emit": "\n{s} {p} {o} ."
+            "emit": "\n{s} {p} {o} .",
+            "continues": {
+              "at": "/triples_statement",
+              "same": {
+                "s": {
+                  "node": "triples/subject/iri",
+                  "expand": true
+                }
+              },
+              "separator": ";",
+              "emit": "{p} {o} ."
+            }
+          },
+          "remove": {
+            "parts": [
+              {
+                "item": ".",
+                "separator": ","
+              },
+              {
+                "item": "../..",
+                "separator": ";"
+              }
+            ],
+            "whole": "../../../../.."
           },
           "doc": "An IRI or blank object in a statement. A blank node is written nowhere: an edit naming one is refused."
         },

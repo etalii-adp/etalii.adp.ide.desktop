@@ -1,6 +1,6 @@
 {
   "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
-  "doc": "FBL 0.15's constructs together on Turtle (sections 4.9, 6.3), spec 067, FR-008 and scenarios 1 to 4 of its story 4: every triple of a statement reaches its subject, `,` and `;` lists, a nested property list, a collection as its `rdf:first` and `rdf:rest`, the empty collection as `rdf:nil`, a labelled blank node numbered where it first appears, and the triples of a construct before the triple that names it. A literal's set is unescaped and written in its one quote, a term's under the file's prefixes or whole, a new triple as a statement of its own, and a removal refused: what FBL does not state of a shared statement (research R9).",
+  "doc": "FBL 0.15's constructs together on Turtle (sections 4.9, 6.3), spec 067, FR-008 and scenarios 1 to 5 of its story 4: every triple of a statement reaches its subject, `,` and `;` lists, a nested property list, a collection as its `rdf:first` and `rdf:rest`, the empty collection as `rdf:nil`, a labelled blank node numbered where it first appears, and the triples of a construct before the triple that names it. A literal's set is unescaped and written in its one quote, a term's under the file's prefixes or whole, a new triple as a statement of its own, and a removal refused: what FBL does not state of a shared statement (research R9).",
   "binding": "../../w3c-turtle-grammar.fbl#triples",
   "input": "triples.ttl",
   "read": {
@@ -248,7 +248,56 @@
       "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nex:a a ex:T ;\n    rdfs:label \"A \\\"one\\\"\"@en ;\n    ex:n 42 , \"4.5\"^^xsd:decimal ;\n    ex:b [ ex:c _:x ] ;\n    ex:l ( ex:d \"e\" ) .\n_:x ex:e () .\n"
     },
     {
-      "doc": "A new triple is a statement of its own at the end of the body, a term under the file's prefixes.",
+      "doc": "A new triple of a subject the file states continues its last statement with `;` on a line of its own, at the second line's indentation, a term under the file's prefixes (sections 4.9, 6.3).",
+      "edit": {
+        "add": {
+          "type": "Triple",
+          "attributes": {
+            "s": "http://example.org/a",
+            "sKind": "iri",
+            "p": "http://example.org/p",
+            "o": "v",
+            "oKind": "literal"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-separator",
+          "start": 268,
+          "end": 269,
+          "text": ";"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 270,
+          "end": 270,
+          "text": "    ex:p \"v\" .\n"
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nex:a a ex:T ;\n    rdfs:label \"A \\\"one\\\"\"@en ;\n    ex:n 42 , \"4.5\"^^xsd:decimal ;\n    ex:b [ ex:c _:x ] ;\n    ex:l ( ex:d \"e\" ) ;\n    ex:p \"v\" .\n_:x ex:e () .\n"
+    },
+    {
+      "doc": "Undo.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-separator",
+          "start": 268,
+          "end": 269,
+          "text": "."
+        },
+        {
+          "operation": "insert-entry",
+          "start": 270,
+          "end": 285,
+          "text": ""
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nex:a a ex:T ;\n    rdfs:label \"A \\\"one\\\"\"@en ;\n    ex:n 42 , \"4.5\"^^xsd:decimal ;\n    ex:b [ ex:c _:x ] ;\n    ex:l ( ex:d \"e\" ) .\n_:x ex:e () .\n"
+    },
+    {
+      "doc": "A subject the file does not state is a statement of its own at the end of the body.",
       "edit": {
         "add": {
           "type": "Triple",
@@ -285,14 +334,63 @@
       "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nex:a a ex:T ;\n    rdfs:label \"A \\\"one\\\"\"@en ;\n    ex:n 42 , \"4.5\"^^xsd:decimal ;\n    ex:b [ ex:c _:x ] ;\n    ex:l ( ex:d \"e\" ) .\n_:x ex:e () .\n"
     },
     {
-      "doc": "A triple is not removed: no rule states what becomes of the statement it shares.",
+      "doc": "A pair of a `;` list goes with the `;` before it.",
       "edit": {
         "remove": {
           "element": "triple:http://example.org/a|http://www.w3.org/2000/01/rdf-schema#label|A \"one\""
         }
       },
-      "refused": "A Triple cannot be removed from this file.",
-      "splices": [],
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 152,
+          "end": 184,
+          "text": ""
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nex:a a ex:T ;\n    ex:n 42 , \"4.5\"^^xsd:decimal ;\n    ex:b [ ex:c _:x ] ;\n    ex:l ( ex:d \"e\" ) .\n_:x ex:e () .\n"
+    },
+    {
+      "doc": "Undo.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 152,
+          "end": 152,
+          "text": " ;\n    rdfs:label \"A \\\"one\\\"\"@en"
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nex:a a ex:T ;\n    rdfs:label \"A \\\"one\\\"\"@en ;\n    ex:n 42 , \"4.5\"^^xsd:decimal ;\n    ex:b [ ex:c _:x ] ;\n    ex:l ( ex:d \"e\" ) .\n_:x ex:e () .\n"
+    },
+    {
+      "doc": "A member of a `,` list goes with the `,` after it.",
+      "edit": {
+        "remove": {
+          "element": "triple:http://example.org/a|http://example.org/n|42"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 196,
+          "end": 201,
+          "text": ""
+        }
+      ],
+      "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nex:a a ex:T ;\n    rdfs:label \"A \\\"one\\\"\"@en ;\n    ex:n \"4.5\"^^xsd:decimal ;\n    ex:b [ ex:c _:x ] ;\n    ex:l ( ex:d \"e\" ) .\n_:x ex:e () .\n"
+    },
+    {
+      "doc": "Undo.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 196,
+          "end": 196,
+          "text": "42 , "
+        }
+      ],
       "expect": "@prefix ex: <http://example.org/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nex:a a ex:T ;\n    rdfs:label \"A \\\"one\\\"\"@en ;\n    ex:n 42 , \"4.5\"^^xsd:decimal ;\n    ex:b [ ex:c _:x ] ;\n    ex:l ( ex:d \"e\" ) .\n_:x ex:e () .\n"
     }
   ]

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.16",
+  "doc": "FBL 0.16, section 14.1: an insert's continues stands only in a binding of the grammar family, and this one is yaml.",
+  "bindings": {
+    "b": {
+      "title": "Refused",
+      "claims": {
+        "extensions": [
+          ".b"
+        ],
+        "origins": [
+          "example/b"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "yaml"
+      },
+      "reader": "declared",
+      "elements": [
+        {
+          "name": "item",
+          "type": "Item",
+          "at": "/items/*",
+          "attributes": {
+            "name": {
+              "key": "name"
+            }
+          },
+          "insert": {
+            "place": "end",
+            "keys": [
+              "name"
+            ],
+            "continues": {
+              "at": "/item",
+              "same": {
+                "name": {
+                  "node": "NAME"
+                }
+              },
+              "separator": ";",
+              "emit": "{name} ."
+            }
+          }
+        }
+      ]
+    }
+  }
+}

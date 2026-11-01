@@ -1,0 +1,85 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.16, section 6.3: a statement continued on the last line of a body that ends without a line ending, which still ends without one.",
+  "binding": "../continue.fbl#continue",
+  "input": "facts.txt",
+  "read": {
+    "elements": [
+      {
+        "id": "fact@1",
+        "type": "Fact",
+        "attributes": {
+          "subject": "ann",
+          "verb": "knows",
+          "value": "bob"
+        }
+      },
+      {
+        "id": "fact@2",
+        "type": "Fact",
+        "attributes": {
+          "subject": "ann",
+          "verb": "age",
+          "value": "42"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "ann knows bob ;\n  age 42 ."
+    },
+    {
+      "doc": "The statement's line is the body's last and has no ending: the line ending goes before the new line and none after it (section 6.3).",
+      "edit": {
+        "add": {
+          "type": "Fact",
+          "attributes": {
+            "subject": "ann",
+            "verb": "likes",
+            "value": "cat"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-separator",
+          "start": 25,
+          "end": 26,
+          "text": ";"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 26,
+          "end": 26,
+          "text": "\n  likes cat ."
+        }
+      ],
+      "expect": "ann knows bob ;\n  age 42 ;\n  likes cat ."
+    },
+    {
+      "doc": "Undo restores every byte.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-separator",
+          "start": 25,
+          "end": 26,
+          "text": "."
+        },
+        {
+          "operation": "insert-entry",
+          "start": 26,
+          "end": 40,
+          "text": ""
+        }
+      ],
+      "expect": "ann knows bob ;\n  age 42 ."
+    }
+  ]
+}

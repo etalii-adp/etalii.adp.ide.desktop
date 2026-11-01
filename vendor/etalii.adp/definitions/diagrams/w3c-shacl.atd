@@ -243,7 +243,7 @@ diagram w3c/shacl version "2.0.0" {
       /// The first `sh:name` literal. Editing rewrites its lexical form in place, or adds one.
       attribute name: string { label: "sh:name", group: "Shape" }
       /// The first `sh:description` literal. Editing rewrites its lexical form in place, or adds one.
-      attribute description: string { label: "sh:description", group: "Shape" }
+      attribute description: text { label: "sh:description", group: "Shape" }
       /// Every `sh:message` literal's lexical form.
       ///
       /// This is edited as triples in the graph reading.
@@ -836,6 +836,9 @@ diagram w3c/shacl version "2.0.0" {
       confirmLabel: "Remove"
       danger: true
     }
+    if self.sources.exists(t, t.sKind == 'blank' || t.oKind == 'blank') {
+      fail 'That element is rooted in a blank node, which has no identity that survives a reparse, so this edit cannot land in the file. Name the node with an IRI to edit it.'
+    }
     delete self.sources
   }
 
@@ -910,7 +913,7 @@ diagram w3c/shacl version "2.0.0" {
 
   /// Rewrites the first `sh:description` literal as a plain string, or adds one.
   operation setDescription "sh:description" for Shape {
-    param value: string required
+    param value: text required
     if self.blank {
       fail 'This constraint is written as a blank node, which has no identity that survives a reparse, so an edit keyed to it could not be undone reliably. Open the file as text to change it, or give the shape an IRI of its own.'
     }

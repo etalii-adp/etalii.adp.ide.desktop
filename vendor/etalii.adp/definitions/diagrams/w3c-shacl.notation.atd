@@ -97,6 +97,7 @@ notation {
 
   /// Every kind draws the same line; the label names the kind or the row's path.
   edge Reference {
+    refusals: { move: ["That element is not something this diagram can move."] }
     line { stroke: { color: $color.text.muted, width: 1.5 }, routing: straight }
     marker source none
     marker target arrow
@@ -196,7 +197,7 @@ form shapeInspector for Shape {
       , { reason: "truncated" }]
     }
     field description {
-      widget: text
+      widget: textarea
       readOnlyReasons: [{
         when: (self.blank)
         message: "This constraint is written as a blank node, which has no identity that survives a reparse, so an edit keyed to it could not be undone reliably. Open the file as text to change it, or give the shape an IRI of its own."

@@ -4,14 +4,14 @@ part of w3c/shacl
 // The body of a W3C reading and the naming functions every reading shares, in a part of its own (ATD §5.2, §9, §12).
 
 /// A Turtle or N-Triples file, read and written through a declared binding on `w3c-turtle.lark` beside this part, a copy
-/// of `specifications/fbl/w3c-turtle.lark`: FBL 0.15's grammar family (section 4.9), with no persistence plugin (spec 067,
+/// of `specifications/fbl/w3c-turtle.lark`: FBL's grammar family (section 4.9), with no persistence plugin (spec 067,
 /// T039, FR-009). One stored `Triple` per triple, one `Prefix` per directive and the `Base`, which every reading of the
 /// file shares. A triple reaches up to the subject of the statement or property list around it, its terms read through
 /// the file's prefix directives, a blank node by the order of first appearance and a literal unescaped, in the order a
 /// construct closes, a member's cell and its `rdf:first` and `rdf:rest` standing in for a collection. Every byte no rule
-/// maps is kept. A new triple is written as a statement of its own at the end of the body; FBL 0.15 cannot write a `;`
-/// continuation, take a removed triple's separator with it, nor remove a part of a shared statement, so a triple is not
-/// removed through this binding and those differences from today's tool are listed with the cases (spec 067).
+/// maps is kept. A new triple continues its subject's last statement with `;`, or is a statement of its own at the end of
+/// the body when the file has none, and a removed triple takes its separator with it, the whole statement when it is the
+/// last (FBL 0.16, spec 067).
 binding turtle family grammar {
   label "SHACL shapes in Turtle or N-Triples"
   claims { extensions: [".ttl", ".nt"], origins: ["w3c/shacl"] }
@@ -106,7 +106,14 @@ binding turtle family grammar {
       when: "attributes.oKind == 'literal'"
       place: end-of-document
       emit: "\n{s} {p} {o}[@{language}][^^{datatype}] ."
+      continues: {
+        at: "/triples_statement"
+        same: { s: { node: "triples/subject/iri", expand: true } }
+        separator: ";"
+        emit: "{p} {o}[@{language}][^^{datatype}] ."
+      }
     }
+    remove { parts: [{ item: ".", separator: "," }, { item: "../..", separator: ";" }], whole: "../../../../.." }
     doc: "A literal object in a statement: `s` reaches up to the statement's subject (FBL 0.15, section 4.9)."
   }
   element Triple as term at "/**/triples/predicate_object_list/predicate_object/object_list/object" {
@@ -138,7 +145,17 @@ binding turtle family grammar {
     attribute oKind from node "*" { name: true, map: { iri: "iri", blank_node: "blank", collection: "blank", blank_node_property_list: "blank", empty_collection: "iri" } }
     attribute oLabel from node "blank_node/BLANK_NODE_LABEL" { match: "_:(?<value>.*)"}
     attribute line from value (line)
-    insert { place: end-of-document, emit: "\n{s} {p} {o} ." }
+    insert {
+      place: end-of-document
+      emit: "\n{s} {p} {o} ."
+      continues: {
+        at: "/triples_statement"
+        same: { s: { node: "triples/subject/iri", expand: true } }
+        separator: ";"
+        emit: "{p} {o} ."
+      }
+    }
+    remove { parts: [{ item: ".", separator: "," }, { item: "../..", separator: ";" }], whole: "../../../../.." }
     doc: "An IRI or blank object in a statement. A blank node is written nowhere: an edit naming one is refused."
   }
   element Triple as nested-literal at "/**/blank_node_property_list/predicate_object_list/predicate_object/object_list/object" {

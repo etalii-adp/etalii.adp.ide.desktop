@@ -1,0 +1,250 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.16, sections 4.9 (A statement continued), 6.2 (`continues`) and 6.3, spec 067: a new entry continues the last statement of its subject, its terminator replaced by `;`, on a line of its own after the terminator's line. Both splices are one edit, and an undo restores every byte.",
+  "binding": "continue.fbl#continue",
+  "input": "facts.txt",
+  "read": {
+    "elements": [
+      {
+        "id": "fact@1",
+        "type": "Fact",
+        "attributes": {
+          "subject": "ann",
+          "verb": "knows",
+          "value": "bob"
+        }
+      },
+      {
+        "id": "fact@2",
+        "type": "Fact",
+        "attributes": {
+          "subject": "ann",
+          "verb": "age",
+          "value": "42"
+        }
+      },
+      {
+        "id": "fact@3",
+        "type": "Fact",
+        "attributes": {
+          "subject": "dan",
+          "verb": "knows",
+          "value": "eve"
+        }
+      },
+      {
+        "id": "fact@4",
+        "type": "Fact",
+        "attributes": {
+          "subject": "ann",
+          "verb": "knows",
+          "value": "cat"
+        }
+      },
+      {
+        "id": "fact@5",
+        "type": "Fact",
+        "attributes": {
+          "subject": "gus",
+          "verb": "knows",
+          "value": "hal"
+        }
+      },
+      {
+        "id": "fact@6",
+        "type": "Fact",
+        "attributes": {
+          "subject": "gus",
+          "verb": "age",
+          "value": "7"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "ann knows bob ;\n  age 42 .\ndan knows eve .  # kept\nann knows cat .\ngus knows hal ;\n      age 7 .\n"
+    },
+    {
+      "doc": "A statement on one line takes the line after it, at its first line's whitespace and `text.indent` spaces; a comment after the terminator stays where it is (section 6.3).",
+      "edit": {
+        "add": {
+          "type": "Fact",
+          "attributes": {
+            "subject": "dan",
+            "verb": "likes",
+            "value": "fay"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-separator",
+          "start": 41,
+          "end": 42,
+          "text": ";"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 51,
+          "end": 51,
+          "text": "  likes fay .\n"
+        }
+      ],
+      "expect": "ann knows bob ;\n  age 42 .\ndan knows eve ;  # kept\n  likes fay .\nann knows cat .\ngus knows hal ;\n      age 7 .\n"
+    },
+    {
+      "doc": "Undo restores every byte.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-separator",
+          "start": 41,
+          "end": 42,
+          "text": "."
+        },
+        {
+          "operation": "insert-entry",
+          "start": 51,
+          "end": 65,
+          "text": ""
+        }
+      ],
+      "expect": "ann knows bob ;\n  age 42 .\ndan knows eve .  # kept\nann knows cat .\ngus knows hal ;\n      age 7 .\n"
+    },
+    {
+      "doc": "A statement on several lines gives the indentation of its second line.",
+      "edit": {
+        "add": {
+          "type": "Fact",
+          "attributes": {
+            "subject": "gus",
+            "verb": "likes",
+            "value": "ivy"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-separator",
+          "start": 95,
+          "end": 96,
+          "text": ";"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 97,
+          "end": 97,
+          "text": "      likes ivy .\n"
+        }
+      ],
+      "expect": "ann knows bob ;\n  age 42 .\ndan knows eve .  # kept\nann knows cat .\ngus knows hal ;\n      age 7 ;\n      likes ivy .\n"
+    },
+    {
+      "doc": "Undo restores every byte.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-separator",
+          "start": 95,
+          "end": 96,
+          "text": "."
+        },
+        {
+          "operation": "insert-entry",
+          "start": 97,
+          "end": 115,
+          "text": ""
+        }
+      ],
+      "expect": "ann knows bob ;\n  age 42 .\ndan knows eve .  # kept\nann knows cat .\ngus knows hal ;\n      age 7 .\n"
+    },
+    {
+      "doc": "Of two statements of one subject, the last in document order is continued.",
+      "edit": {
+        "add": {
+          "type": "Fact",
+          "attributes": {
+            "subject": "ann",
+            "verb": "likes",
+            "value": "jan"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-separator",
+          "start": 65,
+          "end": 66,
+          "text": ";"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 67,
+          "end": 67,
+          "text": "  likes jan .\n"
+        }
+      ],
+      "expect": "ann knows bob ;\n  age 42 .\ndan knows eve .  # kept\nann knows cat ;\n  likes jan .\ngus knows hal ;\n      age 7 .\n"
+    },
+    {
+      "doc": "Undo restores every byte.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "replace-separator",
+          "start": 65,
+          "end": 66,
+          "text": "."
+        },
+        {
+          "operation": "insert-entry",
+          "start": 67,
+          "end": 81,
+          "text": ""
+        }
+      ],
+      "expect": "ann knows bob ;\n  age 42 .\ndan knows eve .  # kept\nann knows cat .\ngus knows hal ;\n      age 7 .\n"
+    },
+    {
+      "doc": "A subject the body has no statement of is a statement of its own, as `place` and `emit` say.",
+      "edit": {
+        "add": {
+          "type": "Fact",
+          "attributes": {
+            "subject": "kim",
+            "verb": "likes",
+            "value": "lee"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 97,
+          "end": 97,
+          "text": "kim likes lee .\n"
+        }
+      ],
+      "expect": "ann knows bob ;\n  age 42 .\ndan knows eve .  # kept\nann knows cat .\ngus knows hal ;\n      age 7 .\nkim likes lee .\n"
+    },
+    {
+      "doc": "Undo restores every byte.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 97,
+          "end": 113,
+          "text": ""
+        }
+      ],
+      "expect": "ann knows bob ;\n  age 42 .\ndan knows eve .  # kept\nann knows cat .\ngus knows hal ;\n      age 7 .\n"
+    }
+  ]
+}

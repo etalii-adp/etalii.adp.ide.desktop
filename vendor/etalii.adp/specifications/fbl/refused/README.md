@@ -18,3 +18,7 @@ The FBL documents in this folder are valid against [`fbl.schema.json`](../fbl.sc
 | `split-escape-collision.fbl` | *(FBL 0.13)* Section 14.1, step 6: a slot's `split` holds a character of its `escape` (section 4.9). |
 | `insert-member-without-capture.fbl` | *(FBL 0.14)* Section 14.1, step 6: a rule that adds a member of a mapping binds no attribute to the capture its `at` ends in (section 6.2). |
 | `insert-refusals-not-member.fbl` | *(FBL 0.14)* Section 14.1, step 6: `refusals.key` and `refusals.duplicate` on an insert that adds no member (section 6.2). |
+| `continues-not-grammar.fbl` | *(FBL 0.16)* Section 14.1: an insert's `continues` stands only in a binding of the `grammar` family (section 6.2). |
+| `continues-unknown-attribute.fbl` | *(FBL 0.16)* Section 14.1: a key of `continues.same` is not an attribute the rule binds (section 6.2). |
+| `remove-parts-not-grammar.fbl` | *(FBL 0.16)* Section 14.1: a remove's `parts` stand only in a binding of the `grammar` family (section 6.2). |
+| `remove-whole-without-parts.fbl` | *(FBL 0.16)* Section 14.1: a remove's `whole` stands only beside `parts` (section 6.2). |

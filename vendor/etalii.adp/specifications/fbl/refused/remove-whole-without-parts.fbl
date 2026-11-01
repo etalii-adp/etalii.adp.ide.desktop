@@ -1,0 +1,40 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.16",
+  "doc": "FBL 0.16, section 14.1: a remove's whole stands only beside parts.",
+  "bindings": {
+    "b": {
+      "title": "Refused",
+      "claims": {
+        "extensions": [
+          ".b"
+        ],
+        "origins": [
+          "example/b"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "grammar",
+        "grammar": "start: item*\nitem: NAME \".\"\nNAME: /[a-z]+/\nWS: /[ \\n]+/\n%ignore WS\n",
+        "start": "start"
+      },
+      "reader": "declared",
+      "elements": [
+        {
+          "name": "item",
+          "type": "Item",
+          "at": "/item",
+          "attributes": {
+            "name": {
+              "node": "NAME"
+            }
+          },
+          "remove": {
+            "whole": ".."
+          }
+        }
+      ]
+    }
+  }
+}

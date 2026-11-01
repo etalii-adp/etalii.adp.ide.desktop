@@ -1,0 +1,86 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.16, section 6.3: the whole statement on the last line of a body that ends without a line ending.",
+  "binding": "../parts.fbl#parts",
+  "input": "facts.txt",
+  "read": {
+    "elements": [
+      {
+        "id": "fact@1",
+        "type": "Fact",
+        "attributes": {
+          "subject": "ann",
+          "verb": "knows",
+          "value": "bob"
+        }
+      },
+      {
+        "id": "fact@2",
+        "type": "Fact",
+        "attributes": {
+          "subject": "cat",
+          "verb": "knows",
+          "value": "dan"
+        }
+      },
+      {
+        "id": "fact@3",
+        "type": "Fact",
+        "attributes": {
+          "subject": "cat",
+          "verb": "likes",
+          "value": "eve"
+        }
+      },
+      {
+        "id": "fact@4",
+        "type": "Fact",
+        "attributes": {
+          "subject": "fay",
+          "verb": "knows",
+          "value": "gil"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "ann knows bob .\ncat knows dan ;\n  likes eve .\nfay knows gil ."
+    },
+    {
+      "doc": "The last statement of a body that ends without a line ending: the line before it gives up its own, so the body still ends without one.",
+      "edit": {
+        "remove": {
+          "element": "fact@4"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 45,
+          "end": 61,
+          "text": ""
+        }
+      ],
+      "expect": "ann knows bob .\ncat knows dan ;\n  likes eve ."
+    },
+    {
+      "doc": "Undo restores every byte.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 45,
+          "end": 45,
+          "text": "\nfay knows gil ."
+        }
+      ],
+      "expect": "ann knows bob .\ncat knows dan ;\n  likes eve .\nfay knows gil ."
+    }
+  ]
+}

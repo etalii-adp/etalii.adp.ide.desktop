@@ -1,0 +1,51 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.16",
+  "doc": "FBL 0.16, section 14.1: every key of continues.same is an attribute the rule binds, and this one is not.",
+  "bindings": {
+    "b": {
+      "title": "Refused",
+      "claims": {
+        "extensions": [
+          ".b"
+        ],
+        "origins": [
+          "example/b"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "grammar",
+        "grammar": "start: item*\nitem: NAME \".\"\nNAME: /[a-z]+/\nWS: /[ \\n]+/\n%ignore WS\n",
+        "start": "start"
+      },
+      "reader": "declared",
+      "elements": [
+        {
+          "name": "item",
+          "type": "Item",
+          "at": "/item",
+          "attributes": {
+            "name": {
+              "node": "NAME"
+            }
+          },
+          "insert": {
+            "place": "end",
+            "emit": "{name} .",
+            "continues": {
+              "at": "/item",
+              "same": {
+                "other": {
+                  "node": "NAME"
+                }
+              },
+              "separator": ";",
+              "emit": "{name} ."
+            }
+          }
+        }
+      ]
+    }
+  }
+}
