@@ -1,0 +1,446 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.16, sections 4.9 (A part that goes with its separator), 5.3 (a place of its own for each entry on one line), 6.2 (`parts`, `whole`) and 6.3, spec 067: a removal takes one separator, and the whole statement when it is the last. Each is one `remove-entry`, and an undo restores every byte.",
+  "binding": "parts.fbl#parts",
+  "input": "facts.txt",
+  "read": {
+    "elements": [
+      {
+        "id": "fact@1",
+        "type": "Fact",
+        "attributes": {
+          "subject": "ann",
+          "verb": "knows",
+          "value": "bob"
+        }
+      },
+      {
+        "id": "fact@1#2",
+        "type": "Fact",
+        "attributes": {
+          "subject": "ann",
+          "verb": "knows",
+          "value": "cat"
+        }
+      },
+      {
+        "id": "fact@2",
+        "type": "Fact",
+        "attributes": {
+          "subject": "ann",
+          "verb": "likes",
+          "value": "dan"
+        }
+      },
+      {
+        "id": "fact@3",
+        "type": "Fact",
+        "attributes": {
+          "subject": "ann",
+          "verb": "age",
+          "value": "42"
+        }
+      },
+      {
+        "id": "fact@4",
+        "type": "Fact",
+        "attributes": {
+          "subject": "eve",
+          "verb": "knows",
+          "value": "fay"
+        }
+      },
+      {
+        "id": "fact@4#2",
+        "type": "Fact",
+        "attributes": {
+          "subject": "eve",
+          "verb": "likes",
+          "value": "gil"
+        }
+      },
+      {
+        "id": "fact@6",
+        "type": "Fact",
+        "attributes": {
+          "subject": "hal",
+          "verb": "knows",
+          "value": "ivy"
+        }
+      },
+      {
+        "id": "fact@7",
+        "type": "Fact",
+        "attributes": {
+          "subject": "jay",
+          "verb": "knows",
+          "value": "kim"
+        }
+      },
+      {
+        "id": "fact@7#2",
+        "type": "Fact",
+        "attributes": {
+          "subject": "jay",
+          "verb": "knows",
+          "value": "lee"
+        }
+      },
+      {
+        "id": "fact@7#3",
+        "type": "Fact",
+        "attributes": {
+          "subject": "jay",
+          "verb": "knows",
+          "value": "mia"
+        }
+      },
+      {
+        "id": "fact@8",
+        "type": "Fact",
+        "attributes": {
+          "subject": "nan",
+          "verb": "knows",
+          "value": "ola"
+        }
+      },
+      {
+        "id": "fact@9",
+        "type": "Fact",
+        "attributes": {
+          "subject": "nan",
+          "verb": "likes",
+          "value": "pat"
+        }
+      },
+      {
+        "id": "fact@11",
+        "type": "Fact",
+        "attributes": {
+          "subject": "qed",
+          "verb": "knows",
+          "value": "rob"
+        }
+      },
+      {
+        "id": "fact@12",
+        "type": "Fact",
+        "attributes": {
+          "subject": "qed",
+          "verb": "likes",
+          "value": "sam"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "ann knows bob , cat ;\n  likes dan ;\n  age 42 .\neve knows fay ; likes gil .  # kept\n# stays above\nhal knows ivy .  # goes\njay knows kim , lee , mia .\nnan knows ola ; # note\n  likes pat .\nqed\n  knows rob ;\n  likes sam .\n"
+    },
+    {
+      "doc": "The last of a `,` list goes with the separator before it, and the whitespace before that, since whitespace follows it (section 6.3).",
+      "edit": {
+        "remove": {
+          "element": "fact@1#2"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 13,
+          "end": 19,
+          "text": ""
+        }
+      ],
+      "expect": "ann knows bob ;\n  likes dan ;\n  age 42 .\neve knows fay ; likes gil .  # kept\n# stays above\nhal knows ivy .  # goes\njay knows kim , lee , mia .\nnan knows ola ; # note\n  likes pat .\nqed\n  knows rob ;\n  likes sam .\n"
+    },
+    {
+      "doc": "Undo restores every byte.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 13,
+          "end": 13,
+          "text": " , cat"
+        }
+      ],
+      "expect": "ann knows bob , cat ;\n  likes dan ;\n  age 42 .\neve knows fay ; likes gil .  # kept\n# stays above\nhal knows ivy .  # goes\njay knows kim , lee , mia .\nnan knows ola ; # note\n  likes pat .\nqed\n  knows rob ;\n  likes sam .\n"
+    },
+    {
+      "doc": "The first of a `,` list goes with the separator after it and the whitespace up to the next item.",
+      "edit": {
+        "remove": {
+          "element": "fact@1"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 10,
+          "end": 16,
+          "text": ""
+        }
+      ],
+      "expect": "ann knows cat ;\n  likes dan ;\n  age 42 .\neve knows fay ; likes gil .  # kept\n# stays above\nhal knows ivy .  # goes\njay knows kim , lee , mia .\nnan knows ola ; # note\n  likes pat .\nqed\n  knows rob ;\n  likes sam .\n"
+    },
+    {
+      "doc": "Undo restores every byte.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 10,
+          "end": 10,
+          "text": "bob , "
+        }
+      ],
+      "expect": "ann knows bob , cat ;\n  likes dan ;\n  age 42 .\neve knows fay ; likes gil .  # kept\n# stays above\nhal knows ivy .  # goes\njay knows kim , lee , mia .\nnan knows ola ; # note\n  likes pat .\nqed\n  knows rob ;\n  likes sam .\n"
+    },
+    {
+      "doc": "The only object of its pair: the pair goes with the `;` before it, on the line above; the next `;` stays.",
+      "edit": {
+        "remove": {
+          "element": "fact@2"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 19,
+          "end": 33,
+          "text": ""
+        }
+      ],
+      "expect": "ann knows bob , cat ;\n  age 42 .\neve knows fay ; likes gil .  # kept\n# stays above\nhal knows ivy .  # goes\njay knows kim , lee , mia .\nnan knows ola ; # note\n  likes pat .\nqed\n  knows rob ;\n  likes sam .\n"
+    },
+    {
+      "doc": "Undo restores every byte.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 19,
+          "end": 19,
+          "text": " ;\n  likes dan"
+        }
+      ],
+      "expect": "ann knows bob , cat ;\n  likes dan ;\n  age 42 .\neve knows fay ; likes gil .  # kept\n# stays above\nhal knows ivy .  # goes\njay knows kim , lee , mia .\nnan knows ola ; # note\n  likes pat .\nqed\n  knows rob ;\n  likes sam .\n"
+    },
+    {
+      "doc": "The last pair of a statement: its terminator stays.",
+      "edit": {
+        "remove": {
+          "element": "fact@3"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 33,
+          "end": 44,
+          "text": ""
+        }
+      ],
+      "expect": "ann knows bob , cat ;\n  likes dan .\neve knows fay ; likes gil .  # kept\n# stays above\nhal knows ivy .  # goes\njay knows kim , lee , mia .\nnan knows ola ; # note\n  likes pat .\nqed\n  knows rob ;\n  likes sam .\n"
+    },
+    {
+      "doc": "Undo restores every byte.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 33,
+          "end": 33,
+          "text": " ;\n  age 42"
+        }
+      ],
+      "expect": "ann knows bob , cat ;\n  likes dan ;\n  age 42 .\neve knows fay ; likes gil .  # kept\n# stays above\nhal knows ivy .  # goes\njay knows kim , lee , mia .\nnan knows ola ; # note\n  likes pat .\nqed\n  knows rob ;\n  likes sam .\n"
+    },
+    {
+      "doc": "The first pair on a line: the `;` after it goes, and the whitespace up to the next pair.",
+      "edit": {
+        "remove": {
+          "element": "fact@4"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 51,
+          "end": 63,
+          "text": ""
+        }
+      ],
+      "expect": "ann knows bob , cat ;\n  likes dan ;\n  age 42 .\neve likes gil .  # kept\n# stays above\nhal knows ivy .  # goes\njay knows kim , lee , mia .\nnan knows ola ; # note\n  likes pat .\nqed\n  knows rob ;\n  likes sam .\n"
+    },
+    {
+      "doc": "Undo restores every byte.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 51,
+          "end": 51,
+          "text": "knows fay ; "
+        }
+      ],
+      "expect": "ann knows bob , cat ;\n  likes dan ;\n  age 42 .\neve knows fay ; likes gil .  # kept\n# stays above\nhal knows ivy .  # goes\njay knows kim , lee , mia .\nnan knows ola ; # note\n  likes pat .\nqed\n  knows rob ;\n  likes sam .\n"
+    },
+    {
+      "doc": "A later pair on the same line.",
+      "edit": {
+        "remove": {
+          "element": "fact@4#2"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 60,
+          "end": 72,
+          "text": ""
+        }
+      ],
+      "expect": "ann knows bob , cat ;\n  likes dan ;\n  age 42 .\neve knows fay .  # kept\n# stays above\nhal knows ivy .  # goes\njay knows kim , lee , mia .\nnan knows ola ; # note\n  likes pat .\nqed\n  knows rob ;\n  likes sam .\n"
+    },
+    {
+      "doc": "Undo restores every byte.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 60,
+          "end": 60,
+          "text": " ; likes gil"
+        }
+      ],
+      "expect": "ann knows bob , cat ;\n  likes dan ;\n  age 42 .\neve knows fay ; likes gil .  # kept\n# stays above\nhal knows ivy .  # goes\njay knows kim , lee , mia .\nnan knows ola ; # note\n  likes pat .\nqed\n  knows rob ;\n  likes sam .\n"
+    },
+    {
+      "doc": "The last fact of a statement: the whole statement goes, its lines and the comment after it, and the comment above it stays.",
+      "edit": {
+        "remove": {
+          "element": "fact@6"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 97,
+          "end": 121,
+          "text": ""
+        }
+      ],
+      "expect": "ann knows bob , cat ;\n  likes dan ;\n  age 42 .\neve knows fay ; likes gil .  # kept\n# stays above\njay knows kim , lee , mia .\nnan knows ola ; # note\n  likes pat .\nqed\n  knows rob ;\n  likes sam .\n"
+    },
+    {
+      "doc": "Undo restores every byte.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 97,
+          "end": 97,
+          "text": "hal knows ivy .  # goes\n"
+        }
+      ],
+      "expect": "ann knows bob , cat ;\n  likes dan ;\n  age 42 .\neve knows fay ; likes gil .  # kept\n# stays above\nhal knows ivy .  # goes\njay knows kim , lee , mia .\nnan knows ola ; # note\n  likes pat .\nqed\n  knows rob ;\n  likes sam .\n"
+    },
+    {
+      "doc": "In the middle of a `,` list: the separator before it.",
+      "edit": {
+        "remove": {
+          "element": "fact@7#2"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 134,
+          "end": 140,
+          "text": ""
+        }
+      ],
+      "expect": "ann knows bob , cat ;\n  likes dan ;\n  age 42 .\neve knows fay ; likes gil .  # kept\n# stays above\nhal knows ivy .  # goes\njay knows kim , mia .\nnan knows ola ; # note\n  likes pat .\nqed\n  knows rob ;\n  likes sam .\n"
+    },
+    {
+      "doc": "Undo restores every byte.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 134,
+          "end": 134,
+          "text": " , lee"
+        }
+      ],
+      "expect": "ann knows bob , cat ;\n  likes dan ;\n  age 42 .\neve knows fay ; likes gil .  # kept\n# stays above\nhal knows ivy .  # goes\njay knows kim , lee , mia .\nnan knows ola ; # note\n  likes pat .\nqed\n  knows rob ;\n  likes sam .\n"
+    },
+    {
+      "doc": "A comment stands between the pair and the `;` before it, and no separator follows: the pair goes alone, and the terminator stays on its line.",
+      "edit": {
+        "remove": {
+          "element": "fact@9"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 174,
+          "end": 183,
+          "text": ""
+        }
+      ],
+      "expect": "ann knows bob , cat ;\n  likes dan ;\n  age 42 .\neve knows fay ; likes gil .  # kept\n# stays above\nhal knows ivy .  # goes\njay knows kim , lee , mia .\nnan knows ola ; # note\n   .\nqed\n  knows rob ;\n  likes sam .\n"
+    },
+    {
+      "doc": "Undo restores every byte.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 174,
+          "end": 174,
+          "text": "likes pat"
+        }
+      ],
+      "expect": "ann knows bob , cat ;\n  likes dan ;\n  age 42 .\neve knows fay ; likes gil .  # kept\n# stays above\nhal knows ivy .  # goes\njay knows kim , lee , mia .\nnan knows ola ; # note\n  likes pat .\nqed\n  knows rob ;\n  likes sam .\n"
+    },
+    {
+      "doc": "Nothing but whitespace would be left of its line: the line goes with its ending.",
+      "edit": {
+        "remove": {
+          "element": "fact@11"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 190,
+          "end": 204,
+          "text": ""
+        }
+      ],
+      "expect": "ann knows bob , cat ;\n  likes dan ;\n  age 42 .\neve knows fay ; likes gil .  # kept\n# stays above\nhal knows ivy .  # goes\njay knows kim , lee , mia .\nnan knows ola ; # note\n  likes pat .\nqed\n  likes sam .\n"
+    },
+    {
+      "doc": "Undo restores every byte.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 190,
+          "end": 190,
+          "text": "  knows rob ;\n"
+        }
+      ],
+      "expect": "ann knows bob , cat ;\n  likes dan ;\n  age 42 .\neve knows fay ; likes gil .  # kept\n# stays above\nhal knows ivy .  # goes\njay knows kim , lee , mia .\nnan knows ola ; # note\n  likes pat .\nqed\n  knows rob ;\n  likes sam .\n"
+    }
+  ]
+}

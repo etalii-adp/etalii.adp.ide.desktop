@@ -1156,7 +1156,14 @@ impl BodyReading {
                 ),
                 Some(self.family.entries[element.entry()].own),
             );
-            let place = self.place_id(index);
+            // Two entries of a rule on one line have a place each (FBL 0.16 section 5.3).
+            let line_place = self.place_id(index);
+            let mut place = line_place.clone();
+            let mut number = 1;
+            while seen.contains(&place) {
+                number += 1;
+                place = format!("{line_place}#{number}");
+            }
             self.elements[index].id = place.clone();
             self.elements[index].id_stored = false;
             seen.insert(place);

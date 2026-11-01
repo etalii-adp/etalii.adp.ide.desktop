@@ -74,6 +74,8 @@ diagram databricks/bundle version "0.2.0" {
       label "Bundle"
       /// `bundle.name`; absent when the file has no `bundle:` section or the section no name.
       attribute name: string
+      /// What kind of entry the file's `bundle:` section is, beside a `Resource`'s `jobs` or `pipelines`.
+      attribute resourceKind: string readonly
       multiplicity: { min: 1, max: 1 }
       labelAttribute: "name"
     }
@@ -82,9 +84,12 @@ diagram databricks/bundle version "0.2.0" {
     /// (databricks-bundle.md, gap 8), under the id of the bundle it stands for.
     element AbsentBundle {
       label "Bundle"
+      /// As a `Bundle`'s, for the bundle it stands for.
+      attribute resourceKind: string readonly
       derived: {
         from: (diagram.nodesOfType('Bundle').size() == 0 ? ['bundle'] : [])
         id: ('bundle')
+        attributes: { resourceKind: ('bundle') }
         reason: "This file has no bundle section to change."
       }
     }

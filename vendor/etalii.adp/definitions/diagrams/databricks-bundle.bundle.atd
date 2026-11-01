@@ -39,6 +39,7 @@ binding bundle family json {
   }
   element Bundle as bundle at "/bundle" {
     attribute name from key "name" { read: text empty: refuse refusals: { empty: "A bundle needs a name." } }
+    attribute resourceKind from value('bundle')
     origins: ["databricks/bundle"]
   }
   element Resource as jobResource at "/resources/jobs/{job}" {

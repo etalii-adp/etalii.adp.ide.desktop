@@ -1,7 +1,6 @@
 //! The three Databricks descriptions and the Wardley map description against their cases, recorded from the modules
 //! (etalii.adp spec 067, T031, T033, SC-002), each read through its declared binding. What still differs is here by name:
-//! a module's quirk with its reason, or what waits for a ruling, because no description can state it in the languages as
-//! they are. Nothing else may differ, so a regression or a correction shows here.
+//! a module's quirk with its reason. Nothing else may differ, so a regression or a correction shows here.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
@@ -21,8 +20,12 @@ const QUIRKS: [(&str, &[&str]); 7] = [
     ("databricks-job/unparseable", &["read:findings"]),
     ("databricks-pipeline/unreadable", &["read:findings"]),
     // The same findings in another order: the module reports task by task, DISL by rule. A quirk of the module's, by
-    // Peter's ruling (spec 067), for which DISL does not change.
-    ("databricks-job/finding-order", &["read:findings"]),
+    // Peter's ruling (spec 067), for which DISL does not change. With it the repeated task key, which the module reads
+    // under one id and FBL's reading gives its place, the quirk of C4's `hierarchical-identifiers`.
+    (
+        "databricks-job/finding-order",
+        &["read:findings", "read:drawing", "read:reading"],
+    ),
     // Under the bundle and pipeline readings the module reports the findings of the whole file, every job's, the bundle's
     // and every pipeline's, whichever reading asked (the companion's gap 9), and runs the job reading's commands on the
     // file, which those readings' models cannot state: an operation of one reading writing another's types. The bundle's
@@ -128,17 +131,6 @@ const QUIRKS: [(&str, &[&str]); 7] = [
     ),
 ];
 
-/// What waits for a ruling: no description can state it, and it is not the module's quirk alone.
-const AWAITING_RULING: [(&str, &[&str]); 3] = [
-    // ATD §2.3's "nothing in common" with a statement left: the module states `resourceKind` on `bundle`, which is neither
-    // reserved nor painted, and the description's `Bundle` does not declare it, and these two cases have no other element.
-    ("databricks-bundle/empty", &["read:nothing-in-common"]),
-    ("databricks-bundle/unparseable", &["read:nothing-in-common"]),
-    // A repeated task key, which the module reads under one id and FBL's reading gives its place, the quirk of C4's
-    // `hierarchical-identifiers`.
-    ("databricks-job/finding-order", &["read:drawing", "read:reading"]),
-];
-
 /// Where `name`'s cases differ, by case.
 fn differences_of(name: &str) -> BTreeMap<String, BTreeSet<String>> {
     let root = diagrams().join(format!("{name}.atd"));
@@ -152,9 +144,6 @@ fn differences_of(name: &str) -> BTreeMap<String, BTreeSet<String>> {
                 .differences
                 .iter()
                 .map(|d| match d.step {
-                    None if d.part == "reading" && d.expected.starts_with("attributes in common") => {
-                        "read:nothing-in-common".to_owned()
-                    }
                     Some(step) => format!("{step}:{}", d.part),
                     None => format!("read:{}", d.part),
                 })
@@ -166,7 +155,7 @@ fn differences_of(name: &str) -> BTreeMap<String, BTreeSet<String>> {
 
 fn check_description(name: &str, count: usize) {
     let mut listed: BTreeMap<&str, BTreeSet<String>> = BTreeMap::new();
-    for (case, places) in QUIRKS.iter().chain(AWAITING_RULING.iter()) {
+    for (case, places) in QUIRKS.iter() {
         listed
             .entry(case)
             .or_default()

@@ -306,11 +306,12 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
     differences
 }
 
-/// Whether two reasons a gesture was refused with are the same refusal (ATD §2.3, spec 067, FR-011): a reason compares
-/// exactly, unless both are the host's own sentence that the gesture is not offered, which says nothing a description
-/// wrote.
+/// Whether two reasons a gesture was refused with are the same refusal (ATD §2.3, spec 067, FR-011): both tools refuse
+/// the step, and a reason compares exactly, unless the case's is the host's own sentence that the gesture is not offered,
+/// which says nothing a description could have written: the description's own reason then counts as that sentence, as
+/// the host's does.
 fn same_refusal(expected: &str, actual: &str) -> bool {
-    expected == actual || (not_offered(expected) && not_offered(actual))
+    expected == actual || not_offered(expected)
 }
 
 /// Whether `reason` is one of the host's "not offered" sentences, a closed set (ATD §2.3).
@@ -318,6 +319,10 @@ fn not_offered(reason: &str) -> bool {
     // What the host names in its sentence is an action's id: one word, in quotes it does not itself hold.
     let an_id = |id: &str| !id.is_empty() && !id.contains(|c: char| c == '\'' || c.is_whitespace());
     reason == "That action is not available for this item."
+        || reason
+            .strip_prefix('\'')
+            .and_then(|r| r.strip_suffix("' cannot be edited on this selection."))
+            .is_some_and(an_id)
         || reason
             .strip_prefix("Unknown action '")
             .and_then(|r| r.strip_suffix("'."))
@@ -759,7 +764,23 @@ impl Replay {
                 .iter()
                 .find(|e| e.id == id && e.kind == ElementKind::Node)
                 .ok_or_else(|| format!("no node '{id}' is on the diagram"))?;
-            let (x, y) = (element.x + distance("dx"), element.y + distance("dy"));
+            // Where it is drawn: a drawing rounds its bounds, and a laid out element's place need not be its corner.
+            let drawing = self.drawing()?;
+            let bounds = drawing["elements"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .find(|drawn| drawn["id"] == id)
+                .map(|drawn| drawn["bounds"].clone())
+                .unwrap_or_default();
+            let corner = |key: &str, place: f64| match bounds[key].as_f64() {
+                Some(drawn) if (drawn - place).abs() >= 0.01 => drawn,
+                _ => place,
+            };
+            let (x, y) = (
+                corner("x", element.x) + distance("dx"),
+                corner("y", element.y) + distance("dy"),
+            );
             return self.session.move_element_to(&mut self.workspace, id, x, y);
         }
         let x = movement.get("x").and_then(Json::as_f64).ok_or("A place has x.")?;

@@ -294,6 +294,13 @@ impl OpenBody {
         self.reading.to_model()
     }
 
+    /// Where the entry of the element `id` starts in the body, when the reading has it.
+    pub fn offset_of(&self, id: &str) -> Option<usize> {
+        let reading = self.reading();
+        let element = reading.find(id)?;
+        Some(reading.family.entries[reading.element(element).entry()].own.start)
+    }
+
     pub fn reading(&self) -> &BodyReading {
         &self.reading
     }

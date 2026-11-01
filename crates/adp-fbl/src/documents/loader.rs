@@ -747,6 +747,16 @@ fn read_insert(ins: &Json) -> InsertSettings {
         refusal_container: ins.get("refusals").and_then(|r| localized(r, "container")),
         refusal_key: ins.get("refusals").and_then(|r| localized(r, "key")),
         refusal_duplicate: ins.get("refusals").and_then(|r| localized(r, "duplicate")),
+        continues: ins.get("continues").map(|c| ContinueSettings {
+            at: s(c, "at").unwrap_or_default(),
+            same: c
+                .get("same")
+                .and_then(Json::as_object)
+                .map(|same| same.iter().map(|(k, v)| (k.clone(), read_slot(v))).collect())
+                .unwrap_or_default(),
+            separator: s(c, "separator").unwrap_or_default(),
+            emit: s(c, "emit").unwrap_or_default(),
+        }),
     }
 }
 
@@ -776,6 +786,17 @@ fn read_rule(json: &Json, relation: bool) -> Rule {
                 Some("remove-when-empty" | "remove-empty-levels")
             ),
             remove_empty_levels: container.as_deref() == Some("remove-empty-levels"),
+            parts: rem
+                .get("parts")
+                .and_then(Json::as_array)
+                .into_iter()
+                .flatten()
+                .map(|part| RemovePart {
+                    item: s(part, "item").unwrap_or_default(),
+                    separator: s(part, "separator").unwrap_or_default(),
+                })
+                .collect(),
+            whole: s(rem, "whole"),
         }
     });
     Rule {
@@ -1212,6 +1233,7 @@ fn check(binding: &FblBinding, pointer: &str, problems: &mut Vec<LoadProblem>) {
             }
         }
         check_new_member(binding, rule, &at, problems);
+        check_writes(binding, rule, &at, problems);
         if let Some(source) = &rule.source {
             check_slot(source, context, &format!("{at}/source"), problems);
         }
@@ -1322,6 +1344,42 @@ fn check_new_member(binding: &FblBinding, rule: &Rule, pointer: &str, problems: 
             format!("{pointer}/insert/refusals"),
             "'key' and 'duplicate' are the sentences of an insert that adds a member (FBL 0.14 section 14.1).",
         ));
+    }
+}
+
+/// *(FBL 0.16)* An insert's `continues` and a remove's `parts` and `whole` stand only in a binding of the grammar family,
+/// `continues.same` names attributes the rule binds, and `whole` stands only beside `parts` (FBL section 14.1).
+fn check_writes(binding: &FblBinding, rule: &Rule, pointer: &str, problems: &mut Vec<LoadProblem>) {
+    let grammar = families_of(binding, rule).iter().any(|f| matches!(f, Family::Grammar));
+    if let Some(continues) = rule.insert.as_ref().and_then(|i| i.continues.as_ref()) {
+        if !grammar {
+            problems.push(error(
+                format!("{pointer}/insert/continues"),
+                "'continues' stands only in a binding of the grammar family (FBL 0.16 section 14.1).",
+            ));
+        }
+        for (attribute, _) in &continues.same {
+            if rule.attribute(attribute).is_none() {
+                problems.push(error(
+                    format!("{pointer}/insert/continues/same/{attribute}"),
+                    format!("'{attribute}' is not an attribute the rule binds (FBL 0.16 section 14.1)."),
+                ));
+            }
+        }
+    }
+    if let Some(remove) = &rule.remove {
+        if !grammar && (!remove.parts.is_empty() || remove.whole.is_some()) {
+            problems.push(error(
+                format!("{pointer}/remove"),
+                "'parts' and 'whole' stand only in a binding of the grammar family (FBL 0.16 section 14.1).",
+            ));
+        }
+        if remove.parts.is_empty() && remove.whole.is_some() {
+            problems.push(error(
+                format!("{pointer}/remove/whole"),
+                "'whole' stands only beside 'parts' (FBL 0.16 section 14.1).",
+            ));
+        }
     }
 }
 

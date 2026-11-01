@@ -1,0 +1,66 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.16",
+  "doc": "The binding of the fixture grammar-remove-parts (FBL 0.16, sections 6.2, 6.3): a fact is an object inside a `,` list inside a `;` list inside a statement, and its rule has no id, so that each fact is addressed by its place.",
+  "bindings": {
+    "parts": {
+      "title": "Facts removed with their separators",
+      "claims": {
+        "extensions": [
+          ".parts"
+        ],
+        "origins": [
+          "example/parts"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "grammar",
+        "grammar": "start: statement*\nstatement: subject list \".\"\nsubject: NAME\nlist: pair (\";\" [pair])*\npair: NAME object (\",\" object)*\nobject: NAME | NUMBER\nNAME: /[a-z]+/\nNUMBER: /[0-9]+/\nWS: /[ \\n]+/\nCOMMENT: /#[^\\n]*/\n%ignore WS\n%ignore COMMENT\n",
+        "start": "start"
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "lf",
+        "indent": 2,
+        "finalNewline": true
+      },
+      "elements": [
+        {
+          "name": "fact",
+          "type": "Fact",
+          "at": "/statement/list/pair/object",
+          "attributes": {
+            "subject": {
+              "node": "../../../subject/NAME"
+            },
+            "verb": {
+              "node": "../NAME"
+            },
+            "value": {
+              "node": "NAME",
+              "or": [
+                {
+                  "node": "NUMBER"
+                }
+              ]
+            }
+          },
+          "remove": {
+            "parts": [
+              {
+                "item": ".",
+                "separator": ","
+              },
+              {
+                "item": "..",
+                "separator": ";"
+              }
+            ],
+            "whole": "../../.."
+          }
+        }
+      ]
+    }
+  }
+}

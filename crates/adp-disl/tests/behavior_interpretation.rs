@@ -440,3 +440,39 @@ fn an_operations_parameters_are_its_params_in_order_each_with_its_default_on_the
     );
     assert_eq!("set b count=7 name=seven", text(&transaction));
 }
+
+/// An operation's confirmation is asked as a deletion's is, from its threshold, its defaults the runtime's (section 9.5).
+#[test]
+fn an_operation_asks_its_confirmation_from_its_threshold() {
+    let specification = loaded(&with(
+        r#""metamodel": { "types": { "Box": { "attributes": { "name": { "type": "string" } } } } },
+        "behavior": {
+          "operations": {
+            "clear": {
+              "for": "Box",
+              "confirm": { "count": "size(self.name)", "threshold": 2, "message": "Clear it?" },
+              "actions": []
+            },
+            "plain": { "for": "Box", "actions": [] }
+          }
+        }"#,
+    ));
+    let diagram = DislDiagram::new(&specification);
+    let one = diagram.add_node("Box", "a", attrs([("name", "A".into())])).unwrap();
+    let two = diagram.add_node("Box", "b", attrs([("name", "Bo".into())])).unwrap();
+    let asked = |operation: &str, element: &adp_disl::DislElement| {
+        deletion::operation_confirmation(&specification, operation, &diagram, Some(element), None)
+    };
+    assert_eq!(None, asked("plain", &two));
+    assert_eq!(None, asked("clear", &one));
+    assert_eq!(
+        Some(DislConfirmation {
+            title: "OK".into(),
+            message: "Clear it?".into(),
+            confirm_label: "OK".into(),
+            danger: false,
+            count: Some(2)
+        }),
+        asked("clear", &two)
+    );
+}

@@ -15,10 +15,11 @@ use adp_cel::{Map, Value};
 use super::change::{DislChange, DislTransaction};
 use super::operations::variables_of;
 use crate::derivation::env::DislEnv;
-use crate::derivation::evaluation;
+use crate::derivation::evaluation::{self, Vars};
 use crate::expressions::contexts;
 use crate::json::{self, Json};
 use crate::loading::specification::DislSpecification;
+use crate::model::diagram::DislDiagram;
 use crate::model::element::DislElement;
 
 /// A confirmation to ask before a transaction (section 9.5), its texts evaluated.
@@ -50,29 +51,79 @@ pub fn confirmation(
             None => vec![element.to_value()],
         }),
     );
+    let context = contexts::GESTURE_DELETE;
+    asked(
+        specification,
+        confirm,
+        &at,
+        context,
+        variables,
+        ("Delete", "Delete", true),
+    )
+}
+
+/// The confirmation the operation `operation_id` asks for before it runs on `element` (DISL section 9.5), or none when
+/// it asks nothing: evaluated in the `operation` context, with the runtime's "OK" and no danger as its defaults.
+pub fn operation_confirmation(
+    specification: &DislSpecification,
+    operation_id: &str,
+    diagram: &DislDiagram,
+    element: Option<&DislElement>,
+    env: Option<&DislEnv>,
+) -> Option<DislConfirmation> {
+    let operation = specification
+        .root()
+        .pointer(&json::pointer("/behavior/operations", operation_id))?;
+    let confirm = json::get(operation, "confirm")?;
+    let at = json::pointer(&json::pointer("/behavior/operations", operation_id), "confirm");
+    let mut variables = variables_of(contexts::OPERATION, diagram, env);
+    variables.insert("self".into(), element.map(DislElement::to_value).unwrap_or(Value::Null));
+    variables.insert(
+        "selection".into(),
+        Value::list(element.map(DislElement::to_value).into_iter().collect()),
+    );
+    variables.insert("position".into(), Value::map(Map::default()));
+    variables.insert("p".into(), Value::map(Map::default()));
+    asked(
+        specification,
+        confirm,
+        &at,
+        contexts::OPERATION,
+        variables,
+        ("OK", "OK", false),
+    )
+}
+
+/// What the Message or Confirmation `confirm` asks (section 9.5), none when its `count` is below its `threshold` or its
+/// `when` does not hold; `defaults` are the title, the confirming label and the danger it does not state.
+fn asked(
+    specification: &DislSpecification,
+    confirm: &Json,
+    at: &str,
+    context: &str,
+    mut variables: Vars,
+    defaults: (&str, &str, bool),
+) -> Option<DislConfirmation> {
+    let (title, confirm_label, danger) = defaults;
     variables.insert("count".into(), Value::Null);
 
     let Some(message) = json::get(confirm, "message").filter(|_| confirm.is_object() && !json::has(confirm, "cel"))
     else {
         // A plain Message: asked every time (section 9.5).
         return Some(DislConfirmation {
-            title: "Delete".into(),
-            message: evaluation::message(specification, confirm, &at, contexts::GESTURE_DELETE, &variables, ""),
-            confirm_label: "Delete".into(),
-            danger: true,
+            title: title.into(),
+            message: evaluation::message(specification, confirm, at, context, &variables, ""),
+            confirm_label: confirm_label.into(),
+            danger,
             count: None,
         });
     };
 
     let mut count = None;
     if let Some(counted) = json::get(confirm, "count") {
-        let Ok(Value::Int(value)) = evaluation::expression(
-            specification,
-            counted,
-            &json::pointer(&at, "count"),
-            contexts::GESTURE_DELETE,
-            &variables,
-        ) else {
+        let Ok(Value::Int(value)) =
+            evaluation::expression(specification, counted, &json::pointer(at, "count"), context, &variables)
+        else {
             return None;
         };
         count = Some(value);
@@ -83,13 +134,7 @@ pub fn confirmation(
         }
     }
     if let Some(when) = json::get(confirm, "when")
-        && !evaluation::holds(
-            specification,
-            when,
-            &json::pointer(&at, "when"),
-            contexts::GESTURE_DELETE,
-            &variables,
-        )
+        && !evaluation::holds(specification, when, &json::pointer(at, "when"), context, &variables)
     {
         return None;
     }
@@ -97,25 +142,28 @@ pub fn confirmation(
         Some(text) => evaluation::message(
             specification,
             text,
-            &json::pointer(&at, name),
-            contexts::GESTURE_DELETE,
+            &json::pointer(at, name),
+            context,
             &variables,
             fallback,
         ),
         None => fallback.to_owned(),
     };
     Some(DislConfirmation {
-        title: text("title", "Delete"),
+        title: text("title", title),
         message: evaluation::message(
             specification,
             message,
-            &json::pointer(&at, "message"),
-            contexts::GESTURE_DELETE,
+            &json::pointer(at, "message"),
+            context,
             &variables,
             "",
         ),
-        confirm_label: text("confirmLabel", "Delete"),
-        danger: !matches!(json::get(confirm, "danger"), Some(Json::Bool(false))),
+        confirm_label: text("confirmLabel", confirm_label),
+        danger: match json::get(confirm, "danger") {
+            Some(Json::Bool(stated)) => *stated,
+            _ => danger,
+        },
         count,
     })
 }

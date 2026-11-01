@@ -10,7 +10,7 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-/// The eleven operations of FBL section 6.1.
+/// The twelve operations of FBL section 6.1.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Operation {
@@ -25,10 +25,12 @@ pub enum Operation {
     ReEmitLine,
     OpenBlock,
     SelfClose,
+    /// *(FBL 0.16)* The last token of a statement an insert writes into.
+    ReplaceSeparator,
 }
 
 impl Operation {
-    pub const ALL: [Operation; 11] = [
+    pub const ALL: [Operation; 12] = [
         Operation::ReplaceValue,
         Operation::InsertKey,
         Operation::RemoveKey,
@@ -40,6 +42,7 @@ impl Operation {
         Operation::ReEmitLine,
         Operation::OpenBlock,
         Operation::SelfClose,
+        Operation::ReplaceSeparator,
     ];
 
     /// The name FBL gives the operation (`replace-value`, `insert-entry`, …).
@@ -56,6 +59,7 @@ impl Operation {
             Operation::ReEmitLine => "re-emit-line",
             Operation::OpenBlock => "open-block",
             Operation::SelfClose => "self-close",
+            Operation::ReplaceSeparator => "replace-separator",
         }
     }
 }

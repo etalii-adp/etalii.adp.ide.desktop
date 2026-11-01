@@ -1265,6 +1265,9 @@ diagram w3c/owl version "2.0.0" {
       confirmLabel: "Remove"
       danger: true
     }
+    if self.sources.exists(t, t.sKind == 'blank' || t.oKind == 'blank') {
+      fail 'That element is rooted in a blank node, which has no identity that survives a reparse, so this edit cannot land in the file. Name the node with an IRI to edit it.'
+    }
     delete self.sources
   }
 

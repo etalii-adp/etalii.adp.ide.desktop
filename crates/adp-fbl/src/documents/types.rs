@@ -631,6 +631,27 @@ pub struct InsertSettings {
     pub refusal_key: Option<String>,
     /// *(FBL 0.14)* The sentence of a refusal because the mapping already holds a new member's key.
     pub refusal_duplicate: Option<String>,
+    /// *(FBL 0.16)* grammar: the statement a new entry is written into, rather than where `place` puts it.
+    pub continues: Option<ContinueSettings>,
+}
+
+/// *(FBL 0.16)* An insert's `continues` (FBL section 6.2): the statements `at` selects, of which the last where every
+/// slot of `same` reads the value the add gives its attribute takes the new entry, `emit`, its last token becoming
+/// `separator`.
+#[derive(Debug, Clone)]
+pub struct ContinueSettings {
+    pub at: String,
+    pub same: Vec<(String, Slot)>,
+    pub separator: String,
+    pub emit: String,
+}
+
+/// *(FBL 0.16)* A list an entry is written in (FBL section 6.2, a remove's `parts`): what of the entry stands in it, and
+/// the text between two of its items.
+#[derive(Debug, Clone)]
+pub struct RemovePart {
+    pub item: String,
+    pub separator: String,
 }
 
 /// How a missing container is created: `at` is "end-of-document", "before", "after", "under" or (FBL 0.4) "end".
@@ -648,6 +669,10 @@ pub struct RemoveSettings {
     pub cascade: Vec<String>,
     pub remove_container_when_empty: bool,
     pub remove_empty_levels: bool,
+    /// *(FBL 0.16)* grammar: the lists the entry is written in, innermost first.
+    pub parts: Vec<RemovePart>,
+    /// *(FBL 0.16)* grammar: what goes when no list of `parts` holds another item.
+    pub whole: Option<String>,
 }
 
 #[derive(Debug, Clone, Default)]

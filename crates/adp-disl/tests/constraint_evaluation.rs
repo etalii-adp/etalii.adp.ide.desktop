@@ -324,3 +324,44 @@ fn a_connect_gesture_is_refused_by_the_connect_rules_of_its_relation_type() {
     assert_eq!("named: Link Ann to a named box.", refused(&connect(&a, &b)));
     assert_eq!("", refused(&connect(&b, &a)));
 }
+
+/// The notation's refusal of a gesture it switches off, for the nearest type that states it (DISL sections 6.9, 8.4).
+#[test]
+fn the_notation_refuses_a_gesture_for_the_kind_of_element() {
+    let specification = specification(
+        r#""notation": {
+          "nodes": { "Box": { "shape": "rect", "refusals": { "reparent": ["A box stays where it is."] } } }
+        }"#,
+    );
+    let diagram = DislDiagram::new(&specification);
+    let b = node(&diagram, "Box", "a", 1, attrs([("name", "Ann".into())]));
+    let lid = node(&diagram, "Lid", "l", 2, attrs([("name", "Lid".into())]));
+    let refusal = |e: &DislElement, gesture: &str| gestures::notation_refusal(&specification, e, gesture, None);
+    assert_eq!(Some("A box stays where it is.".to_owned()), refusal(&b, "reparent"));
+    assert_eq!(None, refusal(&b, "move"));
+    assert_eq!(None, refusal(&lid, "reparent"));
+}
+
+/// A gesture that would store an ephemeral id is refused with its rule's reason (DISL sections 8.4, 11.5.3).
+#[test]
+fn a_gesture_that_would_store_an_ephemeral_id_is_refused() {
+    let specification = specification(
+        r#""persistence": {
+          "format": "did",
+          "ids": {
+            "types": {
+              "Box": { "ephemeral": "self.name == 'Ann'", "reason": "Its id does not last." },
+              "Lid": { "ephemeral": false, "reason": "Never shown." }
+            }
+          }
+        }"#,
+    );
+    let diagram = DislDiagram::new(&specification);
+    let ann = node(&diagram, "Box", "a", 1, attrs([("name", "Ann".into())]));
+    let bo = node(&diagram, "Box", "b", 2, attrs([("name", "Bo".into())]));
+    let lid = node(&diagram, "Lid", "l", 3, attrs([("name", "Lid".into())]));
+    let refusal = |e: &DislElement| gestures::ephemeral(&specification, e, None);
+    assert_eq!(Some("Its id does not last.".to_owned()), refusal(&ann));
+    assert_eq!(None, refusal(&bo));
+    assert_eq!(None, refusal(&lid));
+}

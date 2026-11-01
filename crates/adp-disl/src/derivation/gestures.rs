@@ -73,6 +73,70 @@ pub fn placement(
     )
 }
 
+/// The notation's refusal of `gesture` for `element`'s kind (sections 6.9, 6.10, 8.4): the first Reason that applies of
+/// its `refusals`, on the nearest type of its linearisation that states them.
+pub fn notation_refusal(
+    specification: &DislSpecification,
+    element: &DislElement,
+    gesture: &str,
+    env: Option<&DislEnv>,
+) -> Option<String> {
+    let part = if element.is_relation() { "edges" } else { "nodes" };
+    let notation = json::member(json::member(specification.root(), "notation"), part);
+    let linearisation = element.element_type().linearisation.clone();
+    let (name, reasons) = linearisation.iter().find_map(|name| {
+        let refusals = json::get(json::member(notation, name), "refusals")?;
+        Some((name, json::get(refusals, gesture)?))
+    })?;
+    let mut variables = evaluation::vars([("self", element.to_value()), ("diagram", element.diagram().to_value())]);
+    variables.insert("env".into(), Value::map(env.cloned().unwrap_or_default().to_cel()));
+    evaluation::first_reason(
+        specification,
+        reasons,
+        &format!("/notation/{part}/{name}/refusals/{gesture}"),
+        contexts::ELEMENT,
+        &variables,
+    )
+}
+
+/// The refusal of a gesture that would store `element`'s id when that id is ephemeral (sections 8.4 and 11.5.3): its id
+/// rule's `reason`, the first in `element`'s linearisation that says the id is ephemeral.
+pub fn ephemeral(specification: &DislSpecification, element: &DislElement, env: Option<&DislEnv>) -> Option<String> {
+    let linearisation = element.element_type().linearisation.clone();
+    let ids = specification.root().pointer("/persistence/ids")?;
+    let (rule, at) = linearisation
+        .iter()
+        .find_map(|name| {
+            let rule = json::member(json::member(ids, "types"), name);
+            rule.is_object()
+                .then(|| (rule, format!("/persistence/ids/types/{name}")))
+        })
+        .unwrap_or((ids, "/persistence/ids".to_owned()));
+    let mut variables = evaluation::vars([("self", element.to_value()), ("diagram", element.diagram().to_value())]);
+    variables.insert("env".into(), Value::map(env.cloned().unwrap_or_default().to_cel()));
+    let holds = match json::get(rule, "ephemeral")? {
+        Json::Bool(stated) => *stated,
+        expression => evaluation::holds(
+            specification,
+            expression,
+            &json::pointer(&at, "ephemeral"),
+            contexts::IDENTITY,
+            &variables,
+        ),
+    };
+    if !holds {
+        return None;
+    }
+    let reason = json::get(rule, "reason")?;
+    evaluation::one_reason(
+        specification,
+        reason,
+        &json::pointer(&at, "reason"),
+        contexts::ELEMENT,
+        &variables,
+    )
+}
+
 /// A deletion of `element`, in a selection of it alone.
 pub fn delete(specification: &DislSpecification, element: &DislElement, env: Option<&DislEnv>) -> Vec<DislFinding> {
     refusals(
