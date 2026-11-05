@@ -116,6 +116,14 @@ jobs:
           fi
           wasm-bindgen --target nodejs --out-dir target/atd-lsp-wasm target/wasm32-unknown-unknown/release/adp_atd_lsp.wasm
           ATD=target/release/atd node crates/adp-atd-lsp/tests/wasm/validate.mjs target/atd-lsp-wasm
+      - name: Hold the SKOS case geographic-names to 60 seconds in the release build (etalii.adp spec 075, SC-002, T035)
+        run: |
+          start=$(date +%s)
+          status=0
+          timeout 60 ./target/release/atd validate --json --case geographic-names vendor/etalii.adp/definitions/diagrams/w3c-skos.atd > "$RUNNER_TEMP/geographic-names.json" || status=$?
+          echo "geographic-names took $(( $(date +%s) - start )) s of wall time (status $status)"
+          # 1 is a case that differs, as its listed quirk does; 124 is the time limit.
+          [ "$status" -ne 124 ] && [ "$status" -le 1 ]
       - name: Run DISL's grouping fixtures in WebAssembly, as the native tests run them (etalii.adp spec 075, T019, SC-001)
         env:
           CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER: wasm-bindgen-test-runner

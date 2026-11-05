@@ -11,6 +11,8 @@ Sources, as read on 2026-10-22: the standalone module `src/diagrams/rdf/` on `de
 - **The order the tool meets the vocabulary in**, and so the order its budget cuts: schemes in id order, each with its top concepts and broaderless members and their descendants breadth first, then unfiled concepts, then collections (`skosOrder`, recursive with a depth cap).
 - **The label chooser**: the display language, then English, then the untagged label, then the smallest remaining tag, preferred labels before alternate ones, the IRI's local name last.
 - **Seven of the eight `skos.*` findings** are constraints, the cycle finding over `diagram.knots` (D5). The five `rdf.*` findings are the plugin's.
+- **Rules that read groups, not every triple**: a card's attributes, sources, typing, membership, children and labels read the triples grouped once by subject, object, type, line or the key a rule needs (DISL 0.9, `groupBy`), each derived type walks the vocabulary once and carries each term's place, and long lists of strings are made distinct by grouping them by themselves, so a reading grows with its body rather than with the body's square and the case `geographic-names` runs to its end within the budgets (spec 075).
+- **A definition written through its row**: setting the documentation row `skos.doc:definition` rewrites the first `skos:definition` literal, or adds a plain one, by the operation `setDefinition`, which each term's `edits` names for the attribute (4.11.4), with the bytes the module writes (spec 075, FR-012).
 
 ## 2. What stays outside, and why
 
