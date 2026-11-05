@@ -41,7 +41,7 @@ diagram w3c/owl version "2.0.0" {
       }
     }
   }
-  requires: { conformance: standard, features: ["limits.budgets", "persistence.fbl"] }
+  requires: { conformance: standard, features: ["limits.budgets", "persistence.fbl", "cel.groupBy"] }
   doc {
     rationale: "OWL axioms are dense in Turtle or RDF/XML; the VOWL notation shows classes, properties and restrictions so an ontology can be checked by eye."
     tags: ["owl", "ontology", "vowl", "rdf", "semantic web", "asserted"]
@@ -750,7 +750,7 @@ diagram w3c/owl version "2.0.0" {
   /// Whether a blank node is a cons cell of an RDF collection: one with an `rdf:first` triple.
   fn isCell(ordinal: string) -> bool {
     // uses: ["diagram"]
-    return diagram.nodesOfType('Triple').exists(t, t.sKind == 'blank' && t.s == ordinal && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first')
+    return diagram.nodesOfType('Triple').groupBy(t, t.sKind == 'blank' && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first' ? 'cell:' + t.s : '').get('cell:' + ordinal).size() > 0
   }
 
   /// A collection's `rdf:first` or `rdf:rest` triple, which is folded into its members and never drawn itself.
@@ -762,14 +762,14 @@ diagram w3c/owl version "2.0.0" {
   /// or a node that is no cons cell.
   fn collectionMembers(cell: string) -> list recursion 64 {
     // uses: ["diagram"]
-    return cel.bind(f, diagram.nodesOfType('Triple').filter(t, t.sKind == 'blank' && t.s == cell && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first'), cel.bind(r, diagram.nodesOfType('Triple').filter(t, t.sKind == 'blank' && t.s == cell && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest'), f.size() == 0 ? [] : [f[0]] + (r.size() > 0 && r[0].oKind == 'blank' && isCell(r[0].o) ? collectionMembers(r[0].o) : [])))
+    return cel.bind(f, diagram.nodesOfType('Triple').groupBy(t, t.sKind == 'blank' ? 'blank:' + t.s : '').get('blank:' + cell).filter(t, t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first'), cel.bind(r, diagram.nodesOfType('Triple').groupBy(t, t.sKind == 'blank' ? 'blank:' + t.s : '').get('blank:' + cell).filter(t, t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest'), f.size() == 0 ? [] : [f[0]] + (r.size() > 0 && r[0].oKind == 'blank' && isCell(r[0].o) ? collectionMembers(r[0].o) : [])))
   }
 
   /// The repeat counter of a stored triple or prefix declaration (11.5.2): '' for the first with its parts, '|1' for
   /// the second and so on, in reading order.
   fn repeatSuffix(e: Element) -> string {
     // uses: ["diagram"]
-    return cel.bind(same, e.isA('Triple') ? diagram.nodesOfType('Triple').filter(u, u.s == e.s && u.p == e.p && u.o == e.o) : diagram.nodesOfType('Prefix').filter(u, u.name == e.name), cel.bind(n, e.positionIn(same), n > 0 ? '|' + string(n) : ''))
+    return cel.bind(same, e.isA('Triple') ? diagram.nodesOfType('Triple').groupBy(u, u.s + ' ' + u.p + ' ' + u.o).get(e.s + ' ' + e.p + ' ' + e.o) : diagram.nodesOfType('Prefix').filter(u, u.name == e.name), cel.bind(n, e.positionIn(same), n > 0 ? '|' + string(n) : ''))
   }
 
   /// Each item of `xs`, whose first entry is its key, with the number of earlier items of the same key appended: the
@@ -795,7 +795,7 @@ diagram w3c/owl version "2.0.0" {
   /// while it is, because the tool gates every reading's edits on that one count.
   fn familyTruncated() -> bool {
     // uses: ["diagram"]
-    return diagram.nodesOfType('Triple').map(t, cardTerms(t)).flatten().map(c, cardId(c[0], c[1])).distinct().size() > 1000
+    return diagram.nodesOfType('Triple').map(t, cardTerms(t)).flatten().map(c, cardId(c[0], c[1])).groupBy(v, v).keys().size() > 1000
   }
 
   /// Whether the IRI is vocabulary (OWL, RDFS, RDF or XSD) rather than this ontology's own entity.
@@ -803,10 +803,23 @@ diagram w3c/owl version "2.0.0" {
     return iri.startsWith('http://www.w3.org/2002/07/owl#') || iri.startsWith('http://www.w3.org/2000/01/rdf-schema#') || iri.startsWith('http://www.w3.org/1999/02/22-rdf-syntax-ns#') || iri.startsWith('http://www.w3.org/2001/XMLSchema#')
   }
 
+  /// Every triple whose subject is the IRI, in file order: one group of the triples grouped by subject (DISL 0.9,
+  /// `groupBy`), so that a rule about one IRI does not filter every triple again (spec 075).
+  fn owlBySubject(iri: string) -> list {
+    // uses: ["diagram"]
+    return diagram.nodesOfType('Triple').groupBy(t, t.sKind == 'iri' ? 'iri:' + t.s : '').get('iri:' + iri)
+  }
+
+  /// Every triple whose object is the IRI, in file order, from the triples grouped by object.
+  fn owlByObject(iri: string) -> list {
+    // uses: ["diagram"]
+    return diagram.nodesOfType('Triple').groupBy(t, t.oKind == 'iri' ? 'iri:' + t.o : '').get('iri:' + iri)
+  }
+
   /// Whether the file types the IRI as one of `types`.
   fn owlTyped(iri: string, types: list) -> bool {
     // uses: ["diagram"]
-    return diagram.nodesOfType('Triple').exists(t, t.sKind == 'iri' && t.s == iri && typeTriple(t) && t.o in types)
+    return owlBySubject(iri).exists(t, typeTriple(t) && t.o in types)
   }
 
   /// A datatype in this file's terms: XSD's, `rdfs:Literal`, `rdf:langString`, or one typed `rdfs:Datatype`.
@@ -818,7 +831,7 @@ diagram w3c/owl version "2.0.0" {
   /// Whether the IRI is a member of an `owl:AllDisjointClasses` group.
   fn owlDisjointMember(iri: string) -> bool {
     // uses: ["diagram"]
-    return diagram.nodesOfType('Triple').exists(g, g.sKind == 'blank' && typeTriple(g) && g.o == 'http://www.w3.org/2002/07/owl#AllDisjointClasses' && diagram.nodesOfType('Triple').exists(m, m.sKind == 'blank' && m.s == g.s && m.p == 'http://www.w3.org/2002/07/owl#members' && m.oKind == 'blank' && collectionMembers(m.o).exists(x, x.oKind == 'iri' && x.o == iri)))
+    return diagram.nodesOfType('Triple').groupBy(g, g.sKind == 'blank' && g.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' && g.oKind == 'iri' && g.o == 'http://www.w3.org/2002/07/owl#AllDisjointClasses' ? 'all' : '').get('all').exists(g, diagram.nodesOfType('Triple').groupBy(m, m.sKind == 'blank' ? 'blank:' + m.s : '').get('blank:' + g.s).exists(m, m.p == 'http://www.w3.org/2002/07/owl#members' && m.oKind == 'blank' && collectionMembers(m.o).exists(x, x.oKind == 'iri' && x.o == iri)))
   }
 
   /// Whether the file uses the IRI as a class: typed `owl:Class` or `rdfs:Class`, either end of `rdfs:subClassOf`, an
@@ -826,13 +839,13 @@ diagram w3c/owl version "2.0.0" {
   /// `owl:AllDisjointClasses`. Classification by role, so a punned IRI is several things.
   fn owlClass(iri: string) -> bool {
     // uses: ["diagram"]
-    return diagram.nodesOfType('Triple').exists(t, t.sKind == 'iri' && ((t.s == iri && ((typeTriple(t) && t.o in ['http://www.w3.org/2002/07/owl#Class', 'http://www.w3.org/2000/01/rdf-schema#Class']) || t.p == 'http://www.w3.org/2000/01/rdf-schema#subClassOf' || ((t.p == 'http://www.w3.org/2002/07/owl#equivalentClass' || t.p == 'http://www.w3.org/2002/07/owl#disjointWith') && t.oKind == 'iri'))) || (t.oKind == 'iri' && t.o == iri && t.p in ['http://www.w3.org/2000/01/rdf-schema#domain', 'http://www.w3.org/2000/01/rdf-schema#subClassOf', 'http://www.w3.org/2002/07/owl#equivalentClass', 'http://www.w3.org/2002/07/owl#disjointWith']))) || owlDisjointMember(iri)
+    return owlBySubject(iri).exists(t, (typeTriple(t) && t.o in ['http://www.w3.org/2002/07/owl#Class', 'http://www.w3.org/2000/01/rdf-schema#Class']) || t.p == 'http://www.w3.org/2000/01/rdf-schema#subClassOf' || ((t.p == 'http://www.w3.org/2002/07/owl#equivalentClass' || t.p == 'http://www.w3.org/2002/07/owl#disjointWith') && t.oKind == 'iri')) || owlByObject(iri).exists(t, t.sKind == 'iri' && t.p in ['http://www.w3.org/2000/01/rdf-schema#domain', 'http://www.w3.org/2000/01/rdf-schema#subClassOf', 'http://www.w3.org/2002/07/owl#equivalentClass', 'http://www.w3.org/2002/07/owl#disjointWith']) || owlDisjointMember(iri)
   }
 
   /// An IRI typed `owl:NamedIndividual`, or typed by a class this file uses as one.
   fn owlIndividual(iri: string) -> bool {
     // uses: ["diagram"]
-    return diagram.nodesOfType('Triple').exists(t, t.sKind == 'iri' && t.s == iri && typeTriple(t) && (t.o == 'http://www.w3.org/2002/07/owl#NamedIndividual' || (!owlBuiltIn(t.o) && owlClass(t.o))))
+    return owlBySubject(iri).exists(t, typeTriple(t) && (t.o == 'http://www.w3.org/2002/07/owl#NamedIndividual' || (!owlBuiltIn(t.o) && owlClass(t.o))))
   }
 
   /// The subject of the first `rdf:type owl:Ontology` triple, or ''.
@@ -844,13 +857,13 @@ diagram w3c/owl version "2.0.0" {
   /// A term as the ontology reading draws it: its first `rdfs:label` in any language, else its name as drawn.
   fn owlDisplay(iri: string) -> string {
     // uses: ["diagram"]
-    return cel.bind(l, diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == iri && t.p == 'http://www.w3.org/2000/01/rdf-schema#label' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : rdfDisplayName(iri))
+    return cel.bind(l, owlBySubject(iri).filter(t, t.p == 'http://www.w3.org/2000/01/rdf-schema#label' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : rdfDisplayName(iri))
   }
 
   /// Every IRI in subject or object position, in order of first appearance: the order nodes are met in.
   fn owlTerms() -> list {
     // uses: ["diagram"]
-    return diagram.nodesOfType('Triple').map(t, [[t.s, t.sKind], [t.o, t.oKind]]).flatten().filter(x, x[1] == 'iri').map(x, x[0]).distinct()
+    return diagram.nodesOfType('Triple').map(t, [[t.s, t.sKind], [t.o, t.oKind]]).flatten().filter(x, x[1] == 'iri').map(x, x[0]).groupBy(v, v).keys()
   }
 
   /// Whether a named node carries the IRI under `res:`.
@@ -868,7 +881,7 @@ diagram w3c/owl version "2.0.0" {
   /// Every literal-valued triple about the IRI, `owl:deprecated` excepted, in document order.
   fn owlRows(iri: string) -> list {
     // uses: ["diagram"]
-    return diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == iri && t.oKind == 'literal' && t.p != 'http://www.w3.org/2002/07/owl#deprecated').map(t, {
+    return owlBySubject(iri).filter(t, t.oKind == 'literal' && t.p != 'http://www.w3.org/2002/07/owl#deprecated').map(t, {
       'predicate': rdfDisplayName(t.p),
       'value': t.o,
       'annotation': t.language != '' ? '@' + t.language : (t.datatype != '' && t.datatype != 'http://www.w3.org/2001/XMLSchema#string' ? rdfCompress(t.datatype) : '')
@@ -879,13 +892,13 @@ diagram w3c/owl version "2.0.0" {
   /// The file asserts `owl:deprecated true` on the IRI.
   fn owlDeprecated(iri: string) -> bool {
     // uses: ["diagram"]
-    return diagram.nodesOfType('Triple').exists(t, t.sKind == 'iri' && t.s == iri && t.p == 'http://www.w3.org/2002/07/owl#deprecated' && t.oKind == 'literal' && t.o == 'true')
+    return owlBySubject(iri).exists(t, t.p == 'http://www.w3.org/2002/07/owl#deprecated' && t.oKind == 'literal' && t.o == 'true')
   }
 
   /// Used here, owned elsewhere: not built in and never the subject of a triple in this file.
   fn owlExternal(iri: string) -> bool {
     // uses: ["diagram"]
-    return !owlBuiltIn(iri) && !diagram.nodesOfType('Triple').exists(t, t.sKind == 'iri' && t.s == iri)
+    return !owlBuiltIn(iri) && owlBySubject(iri).size() == 0
   }
 
   /// One word per characteristic type triple of the property, in document order.
