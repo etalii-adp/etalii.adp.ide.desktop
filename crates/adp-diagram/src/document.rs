@@ -596,8 +596,24 @@ impl DiagramDocument {
                 index,
             } => ModelChange::Move {
                 id: read(id),
-                new_parent_id,
+                new_parent_id: new_parent_id.map(read),
                 index,
+            },
+            // The parent a new element goes under, by the id the binding read it with (etalii.adp spec 076, R4).
+            ModelChange::Add {
+                type_name,
+                id,
+                attributes,
+                parent_id,
+                index,
+                slot,
+            } => ModelChange::Add {
+                type_name,
+                id,
+                attributes,
+                parent_id: parent_id.map(read),
+                index,
+                slot,
             },
             ModelChange::Retype {
                 id,

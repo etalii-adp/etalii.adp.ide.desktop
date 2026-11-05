@@ -168,6 +168,25 @@ pub trait DiagramModule {
         None
     }
 
+    /// The changes the `plugin` action `name` makes with its evaluated `arguments` (DISL section 9.4), as one step with
+    /// the operation that called it, or why it cannot; none when the module does not carry it out.
+    fn plugin(
+        &self,
+        document: &DiagramDocument,
+        name: &str,
+        arguments: &Map,
+    ) -> Option<Result<Vec<DiagramChange>, String>> {
+        let _ = (document, name, arguments);
+        None
+    }
+
+    /// The registration's bytes once the positions stored for `ids` are forgotten, as a `view` action that sets
+    /// `pinned: false` asks (DISL section 11.6): none when the module writes no such thing, or nothing changes.
+    fn unpinned(&self, document: &DiagramDocument, ids: &[String]) -> Option<Vec<u8>> {
+        let _ = (document, ids);
+        None
+    }
+
     /// The host's implementations of the CEL functions the specification's plugins declare.
     fn plugin_functions(&self) -> DislPluginFunctions {
         DislPluginFunctions::none()

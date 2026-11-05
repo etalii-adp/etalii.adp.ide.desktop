@@ -634,11 +634,43 @@ impl Replay {
         if named.is_some() {
             return self.session.connect(&mut self.workspace, name, source, end, &self.ids);
         }
+        // A derived relation type is drawn by the operation its `edits.connect` names (DISL section 4.11.4), which a
+        // reference host's connect tool names by that operation's wire id.
+        if let Some(derived) = self.derived_connecting(&relations, name) {
+            return self
+                .session
+                .connect(&mut self.workspace, &derived, source, end, &self.ids);
+        }
         let connection = ActionTarget::Connection {
             source: Some(source.to_owned()),
             target: Some(end.to_owned()),
         };
         self.action(&connection, name, args)
+    }
+
+    /// The derived relation type among `relations` whose `edits.connect` names the operation of wire id `name`.
+    fn derived_connecting(&self, relations: &[String], name: &str) -> Option<String> {
+        let specification = self.tool.definition.specification();
+        let ids = self.tool.definition.ids();
+        relations
+            .iter()
+            .find(|relation| {
+                let operation = specification
+                    .metamodel()
+                    .type_of(relation)
+                    .and_then(|t| t.derived())
+                    .and_then(|derived| derived.pointer("/edits/connect"))
+                    .and_then(|o| o.as_str());
+                operation.is_some_and(|operation| {
+                    ids.action_id(
+                        std::slice::from_ref(*relation),
+                        "operation",
+                        Some(operation),
+                        &adp_cel::Map::default(),
+                    ) == name
+                })
+            })
+            .cloned()
     }
 
     /// A delete gesture on the description's own tool: the elements named, as one command, by the deletion each one's

@@ -197,6 +197,17 @@ struct CapabilityLayout {
     arguments: serde_json::Map<String, Json>,
 }
 
+/// DISL's standard `tidyTree` (DISL §10.3), run by the capability `layout.tidyTree`'s code: its gaps, and the rows the
+/// tool keeps around it, which the contract says are the tool's and not the capability's.
+#[derive(Debug, Clone)]
+struct TidyLayout {
+    gaps: crate::capabilities::tidy_tree::TidyGaps,
+    /// Whether a row is drawn at the first height the registration stores for any node of it (`rows.stored: y`).
+    stored_rows: bool,
+    /// The least space a stored row keeps between its parent's bottom and its own top (`rows.minGap`).
+    min_gap: f64,
+}
+
 /// Where a node type's notation places it (ATD §8.2): the attribute and the axis's canvas units per value, on each axis.
 #[derive(Debug, Clone)]
 struct ScaledPlacement {
@@ -290,6 +301,7 @@ pub struct RuntimeModule {
     /// The capabilities the description requires that the host lacks, each with the reason.
     missing: Vec<(String, String)>,
     layout: Option<CapabilityLayout>,
+    tidy: Option<TidyLayout>,
     /// Each viewer's initial view state, by key: `collapsed` from `persistence.view.initial`.
     initial_view: serde_json::Map<String, Json>,
     /// The view state `view` actions set, by document and element, over the initial one.
@@ -313,6 +325,23 @@ impl RuntimeModule {
                 arguments: algorithm["x-arguments"].as_object().cloned().unwrap_or_default(),
             })
         });
+        let tidy = specification.pointer("/layout").and_then(|layout| {
+            let algorithm = &layout["algorithms"][layout["default"].as_str()?];
+            (algorithm["algorithm"] == "tidyTree").then(|| {
+                let defaults = crate::capabilities::tidy_tree::TidyGaps::default();
+                let spacing = &algorithm["spacing"];
+                let rows = &algorithm["tidyTree"]["rows"];
+                TidyLayout {
+                    gaps: crate::capabilities::tidy_tree::TidyGaps {
+                        node: spacing["node"].as_f64().unwrap_or(defaults.node),
+                        layer: spacing["layer"].as_f64().unwrap_or(defaults.layer),
+                        component: spacing["component"].as_f64().unwrap_or(defaults.component),
+                    },
+                    stored_rows: rows["stored"] == "y",
+                    min_gap: rows["minGap"].as_f64().unwrap_or(0.0),
+                }
+            })
+        });
         let initial_view = specification
             .pointer("/persistence/view/initial")
             .and_then(Json::as_object)
@@ -325,6 +354,7 @@ impl RuntimeModule {
             capabilities: host.capabilities.clone(),
             missing,
             layout,
+            tidy,
             initial_view,
             views: RefCell::default(),
         }
@@ -381,7 +411,9 @@ impl RuntimeModule {
         let root = specification.root();
         let node = &root["notation"]["nodes"][element.type_name()];
         let size = &node["size"];
-        if size["autoSize"] != "fitContent" {
+        // `fitWidth` fits the width alone, its height the stated one (DISL section 6.6).
+        let fit_width = size["autoSize"] == "fitWidth";
+        if size["autoSize"] != "fitContent" && !fit_width {
             return None;
         }
         let styles = &root["notation"]["styles"];
@@ -420,6 +452,11 @@ impl RuntimeModule {
             }
         }
         let width = (widest + 2.0 * across).clamp(min_width, max_width);
+        if fit_width {
+            let height = size["default"][1].as_f64().or_else(|| limit("min", 1)).unwrap_or(0.0);
+            let round = crate::capabilities::two_sided_tree::round2;
+            return Some((round(width), round(height)));
+        }
         for text_width in wrapped {
             lines += (text_width / (width - 2.0 * across)).ceil();
         }
@@ -434,7 +471,13 @@ impl RuntimeModule {
             return fitted;
         }
         let size = &specification.root()["notation"]["nodes"][element.type_name()]["size"];
-        let min = |i: usize| size["min"][i].as_f64().unwrap_or(0.0);
+        // The size a node is drawn at unless it says otherwise (`default`, DISL section 6.6), else its minimum.
+        let min = |i: usize| {
+            size["default"][i]
+                .as_f64()
+                .or_else(|| size["min"][i].as_f64())
+                .unwrap_or(0.0)
+        };
         let measure = |key: &str, fallback: f64| {
             size.get(key)
                 .and_then(|v| Self::evaluate(specification, element, v))
@@ -444,6 +487,46 @@ impl RuntimeModule {
         // In the canvas's units, rounded to 0.01, as a capability's input is (ATD §2.4, its fixtures).
         let round = crate::capabilities::two_sided_tree::round2;
         (round(measure("width", min(0))), round(measure("height", min(1))))
+    }
+}
+
+impl RuntimeModule {
+    /// The centre of every node of a `tidyTree` (DISL §10.3): x as the tree alone places it, and every child of one
+    /// parent in one row, at the first height the registration stores for any of them, else `layer` below its
+    /// parent's bottom, never closer than `minGap`.
+    fn tidy_positions(tidy: &TidyLayout, document: &DiagramDocument) -> HashMap<String, (f64, f64)> {
+        use crate::capabilities::tidy_tree::{TidyTree, compute};
+        let diagram = &document.model().diagram;
+        let nodes = diagram.nodes();
+        let (width, height) = nodes.first().map_or((0.0, 0.0), Self::stated_size);
+        let roots: Vec<DislElement> = nodes.iter().filter(|n| n.parent().is_none()).cloned().collect();
+        let tree = TidyTree {
+            roots: roots.iter().map(DislElement::id).collect(),
+            children: nodes
+                .iter()
+                .map(|n| (n.id(), n.children().iter().map(DislElement::id).collect()))
+                .collect(),
+            width,
+            height,
+        };
+        let computed = compute(&tree, &tidy.gaps);
+        let stored = if tidy.stored_rows {
+            document.authored_positions()
+        } else {
+            HashMap::new()
+        };
+        let mut positions = HashMap::new();
+        let mut rows = vec![(roots, 0.0, f64::NEG_INFINITY)];
+        while let Some((row, hanging, floor)) = rows.pop() {
+            let dragged = row.iter().find_map(|n| stored.get(&n.id()).map(|p| p.1));
+            let y = dragged.unwrap_or(hanging).max(floor);
+            for node in row.iter().rev() {
+                let x = computed.get(&node.id()).map_or(0.0, |p| p.0);
+                positions.insert(node.id(), (x + width / 2.0, y + height / 2.0));
+                rows.push((node.children(), y + height + tidy.gaps.layer, y + height + tidy.min_gap));
+            }
+        }
+        positions
     }
 }
 
@@ -466,10 +549,15 @@ impl DiagramModule for RuntimeModule {
             .as_ref()
             .and_then(|layout| self.capabilities.layout(&layout.capability))
             .is_some_and(|capability| capability.draws_its_sizes());
-        Self::fitted(specification, element).or_else(|| {
-            let stated = bound.get("width").is_some() || bound.get("height").is_some() || bound.get("fixed").is_some();
-            (sized && stated).then(|| Self::stated_size(element))
-        })
+        // A width fitted to the text (`fitWidth`) is what a layout seats the node by; it is drawn at its stated size.
+        let fits_content = bound["autoSize"] == "fitContent";
+        Self::fitted(specification, element)
+            .filter(|_| fits_content)
+            .or_else(|| {
+                let stated =
+                    bound.get("width").is_some() || bound.get("height").is_some() || bound.get("fixed").is_some();
+                (sized && stated).then(|| Self::stated_size(element))
+            })
     }
 
     /// A node on an axis with a `scale`: its values in the axis's canvas units (ATD §8.1).
@@ -519,6 +607,91 @@ impl DiagramModule for RuntimeModule {
         self.rule_observer.clone()
     }
 
+    /// A `plugin` action naming a capability at the `arrange` extension point (ATD §13.3): the nodes the notation lets
+    /// a person place, with their sizes, and the stored relations between them, given to it with the action's
+    /// arguments; each `move` it gives stored as the node's position, its centre, and a finding of severity `error`
+    /// the refusal. A capability the host lacks is refused with the reason (ATD §13.4).
+    fn plugin(
+        &self,
+        document: &DiagramDocument,
+        name: &str,
+        arguments: &Map,
+    ) -> Option<Result<Vec<adp_diagram::DiagramChange>, String>> {
+        if let Some((_, reason)) = self.missing.iter().find(|(missing, _)| missing == name) {
+            return Some(Err(reason.clone()));
+        }
+        let arranger = self.capabilities.arranger(name)?;
+        let specification = document.tool().definition.specification();
+        let diagram = &document.model().diagram;
+        let placed_by_notation = |element: &DislElement| {
+            let placement = &specification.root()["notation"]["nodes"][element.type_name()]["placement"];
+            placement["x"].get("cel").is_some() || placement["movable"] == false
+        };
+        let nodes: Vec<DislElement> = diagram.nodes().into_iter().filter(|n| !placed_by_notation(n)).collect();
+        let elements: Vec<Json> = nodes
+            .iter()
+            .map(|node| {
+                let (width, height) = Self::size(specification, node);
+                json!({ "id": node.id(), "width": width, "height": height })
+            })
+            .collect();
+        let relations: Vec<Json> = diagram
+            .relations()
+            .into_iter()
+            .filter(|relation| !relation.is_derived())
+            .filter_map(|relation| {
+                Some(json!({ "source": relation.source()?.id(), "target": relation.target()?.id() }))
+            })
+            .collect();
+        let args: serde_json::Map<String, Json> = arguments
+            .iter()
+            .map(|(key, value)| {
+                let value = match value {
+                    Value::Int(n) => json!(n),
+                    Value::Double(n) => json!(n),
+                    other => json!(other.to_string()),
+                };
+                (key.clone(), value)
+            })
+            .collect();
+        let moves = match arranger.moves(
+            &json!({ "elements": elements, "relations": relations }),
+            &Json::Object(args),
+        ) {
+            Ok(moves) => moves,
+            Err(reason) => return Some(Err(reason)),
+        };
+        Some(moves.map(|moves| {
+            moves
+                .into_iter()
+                .map(|(id, x, y)| adp_diagram::DiagramChange::Place { id, x, y })
+                .collect()
+        }))
+    }
+
+    /// Every entry a rule the specification maps as unreadable read (DISL section 8.7, `persistence.typeMap`), as
+    /// `std.unreadableEntry` at its line, with the entry's text and line as `detail.entry`, which the built-in's
+    /// `message` words: no sentence is the runtime's.
+    fn reader_findings(&self, document: &DiagramDocument) -> Vec<adp_disl::DislReaderFinding> {
+        let body = document.body_bytes();
+        document
+            .model()
+            .unreadable
+            .iter()
+            .map(|element| {
+                let span = element.own_span;
+                let text = String::from_utf8_lossy(&body[span.start.min(body.len())..span.end.min(body.len())]);
+                let text = text.trim_end_matches(['\r', '\n']).to_owned();
+                let mut finding = adp_disl::DislReaderFinding::unreadable(&text, Some(element.line as i32), None);
+                let entry: Map = [("text", Value::String(text)), ("line", Value::Int(element.line as i64))]
+                    .into_iter()
+                    .collect();
+                finding.detail.insert("entry", Value::map(entry));
+                finding
+            })
+            .collect()
+    }
+
     /// A `layout` action whose plugin is a capability the host lacks is refused with the reason (ATD §13.4); any other
     /// is left to the engines.
     fn layout(
@@ -547,14 +720,47 @@ impl DiagramModule for RuntimeModule {
         true
     }
 
-    /// Each viewer's view of `element`: the description's `persistence.view.initial`, with what `view` actions set.
+    /// The registration without the positions stored for `ids`: their entries of its `layout:` block gone, and the
+    /// block's line with its last entry (FBL section 8.4).
+    fn unpinned(&self, document: &DiagramDocument, ids: &[String]) -> Option<Vec<u8>> {
+        let text = String::from_utf8_lossy(document.registration_bytes()?).into_owned();
+        let lines: Vec<&str> = text.split_inclusive('\n').collect();
+        let header = lines.iter().position(|l| l.trim_end() == "layout:")?;
+        let entries = lines[header + 1..]
+            .iter()
+            .take_while(|l| l.starts_with(' ') || l.starts_with('\t'))
+            .count();
+        let block = header + 1..header + 1 + entries;
+        let gone = |line: &str| {
+            line.split_once(':')
+                .is_some_and(|(key, _)| ids.iter().any(|id| id == key.trim()))
+        };
+        let kept: Vec<&str> = lines[block.clone()].iter().copied().filter(|l| !gone(l)).collect();
+        if kept.len() == entries {
+            return None;
+        }
+        let mut written = String::new();
+        written.extend(lines[..header].iter().copied());
+        if !kept.is_empty() {
+            written.push_str(lines[header]);
+            written.extend(kept);
+        }
+        written.extend(lines[block.end..].iter().copied());
+        Some(written.into_bytes())
+    }
+
+    /// Each viewer's view of `element`: the description's `persistence.view.initial`, with what `view` actions set;
+    /// and, of a node a `tidyTree` lays out, whether the registration pins it and its `bounds` (DISL section 11.6),
+    /// which come from the registration and the layout rather than from what was set.
     fn view_of(&self, document: &DiagramDocument, element: &DislElement) -> Option<Map> {
         let set = self
             .views
             .borrow()
             .get(&(document.body_path().to_path_buf(), element.id()))
             .cloned();
-        if self.initial_view.is_empty() && set.is_none() {
+        let authored = document.authored_positions();
+        let placed = self.tidy.is_some();
+        if self.initial_view.is_empty() && set.is_none() && !placed {
             return None;
         }
         let specification = document.tool().definition.specification();
@@ -567,12 +773,34 @@ impl DiagramModule for RuntimeModule {
         for (key, value) in set.iter().flat_map(Map::iter) {
             view.insert(key.clone(), value.clone());
         }
+        if placed && !element.is_relation() {
+            let (width, height) = Self::stated_size(element);
+            let centre = self
+                .tidy
+                .as_ref()
+                .and_then(|tidy| Self::tidy_positions(tidy, document).get(&element.id()).copied());
+            view.insert("pinned".to_owned(), Value::Bool(authored.contains_key(&element.id())));
+            if let Some((x, y)) = centre {
+                let bounds: Map = [
+                    ("x", Value::Double(x - width / 2.0)),
+                    ("y", Value::Double(y - height / 2.0)),
+                    ("width", Value::Double(width)),
+                    ("height", Value::Double(height)),
+                ]
+                .into_iter()
+                .collect();
+                view.insert("bounds".to_owned(), Value::map(bounds));
+            }
+        }
         Some(view)
     }
 
     /// The centre of every node the layout capability places: each node with the size its notation gives it, the
     /// capability's arguments evaluated for each node, and a collapsed node's descendants left out.
     fn positions(&self, document: &DiagramDocument) -> Option<HashMap<String, (f64, f64)>> {
+        if let Some(tidy) = &self.tidy {
+            return Some(Self::tidy_positions(tidy, document));
+        }
         let layout = self.layout.as_ref()?;
         let capability = self.capabilities.layout(&layout.capability)?;
         let specification = document.tool().definition.specification();
@@ -601,10 +829,17 @@ impl DiagramModule for RuntimeModule {
         };
         let shown = diagram.shown_in(&specification.default_viewpoint());
         let shown_ids: std::collections::HashSet<String> = shown.iter().map(DislElement::id).collect();
+        // A node its notation places by an expression (DISL section 6.4, a loop's badge at its variables' centroid) is
+        // not the layout's to place.
+        let computed = |element: &DislElement| {
+            specification.root()["notation"]["nodes"][element.type_name()]["placement"]["x"]
+                .get("cel")
+                .is_some()
+        };
         let mut placed: Vec<DislElement> = diagram
             .nodes()
             .into_iter()
-            .filter(|element| shown_ids.contains(&element.id()) || is_boundary(element))
+            .filter(|element| (shown_ids.contains(&element.id()) || is_boundary(element)) && !computed(element))
             .collect();
         // The order the description gives them, else the model's.
         if let Some(sequence) = layout.arguments.get("sequence") {
@@ -634,7 +869,12 @@ impl DiagramModule for RuntimeModule {
             } else {
                 Self::size(specification, &element)
             };
-            sizes.insert(element.id(), (width, height));
+            // Where it is drawn is a corner and the size it is drawn at: a width fitted to its text (`fitWidth`) only
+            // seats the node.
+            // A position is a node's centre where this module measures the node, and its top-left corner where the
+            // engines draw it at its notation's size (`size_of`).
+            let centred = boundary || self.size_of(document, &element).is_some();
+            sizes.insert(element.id(), if centred { (width, height) } else { (0.0, 0.0) });
             let mut attributes = serde_json::Map::new();
             for (key, value) in layout
                 .arguments
@@ -709,11 +949,21 @@ impl DiagramModule for RuntimeModule {
         let placed = capability
             .place(&json!({ "nodes": nodes, "edges": edges }), &Json::Object(args))
             .ok()?;
+        // A capability that does not consult pins leaves a stored position to the host: the node is drawn there.
+        let stored = if capability.consults_pins() {
+            HashMap::new()
+        } else {
+            authored
+        };
         Some(
             placed
                 .into_iter()
                 .filter_map(|(id, x, y)| {
                     let (width, height) = *sizes.get(&id)?;
+                    // A stored position is where the node is drawn, as the registration keeps it.
+                    if let Some(stored) = stored.get(&id) {
+                        return Some((id, *stored));
+                    }
                     Some((id, (x + width / 2.0, y + height / 2.0)))
                 })
                 .collect(),

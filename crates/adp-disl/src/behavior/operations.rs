@@ -356,12 +356,33 @@ pub fn drop(
         Ok(attributes) => attributes,
         Err(e) => return DislTransaction::refused(e),
     };
-    let element = match ids
-        .next(&created.name)
-        .and_then(|id| diagram.add_node(&created.name, &id, attributes.clone()))
-    {
+    // A drop with `place` takes its parent and index from that parent placement (DISL 0.3, sections 7.2, 9.1).
+    let placed = match json::get(json::member(tool, "drop"), "place").and_then(Json::as_str) {
+        Some(name) if places_by_geometry(diagram) => match parent_placement(specification, name, diagram, &variables) {
+            Ok(placed) => placed,
+            Err(refusal) => return DislTransaction::refused(refusal),
+        },
+        _ => None,
+    };
+    let element = match ids.next(&created.name).and_then(|id| match &placed {
+        Some((parent, _)) => diagram.add_child(&created.name, &id, attributes.clone(), parent, None),
+        None => diagram.add_node(&created.name, &id, attributes.clone()),
+    }) {
         Ok(element) => element,
         Err(e) => return DislTransaction::refused(e),
+    };
+    let index = match &placed {
+        Some((parent, index)) => {
+            let siblings = diagram.siblings_under(Some(parent));
+            let index = (*index).clamp(0, siblings.len() as i64 - 1);
+            if (index as usize) < siblings.len() - 1
+                && let Err(e) = diagram.reparent(&element, Some(parent), None, index)
+            {
+                return DislTransaction::refused(e);
+            }
+            Some(index)
+        }
+        None => None,
     };
     let after = match json::string_of(tool, "after") {
         Some("editLabel") => vec![HostAction::EditLabel {
@@ -378,13 +399,94 @@ pub fn drop(
             type_name: created.name.clone(),
             id: element.id(),
             attributes,
-            parent_id: None,
+            parent_id: placed.as_ref().map(|(parent, _)| parent.id()),
             at: Value::map(position.clone()),
-            index: None,
+            index,
         }],
         host_actions: after,
         refusal: None,
     }
+}
+
+/// Whether a parent placement can be run on `diagram`: it reads where elements are drawn (`view.bounds`, DISL section
+/// 11.6), which only a host that gives view state can say, so a diagram whose nodes have none places a new element
+/// as it would without `place`, as a hand-written module's diagram always has. An empty diagram has nothing to read.
+pub(crate) fn places_by_geometry(diagram: &DislDiagram) -> bool {
+    let nodes = diagram.nodes();
+    nodes.is_empty() || nodes.iter().any(|n| n.view().is_some())
+}
+
+/// The parent and the index the parent placement `name` of `behavior.placements` chooses (DISL 0.3, section 9.1), in
+/// the create context `variables` with `position` bound: the candidate of lowest rank, the first in model order on a
+/// tie, and the index `index` gives with `parent` bound; none for a new top-level element where `whenEmpty` is
+/// `root` and the diagram has no top-level node; else the placement's refusal.
+pub(crate) fn parent_placement(
+    specification: &DislSpecification,
+    name: &str,
+    diagram: &DislDiagram,
+    variables: &Vars,
+) -> Result<Option<(DislElement, i64)>, String> {
+    let pointer = json::pointer("/behavior/placements", name);
+    let Some(placement) = json::get(json::member(specification.root(), "behavior"), "placements")
+        .and_then(|placements| json::get(placements, name))
+    else {
+        return Err(format!("There is no placement '{name}'."));
+    };
+    let evaluate = |key: &str, variables: &Vars| {
+        evaluation::expression(
+            specification,
+            json::member(placement, key),
+            &json::pointer(&pointer, key),
+            contexts::CREATE,
+            variables,
+        )
+    };
+    let candidates = match evaluate("candidates", variables)? {
+        Value::List(items) => items
+            .iter()
+            .filter_map(|item| DislElement::from_value(item).and_then(|e| diagram.element_by_id(&e.id())))
+            .collect::<Vec<_>>(),
+        _ => Vec::new(),
+    };
+    let bound = json::string_of(placement, "as").unwrap_or("candidate");
+    let mut best: Option<(DislElement, f64)> = None;
+    for candidate in candidates {
+        let mut ranked = variables.clone();
+        ranked.insert(bound.to_owned(), candidate.to_value());
+        let rank = evaluate("rank", &ranked)?.as_number().unwrap_or(f64::INFINITY);
+        if best.as_ref().is_none_or(|(_, b)| rank < *b) {
+            best = Some((candidate, rank));
+        }
+    }
+    let Some((parent, _)) = best else {
+        let empty = diagram.nodes().iter().all(|n| n.parent().is_some());
+        if json::string_of(placement, "whenEmpty") == Some("root") && empty {
+            return Ok(None);
+        }
+        let fallback = "There is nothing here to place it under.";
+        return Err(match json::get(placement, "refusal") {
+            Some(refusal) => evaluation::message(
+                specification,
+                refusal,
+                &json::pointer(&pointer, "refusal"),
+                contexts::CREATE,
+                variables,
+                fallback,
+            ),
+            None => fallback.to_owned(),
+        });
+    };
+    let index = match json::get(placement, "index") {
+        Some(_) => {
+            let mut with_parent = variables.clone();
+            with_parent.insert("parent".to_owned(), parent.to_value());
+            evaluate("index", &with_parent)?
+                .as_number()
+                .map_or(i64::MAX, |n| n as i64)
+        }
+        None => i64::MAX,
+    };
+    Ok(Some((parent, index)))
 }
 
 /// Runs a connect gesture of `relation_type` released on empty canvas (sections 6.10 and 7.2): the missing end - the

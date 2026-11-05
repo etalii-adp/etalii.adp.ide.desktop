@@ -446,10 +446,26 @@ impl<'a> ActionRunner<'a> {
         };
         let (after, before) = (DislElement::from_value(&after), DislElement::from_value(&before));
         // Placed beside a sibling (section 9.4), the new node goes under the sibling's parent unless one is given.
-        let parent =
+        let mut parent =
             DislElement::from_value(&parent).or_else(|| after.as_ref().or(before.as_ref()).and_then(|s| s.parent()));
+        // A create with `place` takes its parent and index from that parent placement (DISL 0.3, sections 9.1, 9.4).
+        let mut placed_index = None;
+        if let Some(name) = json::string_of(body, "place")
+            && super::operations::places_by_geometry(self.diagram)
+        {
+            match super::operations::parent_placement(self.specification, name, self.diagram, variables) {
+                Ok(Some((chosen, index))) => {
+                    let count = self.diagram.siblings_under(Some(&chosen)).len() as i64;
+                    placed_index = (index < count).then_some(index.max(0));
+                    parent = Some(chosen);
+                }
+                Ok(None) => parent = None,
+                Err(refusal) => return self.refuse(refusal),
+            }
+        }
         let siblings = self.diagram.siblings_under(parent.as_ref());
         let index = match (&after, &before) {
+            _ if placed_index.is_some() => placed_index,
             (Some(after), _) => match siblings.iter().position(|s| s == after) {
                 Some(found) => Some(found as i64 + 1),
                 None => {

@@ -839,3 +839,24 @@ fn a_relation_takes_the_flags_its_supertype_states() {
         (peers.endpoints.per_pair, peers.endpoints.allow_self, peers.end_marker)
     );
 }
+
+/// A variant DISL names with an `id` is still the same curve bowed otherwise, as ATD lowers `variant variant when …`
+/// (etalii.adp spec 076, T023, research R7); a variant that changes anything else is still refused.
+#[test]
+fn a_variant_with_an_id_is_the_same_curve_bowed_otherwise() {
+    let named = with(
+        common::curved_spec(),
+        "/notation/edges/Arrow/variants",
+        json!([{ "id": "variant", "when": "self.flipped", "line": { "routing": "curved", "curvature": -0.2 } }]),
+    );
+    let Route::BowedArc(arc) = &compiled(&text(&named)).relation_types[0].route else {
+        panic!("not a bowed arc");
+    };
+    assert_eq!(vec![("self.flipped".to_owned(), -0.2)], arc.variants);
+    let restyled = with(
+        common::curved_spec(),
+        "/notation/edges/Arrow/variants",
+        json!([{ "id": "variant", "when": "self.flipped", "style": "dashed", "line": { "routing": "curved", "curvature": -0.2 } }]),
+    );
+    assert!(refusal(&text(&restyled)).contains("the same curve bowed otherwise"));
+}

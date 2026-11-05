@@ -14,6 +14,8 @@
 
 use std::collections::HashMap;
 
+use adp_atd_runtime::capabilities::tidy_tree::{self, TidyGaps, TidyTree};
+
 use crate::model::{Model, Node};
 
 /// Every node's width.
@@ -71,85 +73,25 @@ fn place_row(
     }
 }
 
-/// An outline: the left and right edge of a subtree at each depth, relative to its root's left edge.
-type Outline = Vec<(f64, f64)>;
-
-/// The top-left of every node, by id, as the tree alone places it.
+/// The top-left of every node, by id, as the tree alone places it: the capability `layout.tidyTree`, which this code
+/// moved to (etalii.adp spec 076, T008), over the model's tree in document order.
 pub fn compute(model: &Model) -> Positions {
-    // Each node's left edge relative to its parent's, and each subtree's outline per depth. Document order is
-    // depth-first, so walking it backwards meets every child before its parent.
-    let mut offsets: HashMap<String, f64> = HashMap::new();
-    let mut outlines: HashMap<String, Outline> = HashMap::new();
-    for node in model.nodes.iter().rev() {
-        let children: Vec<Outline> = node.child_ids.iter().map(|id| outlines[id].clone()).collect();
-        let (placed, outline) = pack(&children, HORIZONTAL_GAP);
-        if placed.is_empty() {
-            outlines.insert(node.id.clone(), vec![(0.0, NODE_WIDTH)]);
-            continue;
-        }
-        // Centred over the first and last child, whose roots sit at their packed offsets.
-        let left = (placed[0] + placed[placed.len() - 1]) / 2.0;
-        for (index, offset) in placed.iter().enumerate() {
-            offsets.insert(node.child_ids[index].clone(), offset - left);
-        }
-        let mut own = vec![(0.0, NODE_WIDTH)];
-        own.extend(outline.iter().map(|(l, r)| (l - left, r - left)));
-        outlines.insert(node.id.clone(), own);
-    }
-
-    // The roots side by side, packed the same way with a wider gap between whole trees.
-    let roots = model.roots();
-    let root_outlines: Vec<Outline> = roots.iter().map(|r| outlines[&r.id].clone()).collect();
-    let (root_lefts, _) = pack(&root_outlines, HORIZONTAL_GAP * 2.0);
-    let mut positions = Positions::new();
-    for (index, root) in roots.iter().enumerate() {
-        place(model, root, root_lefts[index], 0, &offsets, &mut positions);
-    }
-
-    // From the leftmost node at zero, so the drawing starts where it always has.
-    let shift = positions.values().map(|p| p.0).fold(f64::INFINITY, f64::min);
-    let shift = if positions.is_empty() { 0.0 } else { shift };
-    positions.into_iter().map(|(id, (x, y))| (id, (x - shift, y))).collect()
-}
-
-/// Places outlines left to right, each as far left as keeps `gap` clear of everything before it at every depth they
-/// share; each one's offset and the combined outline.
-fn pack(outlines: &[Outline], gap: f64) -> (Vec<f64>, Outline) {
-    let mut offsets = Vec::new();
-    let mut combined: Outline = Vec::new();
-    for outline in outlines {
-        let mut offset = 0.0;
-        if !combined.is_empty() {
-            offset = f64::NEG_INFINITY;
-            for depth in 0..combined.len().min(outline.len()) {
-                offset = f64::max(offset, combined[depth].1 + gap - outline[depth].0);
-            }
-        }
-        offsets.push(offset);
-        for (depth, (left, right)) in outline.iter().enumerate() {
-            let (left, right) = (left + offset, right + offset);
-            if depth < combined.len() {
-                combined[depth] = (combined[depth].0.min(left), combined[depth].1.max(right));
-            } else {
-                combined.push((left, right));
-            }
-        }
-    }
-    (offsets, combined)
-}
-
-fn place(
-    model: &Model,
-    node: &Node,
-    left: f64,
-    depth: usize,
-    offsets: &HashMap<String, f64>,
-    positions: &mut Positions,
-) {
-    positions.insert(node.id.clone(), (left, depth as f64 * (NODE_HEIGHT + VERTICAL_GAP)));
-    for child in model.children_of(node) {
-        place(model, child, left + offsets[&child.id], depth + 1, offsets, positions);
-    }
+    let tree = TidyTree {
+        roots: model.roots().iter().map(|root| root.id.clone()).collect(),
+        children: model
+            .nodes
+            .iter()
+            .map(|node| (node.id.clone(), node.child_ids.clone()))
+            .collect(),
+        width: NODE_WIDTH,
+        height: NODE_HEIGHT,
+    };
+    let gaps = TidyGaps {
+        node: HORIZONTAL_GAP,
+        layer: VERTICAL_GAP,
+        component: HORIZONTAL_GAP * 2.0,
+    };
+    tidy_tree::compute(&tree, &gaps)
 }
 
 /// The centre of the node whose top-left is `top_left`.

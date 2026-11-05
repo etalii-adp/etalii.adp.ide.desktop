@@ -36,13 +36,14 @@ mod hierarchical_requirement;
 /// of: `sankey-written-text` and `supply-chain-written-text`, which etalii.adp added with the Sankey and supply chain
 /// bindings, and the bullets family's (FBL 0.7 section 4.8, etalii.adp spec 036), with `behavior-tree-read/first-add`,
 /// which etalii.adp holds and the standalone host does not vendor.
-const STANDALONE_FIXTURES: [&str; 33] = [
+const STANDALONE_FIXTURES: [&str; 34] = [
     "behavior-tree-read/first-add",
     "insert-constant-json-read",
     "insert-constant-yaml-read",
     "bullets-edits",
     "bullets-edits/no-section",
     "bullets-read",
+    "bullets-under-heading",
     "sankey-written-text",
     "supply-chain-written-text",
     "agent-activity-edits",

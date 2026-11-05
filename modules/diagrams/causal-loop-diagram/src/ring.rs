@@ -10,115 +10,61 @@
 
 use std::collections::HashMap;
 
+use adp_atd_runtime::capabilities::ring::{self, RingNode};
 use adp_layout::Rect;
 
 use crate::metrics::Metrics;
 use crate::reading::{Model, Variable};
 
-/// Every variable's box on the ring, by name; a name written twice is placed once, for its first variable.
+/// Every variable's box on the ring, by name; a name written twice is placed once, for its first variable. The
+/// capability `layout.ring`, which this code moved to (etalii.adp spec 076, T029), seats them.
 pub fn compute(model: &Model, metrics: &Metrics) -> HashMap<String, Rect> {
     let variables = model.distinct_variables();
-    let mut boxes = HashMap::with_capacity(variables.len());
-    if variables.is_empty() {
-        return boxes;
-    }
     let height = metrics.height();
-    let widths: HashMap<&str, f64> = variables
+    let nodes: Vec<RingNode> = variables
         .iter()
-        .map(|v| (v.name.as_str(), metrics.width_of(v.display())))
+        .map(|v| RingNode {
+            id: v.name.clone(),
+            width: metrics.width_of(v.display()),
+            height,
+        })
         .collect();
-
-    // One variable sits at the origin: a real position, not a missing one.
-    if let [only] = variables.as_slice() {
-        boxes.insert(
-            only.name.clone(),
-            Rect::new(0.0, 0.0, widths[only.name.as_str()], height),
-        );
-        return boxes;
-    }
-
-    let slot = widths.values().copied().fold(f64::MIN, f64::max) + metrics.separation;
-    let radius = slot.max(variables.len() as f64 * slot / (2.0 * std::f64::consts::PI));
-    let order = ring_order(&Model {
-        variables: variables.clone(),
-        links: model.links.clone(),
-    });
-    let count = order.len() as f64;
-    for (index, variable) in order.iter().enumerate() {
-        // From the top, clockwise, as a reader traces a loop.
-        let angle = (2.0 * std::f64::consts::PI * index as f64 / count) - (std::f64::consts::PI / 2.0);
-        let centre_x = radius * angle.cos();
-        let centre_y = radius * angle.sin();
-        let width = widths[variable.name.as_str()];
-        boxes.insert(
-            variable.name.clone(),
-            Rect::new(
-                settled(centre_x - width / 2.0),
-                settled(centre_y - height / 2.0),
-                width,
-                height,
-            ),
-        );
-    }
-    boxes
+    let edges: Vec<(String, String)> = model.links.iter().map(|l| (l.from.clone(), l.to.clone())).collect();
+    ring::compute(&nodes, &edges, metrics.separation)
+        .into_iter()
+        .map(|(name, (x, y))| {
+            // The capability's corner is the point on the ring, which this module's box is centred on.
+            let width = nodes.iter().find(|n| n.id == name).map_or(0.0, |n| n.width);
+            if nodes.len() == 1 {
+                return (name, Rect::new(x, y, width, height));
+            }
+            (
+                name,
+                Rect::new(settled(x - width / 2.0), settled(y - height / 2.0), width, height),
+            )
+        })
+        .collect()
 }
 
-/// A coordinate with the platform taken out of it: rounded to a millionth, as .NET's `Math.Round(value, 6)` rounds
-/// (half to even after scaling), and never a negative zero.
+/// A coordinate with the platform taken out of it, as `layout.ring` settles it.
 pub fn settled(value: f64) -> f64 {
-    const POWER: f64 = 1e6;
-    let rounded = if value.abs() < 1e16 {
-        (value * POWER).round_ties_even() / POWER
-    } else {
-        value
-    };
-    rounded + 0.0
+    ring::settled(value)
 }
 
-/// The order variables are seated around the ring: a depth-first walk of the links read as undirected, from the
-/// first declared variable, earliest-declared neighbour first, continuing from the earliest variable left when a
-/// component is exhausted.
+/// The order variables are seated around the ring, as `layout.ring` seats them.
 pub fn ring_order(model: &Model) -> Vec<Variable> {
-    let position: HashMap<&str, usize> = model
+    let nodes: Vec<RingNode> = model
         .variables
         .iter()
-        .enumerate()
-        .map(|(i, v)| (v.name.as_str(), i))
+        .map(|v| RingNode {
+            id: v.name.clone(),
+            width: 0.0,
+            height: 0.0,
+        })
         .collect();
-    let mut neighbours: Vec<Vec<usize>> = vec![Vec::new(); model.variables.len()];
-    for link in &model.links {
-        let (Some(&from), Some(&to)) = (position.get(link.from.as_str()), position.get(link.to.as_str())) else {
-            continue;
-        };
-        if from == to {
-            continue;
-        }
-        neighbours[from].push(to);
-        neighbours[to].push(from);
-    }
-    for list in &mut neighbours {
-        list.sort_unstable();
-    }
-    let mut placed = vec![false; model.variables.len()];
-    let mut order = Vec::with_capacity(model.variables.len());
-    for seed in 0..model.variables.len() {
-        if placed[seed] {
-            continue;
-        }
-        let mut stack = vec![seed];
-        while let Some(current) = stack.pop() {
-            if placed[current] {
-                continue;
-            }
-            placed[current] = true;
-            order.push(model.variables[current].clone());
-            // Pushed in reverse so the earliest-declared neighbour is popped first.
-            for &next in neighbours[current].iter().rev() {
-                if !placed[next] {
-                    stack.push(next);
-                }
-            }
-        }
-    }
-    order
+    let edges: Vec<(String, String)> = model.links.iter().map(|l| (l.from.clone(), l.to.clone())).collect();
+    ring::ring_order(&nodes, &edges)
+        .into_iter()
+        .map(|i| model.variables[i].clone())
+        .collect()
 }

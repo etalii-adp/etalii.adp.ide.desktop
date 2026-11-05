@@ -10,7 +10,7 @@ mod tests;
 
 use std::collections::HashMap;
 
-use adp_cel::Value;
+use adp_cel::{Map, Value};
 
 use crate::documents::types::{HeaderSettings, Rule, Slot};
 use crate::families::{EntryId, Family, FamilyKind};
@@ -236,7 +236,10 @@ impl Family {
             plan.add(Operation::InsertEntry, after_header, after_header, text);
             return Ok(());
         }
-        if !matches!(insert.place.as_str(), "after-last" | "end" | "last-child" | "start") {
+        if !matches!(
+            insert.place.as_str(),
+            "after-last" | "end" | "last-child" | "start" | "under-heading"
+        ) {
             return refuse(format!("A bullets body cannot place a new entry '{}'.", insert.place));
         }
         let line = self.render_new(emit, request, source.as_deref(), target.as_deref());
@@ -262,6 +265,22 @@ impl Family {
         let newline = self.newline_at(place.offset);
         let text = self.as_new_lines(&lines, place.offset, place.blank_before, &newline);
         plan.add(Operation::InsertEntry, place.offset, place.offset, text);
+        Ok(())
+    }
+
+    /// A retype of `element` to `rule`'s type (FBL 0.7 section 6.4): its item's text written again from `rule`'s
+    /// `emit` with `values`, as one `re-emit-line`.
+    pub(crate) fn bullets_retype(&self, plan: &mut Plan<'_>, element: usize, rule: usize, values: &Map) -> Planning {
+        let Some(emit) = self.rule(rule).insert.as_ref().and_then(|i| i.emit.as_deref()) else {
+            return refuse(format!(
+                "The binding gives no form to write a {} in.",
+                self.rule(rule).type_name
+            ));
+        };
+        let entry = plan.reading.element(element).entry();
+        let line = self.render_line(emit, rule, values, None, None, None);
+        let span = self.statement(entry).first_line_span;
+        plan.add_span(Operation::ReEmitLine, span, line);
         Ok(())
     }
 
@@ -306,7 +325,8 @@ impl Family {
     /// Where a new item goes among `siblings` at `index`, and the indentation and marker it takes (FBL 0.7 section
     /// 6.3): after its previous sibling's line span with that sibling's; else at the start of its next sibling's with
     /// that one's; else as its parent's first nested item, with the parent's marker at its content column; else as
-    /// the first item of its section, creating the section when it is missing.
+    /// the first item of its section, after its last line that is not blank or, `under-heading` (FBL 0.19), right
+    /// after its heading, creating the section when it is missing.
     fn place(
         &self,
         plan: &mut Plan<'_>,
@@ -359,10 +379,13 @@ impl Family {
         if let Some(name) = name
             && let Some(&(first, end)) = self.bullets_data().sections.get(name)
         {
+            // After the section's last line that is not blank; under its heading for `under-heading` (FBL 0.19).
             let mut last_line = first;
-            for line in first + 1..end {
-                if !self.is_blank(line) {
-                    last_line = line;
+            if insert.place != "under-heading" {
+                for line in first + 1..end {
+                    if !self.is_blank(line) {
+                        last_line = line;
+                    }
                 }
             }
             return Ok(Place {
