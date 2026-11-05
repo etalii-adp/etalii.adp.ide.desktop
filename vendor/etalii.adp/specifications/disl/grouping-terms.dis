@@ -1,0 +1,67 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.9",
+  "language": {
+    "id": "org.example.grouping-terms",
+    "version": "1.0.0",
+    "label": "Grouping terms",
+    "doc": {
+      "summary": "Statements about terms, and the terms derived from them through groupBy, used to show the macro and a failing key (DISL 0.9, 12.4).",
+      "description": "Each statement says one thing about one subject. `Term` derives one node per subject from the keys of the statements grouped by subject, and reads its label from the statements grouped by subject and predicate, so that no rule filters every statement again for each term. `Weight` groups the weight statements by their number; one weight is not a number, so its key fails, the whole grouping fails, and the type has no elements and one `std.derivedFailed` finding (2.5)."
+    },
+    "requires": { "features": ["cel.groupBy"] }
+  },
+  "metamodel": {
+    "types": {
+      "Statement": {
+        "doc": "One statement: a subject, a predicate and an object, as written.",
+        "attributes": {
+          "subject": { "type": "string", "required": true },
+          "predicate": { "type": "string", "required": true },
+          "object": { "type": "string", "required": true }
+        }
+      },
+      "Term": {
+        "doc": "One per subject of the statements, labelled by its `label` statement, else by its name.",
+        "attributes": {
+          "name": { "type": "string", "required": true, "key": true },
+          "label": { "type": "string" }
+        },
+        "derived": {
+          "from": "diagram.nodesOfType('Statement').groupBy(s, s.subject).keys()",
+          "key": "item",
+          "id": "item",
+          "attributes": {
+            "name": "item",
+            "label": "cel.bind(l, diagram.nodesOfType('Statement').groupBy(s, s.subject + '|' + s.predicate).get(item + '|label'), l.size() > 0 ? l[0].object : item)"
+          },
+          "reason": "A term is derived from its statements; change them instead."
+        }
+      },
+      "Weight": {
+        "doc": "One per distinct weight the statements give.",
+        "attributes": {
+          "weight": { "type": "int", "required": true, "key": true }
+        },
+        "derived": {
+          "from": "diagram.nodesOfType('Statement').groupBy(s, s.predicate == 'weight' ? int(s.object) : -1).keys().filter(w, w >= 0)",
+          "key": "item",
+          "id": "'weight-' + string(item)",
+          "attributes": { "weight": "item" },
+          "reason": "A weight is derived from the statements that give it."
+        }
+      }
+    }
+  },
+  "constraints": {
+    "rules": [
+      {
+        "id": "labelled",
+        "scope": "Term",
+        "rule": "self.label != self.name",
+        "severity": "warning",
+        "message": { "cel": "self.name + ' has no label.'" }
+      }
+    ]
+  }
+}

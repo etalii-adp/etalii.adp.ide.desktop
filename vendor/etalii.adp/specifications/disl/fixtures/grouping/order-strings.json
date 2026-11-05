@@ -1,0 +1,31 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/GroupingFixture",
+  "description": "Each distinct key has one group, holding its items in list order, and the keys are listed in order of first appearance.",
+  "list": [
+    "b",
+    "a",
+    "b",
+    "c",
+    "a"
+  ],
+  "variable": "x",
+  "key": "x",
+  "keys": [
+    "b",
+    "a",
+    "c"
+  ],
+  "groups": [
+    [
+      "b",
+      "b"
+    ],
+    [
+      "a",
+      "a"
+    ],
+    [
+      "c"
+    ]
+  ]
+}

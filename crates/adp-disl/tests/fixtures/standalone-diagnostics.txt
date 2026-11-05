@@ -124,6 +124,11 @@ error at /notation/canvas/notices/0/visible/cel: The function 'filterValue' is n
 error at /notation/canvas/notices/0/text/cel: The function 'filterValue' is not supported by this CEL evaluator. (context chrome)
 error at /notation/canvas/notices/0/actions/0/label: Unexpected 'the' in 'Clear the filter'. (context chrome)
 error at /notation/canvas/notices/0/actions/0/operation: 'clearTagFilter' is not a variable here; available: diagram, env. (context chrome)
+# disl/grouping-terms.dis loaded=False
+warning at /disl: This runtime knows DISL up to 0.3; what DISL 0.9 adds is not read (DISL §2.9).
+error at /metamodel/types/Term/derived/from: The function 'groupBy' is not supported by this CEL evaluator. (context derive)
+error at /metamodel/types/Term/derived/attributes/label: The function 'groupBy' is not supported by this CEL evaluator. (context deriveItem)
+error at /metamodel/types/Weight/derived/from: The function 'groupBy' is not supported by this CEL evaluator. (context derive)
 # disl/mindmap.dis loaded=False
 error at /notation/nodes/Node/size/width/cel: The function 'textWidth' is not supported by this CEL evaluator. (context element)
 error at /notation/nodes/Node/size/height/cel: The function 'textHeight' is not supported by this CEL evaluator. (context element)

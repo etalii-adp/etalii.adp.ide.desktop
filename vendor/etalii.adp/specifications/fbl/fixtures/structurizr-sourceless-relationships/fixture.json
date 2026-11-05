@@ -1,0 +1,104 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "FBL 0.15, section 4.9 (Further slots and a value above the entry), for etalii.adp spec 068 (finding B8, written here): a relationship written without a source inside an element's block is read from that element, through `from`'s further slot `../identifier`, as Structurizr reads it, in a person's block and in a container's alike; one inside the block of a declaration without an identifier is kept with `from` unset. The tool types map Relationship onto a relation, so `read` lists the elements only, and the steps show the source read: setting `from` of the relationship in u's block to the value it reads is written where it was read, where with no source read the slot would be absent and the set refused. Renaming the element replaces its identifier once: the reference rewrite of the relationship that reads it is the same splice (section 6.4), and the relationship written with a source is rewritten as before. Saving without an edit writes the bytes that were read.",
+  "binding": "../../structurizr.fbl#workspace",
+  "input": "sourceless.dsl",
+  "read": {
+    "elements": [
+      {
+        "id": "u",
+        "type": "Person",
+        "attributes": {
+          "name": "User"
+        }
+      },
+      {
+        "id": "s",
+        "type": "SoftwareSystem",
+        "attributes": {
+          "name": "System"
+        }
+      },
+      {
+        "id": "web",
+        "type": "Container",
+        "parent": "s",
+        "attributes": {
+          "name": "Web"
+        }
+      },
+      {
+        "id": "api",
+        "type": "Container",
+        "parent": "s",
+        "attributes": {
+          "name": "API"
+        }
+      },
+      {
+        "id": "person@12",
+        "type": "Person",
+        "attributes": {
+          "name": "Nameless"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "workspace \"Sourceless\" {\n    model {\n        u = person \"User\" \"A user.\" {\n            -> s \"Uses\" \"HTTPS\"\n        }\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web\" \"Serves.\" \"React\" {\n                -> api \"Calls\" \"JSON\"\n            }\n            api = container \"API\" \"Answers.\" \"Kotlin\"\n        }\n        person \"Nameless\" \"Has no identifier.\" {\n            -> s \"Uses\"\n        }\n        u -> web \"Visits\"\n    }\n}\n"
+    },
+    {
+      "doc": "Setting from of the relationship in u's block (u->s@4, the id the C4 tool types derive from its ends and its line) to u, the source it reads, writes u where it was read, which leaves the bytes as they are. A reader without the further slot reads no source there, so derives another id and has no slot to write.",
+      "edit": {
+        "set": {
+          "element": "u->s@4",
+          "attributes": {
+            "from": "u"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 45,
+          "end": 46,
+          "text": "u"
+        }
+      ],
+      "expect": "workspace \"Sourceless\" {\n    model {\n        u = person \"User\" \"A user.\" {\n            -> s \"Uses\" \"HTTPS\"\n        }\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web\" \"Serves.\" \"React\" {\n                -> api \"Calls\" \"JSON\"\n            }\n            api = container \"API\" \"Answers.\" \"Kotlin\"\n        }\n        person \"Nameless\" \"Has no identifier.\" {\n            -> s \"Uses\"\n        }\n        u -> web \"Visits\"\n    }\n}\n"
+    },
+    {
+      "doc": "Renaming u replaces its identifier once, which the relationship in its block reads, and rewrites the relationship that names it.",
+      "edit": {
+        "set": {
+          "element": "u",
+          "attributes": {
+            "id": "user"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 45,
+          "end": 46,
+          "text": "user"
+        },
+        {
+          "operation": "rewrite-reference",
+          "start": 428,
+          "end": 429,
+          "text": "user"
+        }
+      ],
+      "expect": "workspace \"Sourceless\" {\n    model {\n        user = person \"User\" \"A user.\" {\n            -> s \"Uses\" \"HTTPS\"\n        }\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web\" \"Serves.\" \"React\" {\n                -> api \"Calls\" \"JSON\"\n            }\n            api = container \"API\" \"Answers.\" \"Kotlin\"\n        }\n        person \"Nameless\" \"Has no identifier.\" {\n            -> s \"Uses\"\n        }\n        user -> web \"Visits\"\n    }\n}\n"
+    }
+  ]
+}

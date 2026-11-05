@@ -1,0 +1,12 @@
+{
+  "$schema": "https://etalii.net/adp/did/schema/0.1/did.schema.json#/$defs/Definition",
+  "did": "0.1",
+  "language": { "id": "org.example.grouping-terms", "version": "1.0.0" },
+  "elements": [
+    { "id": "s1", "type": "Statement", "attributes": { "subject": "alice", "predicate": "label", "object": "Alice" } },
+    { "id": "s2", "type": "Statement", "attributes": { "subject": "alice", "predicate": "knows", "object": "bob" } },
+    { "id": "s3", "type": "Statement", "attributes": { "subject": "bob", "predicate": "weight", "object": "3" } },
+    { "id": "s4", "type": "Statement", "attributes": { "subject": "carol", "predicate": "label", "object": "Carol" } },
+    { "id": "s5", "type": "Statement", "attributes": { "subject": "carol", "predicate": "weight", "object": "heavy" } }
+  ]
+}

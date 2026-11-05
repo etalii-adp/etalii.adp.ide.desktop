@@ -1,0 +1,36 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/GroupingFixture",
+  "description": "`||` absorbs a failure in a key as it does anywhere: true on its left decides.",
+  "list": [
+    {
+      "n": 1
+    },
+    {
+      "n": 0
+    },
+    {
+      "n": 2
+    }
+  ],
+  "variable": "x",
+  "key": "x.n == 0 || 10 / x.n > 6",
+  "keys": [
+    true,
+    false
+  ],
+  "groups": [
+    [
+      {
+        "n": 1
+      },
+      {
+        "n": 0
+      }
+    ],
+    [
+      {
+        "n": 2
+      }
+    ]
+  ]
+}

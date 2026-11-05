@@ -208,6 +208,30 @@ const C4_DIFFERENCES: &[&str] = &[
     "~ /elements/6/parent/rules",
     "~ /elements/7/parent/rules",
     "~ /elements/8/parent/rules",
+    // FBL's example writes a set name, description and technology again between double quotes (`escape.requote`, FBL
+    // 0.15 section 6.3), for the standalone host (etalii.adp spec 068, e51a765); the descriptions, which the cases
+    // recorded from the module hold, write the value's span, as the module does.
+    "- /elements/1/attributes/description/escape/requote",
+    "- /elements/1/attributes/name/escape/requote",
+    "- /elements/2/attributes/description/escape/requote",
+    "- /elements/2/attributes/name/escape/requote",
+    "- /elements/3/attributes/description/escape/requote",
+    "- /elements/3/attributes/name/escape/requote",
+    "- /elements/3/attributes/technology/escape/requote",
+    "- /elements/4/attributes/description/escape/requote",
+    "- /elements/4/attributes/name/escape/requote",
+    "- /elements/4/attributes/technology/escape/requote",
+    "- /elements/5/attributes/description/escape/requote",
+    "- /elements/5/attributes/name/escape/requote",
+    "- /elements/5/attributes/technology/escape/requote",
+    "- /elements/6/attributes/description/escape/requote",
+    "- /elements/6/attributes/name/escape/requote",
+    "- /elements/6/attributes/technology/escape/requote",
+    "- /elements/9/attributes/description/escape/requote",
+    "- /elements/9/attributes/technology/escape/requote",
+    // FBL's example reads a relationship's missing source from the identifier of the declaration whose block holds it
+    // with a further slot (`or`, FBL 0.15; spec 068, 5dad4f7); the descriptions read it with `secondary`, above.
+    "- /elements/9/attributes/from/or",
 ];
 
 #[test]
@@ -410,7 +434,7 @@ fn a_node_on_an_axis_with_a_scale_is_placed_in_its_canvas_units() {
 }
 
 /// The Wardley map's binding part is `wardley-map.fbl` in ATD, its grammar a copy of `wardley-map.lark`, but for the form
-/// of a pipeline, which the model reads and FBL's example leaves unread (spec 067, T032). `ETALII_ADP` runs it on another
+/// of a pipeline, which the description marks read-only (spec 067, T032). `ETALII_ADP` runs it on another
 /// clone.
 #[test]
 fn the_wardley_binding_is_fbls_example_but_for_a_pipelines_form() {
@@ -431,10 +455,15 @@ fn the_wardley_binding_is_fbls_example_but_for_a_pipelines_form() {
         "",
         &mut found,
     );
-    let expected: BTreeSet<String> = ["+ /elements/8/attributes/form", "+ /elements/9/attributes/form"]
-        .into_iter()
-        .map(str::to_owned)
-        .collect();
+    // FBL's example binds the form too since spec 071, by a `value`, which is read-only (FBL section 3.3); the
+    // description says so of its own.
+    let expected: BTreeSet<String> = [
+        "+ /elements/8/attributes/form/readOnly",
+        "+ /elements/9/attributes/form/readOnly",
+    ]
+    .into_iter()
+    .map(str::to_owned)
+    .collect();
     assert_eq!(found, expected);
 }
 

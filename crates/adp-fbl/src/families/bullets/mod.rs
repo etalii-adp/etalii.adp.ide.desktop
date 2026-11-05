@@ -325,7 +325,7 @@ impl Family {
     /// Where a new item goes among `siblings` at `index`, and the indentation and marker it takes (FBL 0.7 section
     /// 6.3): after its previous sibling's line span with that sibling's; else at the start of its next sibling's with
     /// that one's; else as its parent's first nested item, with the parent's marker at its content column; else as
-    /// the first item of its section, after its last line that is not blank or, `under-heading` (FBL 0.19), right
+    /// the first item of its section, after its last line that is not blank, or *(FBL 0.19)* with `under-heading` right
     /// after its heading, creating the section when it is missing.
     fn place(
         &self,
@@ -379,7 +379,7 @@ impl Family {
         if let Some(name) = name
             && let Some(&(first, end)) = self.bullets_data().sections.get(name)
         {
-            // After the section's last line that is not blank; under its heading for `under-heading` (FBL 0.19).
+            // *(FBL 0.19)* `under-heading` writes the first item right after the heading, before the rest of the section.
             let mut last_line = first;
             if insert.place != "under-heading" {
                 for line in first + 1..end {
