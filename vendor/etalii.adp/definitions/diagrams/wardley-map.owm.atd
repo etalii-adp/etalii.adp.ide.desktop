@@ -7,8 +7,9 @@ part of wardley/map
 /// The .owm text, read by the grammar wardley-map.lark beside this part, a copy of `specifications/fbl/wardley-map.lark`:
 /// FBL 0.12's grammar family (section 4.9). A pipeline's { may stand on the line below it, a component's segments stand
 /// in any order, an annotation's positions are structured items, and ids are kept beside the body by kind and natural
-/// key, with an ordinal for each later holder of one key, read from the legacy identities file the tool writes. This
-/// part is `specifications/fbl/wardley-map.fbl` in ATD (ATD §11, Appendix C.3); beyond it, a pipeline reads its `form`.
+/// key, with an ordinal for each later holder of one key, read from the legacy identities file the tool writes, and
+/// (FBL 0.18) the five decorators as five flags, each true when a segment of the statement holds it. This
+/// part is `specifications/fbl/wardley-map.fbl` in ATD (ATD §11, Appendix C.3), a pipeline's `form` and a legacy pipeline's two numbers included.
 /// The statements the tool keeps without modelling them, and a line no statement reads, are text no rule maps, kept byte
 /// for byte. A new map is `title {base}` and a line ending.
 binding owm family grammar {
@@ -42,9 +43,29 @@ binding owm family grammar {
       empty: remove
       create: { emit: " label [{value}]", after: ["coordinates"] }
     }
-    attribute decorators from node "decorator" {
+    attribute market from node "decorator" {
       match: "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
-      empty: remove
+      holds: "market"
+      create: { emit: " ({value})", after: ["coordinates"] }
+    }
+    attribute ecosystem from node "decorator" {
+      match: "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
+      holds: "ecosystem"
+      create: { emit: " ({value})", after: ["coordinates"] }
+    }
+    attribute build from node "decorator" {
+      match: "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
+      holds: "build"
+      create: { emit: " ({value})", after: ["coordinates"] }
+    }
+    attribute buy from node "decorator" {
+      match: "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
+      holds: "buy"
+      create: { emit: " ({value})", after: ["coordinates"] }
+    }
+    attribute outsource from node "decorator" {
+      match: "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
+      holds: "outsource"
       create: { emit: " ({value})", after: ["coordinates"] }
     }
     attribute inertia from node "inertia" {
@@ -72,9 +93,29 @@ binding owm family grammar {
       empty: remove
       create: { emit: " label [{value}]", after: ["coordinates"] }
     }
-    attribute decorators from node "decorator" {
+    attribute market from node "decorator" {
       match: "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
-      empty: remove
+      holds: "market"
+      create: { emit: " ({value})", after: ["coordinates"] }
+    }
+    attribute ecosystem from node "decorator" {
+      match: "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
+      holds: "ecosystem"
+      create: { emit: " ({value})", after: ["coordinates"] }
+    }
+    attribute build from node "decorator" {
+      match: "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
+      holds: "build"
+      create: { emit: " ({value})", after: ["coordinates"] }
+    }
+    attribute buy from node "decorator" {
+      match: "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
+      holds: "buy"
+      create: { emit: " ({value})", after: ["coordinates"] }
+    }
+    attribute outsource from node "decorator" {
+      match: "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
+      holds: "outsource"
       create: { emit: " ({value})", after: ["coordinates"] }
     }
     attribute inertia from node "inertia" {
@@ -102,9 +143,29 @@ binding owm family grammar {
       empty: remove
       create: { emit: " label [{value}]", after: ["coordinates"] }
     }
-    attribute decorators from node "decorator" {
+    attribute market from node "decorator" {
       match: "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
-      empty: remove
+      holds: "market"
+      create: { emit: " ({value})", after: ["coordinates"] }
+    }
+    attribute ecosystem from node "decorator" {
+      match: "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
+      holds: "ecosystem"
+      create: { emit: " ({value})", after: ["coordinates"] }
+    }
+    attribute build from node "decorator" {
+      match: "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
+      holds: "build"
+      create: { emit: " ({value})", after: ["coordinates"] }
+    }
+    attribute buy from node "decorator" {
+      match: "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
+      holds: "buy"
+      create: { emit: " ({value})", after: ["coordinates"] }
+    }
+    attribute outsource from node "decorator" {
+      match: "\\([ \\t]*(?<value>[^ \\t)]+)[ \\t]*\\)"
+      holds: "outsource"
       create: { emit: " ({value})", after: ["coordinates"] }
     }
     attribute inertia from node "inertia" {
@@ -158,6 +219,8 @@ binding owm family grammar {
     attribute component from node "name" {
       references component, anchor, submap by name
     }
+    attribute visibility from node "coords/visibility" { number: { decimals: 4 } }
+    attribute maturity from node "coords/maturity" { number: { decimals: 4 } }
     attribute form from value('legacy') { readOnly: true }
     doc: "The older form, two numbers on the statement's line; read, never written."
     readOnly: true

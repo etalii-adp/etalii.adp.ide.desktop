@@ -368,6 +368,11 @@ diagram c4/component version "0.2.0" {
     return e.isA('Container') || e.isA('Component') || e.isA('DeploymentNode') || e.isA('InfrastructureNode')
   }
 
+  /// The two kinds that have no name and no description in C4: an instance stands for what it is an instance of, which its first argument names.
+  fn isInstance(e: dyn) -> bool {
+    return e.isA('ContainerInstance') || e.isA('SoftwareSystemInstance')
+  }
+
   /// What an instance instantiates, or null.
   fn referenced(e: dyn) -> dyn {
     return e.isA('ContainerInstance') ? e.container : (e.isA('SoftwareSystemInstance') ? e.softwareSystem : null)
@@ -726,6 +731,20 @@ diagram c4/component version "0.2.0" {
       enforcement: prevent
     }
 
+    constraint noNameHere for Element {
+      rule attribute != 'name' || !isInstance(self)
+      message ('A ' + self.type.lowerAscii() + ' has no name in C4; it stands for what it is an instance of.')
+      kind: change
+      enforcement: prevent
+    }
+
+    constraint noDescriptionHere for Element {
+      rule attribute != 'description' || !isInstance(self)
+      message ('A ' + self.type.lowerAscii() + ' has no description in C4; it stands for what it is an instance of.')
+      kind: change
+      enforcement: prevent
+    }
+
     constraint dragDoesNotReparent {
       label "Dragging does not change containment"
       when gesture == 'move'
@@ -743,6 +762,11 @@ diagram c4/component version "0.2.0" {
 
   /// The prompt may be drawn in place of the element's name.
   operation rename "Rename…" for Element {
+    unavailable [{
+      when: (isInstance(self))
+      message: ('A ' + self.type.lowerAscii() + ' has no name in C4; it stands for what it is an instance of.')
+    }
+    ]
     param name: string { label: "Name" }
     icon: "mdi-pencil-outline"
     shortcut: "F2"
@@ -752,6 +776,11 @@ diagram c4/component version "0.2.0" {
 
   operation editDescription for Element {
     label (self.description != '' ? 'Edit description…' : 'Add description…')
+    unavailable [{
+      when: (isInstance(self))
+      message: ('A ' + self.type.lowerAscii() + ' has no description in C4; it stands for what it is an instance of.')
+    }
+    ]
     param description: text { label: "Description" }
     icon: "mdi-text-box-outline"
     paramsForm: "describeElement"

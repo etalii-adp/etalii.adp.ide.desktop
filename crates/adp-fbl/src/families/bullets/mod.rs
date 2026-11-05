@@ -236,7 +236,10 @@ impl Family {
             plan.add(Operation::InsertEntry, after_header, after_header, text);
             return Ok(());
         }
-        if !matches!(insert.place.as_str(), "after-last" | "end" | "last-child" | "start") {
+        if !matches!(
+            insert.place.as_str(),
+            "after-last" | "end" | "last-child" | "start" | "under-heading"
+        ) {
             return refuse(format!("A bullets body cannot place a new entry '{}'.", insert.place));
         }
         let line = self.render_new(emit, request, source.as_deref(), target.as_deref());
@@ -306,7 +309,8 @@ impl Family {
     /// Where a new item goes among `siblings` at `index`, and the indentation and marker it takes (FBL 0.7 section
     /// 6.3): after its previous sibling's line span with that sibling's; else at the start of its next sibling's with
     /// that one's; else as its parent's first nested item, with the parent's marker at its content column; else as
-    /// the first item of its section, creating the section when it is missing.
+    /// the first item of its section, after its last line that is not blank, or *(FBL 0.19)* with `under-heading` right
+    /// after its heading, creating the section when it is missing.
     fn place(
         &self,
         plan: &mut Plan<'_>,
@@ -359,10 +363,13 @@ impl Family {
         if let Some(name) = name
             && let Some(&(first, end)) = self.bullets_data().sections.get(name)
         {
+            // *(FBL 0.19)* `under-heading` writes the first item right after the heading, before the rest of the section.
             let mut last_line = first;
-            for line in first + 1..end {
-                if !self.is_blank(line) {
-                    last_line = line;
+            if insert.place != "under-heading" {
+                for line in first + 1..end {
+                    if !self.is_blank(line) {
+                        last_line = line;
+                    }
                 }
             }
             return Ok(Place {

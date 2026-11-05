@@ -125,20 +125,20 @@ diagram wardley/map version "0.2.0" {
       }
       /// The bare word `inertia` after the coordinates: the element resists change.
       attribute inertia: bool default false { label: "Inertia", group: "Strategy", order: 5 }
-      /// The statement's decorators, in the order it writes them: `(outsource) (market)`.
-      attribute decorators: string many { label: "Decorators" }
       /// The text of the statement's coordinates, which an absent part is written after.
       attribute coordinates: string readonly
-      /// The decorator `(market)`: supplied by a market rather than by one supplier.
-      attribute market: bool { label: "Market", derived: ('market' in self.decorators) }
-      /// The decorator `(ecosystem)`: an ecosystem of others is built around it.
-      attribute ecosystem: bool { label: "Ecosystem", derived: ('ecosystem' in self.decorators) }
-      /// The decorator `(build)`.
-      attribute build: bool { label: "Build", derived: ('build' in self.decorators) }
-      /// The decorator `(buy)`.
-      attribute buy: bool { label: "Buy", derived: ('buy' in self.decorators) }
-      /// The decorator `(outsource)`.
-      attribute outsource: bool { label: "Outsource", derived: ('outsource' in self.decorators) }
+      /// The decorator `(market)`, in any case and as often as the statement writes it: supplied by a market rather than by
+      /// one supplier. The binding reads it as a flag (FBL 0.18 `holds`). A word in parentheses that is none of the five
+      /// decorators is kept in the body, and neither drawn nor listed.
+      attribute market: bool default false { label: "Market" }
+      /// The decorator `(ecosystem)`, in any case: an ecosystem of others is built around it.
+      attribute ecosystem: bool default false { label: "Ecosystem" }
+      /// The decorator `(build)`, in any case.
+      attribute build: bool default false { label: "Build" }
+      /// The decorator `(buy)`, in any case.
+      attribute buy: bool default false { label: "Buy" }
+      /// The decorator `(outsource)`, in any case.
+      attribute outsource: bool default false { label: "Outsource" }
       /// The name of a `url` definition, written `url(name)`; empty when the statement names none.
       attribute url: string readonly default "" {
         label: "Url"
@@ -187,7 +187,14 @@ diagram wardley/map version "0.2.0" {
       /// The element named after `pipeline`; null when the name is on no element, which is reported.
       attribute component: Positioned { label: "Parent" }
       attribute form: PipelineForm readonly default nested { label: "Form" }
-      /// Whether the block's closing brace was found. The components of a block that never closes are kept and drawn.
+      /// The first of the two numbers of the legacy form, `pipeline Name [a, b]`, read as a visibility. Absent on the
+      /// nested form.
+      attribute legacyVisibility: number readonly { min: 0, max: 1, label: "Extent visibility" }
+      /// The second of the two numbers of the legacy form, read as a maturity. Absent on the nested form.
+      attribute legacyMaturity: number readonly { min: 0, max: 1, label: "Extent maturity" }
+      /// Whether the block's closing brace was found: false when the reader reports the block as never closed
+      /// (`fbl.unclosed-block`), which the host reads from that finding. The components of a block that never closes are
+      /// kept and drawn.
       attribute closed: bool readonly default true { label: "Closed" }
       contains PipelineComponent ordered { doc: "A legacy pipeline has none. A pipeline may be empty." }
     }
@@ -375,9 +382,9 @@ diagram wardley/map version "0.2.0" {
     return listed.map(p, [double(p.visibility), double(p.maturity)])
   }
 
-  /// The decorators an element carries, joined by `, `, in the order the statement writes them (gap 5).
+  /// The decorators an element carries, joined by `, `, in this notation's order: the five booleans hold no order (gap 5).
   fn writtenDecorators(e: Element) -> string {
-    return e.decorators.join(', ')
+    return decoratorNames().filter(d, decorated(e, d)).join(', ')
   }
 
   /// Whether the element is the first, in document order, to carry its name: the one every link, `evolve` and
@@ -428,9 +435,9 @@ diagram wardley/map version "0.2.0" {
     return writtenEnd(l, 'source') + (l.isA('Flow') ? ' +> ' : ' -> ') + writtenEnd(l, 'target')
   }
 
-  /// Whether the element carries the decorator named.
+  /// Whether the element carries the decorator named, written in any case.
   fn decorated(n: Element, d: string) -> bool {
-    return d in n.decorators
+    return d == 'market' ? n.market : d == 'ecosystem' ? n.ecosystem : d == 'build' ? n.build : d == 'buy' ? n.buy : d == 'outsource' && n.outsource
   }
 
   /// This notation's five decorators, in the order the tool lists them.
@@ -490,7 +497,7 @@ diagram wardley/map version "0.2.0" {
 
   /// The value of the coordinate std.facets reports, by the attribute it names.
   fn coordinateOf(e: Element, attribute: string) -> double {
-    return attribute == 'visibility' ? e.visibility : attribute == 'maturity' ? e.maturity : attribute == 'atVisibility' ? e.atVisibility : attribute == 'atMaturity' ? e.atMaturity : attribute == 'visibility1' ? e.visibility1 : attribute == 'maturity1' ? e.maturity1 : attribute == 'visibility2' ? e.visibility2 : e.maturity2
+    return attribute == 'visibility' ? e.visibility : attribute == 'maturity' ? e.maturity : attribute == 'atVisibility' ? e.atVisibility : attribute == 'atMaturity' ? e.atMaturity : attribute == 'legacyVisibility' ? e.legacyVisibility : attribute == 'legacyMaturity' ? e.legacyMaturity : attribute == 'visibility1' ? e.visibility1 : attribute == 'maturity1' ? e.maturity1 : attribute == 'visibility2' ? e.visibility2 : e.maturity2
   }
 
   /// Which axis a coordinate attribute is on.
@@ -679,7 +686,7 @@ diagram wardley/map version "0.2.0" {
     if diagram.nodesOfType('Positioned').exists(n, n.name == p.name.trim()) {
       fail "This map already has an element called '" + p.name.trim() + "'."
     }
-    create Component { name: p.name.trim(), visibility: 0.5, maturity: 0.5, decorators: ['market'] }
+    create Component { name: p.name.trim(), visibility: 0.5, maturity: 0.5, market: true }
   }
 
   operation addEcosystem "Add ecosystem…" for diagram {
@@ -695,7 +702,7 @@ diagram wardley/map version "0.2.0" {
     if diagram.nodesOfType('Positioned').exists(n, n.name == p.name.trim()) {
       fail "This map already has an element called '" + p.name.trim() + "'."
     }
-    create Component { name: p.name.trim(), visibility: 0.5, maturity: 0.5, decorators: ['ecosystem'] }
+    create Component { name: p.name.trim(), visibility: 0.5, maturity: 0.5, ecosystem: true }
   }
 
   operation addNote "Add note…" for diagram {
@@ -771,12 +778,27 @@ diagram wardley/map version "0.2.0" {
     set inertia = !self.inertia
   }
 
-  /// Adds or removes one decorator. The menu supplies the decorator, so no dialog opens.
+  /// Adds or removes one decorator: adds it after the others, or removes every spelling of it, as the binding writes a
+  /// flag (FBL 0.18). The menu supplies the decorator, so no dialog opens.
   operation toggleDecorator for Positioned {
     label ((decorated(self, p.decorator) ? 'Clear ' : 'Mark as ') + p.decorator)
     param decorator: string { label: "Decorator" }
     icon: "mdi-tag-outline"
-    set decorators = decorated(self, p.decorator) ? self.decorators.filter(d, d != p.decorator) : self.decorators + [p.decorator]
+    if p.decorator == 'market' {
+      set market = !self.market
+    }
+    if p.decorator == 'ecosystem' {
+      set ecosystem = !self.ecosystem
+    }
+    if p.decorator == 'build' {
+      set build = !self.build
+    }
+    if p.decorator == 'buy' {
+      set buy = !self.buy
+    }
+    if p.decorator == 'outsource' {
+      set outsource = !self.outsource
+    }
   }
 
   /// Removes one of the links the element is an end of, chosen by `A -> B` or `A +> B`. With one link the tool removes
@@ -887,7 +909,7 @@ diagram wardley/map version "0.2.0" {
         attributes: { visibility: "annotationsVisibility", maturity: "annotationsMaturity" }
       }
       Evolve: { as: Evolution, attributes: { becomes: "renamedTo" } }
-      LegacyPipeline: { as: Pipeline }
+      LegacyPipeline: { as: Pipeline, attributes: { visibility: "legacyVisibility", maturity: "legacyMaturity" } }
       Note: { as: Note, attributes: { visibility: "atVisibility", maturity: "atMaturity" } }
       Accelerator: { as: Accelerator, attributes: { visibility: "atVisibility", maturity: "atMaturity" } }
       Dependency: { as: Dependency, attributes: { from: "source", to: "target" } }

@@ -868,6 +868,7 @@ fn read_slot(json: &Json) -> Slot {
             }),
         ordinal: s(json, "ordinal"),
         node_name: flag(json, "name"),
+        holds: s(json, "holds"),
     }
 }
 

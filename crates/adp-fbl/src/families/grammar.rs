@@ -600,6 +600,9 @@ impl Family {
         let Some(node) = &slot.node else {
             return SlotRead::read_only_absent(format!("A grammar entry has no {}.", slot.describe()));
         };
+        if let Some(holds) = &slot.holds {
+            return self.flag_read(candidate.entry, node, slot, holds);
+        }
         let Some(target) = self.grammar_reach(candidate.entry, node) else {
             return SlotRead::absent();
         };
@@ -635,6 +638,124 @@ impl Family {
         let mut read = SlotRead::new(Value::from(value.as_str()), Some(span), true, true);
         read.wire = Some(value);
         read
+    }
+
+    /// A flag (FBL 0.18 section 4.9, *A segment as a flag*): true when a node the selector reaches has the text of
+    /// `holds` as its value, its escapes resolved, compared without regard to the case of ASCII letters; false when none
+    /// does. Never absent; its span is the first node that holds the text.
+    fn flag_read(&self, entry: EntryId, node: &str, slot: &Slot, holds: &str) -> SlotRead {
+        let held = self.flag_nodes(entry, node, slot, holds);
+        let span = held.first().map(|n| self.entries[*n].own);
+        SlotRead::new(Value::Bool(!held.is_empty()), span, true, true)
+    }
+
+    /// The nodes the selector `node` reaches from `entry` whose value is the text of `holds`, in document order.
+    fn flag_nodes(&self, entry: EntryId, node: &str, slot: &Slot, holds: &str) -> Vec<EntryId> {
+        let equals = |e: EntryId, p: &str, v: &str| self.path_equals(e, p, v);
+        selector::matches(&self.entries, entry, node, Some(&equals))
+            .into_iter()
+            .map(|(target, _)| target)
+            .filter(|target| {
+                self.node_value(*target, slot).is_some_and(|(value, _)| {
+                    let value = match &slot.escape {
+                        Some(escape) => escape.read(&value),
+                        None => value,
+                    };
+                    value.eq_ignore_ascii_case(holds)
+                })
+            })
+            .collect()
+    }
+
+    /// A set of a flag (FBL 0.18 section 6.3): `true` writes one node by the slot's `create`, its `{value}` the text of
+    /// `holds`, right after the last node the selector reaches, whatever it holds and whether or not this edit removes
+    /// it, or where `create.after` places an absent part; `false`
+    /// removes every node that holds the text with the whitespace before it. A set of the value read writes nothing.
+    fn grammar_write_flag(&self, plan: &mut Plan<'_>, element: &ReadElement, change: &SlotChange<'_>) -> Planning {
+        let slot = &change.binding.slot;
+        let (Some(node), Some(holds)) = (slot.node.as_deref(), slot.holds.as_deref()) else {
+            return Ok(());
+        };
+        let wanted = flag_wanted(&change.value);
+        let held = self.flag_nodes(element.entry(), node, slot, holds);
+        if held.is_empty() != wanted {
+            return Ok(());
+        }
+        let rule = self.rule(change.rule);
+        let mut edits: Vec<(Operation, Span, String)> = Vec::new();
+        if wanted {
+            let Some(create) = &change.binding.create else {
+                return refuse(format!(
+                    "The {} has no {} in this file to set.",
+                    rule.type_name, change.attribute
+                ));
+            };
+            let equals = |e: EntryId, p: &str, v: &str| self.path_equals(e, p, v);
+            let last = selector::matches(&self.entries, element.entry(), node, Some(&equals))
+                .into_iter()
+                .map(|(target, _)| self.entries[target].own.end)
+                .max();
+            let offset = last.or_else(|| create.after.iter().find_map(|name| self.end_of_part(element, name)));
+            let Some(offset) = offset else {
+                return refuse(format!(
+                    "The {} has no {} in this file to set.",
+                    rule.type_name, change.attribute
+                ));
+            };
+            edits.push((
+                Operation::InsertKey,
+                Span::new(offset, offset),
+                create_text(&create.emit, holds),
+            ));
+        } else {
+            for target in held {
+                edits.push((
+                    Operation::RemoveKey,
+                    self.with_space_before(self.entries[target].own),
+                    String::new(),
+                ));
+            }
+        }
+        if !self.flag_reads_back(element, slot, &edits, wanted) {
+            return refuse(format!(
+                "The new {} would not read back from the text.",
+                change.attribute
+            ));
+        }
+        for (operation, span, text) in edits {
+            plan.add_span(operation, span, text);
+        }
+        Ok(())
+    }
+
+    /// Whether the body with `edits` made reads the changed entry's flag as `wanted`, its rule holding as many entries.
+    fn flag_reads_back(
+        &self,
+        element: &ReadElement,
+        slot: &Slot,
+        edits: &[(Operation, Span, String)],
+        wanted: bool,
+    ) -> bool {
+        let candidates = self.candidates(element.rule);
+        let Some(place) = candidates.iter().position(|c| c.entry == element.entry()) else {
+            return false;
+        };
+        let body = self.text.text(0, self.text.len());
+        let mut changed = String::with_capacity(body.len() + 32);
+        let mut position = 0;
+        let mut sorted: Vec<&(Operation, Span, String)> = edits.iter().collect();
+        sorted.sort_by_key(|(_, span, _)| span.start);
+        for (_, span, text) in sorted {
+            changed.push_str(&body[position..span.start]);
+            changed.push_str(text);
+            position = span.end;
+        }
+        changed.push_str(&body[position..]);
+        let Some(after) = self.grammar_read_again(changed) else {
+            return false;
+        };
+        let again = after.candidates(element.rule);
+        again.len() == candidates.len() && after.grammar_read(&again[place], slot).value == Value::Bool(wanted)
     }
 
     /// The value of a node a slot reaches, before its escapes are resolved, and its span: the node's text, or the
@@ -792,6 +913,28 @@ impl Family {
         }
     }
 
+    /// A value as an `emit` writes it at `{placeholder}`: as a slot writes it, except that a value the `emit` already
+    /// stands between two of the slot's `requote` is written escaped and not quoted again (FBL 0.15 section 6.3).
+    fn grammar_emitted(
+        &self,
+        binding: Option<&AttributeBinding>,
+        value: &Value,
+        emit: &str,
+        placeholder: &str,
+    ) -> String {
+        let escape = binding.and_then(|b| b.slot.escape.as_ref());
+        match escape {
+            Some(escape)
+                if escape
+                    .requote
+                    .is_some_and(|q| emit.contains(&format!("{q}{{{placeholder}}}{q}"))) =>
+            {
+                escape.write(&grammar_value(binding, value))
+            }
+            _ => self.grammar_format(binding, value),
+        }
+    }
+
     /// An item as a slot writes it (FBL 0.12 and 0.13 section 6.3): by the `create.emit` of a slot with `items`, each
     /// placeholder an item attribute's value; else as a value, escaped by the slot's `escape`.
     fn new_item(&self, binding: &AttributeBinding, item: &Value) -> String {
@@ -822,6 +965,10 @@ impl Family {
             .flat_map(|c| self.padded_parts(element, c.binding))
             .collect();
         for change in changes {
+            if change.binding.slot.holds.is_some() {
+                self.grammar_write_flag(plan, element, change)?;
+                continue;
+            }
             if let Some(items) = &change.read.items {
                 self.grammar_write_items(plan, element, change, items)?;
                 continue;
@@ -1130,10 +1277,10 @@ impl Family {
                 return cannot();
             };
             let padded = changes.iter().find(|c| c.attribute == *name);
-            let value = padded.map(|c| self.grammar_format(Some(binding), &c.value));
+            let value = padded.map(|c| self.grammar_emitted(Some(binding), &c.value, emit, "value"));
             text.push_str(&create_text(emit, value.as_deref().unwrap_or_default()));
         }
-        let written = self.grammar_format(Some(change.binding), &change.value);
+        let written = self.grammar_emitted(Some(change.binding), &change.value, &create.emit, "value");
         text.push_str(&create_text(&create.emit, &written));
         let value = grammar_value(Some(change.binding), &change.value);
         let slot = &change.binding.slot;
@@ -1246,7 +1393,7 @@ impl Family {
                 .values
                 .get(name)
                 .filter(|v| !v.is_null())
-                .map(|v| self.grammar_format(rule.attribute(name), v)),
+                .map(|v| self.grammar_emitted(rule.attribute(name), v, emit, name)),
         });
         // The entries the rule read, its `when` holding: what `after-last` follows.
         let of_rule: Vec<EntryId> = reading
@@ -1851,6 +1998,15 @@ fn wanted_item(slot: &Slot, value: &Value) -> String {
 }
 
 /// A part's `create.emit` with its value (FBL 0.11 section 4.9).
+/// The value a set gives a flag: true, or the text `true` in any case.
+fn flag_wanted(value: &Value) -> bool {
+    match value {
+        Value::Bool(b) => *b,
+        Value::String(s) => s.eq_ignore_ascii_case("true"),
+        _ => false,
+    }
+}
+
 fn create_text(emit: &str, value: &str) -> String {
     emit.replace("{value}", value)
 }

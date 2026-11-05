@@ -1,0 +1,40 @@
+atd 0.1
+
+/// A list of the cost limit's size grouped once and read by key (DISL 0.9, §12.4; spec 075, T021). `Kind` derives one
+/// node per kind of item from the keys of the items grouped by kind, and counts each kind from the same grouping; the
+/// constraint groups a million numbers, the limit, by their last digit and reads one group. A grouping is one pass
+/// over its list and a read the size of its group, so no finding names a cost.
+diagram example/grouping-at-limit version "1.0.0" {
+  label "Grouping at the limit"
+  limits: { celCost: 1000000 }
+  requires: { features: ["cel.groupBy"] }
+
+  model {
+    element Item {
+      attribute name: string required
+      attribute kind: string
+    }
+
+    /// One per kind of item, with the number of items of that kind.
+    element Kind {
+      attribute name: string readonly
+      attribute count: int readonly
+      derived: {
+        from: (diagram.nodesOfType('Item').groupBy(i, i.kind).keys())
+        key: (item)
+        id: ('kind-' + item)
+        attributes: {
+          name: (item)
+          count: (diagram.nodesOfType('Item').groupBy(i, i.kind).get(item).size())
+        }
+        reason: "A kind is derived from its items."
+      }
+    }
+  }
+
+  constraint digits for Item {
+    rule lists.range(1000000).groupBy(n, n % 10).get(3).size() == 100000
+    severity info
+    message "The numbers of the limit do not group by their last digit."
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/GroupingFixture",
+  "description": "An int and a double of one value are one key, compared exactly; the key listed is the first one met.",
+  "list": [
+    1,
+    1.0,
+    2.0,
+    2,
+    2.5
+  ],
+  "variable": "x",
+  "key": "x",
+  "keys": [
+    1,
+    2.0,
+    2.5
+  ],
+  "groups": [
+    [
+      1,
+      1.0
+    ],
+    [
+      2.0,
+      2
+    ],
+    [
+      2.5
+    ]
+  ],
+  "reads": [
+    {
+      "key": 2,
+      "group": [
+        2.0,
+        2
+      ]
+    },
+    {
+      "key": 1.0,
+      "group": [
+        1,
+        1.0
+      ]
+    },
+    {
+      "key": 2.5,
+      "group": [
+        2.5
+      ]
+    }
+  ]
+}

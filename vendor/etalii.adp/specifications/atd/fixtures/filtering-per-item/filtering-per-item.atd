@@ -1,0 +1,25 @@
+atd 0.1
+
+/// Items that each filter the whole list again (spec 075, T022): `sameKind`, evaluated once per item, filters every
+/// item for those of its kind, which costs the square of the list's length over a reading. `atd check` gives what it
+/// gave before DISL 0.9, since no host estimates an expression's cost at validation time (DISL §2.5, §12.4).
+diagram example/filtering-per-item version "1.0.0" {
+  label "Filtering per item"
+  limits: { celCost: 1000000 }
+
+  model {
+    element Item {
+      attribute name: string required
+      attribute kind: string
+      attribute sameKind: int {
+        derived: (diagram.nodesOfType('Item').filter(o, o.kind == self.kind).size())
+      }
+    }
+  }
+
+  constraint alone for Item {
+    rule diagram.nodesOfType('Item').filter(o, o.kind == self.kind).size() > 1
+    severity info
+    message "This item is the only one of its kind."
+  }
+}

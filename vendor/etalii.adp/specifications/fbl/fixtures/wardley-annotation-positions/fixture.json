@@ -6,13 +6,6 @@
   "read": {
     "elements": [
       {
-        "id": "title",
-        "type": "Title",
-        "attributes": {
-          "title": "Annotations and labels"
-        }
-      },
-      {
         "id": "customer",
         "type": "Anchor",
         "attributes": {
@@ -41,30 +34,6 @@
         "attributes": {
           "name": "Power",
           "labelOffset": "-27, 20"
-        }
-      },
-      {
-        "id": "customer-cup",
-        "type": "Dependency",
-        "attributes": {
-          "from": "Customer",
-          "to": "Cup of Tea"
-        }
-      },
-      {
-        "id": "cup-kettle",
-        "type": "Dependency",
-        "attributes": {
-          "from": "Cup of Tea",
-          "to": "Kettle"
-        }
-      },
-      {
-        "id": "kettle-power",
-        "type": "Dependency",
-        "attributes": {
-          "from": "Kettle",
-          "to": "Power"
         }
       },
       {
@@ -100,20 +69,60 @@
         }
       },
       {
-        "id": "annotations",
-        "type": "AnnotationsPosition",
-        "attributes": {
-          "visibility": 0.6,
-          "maturity": 0.02
-        }
-      },
-      {
         "id": "note",
         "type": "Note",
         "attributes": {
           "text": "Tea is the point of all this",
           "visibility": 0.22,
           "maturity": 0.3
+        }
+      }
+    ],
+    "document": {
+      "attributes": {
+        "title": "Annotations and labels",
+        "annotationsVisibility": 0.6,
+        "annotationsMaturity": 0.02
+      }
+    },
+    "x-binding": [
+      {
+        "id": "title",
+        "type": "Title",
+        "attributes": {
+          "title": "Annotations and labels"
+        }
+      },
+      {
+        "id": "customer-cup",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Customer",
+          "to": "Cup of Tea"
+        }
+      },
+      {
+        "id": "cup-kettle",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Cup of Tea",
+          "to": "Kettle"
+        }
+      },
+      {
+        "id": "kettle-power",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Kettle",
+          "to": "Power"
+        }
+      },
+      {
+        "id": "annotations",
+        "type": "AnnotationsPosition",
+        "attributes": {
+          "visibility": 0.6,
+          "maturity": 0.02
         }
       }
     ],

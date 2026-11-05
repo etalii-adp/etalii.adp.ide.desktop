@@ -1,0 +1,15 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/GroupingFixture",
+  "description": "A null key is a failing key, and the grouping fails.",
+  "list": [
+    {
+      "k": "a"
+    },
+    {
+      "k": null
+    }
+  ],
+  "variable": "x",
+  "key": "x.k",
+  "fails": true
+}

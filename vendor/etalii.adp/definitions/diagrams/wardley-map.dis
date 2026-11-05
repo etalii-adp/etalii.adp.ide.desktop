@@ -8,7 +8,7 @@
     "label": "Wardley map",
     "doc": {
       "summary": "A value chain positioned against evolution, so a strategy can be argued about rather than asserted.",
-      "description": "A Wardley map places every **component** of a value chain on two axes. The vertical axis is **visibility**: how visible the component is to the user the map is drawn for, 1 at the top (the user need) and 0 at the bottom (the invisible end). The horizontal axis is **evolution**, written as a component's maturity: how far it has come in its life cycle, from 0 to 1, in the four unequal stages Genesis, Custom Built, Product (+rental) and Commodity (+utility). An **anchor** is the user need the chain hangs from, and a **submap** a component whose detail is another map. **Dependencies** join a component to what it needs and **flows** mark where value moves. A component can be marked as **evolving** to a later maturity, as having **inertia**, and with the five decorators market, ecosystem, build, buy and outsource. A **pipeline** is a set of choices behind one component; **notes**, **annotations**, **accelerators** and **attitudes** (pioneers, settlers, town planners) comment on the map.\n\nMaps are stored in the Online Wardley Maps text format (`.owm`), which onlinewardleymaps.com and the tools that read it can open, read and written by the reader the persistence names. What this specification cannot express - the format's grammar, the identities of repeated names, the rules that need the project's files, and the places where DISL 0.3 and FBL 0.2 fall short - is in `wardley-map.md` beside this file. What the standalone tool calls each palette entry, menu entry, property row and element type is in the `x-wardley` block.",
+      "description": "A Wardley map places every **component** of a value chain on two axes. The vertical axis is **visibility**: how visible the component is to the user the map is drawn for, 1 at the top (the user need) and 0 at the bottom (the invisible end). The horizontal axis is **evolution**, written as a component's maturity: how far it has come in its life cycle, from 0 to 1, in the four unequal stages Genesis, Custom Built, Product (+rental) and Commodity (+utility). An **anchor** is the user need the chain hangs from, and a **submap** a component whose detail is another map. **Dependencies** join a component to what it needs and **flows** mark where value moves. A component can be marked as **evolving** to a later maturity, as having **inertia**, and with the five decorators market, ecosystem, build, buy and outsource. A **pipeline** is a set of choices behind one component; **notes**, **annotations**, **accelerators** and **attitudes** (pioneers, settlers, town planners) comment on the map.\n\nMaps are stored in the Online Wardley Maps text format (`.owm`), which onlinewardleymaps.com and the tools that read it can open, read and written through the FBL binding `specifications/fbl/wardley-map.fbl`, which the standalone module embeds. What this specification cannot express - the format's grammar, the identities of repeated names, the rules that need the project's files, and the places where DISL 0.3 and FBL 0.2 fall short - is in `wardley-map.md` beside this file. What the standalone tool calls each palette entry, menu entry, property row and element type is in the `x-wardley` block.",
       "rationale": "The evolution axis puts each component where it is in its life cycle, which is the point of a Wardley map and what a generic diagram leaves out.",
       "tags": ["wardley map", "strategy", "value chain", "evolution", "technology assessment", "planning and roadmapping"],
       "audience": ["user", "author"],
@@ -34,18 +34,11 @@
     "requires": {"conformance": "standard", "features": ["placement.bound", "placement.computed", "shape.composite"]}
   },
   "plugins": {
-    "net.etalii.adp.wardley.owm": {
-      "version": "^0.2.0",
-      "provides": ["persistenceFormat"],
-      "required": true,
-      "doc": "Reads and writes the Online Wardley Maps text format, `.owm` (and `.wm`), as the standalone module's parser and writer do (`WardleyParser.cs`, `WardleyWriter.cs`). It stands in for an FBL binding until FBL can read a pipeline whose brace is on the line below it (wardley-map.md, gap 1). A document ADP did not change is written back byte for byte, an edit rewrites only the lines it changes, and every statement it does not model and every `//` comment is kept. A link, an `evolve` and a `pipeline` name an element by its name; one that names a name two elements carry attaches to the first of them in document order. It reports every line it passes over (std.unreadableEntry), and it refuses, with its own sentences, a name a link to or from could not be read back with (\"A link to or from 'X' could not be read back, so the map cannot hold that name.\"), a pipeline component on a pipeline in the older two-coordinate form (\"'X' has a pipeline written in the older two-coordinate form, which holds no components. Rewrite it as a nested pipeline first.\") and one on a pipeline whose block never closes (\"'X' has a pipeline that is missing its closing brace.\"). Ids are kept beside the body in `{base}.identities.json` (wardley-map.md, gaps 7 and 8).",
-      "source": {"url": "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/wardley-map/backend"}
-    },
     "net.etalii.adp.wardley.functions": {
       "version": "^1.0.0",
       "provides": ["celFunctions"],
       "required": false,
-      "doc": "What this specification needs and DISL's CEL cannot do: an end as it was written, a number in the format's own invariant form, an annotation's positions, and the decorators in the order they are written. The standalone module implements them over its own reading (`WardleyFunctions`).",
+      "doc": "What this specification needs and DISL's CEL cannot do: an end as it was written, a number in the format's own invariant form, and the decorators in the order they are first written. The standalone module implements them over the binding's reading (`WardleyFunctions`).",
       "celFunctions": [
         {
           "name": "writtenEnd",
@@ -64,25 +57,23 @@
           "doc": "A number as the format writes it and every row and sentence of this tool shows it: at most four decimals, none when whole, no grouping, in the invariant culture whatever the user's locale (gap 10). The fallback follows the locale."
         },
         {
-          "name": "positions",
-          "params": [{"name": "text", "type": "string"}],
-          "returns": "list(list(double))",
-          "cost": 10,
-          "fallback": "text.contains('[') ? text.split(']').filter(s, s.contains('[')).map(s, s.split('[')[s.split('[').size() - 1].split(',').map(n, double(n.trim()))) : [text.split(',').map(n, double(n.trim()))]",
-          "doc": "An annotation's occurrences, each as [visibility, maturity], from the text between the outer brackets of its statement: `0.4,0.5` is one, `[0.43,0.49],[0.08,0.79]` two (gap 6). The fallback reads well-formed text only."
-        },
-        {
           "name": "writtenDecorators",
           "params": [{"name": "element", "type": "dyn"}],
           "returns": "string",
           "cost": 1,
           "fallback": "['market', 'ecosystem', 'build', 'buy', 'outsource'].filter(d, d == 'market' ? element.market : d == 'ecosystem' ? element.ecosystem : d == 'build' ? element.build : d == 'buy' ? element.buy : element.outsource).join(', ')",
-          "doc": "The decorators an element carries in the order its statement writes them, joined by `, `: `outsource, market` for `(outsource) (market)`. The model's five booleans have no order (gap 5). The fallback lists them in this notation's order."
+          "doc": "The five decorators an element carries, each once and in lower case, in the order its statement first writes them, joined by `, `: `outsource, market` for `(Outsource) (market) (outsource)`. A word that is none of the five is kept in the body and left out here. The model's five booleans have no order (gap 5). The fallback lists them in this notation's order."
         }
       ]
     }
   },
   "functions": {
+    "positions": {
+      "params": [{"name": "listed", "type": "list(dyn)"}],
+      "returns": "list(list(double))",
+      "cel": "listed.map(p, [double(p.visibility), double(p.maturity)])",
+      "doc": "An annotation's occurrences, each as [visibility, maturity], from its `positions`, one structured value per occurrence (FBL 0.12 `items`)."
+    },
     "isFirstHolder": {
       "params": [{"name": "n", "type": "Element"}],
       "returns": "bool",
@@ -135,7 +126,7 @@
       "params": [{"name": "n", "type": "Element"}, {"name": "d", "type": "string"}],
       "returns": "bool",
       "cel": "d == 'market' ? n.market : d == 'ecosystem' ? n.ecosystem : d == 'build' ? n.build : d == 'buy' ? n.buy : d == 'outsource' && n.outsource",
-      "doc": "Whether the element carries the decorator named."
+      "doc": "Whether the element carries the decorator named, written in any case."
     },
     "decoratorNames": {
       "params": [],
@@ -201,13 +192,13 @@
     "coordinateOf": {
       "params": [{"name": "e", "type": "Element"}, {"name": "attribute", "type": "string"}],
       "returns": "double",
-      "cel": "attribute == 'visibility' ? e.visibility : attribute == 'maturity' ? e.maturity : attribute == 'legacyExtent.visibility' ? e.legacyExtent.visibility : attribute == 'legacyExtent.maturity' ? e.legacyExtent.maturity : attribute == 'visibility1' ? e.visibility1 : attribute == 'maturity1' ? e.maturity1 : attribute == 'visibility2' ? e.visibility2 : e.maturity2",
+      "cel": "attribute == 'visibility' ? e.visibility : attribute == 'maturity' ? e.maturity : attribute == 'legacyVisibility' ? e.legacyVisibility : attribute == 'legacyMaturity' ? e.legacyMaturity : attribute == 'visibility1' ? e.visibility1 : attribute == 'maturity1' ? e.maturity1 : attribute == 'visibility2' ? e.visibility2 : e.maturity2",
       "doc": "The value of the coordinate std.facets reports, by the attribute it names."
     },
     "axisOf": {
       "params": [{"name": "attribute", "type": "string"}],
       "returns": "string",
-      "cel": "attribute.contains('visibility') ? 'visibility' : 'maturity'",
+      "cel": "lower(attribute).contains('visibility') ? 'visibility' : 'maturity'",
       "doc": "Which axis a coordinate attribute is on."
     },
     "outOfRange": {
@@ -233,15 +224,27 @@
           "default": "",
           "doc": "The map's `style` statement (`wardley`, `handwritten`, `colour`). Kept and written back; the drawing does not change by it."
         },
-        "size": {
-          "type": "MapSize",
-          "label": "Size",
-          "doc": "The map's `size [width, height]` statement, in pixels of the reference renderer. Kept and written back; the canvas is stretched to its pane instead."
+        "width": {
+          "type": "number",
+          "label": "Width",
+          "unit": "px",
+          "doc": "The first number of the map's `size [width, height]` statement, in pixels of the reference renderer. Kept and written back; the canvas is stretched to its pane instead."
         },
-        "annotationsPosition": {
-          "type": "MapPosition",
-          "label": "Annotations",
-          "doc": "The `annotations [visibility, maturity]` statement: where the reference renderer lists the annotations. Kept and written back, and neither checked nor drawn."
+        "height": {
+          "type": "number",
+          "label": "Height",
+          "unit": "px",
+          "doc": "The second number of the map's `size [width, height]` statement."
+        },
+        "annotationsVisibility": {
+          "type": "number",
+          "label": "Annotations' visibility",
+          "doc": "The first number of the `annotations [visibility, maturity]` statement: where the reference renderer lists the annotations. Kept and written back, and neither checked nor drawn."
+        },
+        "annotationsMaturity": {
+          "type": "number",
+          "label": "Annotations' maturity",
+          "doc": "The second number of the `annotations [visibility, maturity]` statement."
         }
       }
     },
@@ -254,18 +257,8 @@
       },
       "MapPosition": {
         "fields": {"visibility": {"type": "number", "required": true}, "maturity": {"type": "number", "required": true}},
-        "display": {"cel": "fixedNumber(value.visibility) + ', ' + fixedNumber(value.maturity)"}
-      },
-      "MapSize": {
-        "fields": {
-          "width": {"type": "number", "required": true, "unit": "px"},
-          "height": {"type": "number", "required": true, "unit": "px"}
-        },
-        "display": {"cel": "fixedNumber(value.width) + ' × ' + fixedNumber(value.height)"}
-      },
-      "LegacyExtent": {
-        "fields": {"visibility": {"type": "Fraction", "required": true}, "maturity": {"type": "Fraction", "required": true}},
-        "doc": "The two numbers of a legacy `pipeline Name [a, b]` statement, kept as written and read, as every pair of this format is, as a visibility and a maturity."
+        "display": {"cel": "fixedNumber(value.visibility) + ', ' + fixedNumber(value.maturity)"},
+        "doc": "One occurrence of an annotation: the two numbers of one `[visibility, maturity]` of its statement."
       },
       "LabelOffset": {
         "fields": {
@@ -368,17 +361,17 @@
             "type": "bool",
             "label": "Market",
             "default": false,
-            "doc": "The decorator `(market)`: supplied by a market rather than by one supplier."
+            "doc": "The decorator `(market)`, written in any case and as often as the statement writes it: supplied by a market rather than by one supplier. The binding reads it as a flag (FBL 0.18 `holds`); clearing it removes every `(market)` of the statement. A word in parentheses that is none of the five decorators is kept in the body, and neither drawn nor listed."
           },
           "ecosystem": {
             "type": "bool",
             "label": "Ecosystem",
             "default": false,
-            "doc": "The decorator `(ecosystem)`: an ecosystem of others is built around it."
+            "doc": "The decorator `(ecosystem)`, in any case: an ecosystem of others is built around it."
           },
-          "build": {"type": "bool", "label": "Build", "default": false, "doc": "The decorator `(build)`."},
-          "buy": {"type": "bool", "label": "Buy", "default": false, "doc": "The decorator `(buy)`."},
-          "outsource": {"type": "bool", "label": "Outsource", "default": false, "doc": "The decorator `(outsource)`."},
+          "build": {"type": "bool", "label": "Build", "default": false, "doc": "The decorator `(build)`, in any case."},
+          "buy": {"type": "bool", "label": "Buy", "default": false, "doc": "The decorator `(buy)`, in any case."},
+          "outsource": {"type": "bool", "label": "Outsource", "default": false, "doc": "The decorator `(outsource)`, in any case."},
           "url": {
             "type": "string",
             "label": "Url",
@@ -439,14 +432,31 @@
             "label": "Parent",
             "doc": "The element named after `pipeline`; null when the name is on no element, which is reported."
           },
-          "form": {"type": "PipelineForm", "label": "Form", "default": "nested", "readOnly": true},
-          "legacyExtent": {"type": "LegacyExtent", "label": "Extent", "readOnly": true, "doc": "Present only on the legacy form."},
+          "form": {
+            "type": "PipelineForm",
+            "label": "Form",
+            "default": "nested",
+            "readOnly": true,
+            "doc": "Which statement the pipeline is: the binding's rule for each form gives its value."
+          },
+          "legacyVisibility": {
+            "type": "Fraction",
+            "label": "Extent visibility",
+            "readOnly": true,
+            "doc": "The first of the two numbers of the legacy form, `pipeline Name [a, b]`, kept as written and read, as every pair of this format is, as a visibility. Absent on the nested form."
+          },
+          "legacyMaturity": {
+            "type": "Fraction",
+            "label": "Extent maturity",
+            "readOnly": true,
+            "doc": "The second of the two numbers of the legacy form, read as a maturity. Absent on the nested form."
+          },
           "closed": {
             "type": "bool",
             "label": "Closed",
             "default": true,
             "readOnly": true,
-            "doc": "Whether the block's closing brace was found. The components of a block that never closes are kept and drawn."
+            "doc": "Whether the block's closing brace was found: false when the reader reports the block as never closed (`fbl.unclosed-block`), which the host reads from that finding, since a binding reads no attribute from an absent token. The components of a block that never closes are kept and drawn."
           }
         },
         "children": {
@@ -515,10 +525,11 @@
         "attributes": {
           "number": {"type": "int", "label": "Number"},
           "positions": {
-            "type": "string",
+            "type": "MapPosition",
+            "many": true,
             "label": "Positions",
             "readOnly": true,
-            "doc": "The text between the statement's outer brackets, which `positions()` reads as a list of pairs (gap 6)."
+            "doc": "Where the annotation is pinned, one structured value per occurrence, in the order the statement writes them (FBL 0.12 `items`; gap 6)."
           },
           "text": {"type": "string", "label": "Text", "default": ""}
         }
@@ -530,7 +541,7 @@
           "id": "item[0].id + '#' + string(index)",
           "attributes": {"number": "item[0].number", "text": "item[0].text", "visibility": "item[1][0]", "maturity": "item[1][1]"},
           "sources": "[item[0]]",
-          "doc": "One pin per occurrence of an annotation, which the canvas draws. Derived, because the occurrences are numbers inside one statement and not entries of their own (gap 6)."
+          "doc": "One pin per occurrence of an annotation, which the canvas draws. Derived, because the occurrences are values inside one statement and not entries of their own."
         },
         "attributes": {
           "number": {"type": "int"},
@@ -1511,7 +1522,7 @@
                 "refusal": {
                   "cel": "\"'\" + unknownDecorator(value) + \"' is not one of this notation's decorators. They are: market, ecosystem, build, buy, outsource.\""
                 },
-                "doc": "The five decorators as one comma list, in any order and case; the row writes exactly the set typed."
+                "doc": "The five decorators as one comma list, in any order and case; the row writes exactly the set typed, in this notation's order."
               }
             }
           ]
@@ -2162,7 +2173,7 @@
           {
             "create": {
               "type": "'Annotation'",
-              "attributes": {"number": "nextAnnotationNumber()", "positions": "'0.5,0.5'", "text": "p.name.trim()"}
+              "attributes": {"number": "nextAnnotationNumber()", "positions": "[{'visibility': 0.5, 'maturity': 0.5}]", "text": "p.name.trim()"}
             }
           }
         ]
@@ -2236,7 +2247,7 @@
           {"set": {"buy": "!self.buy"}, "when": "p.decorator == 'buy'"},
           {"set": {"outsource": "!self.outsource"}, "when": "p.decorator == 'outsource'"}
         ],
-        "doc": "Adds or removes one decorator. The menu supplies the decorator, so no dialog opens."
+        "doc": "Adds or removes one decorator: adds it after the others, or removes every spelling of it, as the binding writes a flag (FBL 0.18). The menu supplies the decorator, so no dialog opens."
       },
       "unlink": {
         "label": "Remove link…",
@@ -2326,22 +2337,46 @@
     "doc": "There is no automatic layout: every position is authored, and positions are what the map claims."
   },
   "persistence": {
-    "doc": "The Online Wardley Maps text format, `.owm`, read and written by the plugin `net.etalii.adp.wardley.owm`, which is the standalone module's parser and writer. It stays a plugin until FBL reads a pipeline whose brace is on the line below it (gap 1); then this becomes `format: \"fbl\"` with a binding and a typeMap. A new map is `title {base}` and a line ending.",
-    "format": "plugin:net.etalii.adp.wardley.owm",
-    "encoding": "utf-8",
-    "files": {
-      "mode": "single",
-      "model": "{name}.owm",
-      "doc": "The body only; the ids are kept beside it in `{name}.identities.json` (gaps 7 and 8)."
-    },
+    "doc": "The Online Wardley Maps text format, `.owm`, read and written through the binding `map` of `specifications/fbl/wardley-map.fbl`, which reads a pipeline whose brace is on the line below it (FBL 0.12, gap 1) and which the standalone module embeds. Its types are mapped onto this metamodel by the typeMap: the title, style and size and the annotations' position are the diagram's attributes, an `evolve` is an Evolution, both forms of pipeline are a Pipeline, and a link's two ends are its source and target. The five decorators are five booleans in both, each a flag of the binding (FBL 0.18 `holds`). A component's coordinates are the binding's, for writing a part after them, and the host's. A new map is `title {base}` and a line ending.",
+    "format": "fbl",
+    "binding": "https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/wardley-map/backend/EtAlii.Adp.Diagram.WardleyMap/wardley-map.fbl#map",
     "ids": {
       "strategy": "uuid-v4",
       "encoding": "base36",
       "stable": true,
-      "doc": "A new element gets a ShortGuid: a version 4 GUID written as 25 characters of base 36. Ids are never written in the body; each element is known by its kind, its key and its place among the elements of that kind and key, and keeps its id across edits and openings (wardley-map.md, 'Identities')."
+      "types": {
+        "Evolution": {
+          "strategy": "derived",
+          "pattern": "^.+$",
+          "ephemeral": true,
+          "expression": "'evolve:' + (has(self.component) ? self.component.id : '') + '@' + string(self.location().orValue({'line': 0}).line)",
+          "doc": "An evolution has no identity kind in the tool, so it has no stored id, and takes the one derived here: what it names and its line."
+        }
+      },
+      "doc": "A new element gets a ShortGuid: a version 4 GUID written as 25 characters of base 36. Ids are never written in the body; each element is known by its kind, its key and its place among the elements of that kind and key, and keeps its id across edits and openings (wardley-map.md, 'Identities'). The binding keeps them beside the body: in the registration's `identities:` block, or in the legacy `{base}.identities.json` the tool writes (FBL 0.12 sections 8.6 and 8.7; gaps 7 and 8)."
     },
     "view": {"store": []},
-    "collaboration": {"mode": "none"}
+    "collaboration": {"mode": "none"},
+    "typeMap": {
+      "Title": {"as": "diagram"},
+      "Style": {"as": "diagram"},
+      "Size": {"as": "diagram"},
+      "AnnotationsPosition": {
+        "as": "diagram",
+        "attributes": {"visibility": "annotationsVisibility", "maturity": "annotationsMaturity"}
+      },
+      "Component": {"as": "Component", "hostAttributes": ["coordinates"]},
+      "Anchor": {"as": "Anchor", "hostAttributes": ["coordinates"]},
+      "Submap": {"as": "Submap", "hostAttributes": ["coordinates"]},
+      "Evolve": {"as": "Evolution", "attributes": {"becomes": "renamedTo"}},
+      "LegacyPipeline": {
+        "as": "Pipeline",
+        "attributes": {"visibility": "legacyVisibility", "maturity": "legacyMaturity"},
+        "doc": "The older form, whose `form` the binding gives as `legacy` and whose two numbers are its extent."
+      },
+      "Dependency": {"as": "Dependency", "attributes": {"from": "source", "to": "target"}},
+      "Flow": {"as": "Flow", "attributes": {"from": "source", "to": "target"}}
+    }
   },
   "x-wardley": {
     "doc": "Today's wire ids, which the standalone client and backend share, mapped from this specification's names in the shape the standalone `WireIdMap` reads, as x-ghg does for the hype cycle graph. A tool is keyed by its id, with the action a drop runs. An action is keyed by its entry's operation, else its kind; a key \"<Type>/<kind>\" overrides that for the entries offered on <Type>; a <name> in an id is the entry's binding of that name, so the five decorator toggles are one entry and the two link pickers name their gesture. A property is keyed by its form item's row id: its id, else its attribute. `types` gives each type's element type on the wire; an evolution, a pipeline and a url definition have none.",

@@ -1,0 +1,79 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The bullets family's place under-heading (FBL 0.19, sections 6.2 and 6.3) on a Markdown file with LF endings whose section Topics holds a line of prose and no list, as the agent behavior model's empty-section case does: the first add goes right after the heading, the second after the first. Each undo puts back exactly the bytes its edit replaced.",
+  "binding": "topics.fbl#topics",
+  "input": "plan.md",
+  "read": {
+    "elements": []
+  },
+  "steps": [
+    {
+      "doc": "The first topic of a section that holds prose and no list, placed under-heading: one insert-entry at the end of the heading's line ending, a line ending first, so that a blank line stands between the heading and the item, and the prose follows the item after the blank line that was there (FBL 0.19, 6.3). With last-child it would go after Nothing here yet.",
+      "edit": {
+        "add": {
+          "type": "Topic",
+          "id": "t1",
+          "attributes": {
+            "title": "First topic"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 26,
+          "end": 26,
+          "text": "\n- t1: First topic\n"
+        }
+      ],
+      "expect": "# Project plan\n\n## Topics\n\n- t1: First topic\n\nNothing here yet.\n\n## Later\n"
+    },
+    {
+      "doc": "A second topic now has a previous sibling, so it goes after t1's line span, as last-child puts it (FBL 6.3, where it goes).",
+      "edit": {
+        "add": {
+          "type": "Topic",
+          "id": "t2",
+          "attributes": {
+            "title": "Second topic"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 45,
+          "end": 45,
+          "text": "- t2: Second topic\n"
+        }
+      ],
+      "expect": "# Project plan\n\n## Topics\n\n- t1: First topic\n- t2: Second topic\n\nNothing here yet.\n\n## Later\n"
+    },
+    {
+      "doc": "Undo of the second topic.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 45,
+          "end": 64,
+          "text": ""
+        }
+      ],
+      "expect": "# Project plan\n\n## Topics\n\n- t1: First topic\n\nNothing here yet.\n\n## Later\n"
+    },
+    {
+      "doc": "Undo of the first topic, and the document is the input again.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 26,
+          "end": 45,
+          "text": ""
+        }
+      ],
+      "expect": "# Project plan\n\n## Topics\n\nNothing here yet.\n\n## Later\n"
+    }
+  ]
+}

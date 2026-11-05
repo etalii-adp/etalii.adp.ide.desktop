@@ -1,0 +1,32 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/GroupingFixture",
+  "description": "Reading a key of another kind than every key the grouping holds gives an empty group: 1 is no key of strings.",
+  "list": [
+    "1",
+    "2"
+  ],
+  "variable": "x",
+  "key": "x",
+  "keys": [
+    "1",
+    "2"
+  ],
+  "groups": [
+    [
+      "1"
+    ],
+    [
+      "2"
+    ]
+  ],
+  "reads": [
+    {
+      "key": 1,
+      "group": []
+    },
+    {
+      "key": true,
+      "group": []
+    }
+  ]
+}

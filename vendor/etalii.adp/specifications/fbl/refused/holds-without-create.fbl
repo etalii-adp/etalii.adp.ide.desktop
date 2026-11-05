@@ -1,0 +1,48 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.18",
+  "doc": "Refused by FBL 0.18, section 14.1, step 6: the attribute main is a writable flag (holds) with no create, so a set of true has no text to write (section 6.3). The same slot with readOnly, or with a create, loads.",
+  "bindings": {
+    "loops": {
+      "title": "Loops, a writable flag without create",
+      "claims": {
+        "extensions": [
+          ".loops"
+        ],
+        "origins": [
+          "systems/causal-loop-diagram"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "grammar",
+        "grammar": "start: unit*\n?unit: loop\n     | _NL\nloop: NAME \"[\" part (\",\" part)* \"]\"\npart: NAME\nNAME: /[a-z]+/\n_NL: /(\\r?\\n[ \\t]*)+/\nWHITESPACE: /[ \\t]+/\n%ignore WHITESPACE\n",
+        "recover": {
+          "unit": "unit",
+          "sync": [
+            "_NL"
+          ]
+        }
+      },
+      "reader": "declared",
+      "elements": [
+        {
+          "name": "loop",
+          "type": "Loop",
+          "at": "/loop",
+          "id": {
+            "from": {
+              "node": "NAME"
+            }
+          },
+          "attributes": {
+            "main": {
+              "node": "part",
+              "holds": "main"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

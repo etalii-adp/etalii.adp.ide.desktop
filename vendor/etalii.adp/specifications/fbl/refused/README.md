@@ -22,3 +22,5 @@ The FBL documents in this folder are valid against [`fbl.schema.json`](../fbl.sc
 | `continues-unknown-attribute.fbl` | *(FBL 0.16)* Section 14.1: a key of `continues.same` is not an attribute the rule binds (section 6.2). |
 | `remove-parts-not-grammar.fbl` | *(FBL 0.16)* Section 14.1: a remove's `parts` stand only in a binding of the `grammar` family (section 6.2). |
 | `remove-whole-without-parts.fbl` | *(FBL 0.16)* Section 14.1: a remove's `whole` stands only beside `parts` (section 6.2). |
+| `holds-not-bool.fbl` | *(FBL 0.18)* Section 14.1, step 6: `holds` on an attribute that the tool type the binding is read for declares other than a single-valued `bool` (section 4.9). |
+| `holds-without-create.fbl` | *(FBL 0.18)* Section 14.1, step 6: a writable flag (`holds`) without a `create` to write its node (section 6.3). |

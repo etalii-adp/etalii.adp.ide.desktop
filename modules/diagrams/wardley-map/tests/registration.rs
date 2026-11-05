@@ -30,10 +30,14 @@ fn the_module_opens_its_documents_itself_for_its_origin() {
     assert_eq!(EXTENSIONS, [".owm", ".wm"]);
 }
 
+/// The specification reads its body through the FBL binding `map` since etalii.adp spec 071, where it named this module's
+/// plugin before; the module opens its documents itself all the same, so a reading is the module's either way.
 #[test]
-fn the_specification_names_this_module_as_its_persistence_format() {
+fn the_specification_reads_its_body_through_the_fbl_binding() {
     let specification = fs::read_to_string(vendor().join("etalii.adp/definitions/diagrams/wardley-map.dis")).unwrap();
-    assert!(specification.contains(&format!("\"format\": \"plugin:{PLUGIN_ID}\"")));
+    assert!(specification.contains("\"format\": \"fbl\""));
+    assert!(specification.contains("wardley-map.fbl#map"));
+    assert!(!specification.contains(&format!("\"format\": \"plugin:{PLUGIN_ID}\"")));
 }
 
 #[test]

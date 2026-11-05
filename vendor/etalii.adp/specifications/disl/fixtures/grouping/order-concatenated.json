@@ -1,0 +1,48 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/GroupingFixture",
+  "description": "A key that needs two parts concatenates them, so one grouping answers for each pair.",
+  "list": [
+    {
+      "s": "a",
+      "p": "knows",
+      "o": "b"
+    },
+    {
+      "s": "a",
+      "p": "likes",
+      "o": "c"
+    },
+    {
+      "s": "a",
+      "p": "knows",
+      "o": "d"
+    }
+  ],
+  "variable": "x",
+  "key": "x.s + '|' + x.p",
+  "keys": [
+    "a|knows",
+    "a|likes"
+  ],
+  "groups": [
+    [
+      {
+        "s": "a",
+        "p": "knows",
+        "o": "b"
+      },
+      {
+        "s": "a",
+        "p": "knows",
+        "o": "d"
+      }
+    ],
+    [
+      {
+        "s": "a",
+        "p": "likes",
+        "o": "c"
+      }
+    ]
+  ]
+}

@@ -6,13 +6,6 @@
   "read": {
     "elements": [
       {
-        "id": "title",
-        "type": "Title",
-        "attributes": {
-          "title": "Comments everywhere"
-        }
-      },
-      {
         "id": "customer",
         "type": "Anchor",
         "attributes": {
@@ -33,6 +26,20 @@
         "type": "Component",
         "attributes": {
           "name": "Kettle"
+        }
+      }
+    ],
+    "document": {
+      "attributes": {
+        "title": "Comments everywhere"
+      }
+    },
+    "x-binding": [
+      {
+        "id": "title",
+        "type": "Title",
+        "attributes": {
+          "title": "Comments everywhere"
         }
       },
       {

@@ -6,13 +6,6 @@
   "read": {
     "elements": [
       {
-        "id": "title",
-        "type": "Title",
-        "attributes": {
-          "title": "Brace ending {"
-        }
-      },
-      {
         "id": "user",
         "type": "Anchor",
         "attributes": {
@@ -29,27 +22,10 @@
         }
       },
       {
-        "id": "user-kettle",
-        "type": "Dependency",
-        "attributes": {
-          "from": "User",
-          "to": "Kettle",
-          "context": "heats the water {"
-        }
-      },
-      {
         "id": "power",
         "type": "Component",
         "attributes": {
           "name": "Power"
-        }
-      },
-      {
-        "id": "kettle-power",
-        "type": "Dependency",
-        "attributes": {
-          "from": "Kettle",
-          "to": "Power"
         }
       },
       {
@@ -59,6 +35,37 @@
           "text": "Lid { on",
           "visibility": 0.3,
           "maturity": 0.3
+        }
+      }
+    ],
+    "document": {
+      "attributes": {
+        "title": "Brace ending {"
+      }
+    },
+    "x-binding": [
+      {
+        "id": "title",
+        "type": "Title",
+        "attributes": {
+          "title": "Brace ending {"
+        }
+      },
+      {
+        "id": "user-kettle",
+        "type": "Dependency",
+        "attributes": {
+          "from": "User",
+          "to": "Kettle",
+          "context": "heats the water {"
+        }
+      },
+      {
+        "id": "kettle-power",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Kettle",
+          "to": "Power"
         }
       }
     ],

@@ -41,7 +41,7 @@
       "expect": "workspace \"Shop\" {\n    model {\n        customer = person \"Customer\" \"Buys things.\"\n        shop = softwareSystem \"Shop\" \"Sells things.\" {\n            web = container \"Web\" \"Serves pages.\" \"ASP.NET\"\n        }\n        customer -> shop \"Buys from\"\n        !include extras.dsl\n    }\n    views {\n        container shop \"containers\" {\n            include *\n            autoLayout lr\n        }\n    }\n}\n"
     },
     {
-      "doc": "Only the quoted argument's text changes.",
+      "doc": "Only the quoted argument changes, written again between the quotes its slot's requote gives (FBL 0.15 6.3, A string).",
       "edit": {
         "set": {
           "element": "customer",
@@ -53,9 +53,9 @@
       "splices": [
         {
           "operation": "replace-value",
-          "start": 69,
-          "end": 81,
-          "text": "Buys and returns things."
+          "start": 68,
+          "end": 82,
+          "text": "\"Buys and returns things.\""
         }
       ],
       "expect": "workspace \"Shop\" {\n    model {\n        customer = person \"Customer\" \"Buys and returns things.\"\n        shop = softwareSystem \"Shop\" \"Sells things.\" {\n            web = container \"Web\" \"Serves pages.\" \"ASP.NET\"\n        }\n        customer -> shop \"Buys from\"\n        !include extras.dsl\n    }\n    views {\n        container shop \"containers\" {\n            include *\n            autoLayout lr\n        }\n    }\n}\n"
@@ -66,9 +66,9 @@
       "splices": [
         {
           "operation": "replace-value",
-          "start": 69,
-          "end": 93,
-          "text": "Buys things."
+          "start": 68,
+          "end": 94,
+          "text": "\"Buys things.\""
         }
       ],
       "expect": "workspace \"Shop\" {\n    model {\n        customer = person \"Customer\" \"Buys things.\"\n        shop = softwareSystem \"Shop\" \"Sells things.\" {\n            web = container \"Web\" \"Serves pages.\" \"ASP.NET\"\n        }\n        customer -> shop \"Buys from\"\n        !include extras.dsl\n    }\n    views {\n        container shop \"containers\" {\n            include *\n            autoLayout lr\n        }\n    }\n}\n"

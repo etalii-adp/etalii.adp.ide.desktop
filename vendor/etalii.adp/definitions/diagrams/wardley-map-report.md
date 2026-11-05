@@ -1,20 +1,45 @@
-# Wardley map: the conversion's delivery report for stage one
+# Wardley map: the conversion's delivery report
 
-The Wardley map of etalii.adp.ide.standalone (origin `wardley/map`) now derives its toolbox, menus, rows, operations, findings and deletion confirmation from [wardley-map.dis](wardley-map.dis), and compiles its canvas from it. It still reads and writes the `.owm` body with its own parser and writer, and keeps its ids in its own identity file. This is the report its specification, `wardley-map-disl-fbl` in that repository's `.spec-workflow/specs/`, asks for when stage one closes (its task 10). It gives every language gap as a candidate change for this repository, every definition defect and module defect repaired on the way, and what still waits. What the module keeps, type by type, is in the companion, [wardley-map.md](wardley-map.md).
+The Wardley map of etalii.adp.ide.standalone (origin `wardley/map`) derives its toolbox, menus, rows, operations, findings and deletion confirmation from [wardley-map.dis](wardley-map.dis), and compiles its canvas from it (stage one). It reads and writes the `.owm` body through the FBL binding [`wardley-map.fbl`](../../specifications/fbl/wardley-map.fbl), every edit as the binding's splices, and keeps its ids through the map's registration or its legacy identities file (stage two). This is the report its specification, the conversion `wardley-map-disl-fbl` ([`specs/071-standalone-wardley-map-disl-fbl/`](../../specs/071-standalone-wardley-map-disl-fbl/), migrated from etalii.adp.ide.standalone's `.spec-workflow/specs/` on 2026-10-31), asks for when stage one closes (its task 10), extended when stage two closes (its task 13). It gives every language gap as a candidate change for this repository, every definition defect and module defect repaired on the way, and the divergences that remain. What the module keeps, type by type, is in the companion, [wardley-map.md](wardley-map.md).
 
-## What waits, and on which gaps
+## Stage two
 
-Stage two, the conversion's tasks 11 to 13, reads and writes the body through an FBL binding. None of it starts before this repository answers the gaps it needs:
+Stage two, the conversion's tasks 11 to 13, waited on gaps 1 to 4, 7 and 8, which FBL 0.12 (feature `066-fbl-conversion-gaps`) answered.
 
-- **Task 11** reads the body through the binding. It waits on gap 1 (a pipeline's brace on the line below its statement), on gaps 2 to 4 as far as the conversion's question Q2 needs them, and on gap 7 (FBL 8.7 describing the identity file as the array it is).
-- **Task 12** writes every edit as the binding's splices and keeps the ids through the registration. It waits on task 11 and on gap 8 (FBL 8.6 on an entry whose key changes, and on a stored id for every holder of one key).
-- **Task 13** closes the conversion. It waits on task 12.
+- **Task 11** (standalone pull request 804) reads the body through the binding: `WardleyBody` builds the DISL model from FBL's reading, and the module's parser and `WardleyDisl` left the product. The parity transcript reproduced byte for byte.
+- **Task 12** (standalone pull request 807) writes every edit as model changes the library plans into splices through the binding, and keeps the ids through the registration's `identities:` block or the legacy `{base}.identities.json` in the shape it has. The writer, the line restore, the transaction mapping and the identity classes left the product. The transcript's edit hunks were regenerated once and reviewed. A shared fix came first, standalone pull request 806: a save and a restore of a file that begins with a byte-order mark keep it.
+- **Task 13** closes the conversion: the companion's table of what remains, this report, the catalog row and the pages.
 
-Until then the module's parser, writer and identity classes keep reading and writing as the tool always has, and the parity transcript pins that they do.
+### Gaps still open, as candidate changes
+
+Six of the fourteen gaps are open: 9 to 12, in the table of stage one below, and 13 and 14, found in task 12. Each is in the companion's table with its construct, its fixture and what would resolve it.
+
+| # | Language | Candidate change |
+| --- | --- | --- |
+| 13 | FBL | A binding that reads `evolve Tea 2 0.9` as the evolution of `Tea 2`: a name token that cannot end in a number with a trailing-number rule, or a quoting of such a name. Until then the standalone tool refuses an evolution of a name ending in a number, as a known limitation ruled on 2026-11-02 |
+| 14 | FBL | An insert at the end of a body whose last block never closes lands after that block, or FBL 4.9 says every add is refused while a block is unclosed. Until then the standalone tool refuses every add but a pipeline component while a pipeline is unclosed (ruled on 2026-11-02) |
+
+Gaps 1 to 8 are answered and are no longer candidate changes; the companion names the FBL section and fixture that answers each.
+
+### The divergences that remain
+
+`RealFiles/divergences.json` in the standalone repository's `EtAlii.Adp.Specification.Fbl.Tests` lists two for the Wardley map, each a key the binding gives that the module does not keep, because the module reads the body as the tool always has there:
+
+- **`awkward-names.owm`**: the binding reads the links from `C++ build` and `Self-service` to `CI/CD`; the module passes a link whose source holds `-` or `+` over, as Online Wardley Maps reads it, and refuses such a name on an add or a rename (finding B13).
+- **`unclosed-pipeline.owm`**: the binding's recovery reads `Kettle->Power` after an unclosed pipeline as a link; the module reads every line after it as inside the pipeline, as it always has, and passes over what is not a component.
+
+### Defects repaired by construction in task 12
+
+Each is a change in the regenerated transcript, named in standalone pull request 807 and guarded by a test seen to fail first:
+
+- **Finding B13**: a link to `CI/CD` is read as a link and renamed with its end, and `Tea [hot]` is one name, because the binding's reading replaces the line search that split them.
+- **Finding B9**: a link drawn from a later holder of a repeated name is added with an id of its own rather than taking the first holder's link (ruled on 2026-11-02); an unlink of the first of two identical links removes the holder it names.
+- **A comment and a doubled decorator**: `(market)` inside a trailing comment is no longer read as the decorator, and toggling Build off removes both words of a doubled `(build)`.
+- **Undo**: an edit that writes nothing is no step of the history, and every edit of the corpus undone gives back the bytes, a byte-order mark included.
 
 ## Candidate changes for this repository
 
-Each is a gap of the companion, numbered as there. The construct, the fixture that shows it and what would resolve it are in the companion's table. None is closed.
+The twelve gaps stage one reported, each a gap of the companion, numbered as there. Gaps 1 to 8 have since been answered by FBL 0.12, and the table below keeps them as stage one reported them; gaps 9 to 12 are open.
 
 | # | Language | Candidate change |
 | --- | --- | --- |

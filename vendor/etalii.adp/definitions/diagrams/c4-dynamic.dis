@@ -152,6 +152,17 @@
       "cel": "e.isA('Container') || e.isA('Component') || e.isA('DeploymentNode') || e.isA('InfrastructureNode')",
       "doc": "The four kinds that have a technology in C4."
     },
+    "isInstance": {
+      "params": [
+        {
+          "name": "e",
+          "type": "dyn"
+        }
+      ],
+      "returns": "bool",
+      "cel": "e.isA('ContainerInstance') || e.isA('SoftwareSystemInstance')",
+      "doc": "The two kinds that have no name and no description in C4: an instance stands for what it is an instance of, which its first argument names."
+    },
     "referenced": {
       "params": [
         {
@@ -2226,13 +2237,15 @@
             "group": "g1",
             "label": "Rename…",
             "icon": "mdi-pencil-outline",
-            "shortcut": "F2"
+            "shortcut": "F2",
+            "visible": "!isInstance(self)"
           },
           {
             "kind": "operation",
             "operation": "editDescription",
             "group": "g1",
-            "icon": "mdi-text-box-outline"
+            "icon": "mdi-text-box-outline",
+            "visible": "!isInstance(self)"
           },
           {
             "kind": "operation",
@@ -2305,12 +2318,14 @@
         {
           "attribute": "name",
           "label": "Name",
-          "widget": "text"
+          "widget": "text",
+          "visible": "!isInstance(self)"
         },
         {
           "attribute": "description",
           "label": "Description",
-          "widget": "textarea"
+          "widget": "textarea",
+          "visible": "!isInstance(self)"
         },
         {
           "attribute": "technology",
@@ -2827,6 +2842,26 @@
         }
       },
       {
+        "id": "noNameHere",
+        "kind": "change",
+        "scope": "Element",
+        "enforcement": "prevent",
+        "rule": "attribute != 'name' || !isInstance(self)",
+        "message": {
+          "cel": "'A ' + self.type.lowerAscii() + ' has no name in C4; it stands for what it is an instance of.'"
+        }
+      },
+      {
+        "id": "noDescriptionHere",
+        "kind": "change",
+        "scope": "Element",
+        "enforcement": "prevent",
+        "rule": "attribute != 'description' || !isInstance(self)",
+        "message": {
+          "cel": "'A ' + self.type.lowerAscii() + ' has no description in C4; it stands for what it is an instance of.'"
+        }
+      },
+      {
         "id": "dragDoesNotReparent",
         "kind": "placement",
         "label": "Dragging does not change containment",
@@ -2857,6 +2892,14 @@
           }
         },
         "paramsForm": "renameElement",
+        "unavailable": [
+          {
+            "when": "isInstance(self)",
+            "message": {
+              "cel": "'A ' + self.type.lowerAscii() + ' has no name in C4; it stands for what it is an instance of.'"
+            }
+          }
+        ],
         "actions": [
           {
             "set": {
@@ -2881,6 +2924,14 @@
           }
         },
         "paramsForm": "describeElement",
+        "unavailable": [
+          {
+            "when": "isInstance(self)",
+            "message": {
+              "cel": "'A ' + self.type.lowerAscii() + ' has no description in C4; it stands for what it is an instance of.'"
+            }
+          }
+        ],
         "actions": [
           {
             "set": {

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/GroupingFixture",
+  "description": "`&&` absorbs a failure in a key as it does anywhere: false on its left decides, so the division by zero is not an error.",
+  "list": [
+    {
+      "n": 1
+    },
+    {
+      "n": 0
+    },
+    {
+      "n": 2
+    }
+  ],
+  "variable": "x",
+  "key": "x.n != 0 && 10 / x.n > 3",
+  "keys": [
+    true,
+    false
+  ],
+  "groups": [
+    [
+      {
+        "n": 1
+      },
+      {
+        "n": 2
+      }
+    ],
+    [
+      {
+        "n": 0
+      }
+    ]
+  ]
+}
