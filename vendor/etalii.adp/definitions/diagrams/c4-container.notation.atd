@@ -536,8 +536,8 @@ toolbox {
   context for Element {
     placement: menu
     standardEntries: false
-    tool "Rename…" { kind: operation, operation: "rename", group: "g1", icon: "mdi-pencil-outline", shortcut: "F2" }
-    tool { kind: operation, operation: "editDescription", group: "g1", icon: "mdi-text-box-outline" }
+    tool "Rename…" { kind: operation, operation: "rename", group: "g1", icon: "mdi-pencil-outline", shortcut: "F2", visible: (!isInstance(self)) }
+    tool { kind: operation, operation: "editDescription", group: "g1", icon: "mdi-text-box-outline", visible: (!isInstance(self)) }
     tool { kind: operation, operation: "setTechnology", group: "g1", icon: "mdi-tools", visible: (hasTechnology(self)) }
   }
   /// A stored relationship drawn as itself. A lifted line, a line between instances and an interaction have no menu
@@ -566,8 +566,8 @@ toolbox {
 
 form element for Element {
   usage: [inspector]
-  field name "Name" { widget: text }
-  field description "Description" { widget: textarea }
+  field name "Name" { widget: text, visible: (!isInstance(self)) }
+  field description "Description" { widget: textarea, visible: (!isInstance(self)) }
   field technology "Technology" { widget: text, visible: (hasTechnology(self)) }
   field tags "Tags" {
     widget: text

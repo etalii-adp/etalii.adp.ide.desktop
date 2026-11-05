@@ -1,0 +1,18 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/GroupingFixture",
+  "description": "A key that fails on one item fails the whole grouping, not only that item.",
+  "list": [
+    {
+      "n": 1
+    },
+    {
+      "n": 0
+    },
+    {
+      "n": 2
+    }
+  ],
+  "variable": "x",
+  "key": "10 / x.n",
+  "fails": true
+}

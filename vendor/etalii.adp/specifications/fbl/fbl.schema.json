@@ -32,7 +32,7 @@
           "type": "string"
         },
         "fbl": {
-          "description": "The FBL version the document is written in: 0.1 to 0.17 (draft); 0.3 names the tool type's specification in place of DISL, lets a specification name one binding per format family, and spells a reference to a stored id as by: \"id\". 0.4 creates and removes the missing levels of a nested container or child mapping. 0.5 defines a scalar's written text, read with read, and adds quoted and fallback to an attribute binding. 0.6 applies an attribute binding's empty rule to an insert as well as to a set. 0.7 adds the bullets family and the drift check before an edit. 0.8 lets an insert of the yaml and json families write a constant. 0.9 adds the grammar family. 0.10 lets one binding serve readings of different metamodels (origins on a rule, resource.byOrigin, one model per origin of one open body), inserts into a yaml flow sequence, gives a refusal its sentence, writes a nested mapping on an add, and adds secondary, {key:lower} and a fixture's template and expectFiles. 0.11 extends the grammar family so that Structurizr DSL is bound in it (comments owned and kept, recovery inside blocks, escapes, absent and positional parts, several nodes for a many attribute, a block written around a first child, views and the statements of the selected view, a view block that can be added, a value gathered from several places), and says how the legacy layout's keys, numbers and stale entries are written. 0.12 extends the grammar family so that the Wardley map's .owm is bound in it (a block brace on the next line, segments in any order, a slot's items and separator, a sidecar id's kind and ordinal, an identity entry that moves with its key), and reads the legacy identities file as the array of {id, kind, key} its tool writes, no longer as an object. 0.13 lets a {node} slot of a many attribute read several items from one node with split, cut at that text, and write a set of them into the node by splices (Structurizr's tags \"Extra, More\"). 0.14 lets an insert of the yaml and json families add a member to a mapping, under the key the add gives the attribute bound to the capture its rule's at ends in, refusing a missing, empty or duplicate key with refusals.key and refusals.duplicate. 0.15 extends the grammar family so that Turtle is bound in it with no persistence plugin (a slot's selector reaching up and across the tree with .. and +, further slots read with or, a term read through the body's prefix directives with expand, a node's number with ordinal and its name with name, the other sequences of a value's escape, and a body read in the order its entries end). 0.16 extends the grammar family with Turtle's writes (an insert's continues, which continues a statement and replaces its last token, the operation replace-separator, and a remove's parts and whole, which take a part with its separator and the whole statement when it is the last), gives two entries of a rule on one line places of their own, and plans a run of removes bottom-up. 0.17 adds no construct: a host that supports the grammar family at an earlier version than a construct a binding uses may open, read and edit its documents, warning of each construct it does not read and writing no splice that touches the text such a construct governs (section 15.1). See FBL 0.17, section 2.7.",
+          "description": "The FBL version the document is written in: 0.1 to 0.19 (draft); 0.3 names the tool type's specification in place of DISL, lets a specification name one binding per format family, and spells a reference to a stored id as by: \"id\". 0.4 creates and removes the missing levels of a nested container or child mapping. 0.5 defines a scalar's written text, read with read, and adds quoted and fallback to an attribute binding. 0.6 applies an attribute binding's empty rule to an insert as well as to a set. 0.7 adds the bullets family and the drift check before an edit. 0.8 lets an insert of the yaml and json families write a constant. 0.9 adds the grammar family. 0.10 lets one binding serve readings of different metamodels (origins on a rule, resource.byOrigin, one model per origin of one open body), inserts into a yaml flow sequence, gives a refusal its sentence, writes a nested mapping on an add, and adds secondary, {key:lower} and a fixture's template and expectFiles. 0.11 extends the grammar family so that Structurizr DSL is bound in it (comments owned and kept, recovery inside blocks, escapes, absent and positional parts, several nodes for a many attribute, a block written around a first child, views and the statements of the selected view, a view block that can be added, a value gathered from several places), and says how the legacy layout's keys, numbers and stale entries are written. 0.12 extends the grammar family so that the Wardley map's .owm is bound in it (a block brace on the next line, segments in any order, a slot's items and separator, a sidecar id's kind and ordinal, an identity entry that moves with its key), and reads the legacy identities file as the array of {id, kind, key} its tool writes, no longer as an object. 0.13 lets a {node} slot of a many attribute read several items from one node with split, cut at that text, and write a set of them into the node by splices (Structurizr's tags \"Extra, More\"). 0.14 lets an insert of the yaml and json families add a member to a mapping, under the key the add gives the attribute bound to the capture its rule's at ends in, refusing a missing, empty or duplicate key with refusals.key and refusals.duplicate. 0.15 extends the grammar family so that Turtle is bound in it with no persistence plugin (a slot's selector reaching up and across the tree with .. and +, further slots read with or, a term read through the body's prefix directives with expand, a node's number with ordinal and its name with name, the other sequences of a value's escape, and a body read in the order its entries end). 0.16 extends the grammar family with Turtle's writes (an insert's continues, which continues a statement and replaces its last token, the operation replace-separator, and a remove's parts and whole, which take a part with its separator and the whole statement when it is the last), gives two entries of a rule on one line places of their own, and plans a run of removes bottom-up. 0.17 adds no construct: a host that supports the grammar family at an earlier version than a construct a binding uses may open, read and edit its documents, warning of each construct it does not read and writing no splice that touches the text such a construct governs (section 15.1). 0.18 lets a {node} slot of the grammar family read one value of a segment as a bool with holds: true when a node the slot reaches holds that text, ignoring the case of ASCII letters, false when none does; setting it true writes one such node by the slot's create after the last node the slot reaches, and setting it false removes every node that holds it (the Wardley map's five decorators). 0.19 adds the bullets family's place under-heading: as last-child, but the first item of a section that holds none goes right after its heading. See FBL 0.19, section 2.7.",
           "enum": [
             "0.1",
             "0.2",
@@ -50,7 +50,9 @@
             "0.14",
             "0.15",
             "0.16",
-            "0.17"
+            "0.17",
+            "0.18",
+            "0.19"
           ]
         },
         "doc": {
@@ -2208,6 +2210,11 @@
           "description": "(FBL 0.15) grammar, with node: the value is the name of the node the selector reaches, its rule, alias or terminal; read-only (section 4.9).",
           "const": true
         },
+        "holds": {
+          "description": "(FBL 0.18) grammar, with node, on a single-valued bool attribute: the attribute is true when a node the selector reaches has this text as its value (the group value of its match), compared without regard to the case of ASCII letters, and false when none does. Setting it true writes one node by the slot's create, its {value} this text, right after the last node the selector reaches; setting it false removes every node that holds it. Not beside items, split, expand, ordinal, name, map, default, empty, or, gather, override or secondary (sections 4.9, 5.2, 6.3, 14.1).",
+          "type": "string",
+          "minLength": 1
+        },
         "or": {
           "description": "(FBL 0.15) grammar: further slots of the same entry, in order: the first that is present is read when the attribute's own slot is absent, and a set writes it as that slot writes (section 5.2).",
           "type": "array",
@@ -2246,6 +2253,9 @@
         ],
         "name": [
           "node"
+        ],
+        "holds": [
+          "node"
         ]
       },
       "dependentSchemas": {
@@ -2271,6 +2281,73 @@
               "items"
             ]
           }
+        },
+        "holds": {
+          "description": "(FBL 0.18) A flag reads a bool from the nodes that hold its text, so it takes none of the options that read or write another value.",
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "items"
+                ]
+              },
+              {
+                "required": [
+                  "split"
+                ]
+              },
+              {
+                "required": [
+                  "expand"
+                ]
+              },
+              {
+                "required": [
+                  "ordinal"
+                ]
+              },
+              {
+                "required": [
+                  "name"
+                ]
+              },
+              {
+                "required": [
+                  "map"
+                ]
+              },
+              {
+                "required": [
+                  "default"
+                ]
+              },
+              {
+                "required": [
+                  "empty"
+                ]
+              },
+              {
+                "required": [
+                  "or"
+                ]
+              },
+              {
+                "required": [
+                  "gather"
+                ]
+              },
+              {
+                "required": [
+                  "override"
+                ]
+              },
+              {
+                "required": [
+                  "secondary"
+                ]
+              }
+            ]
+          }
         }
       }
     },
@@ -2288,7 +2365,8 @@
                 "last-child",
                 "next-sibling",
                 "end-of-document",
-                "after-header"
+                "after-header",
+                "under-heading"
               ]
             },
             {

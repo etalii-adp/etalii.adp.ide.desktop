@@ -1,0 +1,49 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/GroupingFixture",
+  "description": "An int is a key.",
+  "list": [
+    {
+      "v": 3
+    },
+    {
+      "v": 1
+    },
+    {
+      "v": 3
+    }
+  ],
+  "variable": "x",
+  "key": "x.v",
+  "keys": [
+    3,
+    1
+  ],
+  "groups": [
+    [
+      {
+        "v": 3
+      },
+      {
+        "v": 3
+      }
+    ],
+    [
+      {
+        "v": 1
+      }
+    ]
+  ],
+  "reads": [
+    {
+      "key": 3,
+      "group": [
+        {
+          "v": 3
+        },
+        {
+          "v": 3
+        }
+      ]
+    }
+  ]
+}

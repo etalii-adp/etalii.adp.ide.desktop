@@ -36,8 +36,10 @@ mod hierarchical_requirement;
 /// of: `sankey-written-text` and `supply-chain-written-text`, which etalii.adp added with the Sankey and supply chain
 /// bindings, and the bullets family's (FBL 0.7 section 4.8, etalii.adp spec 036), with `behavior-tree-read/first-add`,
 /// which etalii.adp holds and the standalone host does not vendor.
-const STANDALONE_FIXTURES: [&str; 33] = [
+const STANDALONE_FIXTURES: [&str; 34] = [
     "behavior-tree-read/first-add",
+    // FBL 0.19: the bullets family's place `under-heading`.
+    "bullets-under-heading",
     "insert-constant-json-read",
     "insert-constant-yaml-read",
     "bullets-edits",
@@ -74,7 +76,7 @@ const STANDALONE_FIXTURES: [&str; 33] = [
 
 /// The fixtures of the `grammar` family (FBL 0.9 section 4.9), which no host but this one is required to read: run
 /// as the standalone host's are, by [`the_grammar_family_fixtures_pass`].
-const GRAMMAR_FIXTURES: [&str; 35] = [
+const GRAMMAR_FIXTURES: [&str; 36] = [
     "grammar-comment-start",
     "grammar-remove-part",
     "grammar-split-slot",
@@ -93,6 +95,7 @@ const GRAMMAR_FIXTURES: [&str; 35] = [
     "grammar-remove-parts/last-line",
     "structurizr-open-block",
     "structurizr-parents",
+    "structurizr-sourceless-relationships",
     // ATD section 3.6 (amendment of 2026-11-01): keywords as case-insensitive strings.
     "structurizr-keyword-prefixes",
     "structurizr-absent-arguments",
@@ -890,7 +893,8 @@ fn check_attributes(element: &adp_fbl::FblElement, attributes: &Json, name: &str
     Ok(())
 }
 
-/// The attributes of the C4 types' diagram (`persistence.typeMap` of c4-*.dis, `as: "diagram"`) and of the job reading's
+/// The attributes of the C4 types' diagram (`persistence.typeMap` of c4-*.dis, `as: "diagram"`), of the Wardley map's
+/// (wardley-map.dis, `as: "diagram"`: its title, style, size and annotations' position) and of the job reading's
 /// (databricks-job.dis, `Job`): a binding type's attribute under the name the diagram has it by, its own unless the map
 /// renames it, with every value it was read with, as a fixture's `document` lists them (FBL 0.11 section 9.3).
 fn check_document(model: &FblModel, read: &Json, name: &str) -> Result<(), String> {
@@ -901,14 +905,18 @@ fn check_document(model: &FblModel, read: &Json, name: &str) -> Result<(), Strin
         let wire = match attribute.as_str() {
             "workspaceName" => "name",
             "includes" => "members",
+            // wardley-map.dis's typeMap renames the annotations' position.
+            "annotationsVisibility" => "visibility",
+            "annotationsMaturity" => "maturity",
             other => other,
         };
         let mut values: Vec<&Value> = Vec::new();
-        for element in model
-            .elements
-            .iter()
-            .filter(|e| matches!(e.type_name.as_str(), "Workspace" | "ViewInclude" | "Job"))
-        {
+        for element in model.elements.iter().filter(|e| {
+            matches!(
+                e.type_name.as_str(),
+                "Workspace" | "ViewInclude" | "Job" | "Title" | "Style" | "Size" | "AnnotationsPosition"
+            )
+        }) {
             values.extend(element.attributes.get(wire));
         }
         // A number is compared as written: the type comes from the specification, which this runner does not read.
@@ -954,7 +962,15 @@ fn check_read(model: &FblModel, read: &Json, name: &str) -> Result<(), String> {
             model.unreadable
         ));
     }
-    for element in read.get("elements").and_then(Json::as_array).into_iter().flatten() {
+    // The elements of types the specification has none for are listed apart, under `x-binding`, and read all the same.
+    let apart = read.get("x-binding").and_then(Json::as_array).into_iter().flatten();
+    for element in read
+        .get("elements")
+        .and_then(Json::as_array)
+        .into_iter()
+        .flatten()
+        .chain(apart)
+    {
         let id = element["id"].as_str().unwrap_or_default();
         let Some(found) = model.find(id) else {
             let all: Vec<String> = model
@@ -1022,10 +1038,20 @@ fn named_ids(input: &[u8], name: &str, binding: &Rc<FblBinding>, folder: &Path, 
     }
     let model = Subject::open(input.to_vec(), name, binding.clone(), folder, None).model()?;
     let listed = fixture.pointer("/read/elements")?.as_array()?;
-    let named = model
+    // What the specification has no type for is listed apart, under `x-binding`, each list in reading order.
+    let apart: &[Json] = fixture
+        .pointer("/read/x-binding")
+        .and_then(Json::as_array)
+        .map_or(&[], Vec::as_slice);
+    let apart_types: HashSet<&str> = apart.iter().filter_map(|e| e["type"].as_str()).collect();
+    let (outside, inside): (Vec<_>, Vec<_>) = model
         .elements
         .iter()
+        .partition(|e| apart_types.contains(e.type_name.as_str()));
+    let named = inside
+        .into_iter()
         .zip(listed)
+        .chain(outside.into_iter().zip(apart))
         .filter_map(|(element, listed)| {
             let id = listed["id"].as_str()?;
             Some(((element.type_name.clone(), element.line), id.to_owned()))

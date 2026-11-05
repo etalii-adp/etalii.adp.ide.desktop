@@ -1,0 +1,73 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/GroupingFixture",
+  "description": "Items are grouped by a key read from each; a group keeps the items in list order, not in key order.",
+  "list": [
+    {
+      "id": "t1",
+      "kind": "task"
+    },
+    {
+      "id": "m1",
+      "kind": "milestone"
+    },
+    {
+      "id": "t2",
+      "kind": "task"
+    },
+    {
+      "id": "t3",
+      "kind": "task"
+    },
+    {
+      "id": "m2",
+      "kind": "milestone"
+    }
+  ],
+  "variable": "x",
+  "key": "x.kind",
+  "keys": [
+    "task",
+    "milestone"
+  ],
+  "groups": [
+    [
+      {
+        "id": "t1",
+        "kind": "task"
+      },
+      {
+        "id": "t2",
+        "kind": "task"
+      },
+      {
+        "id": "t3",
+        "kind": "task"
+      }
+    ],
+    [
+      {
+        "id": "m1",
+        "kind": "milestone"
+      },
+      {
+        "id": "m2",
+        "kind": "milestone"
+      }
+    ]
+  ],
+  "reads": [
+    {
+      "key": "milestone",
+      "group": [
+        {
+          "id": "m1",
+          "kind": "milestone"
+        },
+        {
+          "id": "m2",
+          "kind": "milestone"
+        }
+      ]
+    }
+  ]
+}

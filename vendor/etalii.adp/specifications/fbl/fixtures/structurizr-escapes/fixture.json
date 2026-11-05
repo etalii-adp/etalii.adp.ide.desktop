@@ -39,7 +39,7 @@
       "expect": "workspace \"Escaped \\\"quotes\\\"\" {\n    model {\n        u = person \"The \\\"user\\\"\" \"Says \\\"hello\\\".\"\n        s = softwareSystem \"System\" \"A path C:\\temp and a \\\"quote\\\".\"\n        u -> s \"Says \\\"hi\\\"\" \"HTTP \\\"S\\\"\"\n    }\n    views {\n        systemContext s \"context\" {\n            include *\n        }\n    }\n}\n"
     },
     {
-      "doc": "A set's value is written with every quote escaped, in the value's span inside its quotes (FBL 6.3, grammar).",
+      "doc": "A set's value is written with every quote escaped, between the two quotes the slot's requote gives, in place of the whole argument (FBL 0.15 6.3, A string).",
       "edit": {
         "set": {
           "element": "u",
@@ -51,9 +51,9 @@
       "splices": [
         {
           "operation": "replace-value",
-          "start": 65,
-          "end": 77,
-          "text": "Parity \\\"name\\\""
+          "start": 64,
+          "end": 78,
+          "text": "\"Parity \\\"name\\\"\""
         }
       ],
       "expect": "workspace \"Escaped \\\"quotes\\\"\" {\n    model {\n        u = person \"Parity \\\"name\\\"\" \"Says \\\"hello\\\".\"\n        s = softwareSystem \"System\" \"A path C:\\temp and a \\\"quote\\\".\"\n        u -> s \"Says \\\"hi\\\"\" \"HTTP \\\"S\\\"\"\n    }\n    views {\n        systemContext s \"context\" {\n            include *\n        }\n    }\n}\n"
@@ -64,9 +64,9 @@
       "splices": [
         {
           "operation": "replace-value",
-          "start": 65,
-          "end": 80,
-          "text": "The \\\"user\\\""
+          "start": 64,
+          "end": 81,
+          "text": "\"The \\\"user\\\"\""
         }
       ],
       "expect": "workspace \"Escaped \\\"quotes\\\"\" {\n    model {\n        u = person \"The \\\"user\\\"\" \"Says \\\"hello\\\".\"\n        s = softwareSystem \"System\" \"A path C:\\temp and a \\\"quote\\\".\"\n        u -> s \"Says \\\"hi\\\"\" \"HTTP \\\"S\\\"\"\n    }\n    views {\n        systemContext s \"context\" {\n            include *\n        }\n    }\n}\n"

@@ -50,9 +50,9 @@
       "splices": [
         {
           "operation": "replace-value",
-          "start": 52,
-          "end": 56,
-          "text": "Person"
+          "start": 51,
+          "end": 57,
+          "text": "\"Person\""
         }
       ],
       "expect": "workspace \"Edges\" {\n    model {\n        u = person \"Person\"\n    }\n}\n}\nthis is not a workspace\n/* never closed\ns = softwareSystem \"S\"\n"
@@ -63,9 +63,9 @@
       "splices": [
         {
           "operation": "replace-value",
-          "start": 52,
-          "end": 58,
-          "text": "User"
+          "start": 51,
+          "end": 59,
+          "text": "\"User\""
         }
       ],
       "expect": "workspace \"Edges\" {\n    model {\n        u = person \"User\"\n    }\n}\n}\nthis is not a workspace\n/* never closed\ns = softwareSystem \"S\"\n"

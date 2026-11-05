@@ -6,13 +6,6 @@
   "read": {
     "elements": [
       {
-        "id": "title",
-        "type": "Title",
-        "attributes": {
-          "title": "Pipelines in both forms"
-        }
-      },
-      {
         "id": "customer",
         "type": "Anchor",
         "attributes": {
@@ -35,7 +28,8 @@
         "type": "Pipeline",
         "parent": null,
         "attributes": {
-          "component": "Kettle"
+          "component": "Kettle",
+          "form": "nested"
         }
       },
       {
@@ -70,7 +64,10 @@
         "type": "LegacyPipeline",
         "parent": null,
         "attributes": {
-          "component": "Power"
+          "component": "Power",
+          "visibility": 0.3,
+          "maturity": 0.85,
+          "form": "legacy"
         }
       },
       {
@@ -87,7 +84,22 @@
         "type": "Pipeline",
         "parent": null,
         "attributes": {
-          "component": "Water"
+          "component": "Water",
+          "form": "nested"
+        }
+      }
+    ],
+    "document": {
+      "attributes": {
+        "title": "Pipelines in both forms"
+      }
+    },
+    "x-binding": [
+      {
+        "id": "title",
+        "type": "Title",
+        "attributes": {
+          "title": "Pipelines in both forms"
         }
       },
       {

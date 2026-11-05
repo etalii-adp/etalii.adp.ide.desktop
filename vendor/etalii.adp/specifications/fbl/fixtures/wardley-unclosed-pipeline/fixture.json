@@ -6,13 +6,6 @@
   "read": {
     "elements": [
       {
-        "id": "title",
-        "type": "Title",
-        "attributes": {
-          "title": "Unclosed pipeline"
-        }
-      },
-      {
         "id": "user",
         "type": "Anchor",
         "attributes": {
@@ -25,14 +18,6 @@
         "attributes": {
           "name": "Kettle",
           "maturity": 0.4
-        }
-      },
-      {
-        "id": "user-kettle",
-        "type": "Dependency",
-        "attributes": {
-          "from": "User",
-          "to": "Kettle"
         }
       },
       {
@@ -58,6 +43,28 @@
         "attributes": {
           "name": "Gas",
           "maturity": 0.3
+        }
+      }
+    ],
+    "document": {
+      "attributes": {
+        "title": "Unclosed pipeline"
+      }
+    },
+    "x-binding": [
+      {
+        "id": "title",
+        "type": "Title",
+        "attributes": {
+          "title": "Unclosed pipeline"
+        }
+      },
+      {
+        "id": "user-kettle",
+        "type": "Dependency",
+        "attributes": {
+          "from": "User",
+          "to": "Kettle"
         }
       }
     ],

@@ -1,6 +1,6 @@
 {
   "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
-  "fbl": "0.13",
+  "fbl": "0.15",
   "doc": "A Structurizr DSL workspace (definitions/diagrams/c4-*.dis, c4-container.md), read by the grammar structurizr.lark beside this document: FBL 0.11's grammar family (section 4.9), one binding shared by six readings. Every C4 specification names 'structurizr.fbl#workspace' as its binding, so a host opens one model and one history per .dsl file however many C4 views of it are open (section 9). Comments are owned and kept wherever they stand; a statement that does not parse is skipped to its line's end, inside blocks too, and a block that is never closed ends at the end of the body (recover). Elements, relationships and the declaration's positional arguments are read by name, quoted or bare, with their escapes; a tags argument holds the tags its text is cut into at its commas (FBL 0.13, split), as Structurizr reads it; an absent argument is written in its place, padded with empty ones. Each view kind is a view of the body, which a reading of any tool type shows (spec 067, FR-015), and the selected view's include, exclude, title and autoLayout statements, its scope and environment, which the tool types map onto the diagram's attributes, and its interactions are read for it alone. Which elements a view shows, and relationships lifted to the nearest drawn ancestor, are the viewpoint's and DISL's. An !include is read as the file it names and never followed; !script and the other directives, styles and properties are unbound statements: kept byte for byte, never followed.",
   "bindings": {
     "workspace": {
@@ -232,7 +232,8 @@
               "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
               "escape": {
                 "with": "\\",
-                "quote": "\""
+                "quote": "\"",
+                "requote": "\""
               },
               "empty": "keep"
             },
@@ -241,7 +242,8 @@
               "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
               "escape": {
                 "with": "\\",
-                "quote": "\""
+                "quote": "\"",
+                "requote": "\""
               },
               "empty": "keep",
               "create": {
@@ -304,7 +306,8 @@
               "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
               "escape": {
                 "with": "\\",
-                "quote": "\""
+                "quote": "\"",
+                "requote": "\""
               },
               "empty": "keep"
             },
@@ -313,7 +316,8 @@
               "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
               "escape": {
                 "with": "\\",
-                "quote": "\""
+                "quote": "\"",
+                "requote": "\""
               },
               "empty": "keep",
               "create": {
@@ -390,7 +394,8 @@
               "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
               "escape": {
                 "with": "\\",
-                "quote": "\""
+                "quote": "\"",
+                "requote": "\""
               },
               "empty": "keep"
             },
@@ -399,7 +404,8 @@
               "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
               "escape": {
                 "with": "\\",
-                "quote": "\""
+                "quote": "\"",
+                "requote": "\""
               },
               "empty": "keep",
               "create": {
@@ -415,7 +421,8 @@
               "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
               "escape": {
                 "with": "\\",
-                "quote": "\""
+                "quote": "\"",
+                "requote": "\""
               },
               "empty": "keep",
               "create": {
@@ -491,7 +498,8 @@
               "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
               "escape": {
                 "with": "\\",
-                "quote": "\""
+                "quote": "\"",
+                "requote": "\""
               },
               "empty": "keep"
             },
@@ -500,7 +508,8 @@
               "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
               "escape": {
                 "with": "\\",
-                "quote": "\""
+                "quote": "\"",
+                "requote": "\""
               },
               "empty": "keep",
               "create": {
@@ -516,7 +525,8 @@
               "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
               "escape": {
                 "with": "\\",
-                "quote": "\""
+                "quote": "\"",
+                "requote": "\""
               },
               "empty": "keep",
               "create": {
@@ -584,7 +594,8 @@
               "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
               "escape": {
                 "with": "\\",
-                "quote": "\""
+                "quote": "\"",
+                "requote": "\""
               },
               "empty": "keep"
             },
@@ -593,7 +604,8 @@
               "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
               "escape": {
                 "with": "\\",
-                "quote": "\""
+                "quote": "\"",
+                "requote": "\""
               },
               "empty": "keep",
               "create": {
@@ -609,7 +621,8 @@
               "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
               "escape": {
                 "with": "\\",
-                "quote": "\""
+                "quote": "\"",
+                "requote": "\""
               },
               "empty": "keep",
               "create": {
@@ -669,7 +682,8 @@
               "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
               "escape": {
                 "with": "\\",
-                "quote": "\""
+                "quote": "\"",
+                "requote": "\""
               },
               "empty": "keep"
             },
@@ -678,7 +692,8 @@
               "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
               "escape": {
                 "with": "\\",
-                "quote": "\""
+                "quote": "\"",
+                "requote": "\""
               },
               "empty": "keep",
               "create": {
@@ -694,7 +709,8 @@
               "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
               "escape": {
                 "with": "\\",
-                "quote": "\""
+                "quote": "\"",
+                "requote": "\""
               },
               "empty": "keep",
               "create": {
@@ -851,7 +867,7 @@
         {
           "name": "relationship",
           "type": "Relationship",
-          "doc": "A relationship is read as an entry with two reference attributes, which the tool types map onto a relation, so that an end that names nothing is kept with that end unset. A relationship written without a source inside an element's block has that element as its source in Structurizr; this binding does not read it yet, since a further slot (`or`, `../identifier`) would also be written by a set of `from`, so its `from` is unset.",
+          "doc": "A relationship is read as an entry with two reference attributes, which the tool types map onto a relation, so that an end that names nothing is kept with that end unset. A relationship written without a source inside an element's block has that element as its source, as Structurizr reads it: `from` reads the statement's own source, or else (FBL 0.15, `or`) the identifier of the declaration whose block holds the statement, `../identifier`, so that `-> s` in the block of `u = person …` is read from `u`. A set of `from` on such a relationship writes that identifier, as a further slot writes (FBL section 4.9), so a tool type offers no gesture that sets it; a rename of the element rewrites the identifier once. A declaration without an identifier gives no source, and the relationship is kept with `from` unset.",
           "at": "/workspace/model/**/relationship",
           "attributes": {
             "from": {
@@ -861,6 +877,16 @@
                 "with": "\\",
                 "quote": "\""
               },
+              "or": [
+                {
+                  "node": "../identifier",
+                  "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
+                  "escape": {
+                    "with": "\\",
+                    "quote": "\""
+                  }
+                }
+              ],
               "reference": {
                 "to": [
                   "person",
@@ -901,7 +927,8 @@
               "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
               "escape": {
                 "with": "\\",
-                "quote": "\""
+                "quote": "\"",
+                "requote": "\""
               },
               "empty": "keep",
               "create": {
@@ -917,7 +944,8 @@
               "match": "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?",
               "escape": {
                 "with": "\\",
-                "quote": "\""
+                "quote": "\"",
+                "requote": "\""
               },
               "empty": "keep",
               "create": {

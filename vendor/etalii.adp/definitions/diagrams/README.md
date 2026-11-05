@@ -13,3 +13,7 @@ Every diagram type here is named from its origin, the `<vendor>/<type>` tag the 
 
 - **Language id**: `net.etalii.adp.<vendor>.<type>`, the origin with its slash replaced by a dot and nothing else changed (`c4/system-landscape` is `net.etalii.adp.c4.system-landscape`, `etalii/functional-decomposition-graph` is `net.etalii.adp.etalii.functional-decomposition-graph`).
 - **Plugin name**: `net.etalii.adp.<vendor>.<plugin>`, with the vendor of the diagram types the plugin serves and the plugin's own part in lower camel case (`net.etalii.adp.c4.structurizrDsl`, `net.etalii.adp.w3c.turtle`). A plugin shared by a family keeps one name in every specification of that family. A plugin that serves any diagram type and belongs to the IDE rather than to a notation uses `ide` as its vendor (`net.etalii.adp.ide.revealPath`).
+
+## Tool descriptions
+
+Each type here also has a tool description in the ADP tool language ([ATD](../../specifications/atd/ATD-specification.md)): a root `<name>.atd` with its parts beside it, and a `<name>.trace.json` that traces what it carries back to the files it comes from. Its conformance cases, recorded from the type's module, are in `conformance/<type>/<case>/`. A person's document still opens on today's tool, read from the JSON files, and not on the description; the `atd` command line checks and validates the descriptions.

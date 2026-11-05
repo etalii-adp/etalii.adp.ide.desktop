@@ -1,0 +1,49 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.18",
+  "doc": "Refused by FBL 0.18, section 14.1, step 6: the attribute title is a flag (holds), and the tool type it is read for, systems/causal-loop-diagram, declares a Loop's title a string, so a flag's true or false has no attribute to hold it (section 4.9). The same slot without holds loads.",
+  "bindings": {
+    "loops": {
+      "title": "Loops, a flag on a text attribute",
+      "claims": {
+        "extensions": [
+          ".loops"
+        ],
+        "origins": [
+          "systems/causal-loop-diagram"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "grammar",
+        "grammar": "start: unit*\n?unit: loop\n     | _NL\nloop: NAME \"[\" part (\",\" part)* \"]\"\npart: NAME\nNAME: /[a-z]+/\n_NL: /(\\r?\\n[ \\t]*)+/\nWHITESPACE: /[ \\t]+/\n%ignore WHITESPACE\n",
+        "recover": {
+          "unit": "unit",
+          "sync": [
+            "_NL"
+          ]
+        }
+      },
+      "reader": "declared",
+      "elements": [
+        {
+          "name": "loop",
+          "type": "Loop",
+          "at": "/loop",
+          "id": {
+            "from": {
+              "node": "NAME"
+            }
+          },
+          "attributes": {
+            "title": {
+              "node": "part",
+              "holds": "main",
+              "readOnly": true
+            }
+          }
+        }
+      ]
+    }
+  }
+}

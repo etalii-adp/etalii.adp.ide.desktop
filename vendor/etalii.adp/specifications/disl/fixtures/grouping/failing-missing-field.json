@@ -1,0 +1,13 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/GroupingFixture",
+  "description": "A key that reads a field an item does not have fails the grouping.",
+  "list": [
+    {
+      "k": "a"
+    },
+    {}
+  ],
+  "variable": "x",
+  "key": "x.k",
+  "fails": true
+}

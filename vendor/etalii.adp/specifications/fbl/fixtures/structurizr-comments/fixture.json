@@ -65,9 +65,9 @@
       "splices": [
         {
           "operation": "replace-value",
-          "start": 617,
-          "end": 624,
-          "text": "A person."
+          "start": 616,
+          "end": 625,
+          "text": "\"A person.\""
         }
       ],
       "expect": "// a line comment before the workspace\n# a hash comment, which the DSL also accepts\n/*\n * a block comment spanning lines\n */\nworkspace \"Comments\" \"Every comment form the DSL actually accepts.\" {\n\n    model { // trailing a brace is legal\n        # hash comment inside the model\n        // Trailing a declaration is NOT: the real parser reads the comment as extra\n        // arguments and refuses the line. ADP accepts it anyway, which is harmless -\n        // a reader that takes more than the writer emits - but the corpus must not\n        // claim the format allows something it does not.\n        u = person \"User\" \"A person.\"\n        /* block comment between elements */\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web App\" \"Serves pages.\" \"React\"\n            db = container \"Database\" \"Stores things.\" \"PostgreSQL\"\n            web -> db \"Reads from and writes to\" \"SQL/TCP\"\n        }\n        u -> web \"Visits\" \"HTTPS\"\n    }\n\n    views {\n        systemContext s \"context\" {\n            include *\n        }\n        container s \"containers\" {\n            include *\n        }\n    }\n\n}\n// a trailing comment after the closing brace\n"
@@ -78,9 +78,9 @@
       "splices": [
         {
           "operation": "replace-value",
-          "start": 617,
-          "end": 626,
-          "text": "A user."
+          "start": 616,
+          "end": 627,
+          "text": "\"A user.\""
         }
       ],
       "expect": "// a line comment before the workspace\n# a hash comment, which the DSL also accepts\n/*\n * a block comment spanning lines\n */\nworkspace \"Comments\" \"Every comment form the DSL actually accepts.\" {\n\n    model { // trailing a brace is legal\n        # hash comment inside the model\n        // Trailing a declaration is NOT: the real parser reads the comment as extra\n        // arguments and refuses the line. ADP accepts it anyway, which is harmless -\n        // a reader that takes more than the writer emits - but the corpus must not\n        // claim the format allows something it does not.\n        u = person \"User\" \"A user.\"\n        /* block comment between elements */\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web App\" \"Serves pages.\" \"React\"\n            db = container \"Database\" \"Stores things.\" \"PostgreSQL\"\n            web -> db \"Reads from and writes to\" \"SQL/TCP\"\n        }\n        u -> web \"Visits\" \"HTTPS\"\n    }\n\n    views {\n        systemContext s \"context\" {\n            include *\n        }\n        container s \"containers\" {\n            include *\n        }\n    }\n\n}\n// a trailing comment after the closing brace\n"

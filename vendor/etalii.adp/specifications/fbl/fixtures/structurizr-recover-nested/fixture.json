@@ -78,9 +78,9 @@
       "splices": [
         {
           "operation": "replace-value",
-          "start": 64,
-          "end": 71,
-          "text": "A person."
+          "start": 63,
+          "end": 72,
+          "text": "\"A person.\""
         }
       ],
       "expect": "workspace \"Unbalanced\" {\n    model {\n        u = person \"User\" \"A person.\"\n        broken = person\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web\" \"Serves.\" \"React\"\n        u -> web \"Visits\" \"HTTPS\"\n    }\n    views {\n        container s \"containers\" {\n            include *\n        }\n"
@@ -91,9 +91,9 @@
       "splices": [
         {
           "operation": "replace-value",
-          "start": 64,
-          "end": 73,
-          "text": "A user."
+          "start": 63,
+          "end": 74,
+          "text": "\"A user.\""
         }
       ],
       "expect": "workspace \"Unbalanced\" {\n    model {\n        u = person \"User\" \"A user.\"\n        broken = person\n        s = softwareSystem \"System\" \"A system.\" {\n            web = container \"Web\" \"Serves.\" \"React\"\n        u -> web \"Visits\" \"HTTPS\"\n    }\n    views {\n        container s \"containers\" {\n            include *\n        }\n"

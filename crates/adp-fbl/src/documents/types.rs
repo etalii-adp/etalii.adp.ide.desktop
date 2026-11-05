@@ -411,6 +411,8 @@ pub struct Slot {
     pub ordinal: Option<String>,
     /// *(FBL 0.15)* With `node`: the value is the node's name: its rule, alias or terminal (FBL section 4.9).
     pub node_name: bool,
+    /// *(FBL 0.18)* With `node`: the text whose nodes make a bool attribute true (FBL section 4.9, *A segment as a flag*).
+    pub holds: Option<String>,
 }
 
 /// A slot's `expand` (FBL 0.15 section 4.9).

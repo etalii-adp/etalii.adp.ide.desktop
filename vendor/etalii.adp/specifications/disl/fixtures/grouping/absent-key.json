@@ -1,0 +1,37 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/GroupingFixture",
+  "description": "Reading a key that is not in the grouping gives an empty group, not a failure.",
+  "list": [
+    "a",
+    "b",
+    "a"
+  ],
+  "variable": "x",
+  "key": "x",
+  "keys": [
+    "a",
+    "b"
+  ],
+  "groups": [
+    [
+      "a",
+      "a"
+    ],
+    [
+      "b"
+    ]
+  ],
+  "reads": [
+    {
+      "key": "z",
+      "group": []
+    },
+    {
+      "key": "a",
+      "group": [
+        "a",
+        "a"
+      ]
+    }
+  ]
+}

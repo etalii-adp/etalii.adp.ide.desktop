@@ -6,10 +6,6 @@
   "read": {
     "elements": [
       {
-        "id": "title",
-        "type": "Title"
-      },
-      {
         "id": "n5q07c4sf3h605d25668a1fop",
         "type": "Anchor",
         "attributes": {
@@ -33,28 +29,12 @@
         }
       },
       {
-        "id": "vwj4kv6znhdk0a8mi5h0b0di1",
-        "type": "Dependency",
-        "attributes": {
-          "from": "Business",
-          "to": "Kettle"
-        }
-      },
-      {
         "id": "0z3knp8mkf2pr9pcpwx1667zq",
         "type": "Component",
         "attributes": {
           "name": "Kettle",
           "visibility": 0.4,
           "maturity": 0.55
-        }
-      },
-      {
-        "id": "ctwz2aeuerni60ukp52w9m01e",
-        "type": "Dependency",
-        "attributes": {
-          "from": "Kettle",
-          "to": "Power"
         }
       },
       {
@@ -87,6 +67,28 @@
           "name": "Power",
           "visibility": 0.2,
           "maturity": 0.75
+        }
+      }
+    ],
+    "x-binding": [
+      {
+        "id": "title",
+        "type": "Title"
+      },
+      {
+        "id": "vwj4kv6znhdk0a8mi5h0b0di1",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Business",
+          "to": "Kettle"
+        }
+      },
+      {
+        "id": "ctwz2aeuerni60ukp52w9m01e",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Kettle",
+          "to": "Power"
         }
       }
     ],

@@ -6,21 +6,6 @@
   "read": {
     "elements": [
       {
-        "id": "title",
-        "type": "Title",
-        "attributes": {
-          "title": "Strategy vocabulary"
-        }
-      },
-      {
-        "id": "size",
-        "type": "Size",
-        "attributes": {
-          "width": 900,
-          "height": 700
-        }
-      },
-      {
         "id": "esqtv1tg6r31atziq717uebs2",
         "type": "Anchor",
         "attributes": {
@@ -38,9 +23,11 @@
         "id": "et0fqurcgd3ri1az051jupyvf",
         "type": "Component",
         "attributes": {
-          "decorators": [
-            "buy"
-          ]
+          "market": false,
+          "ecosystem": false,
+          "build": false,
+          "buy": true,
+          "outsource": false
         }
       },
       {
@@ -49,18 +36,22 @@
         "attributes": {
           "visibility": 0.6626,
           "maturity": 0.2824,
-          "decorators": [
-            "build"
-          ]
+          "market": false,
+          "ecosystem": false,
+          "build": true,
+          "buy": false,
+          "outsource": false
         }
       },
       {
         "id": "b474cr9m9t3eczg1gdv5gcjhk",
         "type": "Component",
         "attributes": {
-          "decorators": [
-            "outsource"
-          ]
+          "market": false,
+          "ecosystem": false,
+          "build": false,
+          "buy": false,
+          "outsource": true
         }
       },
       {
@@ -68,68 +59,33 @@
         "type": "Component",
         "attributes": {
           "inertia": true,
-          "decorators": []
+          "market": false,
+          "ecosystem": false,
+          "build": false,
+          "buy": false,
+          "outsource": false
         }
       },
       {
         "id": "b7ak4vpps5jzv5z6e35bwkdk0",
         "type": "Component",
         "attributes": {
-          "decorators": [
-            "market"
-          ]
+          "market": true,
+          "ecosystem": false,
+          "build": false,
+          "buy": false,
+          "outsource": false
         }
       },
       {
         "id": "2m9av9ipvmp6w45ql55bgcsjf",
         "type": "Component",
         "attributes": {
-          "decorators": [
-            "ecosystem"
-          ]
-        }
-      },
-      {
-        "id": "5mlj9gwvz7f6tq8jk44j2fvc2",
-        "type": "Dependency",
-        "attributes": {
-          "from": "Customer",
-          "to": "Order Portal"
-        }
-      },
-      {
-        "id": "59zcjnkv6fawrmuwv3ocn580b",
-        "type": "Dependency"
-      },
-      {
-        "id": "8ohahd9dc1hkootitayqkw5vx",
-        "type": "Dependency"
-      },
-      {
-        "id": "20i7it0yv1wkh363kojh2c0t9",
-        "type": "Dependency"
-      },
-      {
-        "id": "dtxqdj8ob3q7wi7am98ynxrzx",
-        "type": "Dependency"
-      },
-      {
-        "id": "bzedjszz6agvrcjw2hnrcdbq4",
-        "type": "Flow",
-        "attributes": {
-          "from": "Fraud Scoring",
-          "to": "Ledger"
-        }
-      },
-      {
-        "id": "563p17c7wugo1otauzp5lv4fp",
-        "type": "Dependency"
-      },
-      {
-        "id": "14d8vq4v94823dsi6wpf5w4oi",
-        "type": "Dependency",
-        "attributes": {
-          "context": "via the plugin SDK"
+          "market": false,
+          "ecosystem": true,
+          "build": false,
+          "buy": false,
+          "outsource": false
         }
       },
       {
@@ -196,6 +152,73 @@
         "type": "Note",
         "attributes": {
           "text": "Renewal is due in March"
+        }
+      }
+    ],
+    "document": {
+      "attributes": {
+        "title": "Strategy vocabulary",
+        "width": 900,
+        "height": 700
+      }
+    },
+    "x-binding": [
+      {
+        "id": "title",
+        "type": "Title",
+        "attributes": {
+          "title": "Strategy vocabulary"
+        }
+      },
+      {
+        "id": "size",
+        "type": "Size",
+        "attributes": {
+          "width": 900,
+          "height": 700
+        }
+      },
+      {
+        "id": "5mlj9gwvz7f6tq8jk44j2fvc2",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Customer",
+          "to": "Order Portal"
+        }
+      },
+      {
+        "id": "59zcjnkv6fawrmuwv3ocn580b",
+        "type": "Dependency"
+      },
+      {
+        "id": "8ohahd9dc1hkootitayqkw5vx",
+        "type": "Dependency"
+      },
+      {
+        "id": "20i7it0yv1wkh363kojh2c0t9",
+        "type": "Dependency"
+      },
+      {
+        "id": "dtxqdj8ob3q7wi7am98ynxrzx",
+        "type": "Dependency"
+      },
+      {
+        "id": "bzedjszz6agvrcjw2hnrcdbq4",
+        "type": "Flow",
+        "attributes": {
+          "from": "Fraud Scoring",
+          "to": "Ledger"
+        }
+      },
+      {
+        "id": "563p17c7wugo1otauzp5lv4fp",
+        "type": "Dependency"
+      },
+      {
+        "id": "14d8vq4v94823dsi6wpf5w4oi",
+        "type": "Dependency",
+        "attributes": {
+          "context": "via the plugin SDK"
         }
       }
     ],
