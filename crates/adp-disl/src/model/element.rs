@@ -233,6 +233,11 @@ impl DislElement {
         self.0.state.borrow().id.clone()
     }
 
+    /// Whether the element's id is `id`, read without copying it.
+    pub(crate) fn has_id(&self, id: &str) -> bool {
+        self.0.state.borrow().id == id
+    }
+
     pub(crate) fn set_id(&self, id: &str) {
         self.0.state.borrow_mut().id = id.to_owned();
     }
@@ -607,7 +612,7 @@ impl DislElement {
     /// What the diagram computed from its elements' values is computed again.
     fn forget_budgets(&self) {
         if let Some(diagram) = self.0.diagram.upgrade() {
-            diagram.forget_budgets();
+            diagram.forget_values();
         }
     }
 
@@ -759,6 +764,22 @@ impl Object for ElementData {
 
     fn has_member(&self, name: &str) -> bool {
         with_handle(self, |e| e.has_member(name))
+    }
+
+    /// A stored attribute that refers to no element, the type and the kind: what changes only where the model says so,
+    /// and the diagram forgets its groupings then (DISL section 12.4). Never `id`, which is computed.
+    fn reads_stored(&self, name: &str) -> bool {
+        let state = self.state.borrow();
+        match state.element_type.attributes.get(name) {
+            Some(attribute) => {
+                !attribute.is_derived()
+                    && self
+                        .diagram
+                        .upgrade()
+                        .is_some_and(|diagram| !diagram.is_element_type(&attribute.type_name))
+            }
+            None => matches!(name, "type" | "kind"),
+        }
     }
 
     fn invoke(&self, name: &str, arguments: &[Value]) -> Option<Result<Value, String>> {

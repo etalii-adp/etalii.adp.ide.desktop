@@ -39,6 +39,9 @@ pub(crate) struct DiagramData {
     ends: RefCell<Option<Ends>>,
     cycles: RefCell<HashMap<(String, i64), Cycles>>,
     knots: RefCell<HashMap<String, Vec<Vec<DislElement>>>>,
+    /// The lists `nodesOfType` and `relationsOfType` gave, by type and kind: given again while no element of the type
+    /// is added, removed or moved and no value changes, so that a grouping of one is found again (DISL section 12.4).
+    typed: RefCell<HashMap<(String, bool), Value>>,
     /// The budgets' states once computed, until the diagram or one of its elements changes.
     budgets: RefCell<Option<Rc<Vec<DislBudgetState>>>>,
     computing_budgets: Cell<bool>,
@@ -98,6 +101,18 @@ impl DiagramData {
         *self.budgets.borrow_mut() = None;
         *self.views.borrow_mut() = None;
     }
+
+    /// A value changed, of an element or of the diagram: the budgets are computed again, and the typed lists are made
+    /// anew, so that no grouping made of the old values is found again (DISL section 12.4).
+    pub(crate) fn forget_values(&self) {
+        self.forget_budgets();
+        self.typed.borrow_mut().clear();
+    }
+
+    /// Whether `name` is a node or relation type of the specification.
+    pub(crate) fn is_element_type(&self, name: &str) -> bool {
+        self.specification.metamodel().type_of(name).is_some()
+    }
 }
 
 impl DislDiagram {
@@ -112,6 +127,7 @@ impl DislDiagram {
             ends: RefCell::new(None),
             cycles: RefCell::new(HashMap::new()),
             knots: RefCell::new(HashMap::new()),
+            typed: RefCell::new(HashMap::new()),
             budgets: RefCell::new(None),
             computing_budgets: Cell::new(false),
             file: RefCell::new(None),
@@ -306,6 +322,7 @@ impl DislDiagram {
     ) {
         relation.resolve_ends(source, target);
         self.changed();
+        self.0.forget_values();
     }
 
     fn owns(&self, element: &DislElement) -> bool {
@@ -319,6 +336,7 @@ impl DislDiagram {
                 return Err("A relation's ends belong to its own diagram.".into());
             }
             self.0.relations.borrow_mut().push(element.clone());
+            self.forget_typed_of(&element);
             self.changed();
             return Ok(element);
         }
@@ -329,6 +347,7 @@ impl DislDiagram {
             parent.add_child(&element);
         }
         self.0.nodes.borrow_mut().push(element.clone());
+        self.forget_typed_of(&element);
         self.changed();
         Ok(element)
     }
@@ -338,6 +357,7 @@ impl DislDiagram {
     pub(crate) fn remove(&self, element: &DislElement) {
         if element.is_relation() {
             self.0.relations.borrow_mut().retain(|r| r != element);
+            self.forget_typed_of(element);
             self.changed();
             return;
         }
@@ -349,6 +369,7 @@ impl DislDiagram {
             nodes.remove(index);
         }
         drop(nodes);
+        self.forget_typed_of(element);
         self.changed();
     }
 
@@ -455,7 +476,7 @@ impl DislDiagram {
     /// Sets diagram attribute `name`, as a reader does.
     pub(crate) fn set_attribute(&self, name: &str, value: Value) {
         self.0.attributes.borrow_mut().insert(name, value);
-        self.0.forget_budgets();
+        self.0.forget_values();
     }
 
     /// The value CEL reads for diagram attribute `name`: stored, else its default, else its type's zero value
@@ -475,8 +496,8 @@ impl DislDiagram {
 
     /// The first element with `id` in model order.
     pub fn element_by_id(&self, id: &str) -> Option<DislElement> {
-        let found = self.0.nodes.borrow().iter().find(|n| n.id() == id).cloned();
-        found.or_else(|| self.0.relations.borrow().iter().find(|r| r.id() == id).cloned())
+        let found = self.0.nodes.borrow().iter().find(|n| n.has_id(id)).cloned();
+        found.or_else(|| self.0.relations.borrow().iter().find(|r| r.has_id(id)).cloned())
     }
 
     /// The nodes that are `type_name` or one of its subtypes, in model order.
@@ -611,11 +632,35 @@ impl DislDiagram {
         })
     }
 
+    /// The list `nodesOfType(type_name)`, or `relationsOfType` when `relation`, as last given if nothing has changed it.
+    fn typed_list(&self, type_name: &str, relation: bool) -> Value {
+        let key = (type_name.to_owned(), relation);
+        if let Some(value) = self.0.typed.borrow().get(&key) {
+            return value.clone();
+        }
+        let value = if relation {
+            list(self.relations_of_type(type_name))
+        } else {
+            list(self.nodes_of_type(type_name))
+        };
+        self.0.typed.borrow_mut().insert(key, value.clone());
+        value
+    }
+
+    /// The typed lists `element` is in are made anew: it was added or removed.
+    fn forget_typed_of(&self, element: &DislElement) {
+        let relation = element.is_relation();
+        self.0
+            .typed
+            .borrow_mut()
+            .retain(|(type_name, of_relations), _| *of_relations != relation || !element.is_a(type_name));
+    }
+
     fn invoke(&self, name: &str, arguments: &[Value]) -> Option<Result<Value, String>> {
         Some(match (name, arguments.len()) {
             // View-only elements are a view's; a headless model has none, so the flag changes nothing here.
-            ("nodesOfType", 1 | 2) => type_text(&arguments[0]).map(|t| list(self.nodes_of_type(t))),
-            ("relationsOfType", 1) => type_text(&arguments[0]).map(|t| list(self.relations_of_type(t))),
+            ("nodesOfType", 1 | 2) => type_text(&arguments[0]).map(|t| self.typed_list(t, false)),
+            ("relationsOfType", 1) => type_text(&arguments[0]).map(|t| self.typed_list(t, true)),
             ("elementById", 1) => {
                 type_text(&arguments[0]).map(|id| self.element_by_id(id).map(|e| e.to_value()).unwrap_or(Value::Null))
             }

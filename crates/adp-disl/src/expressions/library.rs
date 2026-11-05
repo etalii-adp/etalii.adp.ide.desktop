@@ -53,6 +53,7 @@ fn text(value: &Value) -> Result<&str, String> {
 
 /// Adds the library to `environment`; `enums` are the enumerations `enumLabel` reads.
 pub(crate) fn register(environment: &mut Environment, enums: Rc<IndexMap<String, DislEnum>>) {
+    environment.add_grouping();
     for (name, min, max) in METHODS {
         environment.add_function(Function::method(name, min, max));
     }

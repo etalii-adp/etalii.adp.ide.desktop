@@ -116,6 +116,10 @@ jobs:
           fi
           wasm-bindgen --target nodejs --out-dir target/atd-lsp-wasm target/wasm32-unknown-unknown/release/adp_atd_lsp.wasm
           ATD=target/release/atd node crates/adp-atd-lsp/tests/wasm/validate.mjs target/atd-lsp-wasm
+      - name: Run DISL's grouping fixtures in WebAssembly, as the native tests run them (etalii.adp spec 075, T019, SC-001)
+        env:
+          CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER: wasm-bindgen-test-runner
+        run: cargo test -p adp-cel --test grouping_fixtures --target wasm32-unknown-unknown
       - name: Check the licences of atd
         uses: EmbarkStudios/cargo-deny-action@v2
         with:

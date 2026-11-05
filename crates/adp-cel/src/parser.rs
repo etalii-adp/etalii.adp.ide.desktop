@@ -6,7 +6,8 @@ use std::rc::Rc;
 
 use crate::Environment;
 use crate::eval::Node;
-use crate::function::{Function, Style};
+use crate::function::{Function, Macro, Style};
+use crate::group;
 use crate::value::Value;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -158,7 +159,12 @@ impl Parser<'_> {
                         self.expect(",")?;
                         let body = self.expression()?;
                         self.expect(")")?;
-                        node = Node::Comprehension(kind, Box::new(node), variable, Box::new(body));
+                        node = if kind == Macro::GroupBy {
+                            let signature = group::signature(format!("{variable}\u{0}{body:?}"));
+                            Node::GroupBy(Box::new(node), variable, Box::new(body), signature)
+                        } else {
+                            Node::Comprehension(kind, Box::new(node), variable, Box::new(body))
+                        };
                         continue;
                     }
                     let arguments = self.arguments()?;

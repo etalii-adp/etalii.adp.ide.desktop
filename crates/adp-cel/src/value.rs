@@ -28,6 +28,12 @@ pub trait Object: Any + fmt::Debug {
         None
     }
 
+    /// Whether reading the member reads a value stored in the object itself, which changes only where its owner says
+    /// so: what a grouping's key may read and still be kept (DISL section 12.4). False unless the object says so.
+    fn reads_stored(&self, _name: &str) -> bool {
+        false
+    }
+
     /// Whether `has()` holds for the member: present, as a map key is present.
     fn has_member(&self, _name: &str) -> bool {
         false

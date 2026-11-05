@@ -9,6 +9,7 @@
 
 mod eval;
 mod function;
+mod group;
 mod library;
 mod parser;
 pub mod regex_subset;
@@ -19,6 +20,7 @@ use std::rc::Rc;
 
 pub use eval::{Program, Variables, compare};
 pub use function::{Body, Budget, Call, Cost, Function, Macro, Style};
+pub use group::{Grouping, groupings_made};
 pub use regex_subset::BoundedRegex;
 pub use value::{Map, Object, Value};
 
@@ -62,7 +64,41 @@ impl Environment {
     pub fn standard_library() -> Self {
         let mut environment = Environment::empty();
         library::register(&mut environment);
+        for function in environment.functions.values_mut() {
+            *function = Rc::new(function.as_ref().clone().pure());
+        }
         environment
+    }
+
+    /// Adds DISL's grouping (DISL 0.9, section 12.4): the macro `l.groupBy(x, key)`, and `g.get(k)` and `g.keys()`.
+    /// A grouping charges one evaluation of its key per item, `get` one plus the size of its group, and `keys` one
+    /// plus the number of keys.
+    pub fn add_grouping(&mut self) -> &mut Self {
+        self.add_macro(Macro::GroupBy);
+        let grouping = |value: &Value| {
+            value
+                .downcast::<Grouping>()
+                .ok_or_else(|| "get() and keys() are methods of a grouping.".to_owned())
+        };
+        self.add_function(
+            Function::receiver("get", 1, move |a| grouping(&a[0])?.get(&a[1]))
+                .with_cost(
+                    move |a| match (a.first().and_then(|g| g.downcast::<Grouping>()), a.get(1)) {
+                        (Some(g), Some(key)) => 1 + g.group_size(key) as i64,
+                        _ => 1,
+                    },
+                )
+                .pure(),
+        );
+        self.add_function(
+            Function::receiver("keys", 0, move |a| Ok(grouping(&a[0])?.keys()))
+                .with_cost(|a| match a.first().and_then(|g| g.downcast::<Grouping>()) {
+                    Some(g) => 1 + g.key_count() as i64,
+                    None => 1,
+                })
+                .pure(),
+        );
+        self
     }
 
     /// The CEL standard environment with the variables `names`.

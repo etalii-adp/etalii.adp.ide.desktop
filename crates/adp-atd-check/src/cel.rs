@@ -20,6 +20,8 @@ pub enum Ty {
     List(Box<Ty>),
     Map,
     Element(String),
+    /// What `l.groupBy(x, key)` gives (DISL 0.9, §12.4), with the type of its items.
+    Grouping(Box<Ty>),
     Dyn,
 }
 
@@ -36,6 +38,7 @@ impl Ty {
             Ty::List(inner) => format!("list<{}>", inner.name()),
             Ty::Map => "map".into(),
             Ty::Element(name) => name.clone(),
+            Ty::Grouping(inner) => format!("grouping<{}>", inner.name()),
             Ty::Dyn => "dyn".into(),
         }
     }
@@ -241,6 +244,19 @@ pub fn infer(node: &Json, scope: &Scope, symbols: &Symbols) -> Ty {
             "map" => Ty::List(Box::new(Ty::Dyn)),
             "filter" | "sort" | "sortBy" | "distinct" | "reverse" => match receiver {
                 Ty::List(_) => receiver,
+                _ => Ty::Dyn,
+            },
+            // DISL 0.9, §12.4: a grouping of the list's items, a group of them, and the keys, whose type the key gives.
+            "groupBy" => match receiver {
+                Ty::List(inner) => Ty::Grouping(inner),
+                _ => Ty::Grouping(Box::new(Ty::Dyn)),
+            },
+            "get" => match receiver {
+                Ty::Grouping(inner) => Ty::List(inner),
+                _ => Ty::Dyn,
+            },
+            "keys" => match receiver {
+                Ty::Grouping(_) => Ty::List(Box::new(Ty::Dyn)),
                 _ => Ty::Dyn,
             },
             _ => Ty::Dyn,

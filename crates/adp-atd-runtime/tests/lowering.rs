@@ -117,6 +117,8 @@ fn the_mind_maps_description_is_its_dis_but_for_what_it_states_more_completely()
         "+ /notation/nodes/Node/size/height",
         "+ /notation/nodes/Node/size/width",
         "+ /notation/textMetric",
+        // The DISL version the lowering states, 0.9 since it carries `groupBy` (etalii.adp spec 075); the file states 0.3.
+        "~ /disl",
         // The binding is the description's own, lowered onto FBL apart from DISL.
         "- /persistence/binding",
         // The tool drops on the node it adds a child to.

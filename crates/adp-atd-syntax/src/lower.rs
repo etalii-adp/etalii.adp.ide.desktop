@@ -31,7 +31,7 @@ pub fn lower(parse: &Parse, file: &str) -> Result<Json, LowerError> {
     lowerer.description(root)
 }
 
-const MACROS: &[&str] = &["has", "all", "exists", "exists_one", "map", "filter", "bind"];
+const MACROS: &[&str] = &["has", "all", "exists", "exists_one", "map", "filter", "bind", "groupBy"];
 
 impl Lowerer<'_> {
     // ------------------------------------------------------------------------------------------------ helpers
