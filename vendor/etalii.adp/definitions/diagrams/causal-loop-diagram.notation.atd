@@ -29,10 +29,13 @@ notation {
     }
     followSystem: true
   }
+  /// A variable's padding is what its width is fitted with: the text and 14 either side, 10 above and below
+  /// (`CausalLoopMetrics.cs`), which the ring seats variables by.
   style variable {
     fill: $color.surface
     stroke: { color: $color.border, width: 1 }
     font: { family: $font.body, size: 14, color: $color.text }
+    padding: [10, 14]
   }
   style link { stroke: { color: $color.text, width: 1.5 } }
   style loopBadge { font: { family: $font.body, size: 12, weight: 600 } }
@@ -561,10 +564,12 @@ form renameLoop "Rename loop" for Loop {
 /// capability `arrange.selfOrganising` (causal-loop-diagram.atd).
 layout {
   default ring
-  algorithm ring {
-    algorithm: circular
-    options: { adp.ring.order: link-walk, adp.ring.start: top, adp.ring.direction: clockwise, adp.ring.separation: 40 }
-    doc: "What a document opens with: variables evenly around a ring, seated by a deterministic depth-first walk of the links, starting at the top and running clockwise; the radius grows with the widest variable and the count, so no two overlap. DISL defines neither the order nor the radius of `circular`, so the `adp.ring.*` options say what the standalone module does in code (companion, gap 5)."
+  /// What a document opens with: variables evenly around a ring, seated by a deterministic depth-first walk of the
+  /// links, starting at the top and running clockwise; the radius grows with the widest variable and the count, so no
+  /// two overlap. The capability `layout.ring` states the order and the radius, which DISL's `circular` does not
+  /// (companion, gap 5); a position the registration stores wins for its variable.
+  algorithm ring capability layout.ring {
+    separation: 40
   }
   trigger: onLoadIfMissing
   respect: all

@@ -16,7 +16,8 @@ part of etalii/agent-behavior-modelling
 /// Notes are the item's continuation lines. A nested item is a child of the item it is nested in, whatever that item's
 /// type, so the tool's own constraints report a leaf with children and a wrapper with more than one; the containment
 /// checks DISL builds in are switched off in the specification. The first node added to a file without the section
-/// appends ## Behavior at the end of the file. Everything else in the file, the legend the tool writes into a new file
+/// appends ## Behavior at the end of the file; the first node of a section that holds no list goes right under its
+/// heading, above anything else the section holds, as the tool writes it (under-heading, FBL 0.19). Everything else in the file, the legend the tool writes into a new file
 /// included, is unbound and kept byte for byte. Known differences from the tool's own reader and writer (AbmParser.cs,
 /// AbmWriter.cs, ported to the desktop host's parser.rs and writer.rs), which FBL cannot state: (1) the tool reads only
 /// the first list in the section, ending it at a line in the list's column that is not an item, where this binding
@@ -53,7 +54,7 @@ binding abm family bullets {
     attribute label from group "label" { empty: keep }
     attribute notes from continuation { empty: remove }
     insert {
-      place: last-child
+      place: under-heading
       container: behavior
       create: { at: end-of-document, text: "## Behavior" }
       emit: "**Do in order:**[ {label}]"
@@ -68,7 +69,7 @@ binding abm family bullets {
     attribute label from group "label" { empty: keep }
     attribute notes from continuation { empty: remove }
     insert {
-      place: last-child
+      place: under-heading
       container: behavior
       create: { at: end-of-document, text: "## Behavior" }
       emit: "**Try in order:**[ {label}]"
@@ -83,7 +84,7 @@ binding abm family bullets {
     attribute label from group "label" { empty: keep }
     attribute notes from continuation { empty: remove }
     insert {
-      place: last-child
+      place: under-heading
       container: behavior
       create: { at: end-of-document, text: "## Behavior" }
       emit: "**Do together:**[ {label}]"
@@ -101,7 +102,7 @@ binding abm family bullets {
     attribute attempts from group "attempts" { number: shortest empty: refuse }
     attribute notes from continuation { empty: remove }
     insert {
-      place: last-child
+      place: under-heading
       container: behavior
       create: { at: end-of-document, text: "## Behavior" }
       emit: "**Retry up to {attempts} times:**[ {label}]"
@@ -116,7 +117,7 @@ binding abm family bullets {
     attribute label from group "label" { empty: keep }
     attribute notes from continuation { empty: remove }
     insert {
-      place: last-child
+      place: under-heading
       container: behavior
       create: { at: end-of-document, text: "## Behavior" }
       emit: "**Repeat until:**[ {label}]"
@@ -131,7 +132,7 @@ binding abm family bullets {
     attribute label from group "label" { empty: keep }
     attribute notes from continuation { empty: remove }
     insert {
-      place: last-child
+      place: under-heading
       container: behavior
       create: { at: end-of-document, text: "## Behavior" }
       emit: "**Only while:**[ {label}]"
@@ -146,7 +147,7 @@ binding abm family bullets {
     attribute label from group "label" { empty: keep }
     attribute notes from continuation { empty: remove }
     insert {
-      place: last-child
+      place: under-heading
       container: behavior
       create: { at: end-of-document, text: "## Behavior" }
       emit: "**Ask approval before:**[ {label}]"
@@ -161,7 +162,7 @@ binding abm family bullets {
     attribute label from group "label" { empty: keep }
     attribute notes from continuation { empty: remove }
     insert {
-      place: last-child
+      place: under-heading
       container: behavior
       create: { at: end-of-document, text: "## Behavior" }
       emit: "**Check:**[ {label}]"
@@ -175,8 +176,9 @@ binding abm family bullets {
     within behavior
     attribute label from group "label" { empty: keep }
     attribute notes from continuation { empty: remove }
+    attribute implicit from value "false"
     insert {
-      place: last-child
+      place: under-heading
       container: behavior
       create: { at: end-of-document, text: "## Behavior" }
       emit: "**Do:**[ {label}]"
@@ -191,7 +193,7 @@ binding abm family bullets {
     attribute label from group "label" { empty: keep }
     attribute notes from continuation { empty: remove }
     insert {
-      place: last-child
+      place: under-heading
       container: behavior
       create: { at: end-of-document, text: "## Behavior" }
       emit: "**Ask the user:**[ {label}]"
@@ -206,7 +208,7 @@ binding abm family bullets {
     attribute label from group "label" { empty: keep }
     attribute notes from continuation { empty: remove }
     insert {
-      place: last-child
+      place: under-heading
       container: behavior
       create: { at: end-of-document, text: "## Behavior" }
       emit: "**Delegate:**[ {label}]"

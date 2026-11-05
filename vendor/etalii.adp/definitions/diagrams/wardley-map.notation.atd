@@ -628,7 +628,13 @@ form positioned for Positioned {
       readOnlyReasons: [{ reason: "readOnlyFile" }]
       parse: {
         accepts: (unknownDecorator(value) == '')
-        write: [{ set: { decorators: (decoratorWords(value).map(w, lower(w))) } }]
+        write: [
+          { set: { market: ('market' in decoratorWords(value).map(w, lower(w))) } },
+          { set: { ecosystem: ('ecosystem' in decoratorWords(value).map(w, lower(w))) } },
+          { set: { build: ('build' in decoratorWords(value).map(w, lower(w))) } },
+          { set: { buy: ('buy' in decoratorWords(value).map(w, lower(w))) } },
+          { set: { outsource: ('outsource' in decoratorWords(value).map(w, lower(w))) } }
+        ]
         refusal: ("'" + unknownDecorator(value) + "' is not one of this notation's decorators. They are: market, ecosystem, build, buy, outsource.")
         doc: "The five decorators as one comma list, in any order and case; the row writes exactly the set typed."
       }

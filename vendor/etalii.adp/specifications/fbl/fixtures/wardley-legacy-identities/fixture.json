@@ -6,13 +6,6 @@
   "read": {
     "elements": [
       {
-        "id": "title",
-        "type": "Title",
-        "attributes": {
-          "title": "Annotations and labels"
-        }
-      },
-      {
         "id": "bet6u4ixymtzkcwnfa3cetm62",
         "type": "Anchor",
         "attributes": {
@@ -43,30 +36,6 @@
         }
       },
       {
-        "id": "6aeudzbkyqs4vek24ev4d6loi",
-        "type": "Dependency",
-        "attributes": {
-          "from": "Customer",
-          "to": "Cup of Tea"
-        }
-      },
-      {
-        "id": "dx6826fsnvevxodjeki9dp5lo",
-        "type": "Dependency",
-        "attributes": {
-          "from": "Cup of Tea",
-          "to": "Kettle"
-        }
-      },
-      {
-        "id": "dqvi6dsohlsfehm9rxf071n7e",
-        "type": "Dependency",
-        "attributes": {
-          "from": "Kettle",
-          "to": "Power"
-        }
-      },
-      {
         "id": "567h3cu7gy3y55scw4z3y3m16",
         "type": "Annotation",
         "attributes": {
@@ -91,18 +60,58 @@
         }
       },
       {
+        "id": "94qzxpujukkawmjgayj4ncxpa",
+        "type": "Note",
+        "attributes": {
+          "text": "Tea is the point of all this"
+        }
+      }
+    ],
+    "document": {
+      "attributes": {
+        "title": "Annotations and labels",
+        "annotationsVisibility": 0.6,
+        "annotationsMaturity": 0.02
+      }
+    },
+    "x-binding": [
+      {
+        "id": "title",
+        "type": "Title",
+        "attributes": {
+          "title": "Annotations and labels"
+        }
+      },
+      {
+        "id": "6aeudzbkyqs4vek24ev4d6loi",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Customer",
+          "to": "Cup of Tea"
+        }
+      },
+      {
+        "id": "dx6826fsnvevxodjeki9dp5lo",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Cup of Tea",
+          "to": "Kettle"
+        }
+      },
+      {
+        "id": "dqvi6dsohlsfehm9rxf071n7e",
+        "type": "Dependency",
+        "attributes": {
+          "from": "Kettle",
+          "to": "Power"
+        }
+      },
+      {
         "id": "annotations",
         "type": "AnnotationsPosition",
         "attributes": {
           "visibility": 0.6,
           "maturity": 0.02
-        }
-      },
-      {
-        "id": "94qzxpujukkawmjgayj4ncxpa",
-        "type": "Note",
-        "attributes": {
-          "text": "Tea is the point of all this"
         }
       }
     ],

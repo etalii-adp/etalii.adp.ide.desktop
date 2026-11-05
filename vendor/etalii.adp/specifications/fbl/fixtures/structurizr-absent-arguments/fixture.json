@@ -100,7 +100,7 @@
       "expect": "workspace \"Absent arguments\" {\n    model {\n        s = softwareSystem \"S\" {\n            web = container \"Web\" // c\n            api = container \"API\" \"\"\n        }\n    }\n}\n"
     },
     {
-      "doc": "A set of a present argument of an entry that opens a block replaces the value only.",
+      "doc": "A set of a present argument of an entry that opens a block replaces that argument only, written between the quotes its slot's requote gives (FBL 0.15 6.3, A string).",
       "edit": {
         "set": {
           "element": "s",
@@ -112,9 +112,9 @@
       "splices": [
         {
           "operation": "replace-value",
-          "start": 71,
-          "end": 72,
-          "text": "System"
+          "start": 70,
+          "end": 73,
+          "text": "\"System\""
         }
       ],
       "expect": "workspace \"Absent arguments\" {\n    model {\n        s = softwareSystem \"System\" {\n            web = container \"Web\" // c\n            api = container \"API\" \"\"\n        }\n    }\n}\n"
@@ -125,9 +125,9 @@
       "splices": [
         {
           "operation": "replace-value",
-          "start": 71,
-          "end": 77,
-          "text": "S"
+          "start": 70,
+          "end": 78,
+          "text": "\"S\""
         }
       ],
       "expect": "workspace \"Absent arguments\" {\n    model {\n        s = softwareSystem \"S\" {\n            web = container \"Web\" // c\n            api = container \"API\" \"\"\n        }\n    }\n}\n"
@@ -165,9 +165,9 @@
       "splices": [
         {
           "operation": "replace-value",
-          "start": 153,
-          "end": 155,
-          "text": ""
+          "start": 152,
+          "end": 156,
+          "text": "\"\""
         }
       ],
       "expect": "workspace \"Absent arguments\" {\n    model {\n        s = softwareSystem \"S\" {\n            web = container \"Web\" // c\n            api = container \"API\" \"\" \"\"\n        }\n    }\n}\n"
@@ -178,9 +178,9 @@
       "splices": [
         {
           "operation": "replace-value",
-          "start": 153,
-          "end": 153,
-          "text": "Go"
+          "start": 152,
+          "end": 154,
+          "text": "\"Go\""
         }
       ],
       "expect": "workspace \"Absent arguments\" {\n    model {\n        s = softwareSystem \"S\" {\n            web = container \"Web\" // c\n            api = container \"API\" \"\" \"Go\"\n        }\n    }\n}\n"

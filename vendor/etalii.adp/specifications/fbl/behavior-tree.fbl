@@ -1,7 +1,7 @@
 {
   "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
-  "fbl": "0.7",
-  "doc": "Agent Behavior Modelling's Markdown file format (definitions/diagrams/agent-behavior-modelling.dis and agent-behavior-modelling.md, section The file format) declared as a binding of the bullets family (FBL 0.7, section 4.8). It is a declared reading of that tool's format beside the persistence plugin its specification names: it changes neither the tool type's specification, whose persistence keeps naming agent-behavior-modelling.fbl#abm and the plugin net.etalii.adp.etalii.abmMarkdown, nor any host. The tree is the list items under the first heading Behavior or Behaviour, at any level, case-insensitive. A node is one item, its keyword in bold with the label after it (- **Do in order:** Handle the request), one rule per keyword, read without regard to case, with the colon inside or after the bold. Retry's count is inside its keyword and is the attempts attribute. An item without a keyword is an implicit Do, read by the last rule. Nothing in the Markdown names a node: no rule has an id, so a node's id is the one the specification derives from its place (1, 1.2, 1.2.1). Notes are the item's continuation lines. A nested item is a child of the item it is nested in, whatever that item's type, so the tool's own constraints report a leaf with children and a wrapper with more than one; the containment checks DISL builds in are switched off in the specification. The first node added to a file without the section appends ## Behavior at the end of the file. Everything else in the file, the legend the tool writes into a new file included, is unbound and kept byte for byte. Known differences from the tool's own reader and writer (AbmParser.cs, AbmWriter.cs), which FBL 0.7 cannot state: (1) the tool reads only the first list in the section, ending it at a line in the list's column that is not an item, where this binding reads every item that stands in the section; (2) the tool writes Retry up to 1 time, singular, for a count of one, where this binding writes the count's digits in place and keeps the word that was there, and a new Retry is written with times whatever its count; (3) the tool's notes leave out the trailing whitespace of each line, which the continuation keeps; (4) the tool rewrites a renamed item's whole line in its canonical form (**Keyword:** label, one space after the marker, no space after the bold when the label is empty), where this binding replaces the label alone; (5) the tool ends the section at a heading of its level or higher even inside a list item and indented up to three columns, and closes a fence on any line that starts with the fence's first three characters, where FBL 0.7 reads such a line as an item's continuation, and closes a fence only on a run of the same character with nothing after it; (6) the tool suggests the reading for a Behavior heading in any case, where claims.suggest is a substring and matches # Behavior and # Behaviour as written; (7) the tool does not read an item with no text after its marker, which this binding reads as an implicit Do with an empty label; (8) the tool titles a new file Agent when the name leaves nothing, where the template writes {base}.",
+  "fbl": "0.19",
+  "doc": "Agent Behavior Modelling's Markdown file format (definitions/diagrams/agent-behavior-modelling.dis and agent-behavior-modelling.md, section The file format) declared as a binding of the bullets family (FBL 0.7, section 4.8). It is a declared reading of that tool's format beside the persistence plugin its specification names: it changes neither the tool type's specification, whose persistence keeps naming agent-behavior-modelling.fbl#abm and the plugin net.etalii.adp.etalii.abmMarkdown, nor any host. The tree is the list items under the first heading Behavior or Behaviour, at any level, case-insensitive. A node is one item, its keyword in bold with the label after it (- **Do in order:** Handle the request), one rule per keyword, read without regard to case, with the colon inside or after the bold. Retry's count is inside its keyword and is the attempts attribute. An item without a keyword is an implicit Do, read by the last rule. Nothing in the Markdown names a node: no rule has an id, so a node's id is the one the specification derives from its place (1, 1.2, 1.2.1). Notes are the item's continuation lines. A nested item is a child of the item it is nested in, whatever that item's type, so the tool's own constraints report a leaf with children and a wrapper with more than one; the containment checks DISL builds in are switched off in the specification. The first node added to a file without the section appends ## Behavior at the end of the file; the first node of a section that holds no list goes right under its heading, above anything else the section holds, as the tool writes it (under-heading, FBL 0.19). Everything else in the file, the legend the tool writes into a new file included, is unbound and kept byte for byte. Known differences from the tool's own reader and writer (AbmParser.cs, AbmWriter.cs), which FBL 0.7 cannot state: (1) the tool reads only the first list in the section, ending it at a line in the list's column that is not an item, where this binding reads every item that stands in the section; (2) the tool writes Retry up to 1 time, singular, for a count of one, where this binding writes the count's digits in place and keeps the word that was there, and a new Retry is written with times whatever its count; (3) the tool's notes leave out the trailing whitespace of each line, which the continuation keeps; (4) the tool rewrites a renamed item's whole line in its canonical form (**Keyword:** label, one space after the marker, no space after the bold when the label is empty), where this binding replaces the label alone; (5) the tool ends the section at a heading of its level or higher even inside a list item and indented up to three columns, and closes a fence on any line that starts with the fence's first three characters, where FBL 0.7 reads such a line as an item's continuation, and closes a fence only on a run of the same character with nothing after it; (6) the tool suggests the reading for a Behavior heading in any case, where claims.suggest is a substring and matches # Behavior and # Behaviour as written; (7) the tool does not read an item with no text after its marker, which this binding reads as an implicit Do with an empty label; (8) the tool titles a new file Agent when the name leaves nothing, where the template writes {base}.",
   "bindings": {
     "abm": {
       "title": "Agent behavior model, Markdown",
@@ -36,7 +36,7 @@
           },
           "attributes": { "label": { "group": "label", "empty": "keep" }, "notes": { "continuation": true, "empty": "remove" } },
           "insert": {
-            "place": "last-child",
+            "place": "under-heading",
             "container": "behavior",
             "create": { "at": "end-of-document", "text": "## Behavior" },
             "emit": "**Do in order:**[ {label}]"
@@ -55,7 +55,7 @@
           },
           "attributes": { "label": { "group": "label", "empty": "keep" }, "notes": { "continuation": true, "empty": "remove" } },
           "insert": {
-            "place": "last-child",
+            "place": "under-heading",
             "container": "behavior",
             "create": { "at": "end-of-document", "text": "## Behavior" },
             "emit": "**Try in order:**[ {label}]"
@@ -74,7 +74,7 @@
           },
           "attributes": { "label": { "group": "label", "empty": "keep" }, "notes": { "continuation": true, "empty": "remove" } },
           "insert": {
-            "place": "last-child",
+            "place": "under-heading",
             "container": "behavior",
             "create": { "at": "end-of-document", "text": "## Behavior" },
             "emit": "**Do together:**[ {label}]"
@@ -98,7 +98,7 @@
             "notes": { "continuation": true, "empty": "remove" }
           },
           "insert": {
-            "place": "last-child",
+            "place": "under-heading",
             "container": "behavior",
             "create": { "at": "end-of-document", "text": "## Behavior" },
             "emit": "**Retry up to {attempts} times:**[ {label}]"
@@ -117,7 +117,7 @@
           },
           "attributes": { "label": { "group": "label", "empty": "keep" }, "notes": { "continuation": true, "empty": "remove" } },
           "insert": {
-            "place": "last-child",
+            "place": "under-heading",
             "container": "behavior",
             "create": { "at": "end-of-document", "text": "## Behavior" },
             "emit": "**Repeat until:**[ {label}]"
@@ -136,7 +136,7 @@
           },
           "attributes": { "label": { "group": "label", "empty": "keep" }, "notes": { "continuation": true, "empty": "remove" } },
           "insert": {
-            "place": "last-child",
+            "place": "under-heading",
             "container": "behavior",
             "create": { "at": "end-of-document", "text": "## Behavior" },
             "emit": "**Only while:**[ {label}]"
@@ -155,7 +155,7 @@
           },
           "attributes": { "label": { "group": "label", "empty": "keep" }, "notes": { "continuation": true, "empty": "remove" } },
           "insert": {
-            "place": "last-child",
+            "place": "under-heading",
             "container": "behavior",
             "create": { "at": "end-of-document", "text": "## Behavior" },
             "emit": "**Ask approval before:**[ {label}]"
@@ -174,7 +174,7 @@
           },
           "attributes": { "label": { "group": "label", "empty": "keep" }, "notes": { "continuation": true, "empty": "remove" } },
           "insert": {
-            "place": "last-child",
+            "place": "under-heading",
             "container": "behavior",
             "create": { "at": "end-of-document", "text": "## Behavior" },
             "emit": "**Check:**[ {label}]"
@@ -193,7 +193,7 @@
           },
           "attributes": { "label": { "group": "label", "empty": "keep" }, "notes": { "continuation": true, "empty": "remove" } },
           "insert": {
-            "place": "last-child",
+            "place": "under-heading",
             "container": "behavior",
             "create": { "at": "end-of-document", "text": "## Behavior" },
             "emit": "**Do:**[ {label}]"
@@ -212,7 +212,7 @@
           },
           "attributes": { "label": { "group": "label", "empty": "keep" }, "notes": { "continuation": true, "empty": "remove" } },
           "insert": {
-            "place": "last-child",
+            "place": "under-heading",
             "container": "behavior",
             "create": { "at": "end-of-document", "text": "## Behavior" },
             "emit": "**Ask the user:**[ {label}]"
@@ -231,7 +231,7 @@
           },
           "attributes": { "label": { "group": "label", "empty": "keep" }, "notes": { "continuation": true, "empty": "remove" } },
           "insert": {
-            "place": "last-child",
+            "place": "under-heading",
             "container": "behavior",
             "create": { "at": "end-of-document", "text": "## Behavior" },
             "emit": "**Delegate:**[ {label}]"

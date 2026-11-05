@@ -66,17 +66,23 @@ The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **
 
 ATD is the one language in which a tool type of any kind is described completely: its identity, its model, its surface (a canvas for a diagram, a form-based surface for a designer, text for an editor), its behaviour, the bindings to the files it reads and writes, and the logic that hosts write per tool type today, in a small script that is part of the language. A tool type is described in one `.atd` file, or in a root file with the parts it imports: a **tool description**.
 
+A smallest whole description of each kind is what `atd new` writes; section 19 prints three of the examples, and [the guide for tool engineers](ATD-guide.md) writes a tool type of each kind step by step.
+
 Today a tool engineer specifies a tool type in up to three JSON files, each in a language of its own: a specification in DISL or DESL, a binding in FBL, and a companion `.md` that lists in prose what neither language can say, which each host then writes as code. ATD states each concept once, in a core shared by every kind (section 7); puts the logic beside the declarations it serves (section 12); names what is too heavy or numeric for a script as a **capability** with a contract (section 13); and is defined by one grammar that is LALR(1), so that it can be checked as one unit, given one set of editing tools, and written by people and agents under a grammar that admits only valid text.
 
 ### 1.2 The phases of the move
 
 - **End state.** The `.atd` text alone is normative for every tool type; the JSON forms of DISL, DESL, EDSL and FBL are retired as authored forms, and every host runs tools from `.atd`.
-- **Phase 1, this version.** ATD is specified; the tool types in scope (29 diagram, 2 designer and 5 editor types) are described in `.atd` under `definitions/`, each with a trace (section 2.5) and conformance fixtures (section 2.3); the toolchain to write, check, edit, validate and debug descriptions exists. The `.dis`, `.des` and `.fbl` files stay the ones every host runs, unchanged. A host that finds a tool type both as `.atd` and as JSON files runs it from the JSON files and ignores the `.atd` when it loads tools.
+- **Phase 1, this version.** ATD is specified; the tool types in scope (29 diagram, 2 designer and 5 editor types) are described in `.atd` under `definitions/`, each with a trace (section 2.5) and conformance fixtures (section 2.3), but for the Knowledge designer, whose description spec 076 writes; the toolchain to write, check, edit, validate and debug descriptions exists, and validation has a runtime for diagrams only so far. The `.dis`, `.des` and `.fbl` files stay the ones every host runs, unchanged. A host that finds a tool type both as `.atd` and as JSON files runs it from the JSON files and ignores the `.atd` when it loads tools.
 - **Later phases.** Conversion of the JSON files, hosts running tools from `.atd`, and the retirement of the JSON languages as authored forms are features of their own.
 
 ### 1.3 Relation to the other specifications
 
-DISL, DID, DESL, DED, EDSL, EDD and FBL remain specifications of this repository. ATD carries every construct of DISL 0.8, DESL 0.2 and FBL 0.16 (Appendix C maps each of their properties to the ATD construct that carries it), and the constructs an editor needs, which EDSL, a placeholder, does not yet have (section 10). ATD reuses their schemas: a setting of an ATD construct is checked against the `$defs` entry of DISL, DESL or FBL for the same thing (section 14.6), and a binding in ATD is an FBL binding written as text. Tools keep storing their documents in DID, DED or a body a binding reads; a tool description replaces none of them.
+DISL, DID, DESL, DED, EDSL, EDD and FBL remain specifications of this repository. ATD carries every construct of DISL 0.9, DESL 0.2 and FBL 0.19 (Appendix C maps each of their properties to the ATD construct that carries it), and the constructs an editor needs, which EDSL, a placeholder, does not yet have (section 10). ATD reuses their schemas: a setting of an ATD construct is checked against the `$defs` entry of DISL, DESL or FBL for the same thing (section 14.6), and a binding in ATD is an FBL binding written as text. Tools keep storing their documents in DID, DED or a body a binding reads; a tool description replaces none of them.
+
+### 1.4 How to read this document
+
+A tool engineer new to the language starts with [the guide](ATD-guide.md), and comes here for what a construct means. Section 5 gives the shape of a file, section 7 the constructs every kind shares, and sections 8, 9 and 10 the surface of a diagram, a designer and an editor; section 11 gives bindings, section 12 the script and section 13 capabilities. Section 14 says what a checker refuses, section 15 lists its findings, and Appendix B is the keywords. Whoever implements a checker, a language server or a runtime reads sections 2 to 4 and 14 to 16 as well: section 2 says what conformance is, and sections 3 and 4 how to read the grammar without Lark. Appendix C maps each property of DISL, DESL and FBL to its construct here.
 
 ---
 
@@ -374,7 +380,7 @@ Expressions are CEL (FR-007), and the grammar contains CEL's expression syntax (
 - the conditional `?:`, `||`, `&&`, the relations `< <= >= > == != in`, `+ -`, `* / %`, `!` and unary `-`, member selection, indexing, calls, lists and maps, with CEL's precedence;
 - every literal: `int`, `uint`, `double`, `string` and `bytes` in all their forms, `true`, `false`, `null`;
 - CEL's optional syntax: `a.?b`, `a[?i]`, `[?x]` and `{?k: v}`;
-- the macros (`has`, `all`, `exists`, `exists_one`, `map`, `filter`, `cel.bind`) as calls.
+- the macros (`has`, `all`, `exists`, `exists_one`, `map`, `filter`, `cel.bind`, and DISL 0.9's `groupBy`, DISL §12.4) as calls.
 
 CEL's **message construction** (`Name{field: value}`) is not part of ATD: no ADP CEL environment declares a message type (DISL §12.2, DESL §9.2), and leaving it out lets a bare expression be followed by a block (`if cond { … }`). The abstract tree holds an expression with CEL's abstract syntax (`$defs/CelNode`): an operator as a call of its CEL function name (`_+_`, `_&&_`, `!_`, `-_`, `_?_:_`, `_[_]`, `@in`), a macro as a call marked `macro`.
 
@@ -618,7 +624,7 @@ The text's model is the description's model: its element types are what the edit
 
 ## 11. Bindings
 
-A binding (`grammar/binding.lark`) is an FBL 0.16 binding written as text (FBL §3 to §13): every property of FBL's `Binding` has its ATD form in Appendix C. Its meaning, reading and writing are FBL's, unchanged.
+A binding (`grammar/binding.lark`) is an FBL 0.19 binding written as text (FBL §3 to §13): every property of FBL's `Binding` has its ATD form in Appendix C. Its meaning, reading and writing are FBL's, unchanged.
 
 ### 11.1 The binding
 
@@ -640,7 +646,7 @@ A description **MAY** have several bindings, one per format family, as DESL's `p
 `element <Type> [as <name>] [at "<selector>" | line "<regex>"] { … }` is an element rule (FBL §5.1), `relation <Type> [as <name>] […] { … }` a relation rule (FBL §5.4). The name after `as` is FBL's rule `name`, written as FBL writes it, hyphens and dots included (`as unreadable-requirement`, section 3.6); without it the rule's name is its type's. The same holds for every name a binding declares or names: the binding's own, a block's, a section's, and those `parent`, `within`, `files` and `references` name. Members:
 
 - `id from <slot> [{ … }]` or `id { … }` (FBL §5.3);
-- `attribute <name> [from <slot>] [{ … }]`: an attribute binding (FBL §5.2), its options as settings (`empty`, `absent`, `default`, `number`, `time`, `style`, `map`, `override`, `content`, `create`, `readOnly`, `read`, `quoted`, `fallback`, *(FBL 0.10)* `secondary` and `refusals`, *(FBL 0.11)* `escape` and `gather`, *(FBL 0.12)* `items` and `separator`, *(FBL 0.13)* `split`, *(FBL 0.15)* `or`, `expand`, `ordinal` and `name`), and `references <rules> by <name>` for FBL's `reference` (`by id` for a reference by stored id, FBL §5.7);
+- `attribute <name> [from <slot>] [{ … }]`: an attribute binding (FBL §5.2), its options as settings (`empty`, `absent`, `default`, `number`, `time`, `style`, `map`, `override`, `content`, `create`, `readOnly`, `read`, `quoted`, `fallback`, *(FBL 0.10)* `secondary` and `refusals`, *(FBL 0.11)* `escape` and `gather`, *(FBL 0.12)* `items` and `separator`, *(FBL 0.13)* `split`, *(FBL 0.15)* `or`, `expand`, `ordinal` and `name`, *(FBL 0.18)* `holds`), and `references <rules> by <name>` for FBL's `reference` (`by id` for a reference by stored id, FBL §5.7);
 - `parent <rules> [slot <name>]` (FBL §5.5), `within <names>`, `when <CEL>`, `files <names>`;
 - `insert { … }` and `remove { … }` (section 11.5);
 - in a relation rule, `source from <slot>` and `target from <slot>`;
@@ -682,6 +688,7 @@ FBL's guarantees hold for every binding in ATD (FBL §1.4, §6, §7): reading ne
 - *(FBL 0.12)* An attribute binding's slot takes, in this family, `items: { <attribute>: <slot>, … }`, a slot per item attribute relative to each node the slot reaches, and `separator: "<text>"`, so that a `many` attribute is a list of structured values (FBL §5.2, §6.3): `attribute positions from node "positions/position" { items: { visibility: { node: "visibility" }, maturity: { node: "maturity" } }, separator: "," }`.
 - *(FBL 0.15)* A slot's selector may reach up and across with `..` and `+`; an attribute binding takes `or: [<slots>]`, further slots of which the first present is the value; and a slot takes `expand: true` or `expand: { keywords: { … } }`, `ordinal: <numbering>` and `name: true`, and its `escape` takes `sequences`, `unicode`, `writes` and `requote` (FBL §4.9, §5.2, §6.3). A value is read in Turtle's terms with them, as `w3c-turtle.lark` shows.
 - *(FBL 0.16)* An `insert`'s `continues` writes a new entry into the last statement of the same subject, replacing its last token (`replace-separator`), and a `remove`'s `parts` and `whole` take a part of a list with its separator and the whole statement when it is the last (FBL §4.9, §6.2, §6.3, section 11.5): `insert { place: end-of-document, emit: "\n{s} {p} {o} .", continues: { at: "/triples_statement", same: { s: { node: "triples/subject/iri", expand: true } }, separator: ";", emit: "{p} {o} ." } }` and `remove { parts: [{ item: ".", separator: "," }, { item: "../..", separator: ";" }], whole: "../../../../.." }`.
+- *(FBL 0.18)* An attribute binding's slot takes, in this family, `holds: "<text>"`, which reads a bool attribute as a flag, true when a node the slot reaches holds that text in any case of its ASCII letters, a set of true writing one by the binding's `create` after the last node the slot reaches and a set of false removing every one (FBL §4.9, §5.2, §6.3): `attribute market from node "decorator" { match: "…", holds: "market", create: { emit: " ({value})", after: ["coordinates"] } }` reads `(Market)` as true.
 - *(FBL 0.13)* An attribute binding's slot takes, in this family, `split: "<text>"`, the text at which the value of each node it reaches is cut into the items of a `many` attribute, each without the white space around it, and a set of them is written into the node by splices (FBL §4.9, §5.2, §6.3): `attribute tags from node "tags" { split: ",", readOnly: true }` reads `"Extra, More"` as the two tags `Extra` and `More`.
 - *(FBL 0.11)* A block rule of this family is `block <name> { … }` with the settings `at`, the selector of the view's node, `view`, its key from a slot, `origins`, the readings that show it, and `insert`, how a view block is added (FBL §5.1, §4.9, *Views*); it has no `line`.
 - A rule's `at "<selector>"` selects nodes of the tree by their names (`at "/triples_statement"`), and a slot `node "<selector>"` reads the text of the node or token its relative selector reaches, with the setting `match` when only part of the text is the value (`attribute name from node "PNAME_NS" { match: r"(?<value>[^:]*):" }`); FBL §4.9 and §5.2 define both.
@@ -850,6 +857,7 @@ The catalogue is the capabilities with a contract in `capabilities/` beside this
 | `layout.nestedGrid` | layout | provisional |
 | `layout.rankedBoundaries` | layout | provisional |
 | `layout.rankedColumns` | layout | provisional |
+| `layout.ring` | layout | provisional |
 | `layout.rowPacked` | layout | provisional |
 | `layout.rowPacking` | layout | provisional |
 | `layout.tidyTree` | layout | provisional |
@@ -1070,11 +1078,249 @@ Beside this document, each a complete description that checks without findings:
 | `reading-list.atd` | a designer with a table surface and a `yaml` binding |
 | `notes.atd` | an editor with a text surface and a `bullets` binding |
 | `binding-json.atd`, `binding-lines.atd`, `binding-blocks.atd` | a binding of the `json`, `lines` and `blocks` families |
+| `binding-grammar.atd` | a binding of the `grammar` family, for Turtle, with its grammar inline (section 11.9) |
 | `binding-capability.atd` | a binding whose family is a capability |
 
 And the worked examples of section 2: `fixtures/mindmap/basic/`, `mindmap.trace.json` with `mindmap.md`, and `capabilities/*/contract.json`.
 
 The tool descriptions under `definitions/` are examples too, and `atd-grammar.py --probe` reads them with those beside this document: `definitions/designers/hierarchical-requirement.atd`, with its part `hierarchical-requirement.markdown.atd`, is a designer with a hierarchy surface, the widths of its columns, `move` with a place, binding types the type map maps as the document and as unreadable, and rule names with hyphens. The five editors under `definitions/editors/` (`plain-text.atd`, `markdown.atd`, `json.atd`, `xml.atd`, `yaml.atd`) are editors with a text surface: files, token classes, checks and completion from sources the editor names, an outline of a model read by a capability, and a preview.
+
+Three of them follow in full, the shortest of each kind that shows a binding. Each is a copy of the file beside this document. The guide for tool engineers explains how such a file is written, step by step, with the mind map, the Hierarchical Requirement Designer and the Markdown editor.
+
+**A diagram**, `binding-lines.atd`:
+
+```atd
+atd 0.1
+
+/// Variables and the links between them, one statement per line: the `lines` family, as the causal loop diagram's
+/// `.cld` files are read (FBL's `causal-loop-diagram.fbl`, trimmed).
+diagram example/influence version "0.1.0" {
+  label "Influence diagram"
+
+  model {
+    element Variable {
+      attribute name: string required
+      attribute label: string
+      labelAttribute: name
+    }
+    element Link {
+      attribute from: Variable required
+      attribute to: Variable required
+    }
+    relation Influence from Variable to Variable {
+      derived: (diagram.nodes.filter(n, n.type == "Link").map(l, {'source': l.from, 'target': l.to}))
+    }
+  }
+
+  notation {
+    node Variable { shape ellipse  label @name }
+    edge Influence { line { routing: bezier }  marker target arrow }
+  }
+
+  binding cld family lines {
+    label "Influence diagram"
+    claims files "*.cld"
+    text { newline: crlf, finalNewline: true }
+    comment: r"^\s*#"
+    unmatched: report
+
+    element Variable as variable line r"^\s*variable\s+(?<name>[^\s]+)(?:\s+(?<label>\x22[^\x22]*\x22))?\s*$" {
+      attribute name from group "name" { empty: refuse }
+      attribute label from group "label" { empty: remove }
+      insert { place: after-last, emit: "variable {name}[ \"{label}\"]" }
+      remove { cascade: [link] }
+    }
+
+    element Link as link line r"^\s*link\s+(?<from>[^\s]+)\s+->\s+(?<to>[^\s]+)\s*$" {
+      attribute from from group "from" { references variable by name }
+      attribute to from group "to" { references variable by name }
+      insert { place: after-last, emit: "link {from} -> {to}" }
+      remove {}
+    }
+  }
+}
+```
+
+**A designer**, `reading-list.atd`:
+
+```atd
+atd 0.1
+
+/// A reading list, one row per book, with text and number fields and one view: DESL's smallest example
+/// (`minimal-table.des` and `minimal-table.fbl`) as a designer in ATD.
+designer example/reading-list version "0.1.0" {
+  label "Reading list"
+
+  model {
+    element Field {
+      attribute name: string required
+      attribute valueType: ValueType required
+      labelAttribute: name
+    }
+    element View {
+      attribute name: string required
+      labelAttribute: name
+    }
+    element Book {
+      contains Value ordered
+      contains Value as values
+    }
+    element Value {
+      attribute field: Field required
+      attribute text: text
+      attribute number: number
+    }
+    enum ValueType {
+      text { label: "Text" }
+      number { label: "Number" }
+    }
+  }
+
+  persistence {
+    ids: { strategy: "uuid-v4", encoding: base36, types: { Value: { strategy: derived, expression: (self.parent.id + "/" + self.field.id) } } }
+  }
+
+  constraint uniqueFieldNames for Field {
+    rule document.elementsOfType("Field").filter(f, f.name == self.name).size() == 1
+    severity error
+    message "Two fields have this name."
+    code: "reading-list.duplicate-field-name"
+  }
+
+  surface table {
+    columns Field { name: name, valueType: valueType }
+    rows Book
+    cells Value { column: field }
+    views View { name: name }
+    valueType text "Text" {
+      key: text
+      editor: text
+      comparisons: [is, contains]
+      sort: text
+      convert number parse
+    }
+    valueType number "Number" {
+      key: number
+      editor: number
+      comparisons: [equals, greater-than, less-than]
+      sort: number
+      convert text written-form
+    }
+  }
+
+  operation addBook "New book" for document {
+    create Book
+  }
+
+  binding yaml family yaml {
+    label "Reading list"
+    claims { extensions: [".yaml", ".yml"], shared: true, marker: { rootKey: designer, value: "example/reading-list" }, origins: ["example/reading-list"] }
+    text { newline: lf, indent: 2 }
+    header { key: ded, value: "0.1", required: true }
+
+    element Field as field at "/fields/*" {
+      id from key "id"
+      attribute name from key "name" { empty: refuse }
+      attribute valueType from key "type" { empty: refuse }
+      insert { place: after-last, container: "/fields", keys: [id, name, type] }
+      remove { cascade: [value] }
+    }
+    element View as view at "/views/*" {
+      id from key "id"
+      attribute name from key "name" { empty: refuse }
+      insert { place: after-last, container: "/views", keys: [id, name] }
+      remove {}
+    }
+    element Book as book at "/books/*" {
+      id from key "id"
+      insert { place: after-last, container: "/books", create: { at: { under: "/" } }, keys: [id] }
+      remove {}
+    }
+    element Value as value at "/books/*/values/*" {
+      parent book slot values
+      attribute field from key "field" {
+        empty: refuse
+        references field by id
+      }
+      attribute text from key "text" { empty: remove }
+      attribute number from key "number" { empty: remove, number: shortest }
+      insert { place: after-last, container: "values", create: { at: { after: id } }, keys: [field, text, number] }
+      remove { container: remove-when-empty }
+    }
+
+    registration { createOnFirstPlacement: false }
+    template """ded: "0.1"
+designer: example/reading-list
+fields:
+  - id: {newid:field}
+    name: Title
+    type: text
+views:
+  - id: {newid:view}
+    name: All books
+"""
+  }
+}
+```
+
+**An editor**, `notes.atd`:
+
+```atd
+atd 0.1
+
+/// Notes kept as a Markdown list: an editor whose text is the document, with an outline of the notes, folding by
+/// note, a preview, and a `bullets` binding that reads the notes under the heading `Notes` as a tree.
+editor example/notes version "0.1.0" {
+  label "Notes"
+  requires capability render.markdown@^1
+
+  model {
+    element Note {
+      attribute title: string required
+      attribute done: bool default false
+      attribute detail: text
+      contains Note ordered
+      labelAttribute: title
+    }
+  }
+
+  constraint titled for Note {
+    rule self.title.trim() != ""
+    severity warning
+    message "A note needs a title."
+    code: "notes.untitled"
+  }
+
+  surface text {
+    files "*.notes.md"
+    tokens markdown
+    outline Note by title
+    fold Note
+    preview capability render.markdown { side: right }
+    fix closeNote "Mark as done" {
+      when !self.done
+      set self.done = true
+    }
+  }
+
+  binding notes family bullets {
+    label "Notes"
+    claims files "*.notes.md"
+    header { line: r"^# ", required: false }
+    section notes "Notes" { caseInsensitive: true }
+
+    element Note as note line r"^\[(?<done>[ x])\] (?<title>.+)$" {
+      within notes
+      parent note
+      attribute title from group "title" { empty: refuse }
+      attribute done from group "done" { map: { "x": "true", " ": "false" } }
+      attribute detail from continuation
+      insert { place: after-last, emit: "- \\[{done}\\] {title}" }
+      remove {}
+    }
+  }
+}
+```
 
 ### 19.2 The walk
 
@@ -1082,17 +1328,17 @@ The tool descriptions under `definitions/` are examples too, and `atd-grammar.py
 
 ### 19.3 The refused corpus
 
-`refused/` holds descriptions a checker refuses, each with the findings it must give (`refused/README.md`).
+`refused/` holds descriptions a checker refuses, each with the findings it must give (`refused/README.md`). `atd check --corpus refused` compares every one of them with its findings.
 
 ### 19.4 For agents
 
-An agent writing a description is given `grammar/atd.flat.lark`, with which a model service constrains its output, two examples, and the findings of `atd check --json`, which it reads as data.
+An agent writing a description is given `grammar/atd.flat.lark`, with which a model service constrains its output, two examples, and the findings of `atd check --json`, which it reads as data. Section 10 of [the guide](ATD-guide.md) says how.
 
 ---
 
 ## Changes
 
-- **0.1** (2026-10-23, spec 035): the first version.
+- **0.1** (2026-10-23, spec 035): the first version. One language in which a tool type of any kind is described: one LALR(1) grammar in ATD grammar notation, with its flattened form and its parse tables (§4); files, parts and imports (§5); values (§6); a core every kind shares (§7), and a surface per kind, the canvas, the form and the text (§8 to §10); bindings, which are FBL's written as text (§11); the script (§12); capabilities with contracts and fixtures (§2.6, §13); the checks and their findings (§14, §15); one canonical layout (§16); and conformance fixtures, drawings and traces (§2.3 to §2.5). The amendments below change 0.1 in place, since it has no released grammar yet.
 - **0.1, amendment of 2026-10-25** (spec 035, batch 3, for the Hierarchical Requirement Designer): `widths <Type> { … }` in `surface hierarchy`, carrying DESL 0.2's `widths` (§9.3, C.2); `move` takes `slot`, and `after` or `before`, so that it carries DESL §8.2's `move` (§12.3, C.2); a binding's, rule's, block's, section's and file rule's name may hold hyphens and dots, as FBL's names do (§3.6, §11.3); a binding rule's type may be a key of `persistence`'s `typeMap` (§7.13, §14.7); and DESL 0.2's checks of a hierarchy, a counter's mark and a registration's settings are `ATD6002`, `ATD6003` and `ATD6004` (§14.7, §15.1). ATD 0.1 had no released grammar, so the amendment changes it in place; every example and tool description in this repository that checked before still checks, with the same meaning. With it, a conformance case of a designer: a step `outside`, a file written outside the host (§2.3, `$defs/ConformanceStep`), and the reference for the readings and findings of a tool type the desktop host did not have at its reference commit (§2.3).
 - **0.1, amendment of 2026-10-25, FBL 0.9** (spec 035, story 7): the `grammar` family of FBL 0.9 (§11.9, FBL §4.9): `family grammar` with `grammar { … }`, read under `grammar/notation.lark`, which the root module now imports, or `grammar from "<file>.lark"`; the keyword `grammar` (Appendix B); the settings `start` and `recover` of `body` and the slot `node` with its setting `match` (C.3); where `ATD8001`, for a grammar that is not LALR(1), stands (§11.9, §15.1); and the tables of every binding example's grammar under `grammar/tables/` (§11.9). Every description that checked before still checks, with the same meaning.
 - **0.1, amendment of 2026-10-26** (spec 035): a conformance case's `move` step carries `index`, the place among the new parent's children the reference host's gesture put the element in (§2.3, `$defs/ConformanceStep`); without it a case replayed every move into a parent as a move to its end. The mind map's case `example-1` is recorded again with it. Every description and case that was valid before is valid, with the same meaning.
@@ -1103,8 +1349,12 @@ An agent writing a description is given `grammar/atd.flat.lark`, with which a mo
 - **0.1, amendment of 2026-10-30, FBL 0.13** (spec 066, gap 16 of the C4 conversions, by the maintainer's ruling of 2026-10-30): FBL 0.13's `split` of a slot and of an attribute binding of the `grammar` family, as a setting and with no change under `grammar/` (§11.3, §11.9); C.3 is FBL 0.13's, with a row for each. A setting is checked against FBL's `$defs` (§14.6), so a description gains it with the schema. Every description that checked before still checks, with the same meaning.
 - **0.1, amendment of 2026-10-30, FBL 0.14** (spec 066, databricks-disl-fbl task 12, written to the recommended answer of the maintainer's pending card): FBL 0.14's member insert of the `yaml` and `json` families, which needs no setting of its own, and the sentences `key` and `duplicate` of an insert's `refusals`, as settings and with no change under `grammar/` (§11.5); C.3 is FBL 0.14's, its count unchanged, since `refusals` gains keys and no property. Every description that checked before still checks, with the same meaning.
 - **0.1, amendment of 2026-11-01, FBL 0.16** (spec 067, by Peter's ruling of 2026-11-01): FBL 0.16's writes of the `grammar` family, as settings and with no change under `grammar/`: an insert's `continues`, a remove's `parts` and `whole` (§11.5, §11.9), the operation `replace-separator`; C.3 is FBL 0.16's, with a row for each new property. Every description that checked before still checks, with the same meaning. With it §2.3's comparison of a refusal widens (spec 067, FR-011): a description's own reason counts as the case's sentence that a gesture is not offered, and `'<id>' cannot be edited on this selection.` is one of those sentences.
+- **0.1, amendment of 2026-11-04, FBL 0.18** (spec 071, by Peter's choice of 2026-11-04 on a decision card): FBL 0.18's `holds` of an attribute binding of the `grammar` family, a flag, as a setting and with no change under `grammar/` (§11.3, §11.9); C.3 is FBL 0.18's, with a row for it, and a binding is FBL 0.18's. A setting is checked against FBL's `$defs` (§14.6), so a description gains it with the schema. Every description that checked before still checks, with the same meaning.
+- **0.1, amendment of 2026-11-05, FBL 0.19** (spec 076, by Peter's answer of 2026-11-05 to its question Q2): FBL 0.19's `place` `under-heading` of an insert of the `bullets` family, a value of the setting `place`, with no change under `grammar/`; C.3 is FBL 0.19's, and a binding is FBL 0.19's. A setting is checked against FBL's `$defs` (§14.6), so a description gains it with the schema. Every description that checked before still checks, with the same meaning.
+- **0.1, amendment of 2026-11-05, `layout.ring`** (spec 076, research R8): the capability `layout.ring` enters the catalogue (§13.6) with its contract and fixtures, recorded from the causal loop diagram's ring; the causal loop description's layout names it. No construct changes.
 - **0.1, amendment of 2026-10-31, FBL 0.15** (spec 067, T036, for Turtle): FBL 0.15's constructs of the `grammar` family, as settings and with no change under `grammar/` but the tables of `w3c-turtle.lark` (§11.9): `body`'s `prefixes`, `ordinals` and `order`, a slot's and an attribute binding's `expand`, `ordinal` and `name`, an attribute binding's `or`, and `..` and `+` in a slot's selector (§11.3, §11.9); C.3 is FBL 0.15's, with a row for each new property. Every description that checked before still checks, with the same meaning.
 - **0.1, amendment of 2026-11-01, the lexing rule** (by Peter's ruling of 2026-11-01, the decision card "Change ATD"): the lexing rule of §3.6 is Lark's contextual lexer's, which reads a keyword by the pattern that spells it and tries the rest by priority before width, in place of the longest match, which no host that reads with Lark or EtAlii.Lark gave; ATD grammar notation admits a string's flag `i`, matched in any case of its ASCII letters (§4.1, §4.2), which `grammar/notation.lark` reads with the string as one token, `GRAMMAR_STRING`, in place of `STRING` in `grammar_atom`; a parse table's terminal carries `flags` (§4.7, `$defs/ParseTables`); and the collision §4.7 refuses is one of two pattern terminals of one priority. FBL §2.6, which restated the rule, points to it. `structurizr.lark` and `wardley-map.lark` write their keywords as strings with `i` at the priority of the word they stand in place of, in place of case-insensitive patterns at a raised priority, so that a word that starts with a keyword (`grouped`, `title Pipelines`, `inertial`) is read as a word, as the earlier rule read it; every fixture of theirs reads as it did, and `specifications/fbl/fixtures/structurizr-keyword-prefixes/` shows the identifiers. ATD's own grammar states no priority, so every description reads, checks and means what it did.
+- **0.1, amendment of 2026-11-05, DISL 0.9** (spec 075, by Peter's approval of 2026-11-02): ATD carries DISL 0.9 (§1.3), whose macro `groupBy` groups a list by a key, with the grouping's methods `get` and `keys` (DISL §12.4); `groupBy` is a macro of §6.3, a call marked `macro` in the abstract tree, with no change under `grammar/`, and a description that uses it declares `cel.groupBy` among the `features` it requires (DISL B.8). Every description that checked before still checks, with the same meaning.
 
 
 ---
@@ -3160,14 +3410,14 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `desl.schema.json#/$defs/CelValue/properties/resultType` | the key `resultType` in a value of CelValue (a settings map, §6.4) | §6.4 |
 | `desl.schema.json#/$defs/CelValue/properties/doc` | the key `doc` in a value of CelValue (a settings map, §6.4) | §6.4 |
 
-### C.3 FBL 0.16
+### C.3 FBL 0.19
 
-254 properties.
+255 properties.
 
 | JSON pointer | ATD | Section |
 |---|---|---|
 | `fbl.schema.json#/$defs/Document/properties/$schema` | none | §11.1 |
-| `fbl.schema.json#/$defs/Document/properties/fbl` | the header `atd <version>` (§5.1); a binding is FBL 0.16's in ATD 0.1 | §11.1 |
+| `fbl.schema.json#/$defs/Document/properties/fbl` | the header `atd <version>` (§5.1); a binding is FBL 0.19's in ATD 0.1 | §11.1 |
 | `fbl.schema.json#/$defs/Document/properties/doc` | `doc` and `///` | §11.1 |
 | `fbl.schema.json#/$defs/Document/properties/bindings` | `binding` | §11.1 |
 | `fbl.schema.json#/$defs/Binding/properties/title` | `label` | §11.1 |
@@ -3347,7 +3597,8 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `fbl.schema.json#/$defs/AttributeBinding/properties/ordinal` | *(FBL 0.15)* the setting `ordinal` of `attribute` of a rule | §11.3, §11.9 |
 | `fbl.schema.json#/$defs/AttributeBinding/properties/name` | *(FBL 0.15)* the setting `name` of `attribute` of a rule | §11.3, §11.9 |
 | `fbl.schema.json#/$defs/AttributeBinding/properties/or` | *(FBL 0.15)* the setting `or` of `attribute` of a rule (a list of slots as settings maps, §6.4) | §11.3, §11.9 |
-| `fbl.schema.json#/$defs/Insert/properties/place` | the setting `place` of `insert` | §11.5 |
+| `fbl.schema.json#/$defs/AttributeBinding/properties/holds` | *(FBL 0.18)* the setting `holds` of `attribute` of a rule | §11.3, §11.9 |
+| `fbl.schema.json#/$defs/Insert/properties/place` | the setting `place` of `insert`, *(FBL 0.19)* `under-heading` among its values | §11.5 |
 | `fbl.schema.json#/$defs/Insert/properties/container` | the setting `container` of `insert` | §11.5 |
 | `fbl.schema.json#/$defs/Insert/properties/create` | the setting `create` of `insert` | §11.5 |
 | `fbl.schema.json#/$defs/Insert/properties/keys` | the setting `keys` of `insert` | §11.5 |

@@ -634,17 +634,24 @@ impl Replay {
         if named.is_some() {
             return self.session.connect(&mut self.workspace, name, source, end, &self.ids);
         }
-        // A derived relation type is drawn by the operation its `edits.connect` names (DISL section 4.11.4), which a
-        // reference host's connect tool names by that operation's wire id.
-        if let Some(derived) = self.derived_connecting(&relations, name) {
-            return self
-                .session
-                .connect(&mut self.workspace, &derived, source, end, &self.ids);
-        }
         let connection = ActionTarget::Connection {
             source: Some(source.to_owned()),
             target: Some(end.to_owned()),
         };
+        let offered = self
+            .session
+            .actions(self.workspace.documents(), &connection)
+            .into_iter()
+            .flat_map(|group| group.actions)
+            .any(|action| action.id == name);
+        // A derived relation type is drawn by the operation its `edits.connect` names (DISL section 4.11.4), which a
+        // reference host's connect tool names by that operation's wire id, where a connection's menu offers no entry
+        // of that id.
+        if !offered && let Some(derived) = self.derived_connecting(&relations, name) {
+            return self
+                .session
+                .connect(&mut self.workspace, &derived, source, end, &self.ids);
+        }
         self.action(&connection, name, args)
     }
 

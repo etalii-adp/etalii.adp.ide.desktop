@@ -6,10 +6,6 @@
   "read": {
     "elements": [
       {
-        "id": "title",
-        "type": "Title"
-      },
-      {
         "id": "p16i53xg6y8vbpxiux6idfhnv",
         "type": "Anchor",
         "attributes": {
@@ -49,22 +45,6 @@
         }
       },
       {
-        "id": "dv6kvp7fwhsqqdxw9fq8t2n6f",
-        "type": "Dependency",
-        "attributes": {
-          "from": "User",
-          "to": "Tea"
-        }
-      },
-      {
-        "id": "b8q0ithnaur1aqfdz123z61tk",
-        "type": "Dependency",
-        "attributes": {
-          "from": "User",
-          "to": "Tea"
-        }
-      },
-      {
         "id": "tea-evolve",
         "type": "Evolve",
         "attributes": {
@@ -101,6 +81,28 @@
         "attributes": {
           "text": "Same words",
           "visibility": 0.5
+        }
+      }
+    ],
+    "x-binding": [
+      {
+        "id": "title",
+        "type": "Title"
+      },
+      {
+        "id": "dv6kvp7fwhsqqdxw9fq8t2n6f",
+        "type": "Dependency",
+        "attributes": {
+          "from": "User",
+          "to": "Tea"
+        }
+      },
+      {
+        "id": "b8q0ithnaur1aqfdz123z61tk",
+        "type": "Dependency",
+        "attributes": {
+          "from": "User",
+          "to": "Tea"
         }
       }
     ],

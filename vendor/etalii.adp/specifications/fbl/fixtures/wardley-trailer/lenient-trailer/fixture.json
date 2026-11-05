@@ -6,13 +6,6 @@
   "read": {
     "elements": [
       {
-        "id": "title",
-        "type": "Title",
-        "attributes": {
-          "title": "Lenient trailer"
-        }
-      },
-      {
         "id": "user",
         "type": "Anchor",
         "attributes": {
@@ -27,9 +20,11 @@
           "visibility": 0.8,
           "maturity": 0.3,
           "labelOffset": "-30, 12",
-          "decorators": [
-            "build"
-          ],
+          "market": false,
+          "ecosystem": false,
+          "build": true,
+          "buy": false,
+          "outsource": false,
           "inertia": true
         }
       },
@@ -41,9 +36,11 @@
           "visibility": 0.7,
           "maturity": 0.4,
           "labelOffset": "5 , -7",
-          "decorators": [
-            "market"
-          ],
+          "market": true,
+          "ecosystem": false,
+          "build": false,
+          "buy": false,
+          "outsource": false,
           "inertia": false
         }
       },
@@ -52,7 +49,11 @@
         "type": "Component",
         "attributes": {
           "name": "Shouted",
-          "decorators": [],
+          "market": false,
+          "ecosystem": false,
+          "build": false,
+          "buy": false,
+          "outsource": false,
           "inertia": false
         }
       },
@@ -61,9 +62,11 @@
         "type": "Component",
         "attributes": {
           "name": "Glued",
-          "decorators": [
-            "buy"
-          ],
+          "market": false,
+          "ecosystem": false,
+          "build": false,
+          "buy": true,
+          "outsource": false,
           "inertia": true
         }
       },
@@ -73,9 +76,11 @@
         "attributes": {
           "name": "Linked",
           "url": "linkedMap",
-          "decorators": [
-            "ecosystem"
-          ]
+          "market": false,
+          "ecosystem": true,
+          "build": false,
+          "buy": false,
+          "outsource": false
         }
       },
       {
@@ -83,7 +88,11 @@
         "type": "Component",
         "attributes": {
           "name": "Lookalike",
-          "decorators": [],
+          "market": false,
+          "ecosystem": false,
+          "build": false,
+          "buy": false,
+          "outsource": false,
           "inertia": false
         }
       },
@@ -92,9 +101,11 @@
         "type": "Component",
         "attributes": {
           "name": "Cased",
-          "decorators": [
-            "Outsource"
-          ]
+          "market": false,
+          "ecosystem": false,
+          "build": false,
+          "buy": false,
+          "outsource": true
         }
       },
       {
@@ -103,6 +114,20 @@
         "attributes": {
           "name": "linkedMap",
           "address": "linked.owm"
+        }
+      }
+    ],
+    "document": {
+      "attributes": {
+        "title": "Lenient trailer"
+      }
+    },
+    "x-binding": [
+      {
+        "id": "title",
+        "type": "Title",
+        "attributes": {
+          "title": "Lenient trailer"
         }
       },
       {
@@ -184,36 +209,47 @@
       "expect": "title Lenient trailer\nanchor User [0.95, 0.5]\ncomponent Ordered [0.8, 0.3] (build) label [-30, 12] inertia\ncomponent Spaced [0.7,0.4]  label[ 5 , -7 ]( market )\nCOMPONENT Shouted [0.6, 0.5]\ncomponent Glued [0.5, 0.6] inertia(buy)\ncomponent Linked [0.4, 0.7] url( linkedMap ) (ecosystem)\ncomponent Lookalike [0.3, 0.8] inertial\nComponent Cased [0.2, 0.2] INERTIA (Outsource)\nurl linkedMap [linked.owm]\nUser->Ordered\n"
     },
     {
-      "doc": "Spaced's decorators changed from market to build: a replace-value of the decorator's value inside its spaced parentheses.",
+      "doc": "Spaced's market cleared and build set, in one edit: ( market ), which stands right after the label's ] with no whitespace before it, is removed alone, and (build) is written where it ended, after the statement's last decorator.",
       "edit": {
         "set": {
           "element": "spaced",
           "attributes": {
-            "decorators": [
-              "build"
-            ]
+            "market": false,
+            "build": true
           }
         }
       },
       "splices": [
         {
-          "operation": "replace-value",
-          "start": 152,
-          "end": 158,
-          "text": "build"
+          "operation": "remove-key",
+          "start": 150,
+          "end": 160,
+          "text": ""
+        },
+        {
+          "operation": "insert-key",
+          "start": 160,
+          "end": 160,
+          "text": " (build)"
         }
       ],
-      "expect": "title Lenient trailer\nanchor User [0.95, 0.5]\ncomponent Ordered [0.8, 0.3] (build) label [-30, 12] inertia\ncomponent Spaced [0.7,0.4]  label[ 5 , -7 ]( build )\nCOMPONENT Shouted [0.6, 0.5]\ncomponent Glued [0.5, 0.6] inertia(buy)\ncomponent Linked [0.4, 0.7] url( linkedMap ) (ecosystem)\ncomponent Lookalike [0.3, 0.8] inertial\nComponent Cased [0.2, 0.2] INERTIA (Outsource)\nurl linkedMap [linked.owm]\nUser->Ordered\n"
+      "expect": "title Lenient trailer\nanchor User [0.95, 0.5]\ncomponent Ordered [0.8, 0.3] (build) label [-30, 12] inertia\ncomponent Spaced [0.7,0.4]  label[ 5 , -7 ] (build)\nCOMPONENT Shouted [0.6, 0.5]\ncomponent Glued [0.5, 0.6] inertia(buy)\ncomponent Linked [0.4, 0.7] url( linkedMap ) (ecosystem)\ncomponent Lookalike [0.3, 0.8] inertial\nComponent Cased [0.2, 0.2] INERTIA (Outsource)\nurl linkedMap [linked.owm]\nUser->Ordered\n"
     },
     {
-      "doc": "The undo puts market back.",
+      "doc": "The undo puts ( market ) back as it was written and removes (build).",
       "undo": true,
       "splices": [
         {
-          "operation": "replace-value",
-          "start": 152,
-          "end": 157,
-          "text": "market"
+          "operation": "remove-key",
+          "start": 150,
+          "end": 150,
+          "text": "( market )"
+        },
+        {
+          "operation": "insert-key",
+          "start": 150,
+          "end": 158,
+          "text": ""
         }
       ],
       "expect": "title Lenient trailer\nanchor User [0.95, 0.5]\ncomponent Ordered [0.8, 0.3] (build) label [-30, 12] inertia\ncomponent Spaced [0.7,0.4]  label[ 5 , -7 ]( market )\nCOMPONENT Shouted [0.6, 0.5]\ncomponent Glued [0.5, 0.6] inertia(buy)\ncomponent Linked [0.4, 0.7] url( linkedMap ) (ecosystem)\ncomponent Lookalike [0.3, 0.8] inertial\nComponent Cased [0.2, 0.2] INERTIA (Outsource)\nurl linkedMap [linked.owm]\nUser->Ordered\n"

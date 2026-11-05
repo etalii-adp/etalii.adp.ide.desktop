@@ -50,7 +50,7 @@
       "id": "language-gaps/2",
       "text": "5 and 6. FBL 5.2: decorators and annotation positions, answered",
       "open": "https://github.com/etalii-adp/etalii.adp/issues/562",
-      "reason": "The model's five decorator booleans have no order, so the order a statement writes its decorators in is not readable and writtenDecorators lists them in the notation's order (wardley-map.md, gap 5)."
+      "reason": "The five decorators are five booleans, which hold no order (FBL 0.18 flags), so writtenDecorators, a plugin function, lists each of them once, in lower case, in the order the statement first writes them, and its fallback lists them in the notation's order (wardley-map.md, gap 5)."
     },
     {
       "id": "language-gaps/3",
@@ -82,10 +82,22 @@
       "reason": "Findings of one code are listed by location; no construct orders them by the kind of what they concern (wardley-map.md, gap 12)."
     },
     {
+      "id": "language-gaps/8",
+      "text": "13. FBL: an evolution of a name ending in a number",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/706",
+      "reason": "The binding's strict LALR(1) grammar cannot tell a number ending a component's name from the maturity in an evolve statement, so an evolution of a name ending in a number cannot be written (wardley-map.md, gap 13)."
+    },
+    {
+      "id": "language-gaps/9",
+      "text": "14. FBL: an insert after an unclosed block",
+      "open": "https://github.com/etalii-adp/etalii.adp/issues/707",
+      "reason": "A statement inserted at the end of a body whose last block never closes lands inside that block, and FBL does not say it lands after it or that the add is refused (wardley-map.md, gap 14)."
+    },
+    {
       "id": "other-differences-a-runtime-will-meet/1",
       "text": "**Decorator order.** The row `wardley.decorators` lists the decorators in the order the",
       "open": "https://github.com/etalii-adp/etalii.adp/issues/562",
-      "reason": "The model's five decorator booleans have no order, so the order a statement writes its decorators in is not readable and writtenDecorators lists them in the notation's order (wardley-map.md, gap 5)."
+      "reason": "The five decorators are five booleans, which hold no order (FBL 0.18 flags), so writtenDecorators, a plugin function, lists each of them once, in lower case, in the order the statement first writes them, and its fallback lists them in the notation's order (wardley-map.md, gap 5)."
     },
     {
       "id": "other-differences-a-runtime-will-meet/2",
@@ -94,7 +106,7 @@
     },
     {
       "id": "other-differences-a-runtime-will-meet/3",
-      "text": "**Annotation positions.** The plugin function `positions` reads the occurrences as the",
+      "text": "**Annotation positions.** The binding reads an annotation's occurrences as structured",
       "statedBy": "fn positions"
     },
     {
