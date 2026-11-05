@@ -452,11 +452,27 @@ impl DiagramSession {
                 if let Some(refusal) = refusals.into_iter().next() {
                     return Err(refusal.message);
                 }
-                changes.push(DiagramChange::Disl(DislChange::Set {
+                let set = DislChange::Set {
                     element_id: element.id(),
                     type_name: element.type_name(),
                     attributes: placed.attributes,
-                }));
+                };
+                // A description's change rules run on what a move sets, as on a property.
+                if document.tool().module.as_ref().is_some_and(|m| m.runs_change_rules()) {
+                    let working = builder::from(document.fbl(), specification).diagram;
+                    let hooked = adp_disl::behavior::hooks::after_sets(
+                        specification,
+                        &working,
+                        std::slice::from_ref(&set),
+                        &StandInIds::default(),
+                        Some(&self.env),
+                        "user",
+                    )?;
+                    changes.push(DiagramChange::Disl(set));
+                    changes.extend(hooked.into_iter().map(DiagramChange::Disl));
+                    continue;
+                }
+                changes.push(DiagramChange::Disl(set));
                 continue;
             }
             // A move does not change what contains the element (DISL section 8.8), so its new parent is its parent.
@@ -915,6 +931,14 @@ impl DiagramSession {
         let specification = document.tool().definition.specification();
         let name = tool_name(document, tool_id).unwrap_or_else(|| tool_id.to_owned());
         let working = builder::from(document.fbl(), specification).diagram;
+        // A parent placement reads `view.bounds` (DISL section 9.1, 11.6), the module's to give.
+        if let Some(module) = &document.tool().module {
+            for node in working.nodes() {
+                if let Some(view) = module.view_of(document, &node) {
+                    node.set_view(Some(view));
+                }
+            }
+        }
         let position = position_at(document, x, y);
         let transaction = operations::drop(specification, &name, &working, &position, ids, Some(&self.env));
         self.write(workspace, "Add", transaction)
@@ -1002,13 +1026,35 @@ impl DiagramSession {
                 }
                 // A row with a `parse` also takes a value as the document writes it, which its `accepts` judges
                 // below rather than its options (DISL 0.3, 6.12), as the standalone host's form commit did.
+                // A type item's own refusals come before its options (DISL 0.3 section 7.5): a type past them is
+                // refused with the item's sentence.
+                if let Some(refusal) =
+                    form_commit::type_refusal(specification, &element, &row, value, &self.env, "inspector")
+                {
+                    return Err(refusal);
+                }
                 if !form_commit::parses(specification, &element, &row, "inspector") {
                     shown.validate(value)?;
                 }
             }
-            let transaction = form_commit::row(specification, &element, &row, value, &self.env, "inspector");
+            let mut transaction = form_commit::row(specification, &element, &row, value, &self.env, "inspector");
             if let Some(refusal) = transaction.refusal {
                 return Err(refusal);
+            }
+            // A description's change constraints and change hooks run on what the row sets, in the same edit, once
+            // the file can take it: what the binding refuses is refused first.
+            if document.tool().module.as_ref().is_some_and(|m| m.runs_change_rules()) {
+                let set: Vec<DiagramChange> = transaction.changes.iter().cloned().map(DiagramChange::Disl).collect();
+                document.plan("Change", &set)?;
+                let hooked = adp_disl::behavior::hooks::after_sets(
+                    specification,
+                    &working,
+                    &transaction.changes,
+                    &StandInIds::default(),
+                    Some(&self.env),
+                    "user",
+                )?;
+                transaction.changes.extend(hooked);
             }
             let written = match &document.tool().module {
                 Some(module) => module.written(&document.model().diagram, transaction.changes)?,
@@ -1313,6 +1359,40 @@ impl DiagramSession {
                     Err(refusal) => ActionOutcome::Refused(refusal),
                 }
             }
+            // One place earlier or later among its siblings, as one command (DISL section 7.3, `moveUp`, `moveDown`):
+            // the derivation has already refused the first and the last.
+            (kind @ ("moveUp" | "moveDown"), ActionTarget::Element(id)) => {
+                let Some(element) = document.element(id) else {
+                    return ActionOutcome::Refused(GONE.to_owned());
+                };
+                let parent = element.parent();
+                let siblings = match &parent {
+                    Some(parent) => parent.children(),
+                    None => document
+                        .model()
+                        .diagram
+                        .nodes()
+                        .into_iter()
+                        .filter(|n| n.parent().is_none())
+                        .collect(),
+                };
+                let place = siblings.iter().position(|s| *s == element).unwrap_or_default() as i64;
+                // Before the sibling now at the index, the node itself counted: one back, or past the next.
+                let index = if kind == "moveUp" { place - 1 } else { place + 2 };
+                let index = if index >= siblings.len() as i64 { -1 } else { index };
+                let transaction = DislTransaction {
+                    changes: vec![DislChange::Reparent {
+                        element_id: element.id(),
+                        parent_id: parent.map(|p| p.id()),
+                        index,
+                    }],
+                    ..DislTransaction::default()
+                };
+                match self.write(workspace, &entry.label, transaction) {
+                    Ok(()) => ActionOutcome::Done,
+                    Err(refusal) => ActionOutcome::Refused(refusal),
+                }
+            }
             _ => ActionOutcome::Refused(format!("'{}' cannot be run here yet.", entry.label)),
         }
     }
@@ -1527,6 +1607,12 @@ impl DiagramSession {
         {
             return Err(refusal.message);
         }
+        // A description's `std.endpoints` refuses what it would report, before an id is drawn (DISL section 8.4).
+        if document.tool().module.as_ref().is_some_and(|m| m.runs_change_rules())
+            && let Some(refusal) = gestures::endpoint_refusal(specification, relation_type, &from, &to, Some(&self.env))
+        {
+            return Err(refusal);
+        }
         let transaction = if relation.derived().is_some() {
             let working = builder::from(document.fbl(), specification).diagram;
             let (Some(from), Some(to)) = (working.element_by_id(source), working.element_by_id(target)) else {
@@ -1534,16 +1620,31 @@ impl DiagramSession {
             };
             operations::connect(specification, relation_type, &working, &from, &to, ids, Some(&self.env))
         } else {
-            DislTransaction {
+            let id = ids.next(relation_type)?;
+            let mut transaction = DislTransaction {
                 changes: vec![DislChange::Connect {
                     type_name: relation_type.to_owned(),
-                    id: ids.next(relation_type)?,
+                    id: id.clone(),
                     source_id: from.id(),
                     target_id: to.id(),
                     attributes: Map::default(),
                 }],
                 ..DislTransaction::default()
+            };
+            // A description's `on: connect` hooks run on the relation drawn, in the same edit (DISL section 9.2).
+            if document.tool().module.as_ref().is_some_and(|m| m.runs_change_rules()) {
+                let working = builder::from(document.fbl(), specification).diagram;
+                if let (Some(source), Some(target)) = (working.element_by_id(source), working.element_by_id(target)) {
+                    let relation =
+                        working.add_relation(relation_type, &id, Some(&source), Some(&target), Map::default())?;
+                    let hooked = hooks::after_connect(specification, &relation, ids, Some(&self.env), "user")?;
+                    if let Some(refusal) = hooked.refusal {
+                        return Err(refusal);
+                    }
+                    transaction.changes.extend(hooked.changes);
+                }
             }
+            transaction
         };
         self.write(workspace, "Connect", transaction)
     }
@@ -1653,6 +1754,34 @@ impl DiagramSession {
         workspace.execute(edit)
     }
 
+    /// [`DiagramSession::write`], with the `carried` changes after the transaction's, and the registration rewritten
+    /// to `registration` in the same edit.
+    fn write_with(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        label: &str,
+        transaction: DislTransaction,
+        carried: Vec<DiagramChange>,
+        registration: Option<&[u8]>,
+    ) -> Result<(), String> {
+        if let Some(refusal) = transaction.refusal {
+            return Err(refusal);
+        }
+        let document = self.document(workspace.documents())?;
+        let changes = match &document.tool().module {
+            Some(module) => module.written(&document.model().diagram, transaction.changes)?,
+            None => transaction.changes,
+        };
+        let mut changes: Vec<DiagramChange> = changes.into_iter().map(DiagramChange::Disl).collect();
+        changes.extend(carried);
+        let mut edit = document.plan(label, &changes)?;
+        if let Some(registration) = registration {
+            edit.steps
+                .extend(document.rewrite_registration(label, registration)?.steps);
+        }
+        workspace.execute(edit)
+    }
+
     /// Runs operation `operation` of `entry` on `target` with its answered `parameters`, the plugin layouts its
     /// `layout` actions name run by the tool type's module, and writes it as one command.
     fn run_operation(
@@ -1749,6 +1878,23 @@ impl DiagramSession {
                 }
             }
         }
+        // A `plugin` action is the module's to carry out (DISL section 9.4): what it changes is written with the
+        // operation, as one step.
+        let mut carried = Vec::new();
+        if transaction.refusal.is_none()
+            && let Some(module) = &document.tool().module
+        {
+            for action in &transaction.host_actions {
+                let HostAction::Plugin { name, arguments } = action else {
+                    continue;
+                };
+                match module.plugin(document, name, arguments) {
+                    Some(Ok(changes)) => carried.extend(changes),
+                    Some(Err(refusal)) => return Err(refusal),
+                    None => {}
+                }
+            }
+        }
         // A `view` action sets this viewer's view state, which is the module's to keep; nothing is written.
         if transaction.refusal.is_none()
             && let Some(module) = &document.tool().module
@@ -1763,8 +1909,60 @@ impl DiagramSession {
             // What the drawing reads of the view is the document's: bound again from the module.
             document.bind_views();
         }
-        *self.host_actions.borrow_mut() = transaction.host_actions.clone();
-        self.write(workspace, &entry.label, transaction)
+        // Where in the tree each element an action hands back stands, so that one the operation created, whose id
+        // the file reads back from its place, is named by the id it reads as once written (spec 076, R4).
+        let created: Vec<&str> = transaction
+            .changes
+            .iter()
+            .filter_map(|change| match change {
+                DislChange::Create { id, .. } => Some(id.as_str()),
+                _ => None,
+            })
+            .collect();
+        let places: Vec<Option<Vec<usize>>> = transaction
+            .host_actions
+            .iter()
+            .map(|action| match action {
+                HostAction::EditLabel { element_id, .. } => working.element_by_id(element_id).map(|e| tree_place(&e)),
+                _ => None,
+            })
+            .collect();
+        let created: Vec<bool> = transaction
+            .host_actions
+            .iter()
+            .map(|action| matches!(action, HostAction::EditLabel { element_id, .. } if created.contains(&element_id.as_str())))
+            .collect();
+        let mut handed_back = transaction.host_actions.clone();
+        // A `view` that unpins forgets the positions the registration stores, in the same edit (DISL section 11.6).
+        let unpinned: Vec<String> = transaction
+            .host_actions
+            .iter()
+            .filter_map(|action| match action {
+                HostAction::View { element_id, values } if values.get("pinned") == Some(&Value::Bool(false)) => {
+                    Some(element_id.clone())
+                }
+                _ => None,
+            })
+            .collect();
+        let registration = (transaction.refusal.is_none() && !unpinned.is_empty())
+            .then(|| document.tool().module.as_ref()?.unpinned(document, &unpinned))
+            .flatten();
+        if registration.is_some() || !carried.is_empty() {
+            self.write_with(workspace, &entry.label, transaction, carried, registration.as_deref())?;
+        } else {
+            self.write(workspace, &entry.label, transaction)?;
+        }
+        let written = &self.document(workspace.documents())?.model().diagram;
+        for ((action, place), created) in handed_back.iter_mut().zip(places).zip(created) {
+            if let (HostAction::EditLabel { element_id, .. }, Some(place)) = (action, place)
+                && (created || written.element_by_id(element_id).is_none())
+                && let Some(found) = at_tree_place(written, &place)
+            {
+                *element_id = found.id();
+            }
+        }
+        *self.host_actions.borrow_mut() = handed_back;
+        Ok(())
     }
 
     /// What the last operation that ran handed back for the host to carry out, in order: the selection to make, the
@@ -1772,6 +1970,46 @@ impl DiagramSession {
     pub fn take_host_actions(&self) -> Vec<HostAction> {
         std::mem::take(&mut *self.host_actions.borrow_mut())
     }
+}
+
+/// Where `element` stands in its diagram's tree: its index among the top-level nodes, then among each parent's children.
+fn tree_place(element: &DislElement) -> Vec<usize> {
+    let mut place = Vec::new();
+    let mut current = element.clone();
+    loop {
+        match current.parent() {
+            Some(parent) => {
+                place.push(parent.children().iter().position(|c| *c == current).unwrap_or_default());
+                current = parent;
+            }
+            None => {
+                let roots: Vec<DislElement> = current
+                    .diagram()
+                    .nodes()
+                    .into_iter()
+                    .filter(|n| n.parent().is_none())
+                    .collect();
+                place.push(roots.iter().position(|r| *r == current).unwrap_or_default());
+                break;
+            }
+        }
+    }
+    place.reverse();
+    place
+}
+
+/// The node of `diagram` at `place` in its tree.
+fn at_tree_place(diagram: &adp_disl::DislDiagram, place: &[usize]) -> Option<DislElement> {
+    let (first, rest) = place.split_first()?;
+    let mut current = diagram
+        .nodes()
+        .into_iter()
+        .filter(|n| n.parent().is_none())
+        .nth(*first)?;
+    for index in rest {
+        current = current.children().into_iter().nth(*index)?;
+    }
+    Some(current)
 }
 
 /// Ids that stand in for those of a `natural` strategy while an answered operation runs: unique, and never written,

@@ -9,6 +9,7 @@
 
 mod documents;
 mod forward_bezier;
+mod ring;
 mod row_packed;
 mod row_packing;
 mod self_organising;
@@ -75,6 +76,7 @@ pub fn record(name: &str, cases: &Path) -> Result<Vec<PathBuf>, String> {
         "layout.rowPacking" => row_packing::record(cases),
         "layout.rowPacked" => row_packed::record(cases),
         "layout.tidyTree" => tidy_tree::record(cases),
+        "layout.ring" => ring::record(cases),
         "arrange.selfOrganising" => self_organising::record(cases),
         "routing.forwardBezier" => forward_bezier::record(cases),
         "reader.markdown" => markdown(cases, "reader.markdown", reader_markdown),

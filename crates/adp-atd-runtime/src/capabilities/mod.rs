@@ -11,6 +11,9 @@ pub mod grid;
 pub mod layered_columns;
 pub mod layered_regions;
 pub mod ranked_boundaries;
+pub mod ring;
+pub mod self_organising;
+pub mod tidy_tree;
 pub mod two_sided_tree;
 
 use std::collections::BTreeMap;
@@ -40,6 +43,12 @@ pub trait LayoutCapability {
     /// notation defaults to: so the node is drawn where the layout put it.
     fn draws_its_sizes(&self) -> bool {
         false
+    }
+
+    /// Whether the capability keeps a pinned node at its pin (the law `pinnedStay`): one that does not leaves a stored
+    /// position to the host, which draws the node there.
+    fn consults_pins(&self) -> bool {
+        true
     }
 
     /// `$defs/LayoutResult` for `input` and the capability's `args`, the defaults filling what `args` leaves out: the
@@ -254,6 +263,30 @@ pub trait RoutingCapability {
     fn routing(&self, input: &Json, args: &Json) -> Result<Json, String>;
 }
 
+/// A capability at the `arrange` extension point (ATD §13.3): `$defs/AnalysisInput` to `$defs/AnalysisResult`, whose
+/// `move` actions the host stores as the elements' own positions.
+pub trait ArrangeCapability {
+    /// `$defs/AnalysisResult`, its numbers rounded to 0.01 as the contract states.
+    fn arrange(&self, input: &Json, args: &Json) -> Result<Json, String>;
+
+    /// The centre each element moves to, as the code computes it, not rounded, so that a host stores what the code it
+    /// was moved from stored; or the refusal.
+    fn moves(&self, input: &Json, args: &Json) -> Result<self_organising::Moves, String>;
+}
+
+/// `arrange.selfOrganising`.
+struct SelfOrganising;
+
+impl ArrangeCapability for SelfOrganising {
+    fn arrange(&self, input: &Json, args: &Json) -> Result<Json, String> {
+        self_organising::arrange(input, args)
+    }
+
+    fn moves(&self, input: &Json, args: &Json) -> Result<self_organising::Moves, String> {
+        self_organising::moves(input, args)
+    }
+}
+
 /// The capabilities this host provides, by name: layouts, routings, and readers (a reader is a persistence plugin, FBL
 /// §11, named by its capability as a binding's family).
 #[derive(Clone, Default)]
@@ -261,6 +294,7 @@ pub struct Capabilities {
     layouts: BTreeMap<&'static str, Rc<dyn LayoutCapability>>,
     routings: BTreeMap<&'static str, Rc<dyn RoutingCapability>>,
     readers: BTreeMap<&'static str, Rc<dyn PersistencePlugin>>,
+    arrangers: BTreeMap<&'static str, Rc<dyn ArrangeCapability>>,
 }
 
 impl Capabilities {
@@ -288,6 +322,13 @@ impl Capabilities {
             .layouts
             .insert("layout.layeredRegions", Rc::new(layered_regions::LayeredRegions));
         capabilities
+            .layouts
+            .insert("layout.tidyTree", Rc::new(tidy_tree::TidyTreeLayout));
+        capabilities.layouts.insert("layout.ring", Rc::new(ring::Ring));
+        capabilities
+            .arrangers
+            .insert("arrange.selfOrganising", Rc::new(SelfOrganising));
+        capabilities
             .routings
             .insert("routing.forwardBezier", Rc::new(forward_bezier::ForwardBezier));
         capabilities
@@ -311,11 +352,17 @@ impl Capabilities {
         self.readers.get(name).cloned()
     }
 
+    pub fn arranger(&self, name: &str) -> Option<Rc<dyn ArrangeCapability>> {
+        self.arrangers.get(name).cloned()
+    }
+
     /// The version of capability `name` this host provides, none when it provides none. Every capability is at the
     /// version its contract in the catalogue states, 1.0.0 for all of them today.
     pub fn version(&self, name: &str) -> Option<Version> {
-        let provided =
-            self.layouts.contains_key(name) || self.routings.contains_key(name) || self.readers.contains_key(name);
+        let provided = self.layouts.contains_key(name)
+            || self.routings.contains_key(name)
+            || self.readers.contains_key(name)
+            || self.arrangers.contains_key(name);
         provided.then_some(Version(1, 0, 0))
     }
 
@@ -338,6 +385,7 @@ impl Capabilities {
             .keys()
             .chain(self.routings.keys())
             .chain(self.readers.keys())
+            .chain(self.arrangers.keys())
             .copied()
             .collect();
         names.sort_unstable();
@@ -350,6 +398,9 @@ impl Capabilities {
         let args = fixture.get("args").unwrap_or(&empty);
         if let Some(layout) = self.layout(name) {
             return layout.layout(&fixture["input"], args);
+        }
+        if let Some(arranger) = self.arranger(name) {
+            return arranger.arrange(&fixture["input"], args);
         }
         match self.routing(name) {
             Some(routing) => routing.routing(&fixture["input"], args),

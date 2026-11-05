@@ -152,3 +152,83 @@ fn a_move_into_its_own_descendant_is_refused_and_writes_nothing() {
     assert!(matches!(result, PlanResult::Refused(_)), "{result:?}");
     assert_eq!(text(&body), input);
 }
+
+/// TOPICS with its insert placed `under-heading` (FBL 0.19), and a second type, Task, written `[x] <title>`.
+const UNDER_HEADING: &str = r#"{ "fbl": "0.19", "bindings": { "topics": {
+  "claims": { "registrationOnly": true }, "body": { "kind": "file", "family": "bullets" }, "reader": "declared",
+  "sections": [ { "name": "topics", "heading": "^Topics$" } ],
+  "elements": [ {
+    "name": "topic", "type": "Topic", "within": [ "topics" ], "line": "^\\[(?<id>[a-z0-9]+)\\] (?<title>.+)$",
+    "id": { "from": { "group": "id" } }, "parent": { "rules": [ "topic", "task" ], "slot": "children" },
+    "attributes": { "title": { "group": "title" } },
+    "insert": { "place": "under-heading", "container": "topics", "emit": "\\[{id}\\] {title}" }, "remove": {}
+  }, {
+    "name": "task", "type": "Task", "within": [ "topics" ], "line": "^x (?<title>.+)$",
+    "parent": { "rules": [ "topic", "task" ], "slot": "children" },
+    "attributes": { "title": { "group": "title" } },
+    "insert": { "place": "under-heading", "container": "topics", "emit": "x {title}" }, "remove": {}
+  } ]
+} } }"#;
+
+fn open_under_heading(text: &str) -> OpenBody {
+    let (problems, document) = documents::load(UNDER_HEADING.as_bytes());
+    assert!(
+        !problems.iter().any(|p| p.severity == ProblemSeverity::Error),
+        "{problems:?}"
+    );
+    let binding = Rc::new(document.unwrap().binding("topics").unwrap().clone());
+    OpenBody::open(
+        text.as_bytes().to_vec(),
+        binding,
+        Rc::new(FblOptions {
+            file_name: "plan.md".into(),
+            ..FblOptions::default()
+        }),
+    )
+}
+
+fn add_topic(id: &str, title: &str) -> ModelChange {
+    let mut attributes = Map::default();
+    attributes.insert("title", Value::String(title.into()));
+    ModelChange::Add {
+        type_name: "Topic".into(),
+        id: Some(id.into()),
+        attributes,
+        parent_id: None,
+        index: None,
+        slot: None,
+    }
+}
+
+/// FBL 0.19 section 6.3 (etalii.adp spec 076, T087): the first item of a section that holds prose goes right under its
+/// heading, a blank line before it; a later one where `last-child` puts it.
+#[test]
+fn a_first_item_placed_under_heading_goes_right_after_the_heading_and_a_later_one_after_it() {
+    let mut body = open_under_heading("# Plan\n\n## Topics\n\nNothing here yet.\n\n## Later\n");
+    let result = body.change(&add_topic("a", "A"));
+    assert!(matches!(result, PlanResult::Planned(_)), "{result:?}");
+    assert_eq!(
+        text(&body),
+        "# Plan\n\n## Topics\n\n- [a] A\n\nNothing here yet.\n\n## Later\n"
+    );
+    let result = body.change(&add_topic("b", "B"));
+    assert!(matches!(result, PlanResult::Planned(_)), "{result:?}");
+    assert_eq!(
+        text(&body),
+        "# Plan\n\n## Topics\n\n- [a] A\n- [b] B\n\nNothing here yet.\n\n## Later\n"
+    );
+}
+
+/// FBL 0.7 section 6.4 (etalii.adp spec 076, T014): a retype in bullets is one `re-emit-line` of the item's text from
+/// the new type's `emit`, its continuation and nested items staying where they are.
+#[test]
+fn a_retype_writes_the_items_text_again_from_the_new_rules_emit() {
+    let mut body = open_under_heading("## Topics\n\n- [a] Gather\n  notes\n  - x Sub\n");
+    let result = body.change(&ModelChange::Retype {
+        id: "a".into(),
+        type_name: "Task".into(),
+        attributes: Map::default(),
+    });
+    assert!(matches!(result, PlanResult::Planned(_)), "{result:?}");
+    assert_eq!(text(&body), "## Topics\n\n- x Gather\n  notes\n  - x Sub\n");
+}

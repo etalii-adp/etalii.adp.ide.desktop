@@ -104,6 +104,7 @@ diagram systems/causal-loop-diagram version "2.1.0" {
   import "causal-loop-diagram.notation.atd"
   import "causal-loop-diagram.cld.atd"
   requires capability arrange.selfOrganising@^1
+  requires capability layout.ring@^1
 
   /// The tool's sentence for a statement no rule of the binding reads, one of four by what it starts like
   /// (`CausalLoopUnreadable.cs`; companion, gap 1).

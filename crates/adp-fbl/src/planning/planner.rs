@@ -61,6 +61,11 @@ pub(crate) fn plan(reading: &BodyReading, change: &ModelChange) -> PlanResult {
             index,
         } => plan_move(&mut plan, id, new_parent_id.as_deref(), *index),
         ModelChange::StoreId { id, new_id } => plan_store_id(&mut plan, id, new_id),
+        ModelChange::Retype {
+            id,
+            type_name,
+            attributes,
+        } if reading.family.is_bullets() => plan_retype(&mut plan, id, type_name, attributes),
         ModelChange::Retype { .. } => {
             return PlanResult::Refused(
                 "This file's binding cannot change an element's type; only a persistence plugin can.".into(),
@@ -101,6 +106,29 @@ fn refuse_read_only(rule: &Rule, gesture: &str) -> Planning {
         });
     }
     Ok(())
+}
+
+// ---- retype ----
+
+/// A retype in `bullets` (FBL 0.7 section 6.4): one `re-emit-line` of the item's text from the `emit` of the new type's
+/// rule, with the element's values and the retype's over them; its continuation and nested items stay where they are.
+fn plan_retype(plan: &mut Plan<'_>, id: &str, type_name: &str, attributes: &Map) -> Planning {
+    let reading = plan.reading;
+    let index = element(reading, id)?;
+    let element = reading.element(index);
+    refuse_read_only(reading.family.rule(element.rule), "changed")?;
+    let rules = &reading.family.binding.rules;
+    let Some(rule) = (0..rules.len()).find(|&r| {
+        let rule = &rules[r];
+        rule.type_name == type_name && rule.insert.as_ref().is_some_and(|i| i.emit.is_some())
+    }) else {
+        return refuse(format!("The binding gives no form to write a {type_name} in."));
+    };
+    let mut values = element.attributes.clone();
+    for (name, value) in attributes.iter() {
+        values.insert(name.clone(), value.clone());
+    }
+    reading.family.bullets_retype(plan, index, rule, &values)
 }
 
 // ---- set ----
