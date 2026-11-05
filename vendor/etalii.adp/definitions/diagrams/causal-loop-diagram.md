@@ -27,7 +27,7 @@ The tool it describes is the standalone module `src/diagrams/causal-loop-diagram
 | Cycle enumeration | `causalCycles` of the plugin `net.etalii.adp.systems.cldCycles`, with `diagram.cycles('CausalLink', max)` as its fallback, and `diagram.cyclesTruncated` | DISL 12.4 and 13.1.1. The plugin is the tool's order; see [Other differences: the order of cycles](#other-differences-a-runtime-will-meet). |
 | The body | `persistence.format: "fbl"`, binding `cld` | The standalone module's own copy of the binding; `typeMap` maps its entry types onto the metamodel. |
 | Positions | `persistence.view.store: ["bounds"]` | Stored in the `.adp` registration's `layout:` block under the element ids, never in the body. |
-| Ring layout | layout `ring`, `circular` with `adp.ring.*` options | See [gap 5](#5-disl-the-seating-order-and-radius-of-circular). |
+| Ring layout | layout `ring`, the capability `layout.ring` | See [gap 5](#5-disl-the-seating-order-and-radius-of-circular), closed by the capability. |
 | Arrange diagram | operation `arrange`, layout `selfOrganizing` from the plugin `net.etalii.adp.systems.cld` | The layout stays code; the plugin provides it alone and is not required to read the document. |
 
 ## What the definition now states
@@ -101,7 +101,7 @@ A host meets a second limit under this one. The standalone canvas draws a label 
 
 ### 5. DISL: the seating order and radius of `circular`
 
-Finding A9; DISL D.2, open question 9. The ring a document opens on seats the variables in a depth-first walk of the links in declaration order, starting at the top and running clockwise, on a radius that grows with the widest variable and the count so that no two overlap. DISL names `circular` and defines neither; the specification carries both as `adp.ring.*` options, which no runtime is required to read. **Would resolve it:** an order and a radius rule for `circular` in DISL's standard layouts, or a way for a definition to state them.
+Finding A9; DISL D.2, open question 9. The ring a document opens on seats the variables in a depth-first walk of the links in declaration order, starting at the top and running clockwise, on a radius that grows with the widest variable and the count so that no two overlap. DISL names `circular` and defines neither; the specification carries both as `adp.ring.*` options, which no runtime is required to read. **Would resolve it:** an order and a radius rule for `circular` in DISL's standard layouts, or a way for a definition to state them. **Closed for the description (spec 076, 2026-11-05):** its layout names the capability `layout.ring` (ATD §13.6), whose contract states the order, the start, the direction and the radius, as every other tool's computed layout is stated; the `.dis` keeps its `adp.ring.*` options.
 
 ### 6. DISL: a committed value that did not change
 

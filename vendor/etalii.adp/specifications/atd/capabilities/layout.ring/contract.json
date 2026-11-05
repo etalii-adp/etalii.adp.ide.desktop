@@ -1,0 +1,26 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Capability",
+  "name": "layout.ring",
+  "version": "1.0.0",
+  "extensionPoint": "layout",
+  "doc": "Nodes evenly around a ring, so that a cycle of edges is drawn as the rim rather than as chords across it. The nodes are seated in the order of a depth-first walk of the edges read as undirected, from the first node in input order, each node's neighbours tried earliest in input order first, an edge from a node to itself and an edge to a node not in the input ignored, and the walk continuing from the earliest node not yet seated when a component is exhausted. With n nodes, the i-th seated node's centre is at angle 2πi/n − π/2 from the positive x axis, so the first is at the top and the rest follow clockwise in the canvas's coordinates (y downward), at the radius max(s, n·s/2π), where s is the widest node's width plus `separation`. A node's top-left corner is its centre less half its width and half its height, each coordinate rounded to six decimals with ties to even and never a negative zero. A single node stands with its top-left corner at (0, 0); an input without nodes places none. Every node is placed; pins are not consulted.",
+  "input": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutInput"
+  },
+  "args": {
+    "separation": {
+      "type": "number",
+      "default": 40,
+      "doc": "The clear space kept between neighbours on the ring, added to the widest node's width to give the arc each node is seated on."
+    }
+  },
+  "output": {
+    "$ref": "../../atd.schema.json#/$defs/LayoutResult"
+  },
+  "laws": [
+    "deterministic",
+    "stable"
+  ],
+  "fallback": null,
+  "status": "provisional"
+}

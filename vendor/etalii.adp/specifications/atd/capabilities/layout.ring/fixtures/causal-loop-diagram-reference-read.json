@@ -1,0 +1,116 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.ring` from modules/diagrams/causal-loop-diagram/src/ring.rs of etalii.adp.ide.desktop, on parity/fixtures/systems/causal-loop-diagram/reference/reference.cld as parity/scripts/systems/causal-loop-diagram/reference.json opens it; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "variable:population",
+        "width": 90.0,
+        "height": 39.6
+      },
+      {
+        "id": "variable:births",
+        "width": 90.0,
+        "height": 39.6
+      },
+      {
+        "id": "variable:deaths",
+        "width": 90.0,
+        "height": 39.6
+      },
+      {
+        "id": "variable:crowding",
+        "width": 90.0,
+        "height": 39.6
+      },
+      {
+        "id": "variable:sanitation",
+        "width": 105.0,
+        "height": 39.6
+      },
+      {
+        "id": "variable:foodPerCapita",
+        "width": 143.5,
+        "height": 39.6
+      }
+    ],
+    "edges": [
+      {
+        "id": "link:population|births",
+        "source": "variable:population",
+        "target": "variable:births"
+      },
+      {
+        "id": "link:births|population",
+        "source": "variable:births",
+        "target": "variable:population"
+      },
+      {
+        "id": "link:population|deaths",
+        "source": "variable:population",
+        "target": "variable:deaths"
+      },
+      {
+        "id": "link:deaths|population",
+        "source": "variable:deaths",
+        "target": "variable:population"
+      },
+      {
+        "id": "link:population|crowding",
+        "source": "variable:population",
+        "target": "variable:crowding"
+      },
+      {
+        "id": "link:crowding|sanitation",
+        "source": "variable:crowding",
+        "target": "variable:sanitation"
+      },
+      {
+        "id": "link:sanitation|deaths",
+        "source": "variable:sanitation",
+        "target": "variable:deaths"
+      },
+      {
+        "id": "link:population|foodPerCapita",
+        "source": "variable:population",
+        "target": "variable:foodPerCapita"
+      },
+      {
+        "id": "link:foodPerCapita|births",
+        "source": "variable:foodPerCapita",
+        "target": "variable:births"
+      }
+    ]
+  },
+  "args": {
+    "separation": 40.0
+  },
+  "output": {
+    "positions": {
+      "variable:population": {
+        "x": -45.0,
+        "y": -203.3
+      },
+      "variable:births": {
+        "x": 113.92,
+        "y": -111.55
+      },
+      "variable:deaths": {
+        "x": -45.0,
+        "y": 163.7
+      },
+      "variable:crowding": {
+        "x": -203.92,
+        "y": -111.55
+      },
+      "variable:sanitation": {
+        "x": -211.42,
+        "y": 71.95
+      },
+      "variable:foodPerCapita": {
+        "x": 87.17,
+        "y": 71.95
+      }
+    }
+  }
+}

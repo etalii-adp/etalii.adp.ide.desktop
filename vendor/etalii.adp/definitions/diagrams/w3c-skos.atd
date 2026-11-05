@@ -25,7 +25,7 @@ diagram w3c/skos version "1.0.0" {
       terms: {
         measure: { count: ["ConceptScheme", "Concept", "Collection"] }
         max: 1000
-        order: (skosOrder().indexOf(self.id))
+        order: (self.walkOrder)
         withhold: { edits: model, reason: { reason: "truncated" } }
         notice: {
           text: ('Showing ' + string(budget('terms').shown) + ' of ' + string(budget('terms').total) + ' terms — edits are withheld on this truncated view')
@@ -36,7 +36,7 @@ diagram w3c/skos version "1.0.0" {
       }
     }
   }
-  requires: { conformance: standard, features: ["limits.budgets", "persistence.fbl"] }
+  requires: { conformance: standard, features: ["limits.budgets", "persistence.fbl", "cel.groupBy"] }
   doc {
     tags: ["skos", "thesaurus", "taxonomy", "controlled vocabulary", "rdf", "semantic web"]
     seeAlso: [{ title: "W3C SKOS reference", href: "https://www.w3.org/TR/skos-reference/" }, {
@@ -147,6 +147,7 @@ diagram w3c/skos version "1.0.0" {
       /// The resource's IRI; empty for a blank node.
       ///
       /// Rename through the context menu, so every reference follows the name.
+      attribute walkOrder: int readonly default 0
       attribute iri: uri readonly { label: "IRI", group: "Identity" }
       /// The resource is a blank node: drawn, but never positioned or edited.
       attribute blank: bool { derived: (self.id.startsWith('blank:')) }
@@ -192,28 +193,29 @@ diagram w3c/skos version "1.0.0" {
       }
       icon: "mdi-file-tree"
       derived: {
-        from: (skosOrder().filter(id, id in skosTyped('http://www.w3.org/2004/02/skos/core#ConceptScheme')))
-        key: (item)
-        id: (item)
+        from: (cel.bind(o, skosOrder(), lists.range(o.size()).filter(i, cel.bind(id, o[i], skosIsTyped(id, 'http://www.w3.org/2004/02/skos/core#ConceptScheme'))).map(i, [o[i], i])))
+        key: (item[0])
+        id: (item[0])
         attributes: {
-          iri: (skosNode(item))
-          prefLabel: (skosLabels(item, 'http://www.w3.org/2004/02/skos/core#prefLabel'))
-          altLabel: (skosLabels(item, 'http://www.w3.org/2004/02/skos/core#altLabel'))
-          hiddenLabel: (skosLabels(item, 'http://www.w3.org/2004/02/skos/core#hiddenLabel'))
-          xlLabelled: (diagram.nodesOfType('Triple').exists(t, cardId(t.s, t.sKind) == item && t.sKind == 'iri' && t.p in ['http://www.w3.org/2008/05/skos-xl#prefLabel', 'http://www.w3.org/2008/05/skos-xl#altLabel', 'http://www.w3.org/2008/05/skos-xl#hiddenLabel']))
-          notation: (diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#notation' && t.oKind == 'literal').map(t, t.o))
-          definition: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#definition' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          scopeNote: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#scopeNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          example: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#example' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          note: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#note' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          historyNote: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#historyNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          editorialNote: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#editorialNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          changeNote: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#changeNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          topConcepts: (skosTops(item).filter(c, c in skosTyped('http://www.w3.org/2004/02/skos/core#Concept')).map(c, diagram.elementById(c)).filter(e, e != null))
+          walkOrder: (item[1])
+          iri: (skosNode(item[0]))
+          prefLabel: (skosLabels(item[0], 'http://www.w3.org/2004/02/skos/core#prefLabel'))
+          altLabel: (skosLabels(item[0], 'http://www.w3.org/2004/02/skos/core#altLabel'))
+          hiddenLabel: (skosLabels(item[0], 'http://www.w3.org/2004/02/skos/core#hiddenLabel'))
+          xlLabelled: (bySubject(item[0]).exists(t, t.sKind == 'iri' && t.p in ['http://www.w3.org/2008/05/skos-xl#prefLabel', 'http://www.w3.org/2008/05/skos-xl#altLabel', 'http://www.w3.org/2008/05/skos-xl#hiddenLabel']))
+          notation: (bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#notation' && t.oKind == 'literal').map(t, t.o))
+          definition: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#definition' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          scopeNote: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#scopeNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          example: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#example' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          note: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#note' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          historyNote: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#historyNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          editorialNote: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#editorialNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          changeNote: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#changeNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          topConcepts: (skosTops(item[0]).filter(c, skosIsTyped(c, 'http://www.w3.org/2004/02/skos/core#Concept')).map(c, diagram.elementById(c)).filter(e, e != null))
         }
-        sources: (diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item || (t.oKind != 'literal' && cardId(t.o, t.oKind) == item)))
+        sources: (mentions(item[0]))
         reason: "Vocabulary terms are read from the triples; add, rename or remove them through the context menu."
-        edits: { delete: "removeResource", rename: "renameResource" }
+        edits: { delete: "removeResource", rename: "renameResource", "attribute:definition": "setDefinition" }
       }
       doc { rationale: "One registration draws every scheme in the file, each as its own band." }
     }
@@ -236,7 +238,7 @@ diagram w3c/skos version "1.0.0" {
       attribute schemesText: string {
         label: "In schemes"
         group: "Membership"
-        derived: (cel.bind(s, diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && t.s == self.iri && (t.p == 'http://www.w3.org/2004/02/skos/core#inScheme' || t.p == 'http://www.w3.org/2004/02/skos/core#topConceptOf') && t.oKind == 'iri').map(t, rdfDisplayName(t.o)).distinct(), s.size() > 0 ? s.join(', ') : '(unfiled)'))
+        derived: (cel.bind(s, bySubject(self.id).filter(t, t.sKind == 'iri' && (t.p == 'http://www.w3.org/2004/02/skos/core#inScheme' || t.p == 'http://www.w3.org/2004/02/skos/core#topConceptOf') && t.oKind == 'iri').map(t, rdfDisplayName(t.o)).distinct(), s.size() > 0 ? s.join(', ') : '(unfiled)'))
       }
       /// Dragging from here files this concept under the one dropped on.
       port file { label: "File under", direction: out, accepts: ["Broader"] }
@@ -244,33 +246,34 @@ diagram w3c/skos version "1.0.0" {
       port relate { label: "Relate", direction: inout, accepts: ["Related"] }
       icon: "mdi-tag-outline"
       derived: {
-        from: (skosOrder().filter(id, id in skosTyped('http://www.w3.org/2004/02/skos/core#Concept')))
-        key: (item)
-        id: (item)
+        from: (cel.bind(o, skosOrder(), lists.range(o.size()).filter(i, cel.bind(id, o[i], skosIsTyped(id, 'http://www.w3.org/2004/02/skos/core#Concept'))).map(i, [o[i], i])))
+        key: (item[0])
+        id: (item[0])
         attributes: {
-          iri: (skosNode(item))
-          prefLabel: (skosLabels(item, 'http://www.w3.org/2004/02/skos/core#prefLabel'))
-          altLabel: (skosLabels(item, 'http://www.w3.org/2004/02/skos/core#altLabel'))
-          hiddenLabel: (skosLabels(item, 'http://www.w3.org/2004/02/skos/core#hiddenLabel'))
-          xlLabelled: (diagram.nodesOfType('Triple').exists(t, cardId(t.s, t.sKind) == item && t.sKind == 'iri' && t.p in ['http://www.w3.org/2008/05/skos-xl#prefLabel', 'http://www.w3.org/2008/05/skos-xl#altLabel', 'http://www.w3.org/2008/05/skos-xl#hiddenLabel']))
-          notation: (diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#notation' && t.oKind == 'literal').map(t, t.o))
-          definition: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#definition' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          scopeNote: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#scopeNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          example: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#example' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          note: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#note' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          historyNote: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#historyNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          editorialNote: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#editorialNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          changeNote: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#changeNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          inScheme: (diagram.nodesOfType('Triple').filter(t, t.oKind != 'literal' && ((cardId(t.s, t.sKind) == item && (t.p == 'http://www.w3.org/2004/02/skos/core#inScheme' || t.p == 'http://www.w3.org/2004/02/skos/core#topConceptOf')) || (t.p == 'http://www.w3.org/2004/02/skos/core#hasTopConcept' && cardId(t.o, t.oKind) == item))).map(t, t.p == 'http://www.w3.org/2004/02/skos/core#hasTopConcept' ? cardId(t.s, t.sKind) : cardId(t.o, t.oKind)).filter(s, s in skosTyped('http://www.w3.org/2004/02/skos/core#ConceptScheme')).distinct().map(s, diagram.elementById(s)).filter(e, e != null))
-          mappings: (diagram.nodesOfType('Triple').filter(t, t.sKind == 'iri' && cardId(t.s, t.sKind) == item && t.p in ['http://www.w3.org/2004/02/skos/core#exactMatch', 'http://www.w3.org/2004/02/skos/core#closeMatch', 'http://www.w3.org/2004/02/skos/core#broadMatch', 'http://www.w3.org/2004/02/skos/core#narrowMatch', 'http://www.w3.org/2004/02/skos/core#relatedMatch'] && t.oKind == 'iri' && !(cardId(t.o, t.oKind) in skosTyped('http://www.w3.org/2004/02/skos/core#Concept'))).map(t, {
+          walkOrder: (item[1])
+          iri: (skosNode(item[0]))
+          prefLabel: (skosLabels(item[0], 'http://www.w3.org/2004/02/skos/core#prefLabel'))
+          altLabel: (skosLabels(item[0], 'http://www.w3.org/2004/02/skos/core#altLabel'))
+          hiddenLabel: (skosLabels(item[0], 'http://www.w3.org/2004/02/skos/core#hiddenLabel'))
+          xlLabelled: (bySubject(item[0]).exists(t, t.sKind == 'iri' && t.p in ['http://www.w3.org/2008/05/skos-xl#prefLabel', 'http://www.w3.org/2008/05/skos-xl#altLabel', 'http://www.w3.org/2008/05/skos-xl#hiddenLabel']))
+          notation: (bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#notation' && t.oKind == 'literal').map(t, t.o))
+          definition: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#definition' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          scopeNote: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#scopeNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          example: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#example' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          note: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#note' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          historyNote: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#historyNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          editorialNote: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#editorialNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          changeNote: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#changeNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          inScheme: (mentions(item[0]).filter(t, t.oKind != 'literal' && ((cardId(t.s, t.sKind) == item[0] && (t.p == 'http://www.w3.org/2004/02/skos/core#inScheme' || t.p == 'http://www.w3.org/2004/02/skos/core#topConceptOf')) || (t.p == 'http://www.w3.org/2004/02/skos/core#hasTopConcept' && cardId(t.o, t.oKind) == item[0]))).map(t, t.p == 'http://www.w3.org/2004/02/skos/core#hasTopConcept' ? cardId(t.s, t.sKind) : cardId(t.o, t.oKind)).filter(s, skosIsTyped(s, 'http://www.w3.org/2004/02/skos/core#ConceptScheme')).distinct().map(s, diagram.elementById(s)).filter(e, e != null))
+          mappings: (bySubject(item[0]).filter(t, t.sKind == 'iri' && t.p in ['http://www.w3.org/2004/02/skos/core#exactMatch', 'http://www.w3.org/2004/02/skos/core#closeMatch', 'http://www.w3.org/2004/02/skos/core#broadMatch', 'http://www.w3.org/2004/02/skos/core#narrowMatch', 'http://www.w3.org/2004/02/skos/core#relatedMatch'] && t.oKind == 'iri' && !(skosIsTyped(cardId(t.o, t.oKind), 'http://www.w3.org/2004/02/skos/core#Concept'))).map(t, {
             'predicate': t.p.substring(36),
             'target': t.o
           }
           ))
         }
-        sources: (diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item || (t.oKind != 'literal' && cardId(t.o, t.oKind) == item)))
+        sources: (mentions(item[0]))
         reason: "Vocabulary terms are read from the triples; add, rename or remove them through the context menu."
-        edits: { delete: "removeResource", rename: "renameResource" }
+        edits: { delete: "removeResource", rename: "renameResource", "attribute:definition": "setDefinition" }
       }
     }
 
@@ -283,29 +286,30 @@ diagram w3c/skos version "1.0.0" {
       attribute members: Concept many readonly { group: "Membership" }
       icon: "mdi-format-list-bulleted"
       derived: {
-        from: (skosOrder().filter(id, id in skosTyped('http://www.w3.org/2004/02/skos/core#Collection') || id in skosTyped('http://www.w3.org/2004/02/skos/core#OrderedCollection')))
-        key: (item)
-        id: (item)
+        from: (cel.bind(o, skosOrder(), lists.range(o.size()).filter(i, cel.bind(id, o[i], skosIsTyped(id, 'http://www.w3.org/2004/02/skos/core#Collection') || skosIsTyped(id, 'http://www.w3.org/2004/02/skos/core#OrderedCollection'))).map(i, [o[i], i])))
+        key: (item[0])
+        id: (item[0])
         attributes: {
-          iri: (skosNode(item))
-          prefLabel: (skosLabels(item, 'http://www.w3.org/2004/02/skos/core#prefLabel'))
-          altLabel: (skosLabels(item, 'http://www.w3.org/2004/02/skos/core#altLabel'))
-          hiddenLabel: (skosLabels(item, 'http://www.w3.org/2004/02/skos/core#hiddenLabel'))
-          xlLabelled: (diagram.nodesOfType('Triple').exists(t, cardId(t.s, t.sKind) == item && t.sKind == 'iri' && t.p in ['http://www.w3.org/2008/05/skos-xl#prefLabel', 'http://www.w3.org/2008/05/skos-xl#altLabel', 'http://www.w3.org/2008/05/skos-xl#hiddenLabel']))
-          notation: (diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#notation' && t.oKind == 'literal').map(t, t.o))
-          definition: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#definition' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          scopeNote: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#scopeNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          example: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#example' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          note: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#note' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          historyNote: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#historyNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          editorialNote: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#editorialNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          changeNote: (cel.bind(l, diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#changeNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
-          ordered: (item in skosTyped('http://www.w3.org/2004/02/skos/core#OrderedCollection'))
-          members: ((item in skosTyped('http://www.w3.org/2004/02/skos/core#OrderedCollection') ? diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#memberList' && t.oKind == 'blank').map(t, collectionMembers(t.o).filter(x, x.oKind != 'literal').map(x, cardId(x.o, x.oKind))).flatten() : diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item && t.p == 'http://www.w3.org/2004/02/skos/core#member' && t.oKind != 'literal').map(t, cardId(t.o, t.oKind))).map(c, diagram.elementById(c)).filter(e, e != null))
+          walkOrder: (item[1])
+          iri: (skosNode(item[0]))
+          prefLabel: (skosLabels(item[0], 'http://www.w3.org/2004/02/skos/core#prefLabel'))
+          altLabel: (skosLabels(item[0], 'http://www.w3.org/2004/02/skos/core#altLabel'))
+          hiddenLabel: (skosLabels(item[0], 'http://www.w3.org/2004/02/skos/core#hiddenLabel'))
+          xlLabelled: (bySubject(item[0]).exists(t, t.sKind == 'iri' && t.p in ['http://www.w3.org/2008/05/skos-xl#prefLabel', 'http://www.w3.org/2008/05/skos-xl#altLabel', 'http://www.w3.org/2008/05/skos-xl#hiddenLabel']))
+          notation: (bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#notation' && t.oKind == 'literal').map(t, t.o))
+          definition: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#definition' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          scopeNote: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#scopeNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          example: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#example' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          note: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#note' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          historyNote: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#historyNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          editorialNote: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#editorialNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          changeNote: (cel.bind(l, bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#changeNote' && t.oKind == 'literal'), l.size() > 0 ? l[0].o : ''))
+          ordered: (skosIsTyped(item[0], 'http://www.w3.org/2004/02/skos/core#OrderedCollection'))
+          members: ((skosIsTyped(item[0], 'http://www.w3.org/2004/02/skos/core#OrderedCollection') ? bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#memberList' && t.oKind == 'blank').map(t, collectionMembers(t.o).filter(x, x.oKind != 'literal').map(x, cardId(x.o, x.oKind))).flatten() : bySubject(item[0]).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#member' && t.oKind != 'literal').map(t, cardId(t.o, t.oKind))).map(c, diagram.elementById(c)).filter(e, e != null))
         }
-        sources: (diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == item || (t.oKind != 'literal' && cardId(t.o, t.oKind) == item)))
+        sources: (mentions(item[0]))
         reason: "Vocabulary terms are read from the triples; add, rename or remove them through the context menu."
-        edits: { delete: "removeResource", rename: "renameResource" }
+        edits: { delete: "removeResource", rename: "renameResource", "attribute:definition": "setDefinition" }
       }
     }
 
@@ -354,8 +358,8 @@ diagram w3c/skos version "1.0.0" {
         from: (diagram.nodesOfType('Triple').filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#related' && t.oKind != 'literal' && skosDrawable(cardId(t.s, t.sKind)) && skosDrawable(cardId(t.o, t.oKind))).map(t, cel.bind(a, cardId(t.s, t.sKind), cel.bind(b, cardId(t.o, t.oKind), a <= b ? [a, b, t] : [b, a, t]))))
         key: ([item[0], item[1]])
         id: ('edge:' + item[0] + '|http://www.w3.org/2004/02/skos/core#related|' + item[1])
-        source: (diagram.elementById(item[1]))
-        target: (diagram.elementById(item[0]))
+        source: (diagram.elementById(item[0]))
+        target: (diagram.elementById(item[1]))
         sources: (group.map(g, g[2]))
         reason: "A hierarchy or related link is stated by triples; disconnect it from its menu."
         edits: { delete: "disconnect" }
@@ -376,7 +380,7 @@ diagram w3c/skos version "1.0.0" {
       allowSelfLoops: true
       allowParallel: true
       derived: {
-        from: (diagram.nodesOfType('Triple').filter(t, t.p in ['http://www.w3.org/2004/02/skos/core#exactMatch', 'http://www.w3.org/2004/02/skos/core#closeMatch', 'http://www.w3.org/2004/02/skos/core#broadMatch', 'http://www.w3.org/2004/02/skos/core#narrowMatch', 'http://www.w3.org/2004/02/skos/core#relatedMatch'] && t.oKind != 'literal' && cardId(t.s, t.sKind) in skosTyped('http://www.w3.org/2004/02/skos/core#Concept') && cardId(t.o, t.oKind) in skosTyped('http://www.w3.org/2004/02/skos/core#Concept')))
+        from: (diagram.nodesOfType('Triple').filter(t, t.p in ['http://www.w3.org/2004/02/skos/core#exactMatch', 'http://www.w3.org/2004/02/skos/core#closeMatch', 'http://www.w3.org/2004/02/skos/core#broadMatch', 'http://www.w3.org/2004/02/skos/core#narrowMatch', 'http://www.w3.org/2004/02/skos/core#relatedMatch'] && t.oKind != 'literal' && skosIsTyped(cardId(t.s, t.sKind), 'http://www.w3.org/2004/02/skos/core#Concept') && skosIsTyped(cardId(t.o, t.oKind), 'http://www.w3.org/2004/02/skos/core#Concept')))
         id: ('edge:' + cardId(item.s, item.sKind) + '|' + item.p + '|' + cardId(item.o, item.oKind))
         source: (diagram.elementById(cardId(item.s, item.sKind)))
         target: (diagram.elementById(cardId(item.o, item.oKind)))
@@ -398,7 +402,7 @@ diagram w3c/skos version "1.0.0" {
   /// Whether a blank node is a cons cell of an RDF collection: one with an `rdf:first` triple.
   fn isCell(ordinal: string) -> bool {
     // uses: ["diagram"]
-    return diagram.nodesOfType('Triple').exists(t, t.sKind == 'blank' && t.s == ordinal && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first')
+    return bySubject('blank:' + ordinal).exists(t, t.sKind == 'blank' && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first')
   }
 
   /// A collection's `rdf:first` or `rdf:rest` triple, which is folded into its members and never drawn itself.
@@ -410,20 +414,55 @@ diagram w3c/skos version "1.0.0" {
   /// or a node that is no cons cell.
   fn collectionMembers(cell: string) -> list recursion 64 {
     // uses: ["diagram"]
-    return cel.bind(f, diagram.nodesOfType('Triple').filter(t, t.sKind == 'blank' && t.s == cell && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first'), cel.bind(r, diagram.nodesOfType('Triple').filter(t, t.sKind == 'blank' && t.s == cell && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest'), f.size() == 0 ? [] : [f[0]] + (r.size() > 0 && r[0].oKind == 'blank' && isCell(r[0].o) ? collectionMembers(r[0].o) : [])))
+    return cel.bind(f, bySubject('blank:' + cell).filter(t, t.sKind == 'blank' && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first'), cel.bind(r, bySubject('blank:' + cell).filter(t, t.sKind == 'blank' && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest'), f.size() == 0 ? [] : [f[0]] + (r.size() > 0 && r[0].oKind == 'blank' && isCell(r[0].o) ? collectionMembers(r[0].o) : [])))
   }
 
   /// The repeat counter of a stored triple or prefix declaration (11.5.2): '' for the first with its parts, '|1' for
   /// the second and so on, in reading order.
   fn repeatSuffix(e: Element) -> string {
     // uses: ["diagram"]
-    return cel.bind(same, e.isA('Triple') ? diagram.nodesOfType('Triple').filter(u, u.s == e.s && u.p == e.p && u.o == e.o) : diagram.nodesOfType('Prefix').filter(u, u.name == e.name), cel.bind(n, e.positionIn(same), n > 0 ? '|' + string(n) : ''))
+    return cel.bind(same, e.isA('Triple') ? diagram.nodesOfType('Triple').groupBy(u, u.s + ' ' + u.p + ' ' + u.o).get(e.s + ' ' + e.p + ' ' + e.o) : diagram.nodesOfType('Prefix').filter(u, u.name == e.name), cel.bind(n, e.positionIn(same), n > 0 ? '|' + string(n) : ''))
   }
 
   /// Each item of `xs`, whose first entry is its key, with the number of earlier items of the same key appended: the
   /// repeat counter of a derived edge id (11.5.2), 0 for the first.
   fn withRepeat(xs: list) -> list {
     return lists.range(xs.size()).map(i, xs[i] + [lists.range(i).filter(j, xs[j][0] == xs[i][0]).size()])
+  }
+
+  /// Every triple whose subject is the card `id`, in file order: one group of the triples grouped by subject (DISL 0.9,
+  /// §12.4), so that a card's attributes read their triples without filtering every triple again.
+  fn bySubject(id: string) -> list {
+    // uses: ["diagram"]
+    return diagram.nodesOfType('Triple').groupBy(t, (t.sKind == 'blank' ? 'blank:' : 'res:') + t.s).get(id)
+  }
+
+  /// Every triple whose object is the card `id`, in file order, from the triples grouped by object; a literal object
+  /// names no card.
+  fn byObject(id: string) -> list {
+    // uses: ["diagram"]
+    return diagram.nodesOfType('Triple').groupBy(t, t.oKind == 'literal' ? '' : (t.oKind == 'blank' ? 'blank:' : 'res:') + t.o).get(id)
+  }
+
+  /// Every triple naming the card `id` as subject or object, in file order: the triples of each line that names it,
+  /// line by line, from the triples grouped by line, so that two statements on one line keep the order the file gives.
+  fn mentions(id: string) -> list {
+    // uses: ["diagram"]
+    return cel.bind(lines, diagram.nodesOfType('Triple').groupBy(t, t.line), (bySubject(id) + byObject(id)).map(t, t.line).groupBy(l, l).keys().sort().map(l, lines.get(l).filter(t, cardId(t.s, t.sKind) == id || (t.oKind != 'literal' && cardId(t.o, t.oKind) == id))).flatten())
+  }
+
+  /// Whether the file types the card `id` as `type`, by an `rdf:type` triple with an IRI object, read from the triples
+  /// grouped by type and subject.
+  fn skosIsTyped(id: string, type: string) -> bool {
+    // uses: ["diagram"]
+    return diagram.nodesOfType('Triple').groupBy(t, t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' && t.oKind == 'iri' ? t.o + ' ' + (t.sKind == 'blank' ? 'blank:' : 'res:') + t.s : '').get(type + ' ' + id).size() > 0
+  }
+
+  /// The cards `id` is narrower than: the objects of its `skos:broader` triples and the subjects of `skos:narrower`
+  /// triples naming it, read from one grouping.
+  fn skosBroaders(id: string) -> list {
+    // uses: ["diagram"]
+    return diagram.nodesOfType('Triple').groupBy(t, t.oKind == 'literal' ? '' : (t.p == 'http://www.w3.org/2004/02/skos/core#broader' ? (t.sKind == 'blank' ? 'blank:' : 'res:') + t.s : (t.p == 'http://www.w3.org/2004/02/skos/core#narrower' ? (t.oKind == 'blank' ? 'blank:' : 'res:') + t.o : ''))).get(id).map(t, t.p == 'http://www.w3.org/2004/02/skos/core#broader' ? (t.oKind == 'blank' ? 'blank:' : 'res:') + t.o : (t.sKind == 'blank' ? 'blank:' : 'res:') + t.s)
   }
 
   /// The id of the card the RDF graph reading draws a subject or object term as.
@@ -443,7 +482,7 @@ diagram w3c/skos version "1.0.0" {
   /// while it is, because the tool gates every reading's edits on that one count.
   fn familyTruncated() -> bool {
     // uses: ["diagram"]
-    return diagram.nodesOfType('Triple').map(t, cardTerms(t)).flatten().map(c, cardId(c[0], c[1])).distinct().size() > 1000
+    return diagram.nodesOfType('Triple').map(t, cardTerms(t)).flatten().map(c, cardId(c[0], c[1])).groupBy(u_, u_).keys().size() > 1000
   }
 
   /// The texts of the labels carrying exactly one language tag ('' for untagged), ordinally sorted, so the first one is
@@ -473,26 +512,26 @@ diagram w3c/skos version "1.0.0" {
   /// ordinal.
   fn skosTyped(type: string) -> list {
     // uses: ["diagram"]
-    return diagram.nodesOfType('Triple').filter(t, typeTriple(t) && t.o == type && t.sKind != 'literal').map(t, cardId(t.s, t.sKind)).distinct()
+    return diagram.nodesOfType('Triple').groupBy(t, t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' && t.oKind == 'iri' && t.sKind != 'literal' ? t.o : '').get(type).map(t, (t.sKind == 'blank' ? 'blank:' : 'res:') + t.s).groupBy(u_, u_).keys()
   }
 
   /// Whether the id is a concept, scheme or collection, the only terms this reading draws.
   fn skosDrawable(id: string) -> bool {
     // uses: ["diagram"]
-    return id in skosTyped('http://www.w3.org/2004/02/skos/core#Concept') || id in skosTyped('http://www.w3.org/2004/02/skos/core#ConceptScheme') || id in skosTyped('http://www.w3.org/2004/02/skos/core#Collection') || id in skosTyped('http://www.w3.org/2004/02/skos/core#OrderedCollection')
+    return diagram.nodesOfType('Triple').groupBy(t, t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' && t.oKind == 'iri' && t.o in ['http://www.w3.org/2004/02/skos/core#Concept', 'http://www.w3.org/2004/02/skos/core#ConceptScheme', 'http://www.w3.org/2004/02/skos/core#Collection', 'http://www.w3.org/2004/02/skos/core#OrderedCollection'] ? (t.sKind == 'blank' ? 'blank:' : 'res:') + t.s : '').get(id).size() > 0
   }
 
   /// Whether the file files the term in the scheme: `skos:inScheme`, `skos:topConceptOf`, or the scheme's
   /// `skos:hasTopConcept`.
   fn skosMember(id: string, scheme: string) -> bool {
     // uses: ["diagram"]
-    return diagram.nodesOfType('Triple').exists(t, t.oKind != 'literal' && ((cardId(t.s, t.sKind) == id && cardId(t.o, t.oKind) == scheme && (t.p == 'http://www.w3.org/2004/02/skos/core#inScheme' || t.p == 'http://www.w3.org/2004/02/skos/core#topConceptOf')) || (t.p == 'http://www.w3.org/2004/02/skos/core#hasTopConcept' && cardId(t.s, t.sKind) == scheme && cardId(t.o, t.oKind) == id)))
+    return diagram.nodesOfType('Triple').groupBy(t, t.oKind == 'literal' ? '' : (t.p == 'http://www.w3.org/2004/02/skos/core#inScheme' || t.p == 'http://www.w3.org/2004/02/skos/core#topConceptOf' ? (t.sKind == 'blank' ? 'blank:' : 'res:') + t.s + ' ' + (t.oKind == 'blank' ? 'blank:' : 'res:') + t.o : (t.p == 'http://www.w3.org/2004/02/skos/core#hasTopConcept' ? (t.oKind == 'blank' ? 'blank:' : 'res:') + t.o + ' ' + (t.sKind == 'blank' ? 'blank:' : 'res:') + t.s : ''))).get(id + ' ' + scheme).size() > 0
   }
 
   /// The scheme's asserted top concepts, either direction, in document order.
   fn skosTops(scheme: string) -> list {
     // uses: ["diagram"]
-    return diagram.nodesOfType('Triple').filter(t, t.oKind != 'literal' && ((t.p == 'http://www.w3.org/2004/02/skos/core#topConceptOf' && cardId(t.o, t.oKind) == scheme) || (t.p == 'http://www.w3.org/2004/02/skos/core#hasTopConcept' && cardId(t.s, t.sKind) == scheme))).map(t, t.p == 'http://www.w3.org/2004/02/skos/core#topConceptOf' ? cardId(t.s, t.sKind) : cardId(t.o, t.oKind)).distinct()
+    return diagram.nodesOfType('Triple').groupBy(t, t.oKind == 'literal' ? '' : (t.p == 'http://www.w3.org/2004/02/skos/core#topConceptOf' ? (t.oKind == 'blank' ? 'blank:' : 'res:') + t.o : (t.p == 'http://www.w3.org/2004/02/skos/core#hasTopConcept' ? (t.sKind == 'blank' ? 'blank:' : 'res:') + t.s : ''))).get(scheme).map(t, t.p == 'http://www.w3.org/2004/02/skos/core#topConceptOf' ? (t.sKind == 'blank' ? 'blank:' : 'res:') + t.s : (t.oKind == 'blank' ? 'blank:' : 'res:') + t.o).groupBy(u_, u_).keys()
   }
 
   /// Every hierarchy assertion as `[broader, narrower, triple]`, in document order: `n skos:broader b` and `b
@@ -505,7 +544,7 @@ diagram w3c/skos version "1.0.0" {
   /// The narrower ends of every hierarchy pair whose broader end is the id.
   fn skosChildren(id: string) -> list {
     // uses: ["diagram"]
-    return skosPairs().filter(p, p[0] == id).map(p, p[1]).distinct()
+    return diagram.nodesOfType('Triple').groupBy(t, t.oKind == 'literal' ? '' : (t.p == 'http://www.w3.org/2004/02/skos/core#broader' ? (t.oKind == 'blank' ? 'blank:' : 'res:') + t.o : (t.p == 'http://www.w3.org/2004/02/skos/core#narrower' ? (t.sKind == 'blank' ? 'blank:' : 'res:') + t.s : ''))).get(id).map(t, t.p == 'http://www.w3.org/2004/02/skos/core#broader' ? (t.sKind == 'blank' ? 'blank:' : 'res:') + t.s : (t.oKind == 'blank' ? 'blank:' : 'res:') + t.o).groupBy(u_, u_).keys()
   }
 
   /// The concepts filed in the scheme.
@@ -517,27 +556,27 @@ diagram w3c/skos version "1.0.0" {
   /// The scheme's concepts breadth first by layer, each layer in ordinal order, appended to `seen` without repeats.
   fn skosLayers(scheme: string, layer: list, seen: list) -> list recursion 64 {
     // uses: ["diagram"]
-    return layer.size() == 0 ? seen : cel.bind(taken, (seen + layer.filter(id, skosDrawable(id) && (skosMember(id, scheme) || id in skosTops(scheme)))).distinct(), skosLayers(scheme, layer.map(id, skosChildren(id)).flatten().filter(c, skosMember(c, scheme) && skosDrawable(c) && !(c in taken)).distinct().sort(), taken))
+    return layer.size() == 0 ? seen : cel.bind(taken, (seen + layer.filter(id, skosDrawable(id) && (skosMember(id, scheme) || id in skosTops(scheme)))).groupBy(u_, u_).keys(), skosLayers(scheme, layer.map(id, skosChildren(id)).flatten().filter(c, skosMember(c, scheme) && skosDrawable(c) && !(c in taken)).groupBy(u_, u_).keys().sort(), taken))
   }
 
   /// Each scheme in ordinal order, then its top concepts and broaderless members and their descendants breadth first,
   /// then the members no layer reached.
   fn skosWalk(schemes: list, i: int, seen: list) -> list recursion 64 {
     // uses: ["diagram"]
-    return i >= schemes.size() ? seen : cel.bind(s, schemes[i], cel.bind(members, skosConcepts(s), cel.bind(after, skosLayers(s, (skosTops(s) + members.filter(m, !skosPairs().exists(p, p[1] == m && p[0] in members))).distinct().sort(), (seen + [s]).distinct()), skosWalk(schemes, i + 1, (after + members.sort()).distinct()))))
+    return i >= schemes.size() ? seen : cel.bind(s, schemes[i], cel.bind(members, skosConcepts(s), cel.bind(after, skosLayers(s, (skosTops(s) + members.filter(m, !skosBroaders(m).exists(b, b in members))).groupBy(u_, u_).keys().sort(), (seen + [s]).groupBy(u_, u_).keys()), skosWalk(schemes, i + 1, (after + members.sort()).groupBy(u_, u_).keys()))))
   }
 
   /// The order the tool meets the vocabulary in, which is the order its budget cuts: schemes with their hierarchies,
   /// then unfiled concepts, then collections, ties by id.
   fn skosOrder() -> list {
     // uses: ["diagram"]
-    return (skosWalk(skosTyped('http://www.w3.org/2004/02/skos/core#ConceptScheme').sort(), 0, []) + skosTyped('http://www.w3.org/2004/02/skos/core#Concept').sort() + (skosTyped('http://www.w3.org/2004/02/skos/core#Collection') + skosTyped('http://www.w3.org/2004/02/skos/core#OrderedCollection')).distinct().sort()).distinct()
+    return (skosWalk(skosTyped('http://www.w3.org/2004/02/skos/core#ConceptScheme').sort(), 0, []) + skosTyped('http://www.w3.org/2004/02/skos/core#Concept').sort() + (skosTyped('http://www.w3.org/2004/02/skos/core#Collection') + skosTyped('http://www.w3.org/2004/02/skos/core#OrderedCollection')).groupBy(u_, u_).keys().sort()).groupBy(u_, u_).keys()
   }
 
   /// The label literals of one kind, in document order, their tags lowercased.
   fn skosLabels(id: string, predicate: string) -> list {
     // uses: ["diagram"]
-    return diagram.nodesOfType('Triple').filter(t, cardId(t.s, t.sKind) == id && t.p == predicate && t.oKind == 'literal').map(t, {
+    return bySubject(id).filter(t, t.p == predicate && t.oKind == 'literal').map(t, {
       'text': t.o,
       'language': t.language.lowerAscii()
     }
@@ -557,13 +596,13 @@ diagram w3c/skos version "1.0.0" {
   /// A term as the findings name it: a concept by its label chosen for English, anything else by its short IRI.
   fn skosFindingName(id: string) -> string {
     // uses: ["diagram"]
-    return id in skosTyped('http://www.w3.org/2004/02/skos/core#Concept') ? chooseLabel(skosLabels(id, 'http://www.w3.org/2004/02/skos/core#prefLabel'), skosLabels(id, 'http://www.w3.org/2004/02/skos/core#altLabel'), 'en', skosShort(id)) : skosShort(id)
+    return skosIsTyped(id, 'http://www.w3.org/2004/02/skos/core#Concept') ? chooseLabel(skosLabels(id, 'http://www.w3.org/2004/02/skos/core#prefLabel'), skosLabels(id, 'http://www.w3.org/2004/02/skos/core#altLabel'), 'en', skosShort(id)) : skosShort(id)
   }
 
   /// Every term reachable down the drawn hierarchy from the frontier.
   fn skosReached(frontier: list, seen: list) -> list recursion 64 {
     // uses: ["diagram"]
-    return frontier.size() == 0 ? seen : cel.bind(more, frontier.filter(id, !(id in seen)), skosReached(more.map(id, skosChildren(id).filter(c, skosDrawable(c))).flatten().distinct(), (seen + more).distinct()))
+    return frontier.size() == 0 ? seen : cel.bind(more, frontier.filter(id, !(id in seen)), skosReached(more.map(id, skosChildren(id).filter(c, skosDrawable(c))).flatten().groupBy(u_, u_).keys(), (seen + more).groupBy(u_, u_).keys()))
   }
 
   // ---------------------------------------------------------------- Constraints
@@ -673,7 +712,7 @@ diagram w3c/skos version "1.0.0" {
       severity warning
       message (skosShort(item[1]) + ' takes part in a ' + rdfDisplayName(item[0].p) + ' assertion but is not typed skos:Concept. Typing is never inferred, so only the file\'s own silence is reported.')
       code: "skos.nonconcept-target"
-      forEach: (diagram.nodesOfType('Triple').map(t, (t.p in ['http://www.w3.org/2004/02/skos/core#broader', 'http://www.w3.org/2004/02/skos/core#narrower', 'http://www.w3.org/2004/02/skos/core#related'] ? [[t, cardId(t.s, t.sKind)], [t, cardId(t.o, t.oKind)]] : (t.p in ['http://www.w3.org/2004/02/skos/core#inScheme', 'http://www.w3.org/2004/02/skos/core#topConceptOf'] ? [[t, cardId(t.s, t.sKind)]] : (t.p == 'http://www.w3.org/2004/02/skos/core#hasTopConcept' ? [[t, cardId(t.o, t.oKind)]] : []))).filter(x, x[0].oKind != 'literal' || x[1] == cardId(x[0].s, x[0].sKind))).flatten().filter(x, !(x[1] in skosTyped('http://www.w3.org/2004/02/skos/core#Concept'))))
+      forEach: (diagram.nodesOfType('Triple').map(t, (t.p in ['http://www.w3.org/2004/02/skos/core#broader', 'http://www.w3.org/2004/02/skos/core#narrower', 'http://www.w3.org/2004/02/skos/core#related'] ? [[t, cardId(t.s, t.sKind)], [t, cardId(t.o, t.oKind)]] : (t.p in ['http://www.w3.org/2004/02/skos/core#inScheme', 'http://www.w3.org/2004/02/skos/core#topConceptOf'] ? [[t, cardId(t.s, t.sKind)]] : (t.p == 'http://www.w3.org/2004/02/skos/core#hasTopConcept' ? [[t, cardId(t.o, t.oKind)]] : []))).filter(x, x[0].oKind != 'literal' || x[1] == cardId(x[0].s, x[0].sKind))).flatten().filter(x, !(skosIsTyped(x[1], 'http://www.w3.org/2004/02/skos/core#Concept'))))
       location: ({ 'line': item[0].line })
     }
 
@@ -833,6 +872,24 @@ diagram w3c/skos version "1.0.0" {
         s: self.iri,
         sKind: 'iri',
         p: 'http://www.w3.org/2000/01/rdf-schema#comment',
+        o: p.value,
+        oKind: 'literal'
+      }
+    }
+  }
+
+  /// Rewrites the lexical form of the first `skos:definition` literal, keeping its language and datatype, or adds a
+  /// plain one when there is none: what a write of the documentation row `skos.doc:definition` does (spec 075, FR-012).
+  operation setDefinition "Definition" for Labelled {
+    param value: string required
+    if bySubject(self.id).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#definition' && t.oKind == 'literal').size() > 0 {
+      let target = bySubject(self.id).filter(t, t.p == 'http://www.w3.org/2004/02/skos/core#definition' && t.oKind == 'literal')[0]
+      set target.o = p.value
+    } else {
+      create Triple {
+        s: self.iri,
+        sKind: 'iri',
+        p: 'http://www.w3.org/2004/02/skos/core#definition',
         o: p.value,
         oKind: 'literal'
       }

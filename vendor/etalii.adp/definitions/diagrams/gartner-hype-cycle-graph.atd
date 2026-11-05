@@ -381,7 +381,12 @@ diagram gartner/hypecycle-graph version "1.1.0" {
       doc: "Ids are unique across all four lists together. The later holder of an id is drawn, with an ephemeral id. An id held several times is reported once, on its last holder, with the count (`oncePerGroup`)."
     }
 
-    builtin std.unreadableEntry { code: "ghg.unreadable-entry", message: (detail.reason) }
+    builtin std.unreadableEntry {
+      enabled: false
+      code: "ghg.unreadable-entry"
+      message: (detail.reason)
+      doc: "An entry of a list that is not a mapping is kept as it is and not reported, as the tool's reader skips it (`GhgReader.cs`)."
+    }
 
     builtin std.unparseable {
       severity: warning
@@ -555,9 +560,15 @@ diagram gartner/hypecycle-graph version "1.1.0" {
     let oldSpan = max(1, old.stop - old.start)
     let newStart = self.start
     let newSpan = self.stop - self.start
-    set peakEnd = newStart + int(math.round(double(old.peakEnd - oldStart) * double(newSpan) / double(oldSpan)))
-    set troughEnd = newStart + int(math.round(double(old.troughEnd - oldStart) * double(newSpan) / double(oldSpan)))
-    set slopeEnd = newStart + int(math.round(double(old.slopeEnd - oldStart) * double(newSpan) / double(oldSpan)))
+    if has(old.peakEnd) {
+      set peakEnd = newStart + int(math.round(double(old.peakEnd - oldStart) * double(newSpan) / double(oldSpan)))
+    }
+    if has(old.troughEnd) {
+      set troughEnd = newStart + int(math.round(double(old.troughEnd - oldStart) * double(newSpan) / double(oldSpan)))
+    }
+    if has(old.slopeEnd) {
+      set slopeEnd = newStart + int(math.round(double(old.slopeEnd - oldStart) * double(newSpan) / double(oldSpan)))
+    }
   }
 
   /// A name is written trimmed (`GhgWriter.SetName`); one left empty is refused by `nameNotEmpty`.
@@ -580,6 +591,21 @@ diagram gartner/hypecycle-graph version "1.1.0" {
     attribute: [text]
     phase: after
     set text = trimmedLines(self.text.replace('\r\n', '\n').replace('\r', '\n'))
+  }
+
+  /// A new influence is written with its ends, as the tool writes one (`GhgWriter.AddInfluence`, the desktop host's
+  /// `edits.rs`): from the source trend's last phase shown, its bottom edge, halfway along; into the target's Peak, its
+  /// top edge, halfway along. An influence from a trigger has no from end.
+  hook influenceEnds on connect for Influence {
+    phase: after
+    if self.source.isA('Trend') {
+      set fromPhase = ['peak', 'trough', 'slope', 'plateau'][min(max(self.source.phases, 1), 4) - 1]
+      set fromEdge = 'bottom'
+      set fromAt = 0.5
+    }
+    set toPhase = 'peak'
+    set toEdge = 'top'
+    set toAt = 0.5
   }
 
   behavior {

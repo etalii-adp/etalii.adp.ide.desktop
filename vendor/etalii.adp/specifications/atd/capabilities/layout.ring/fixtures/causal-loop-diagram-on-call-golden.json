@@ -1,0 +1,153 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.ring` from modules/diagrams/causal-loop-diagram/src/ring.rs of etalii.adp.ide.desktop, on parity/goldens/systems/causal-loop-diagram/on-call/, as the last step of parity/scripts/systems/causal-loop-diagram/on-call.json leaves it; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "variable:incidents",
+        "width": 97.3,
+        "height": 39.6
+      },
+      {
+        "id": "variable:onCallLoad",
+        "width": 120.4,
+        "height": 39.6
+      },
+      {
+        "id": "variable:fatigue",
+        "width": 90.0,
+        "height": 39.6
+      },
+      {
+        "id": "variable:mistakes",
+        "width": 90.0,
+        "height": 39.6
+      },
+      {
+        "id": "variable:attrition",
+        "width": 97.3,
+        "height": 39.6
+      },
+      {
+        "id": "variable:teamSize",
+        "width": 97.3,
+        "height": 39.6
+      },
+      {
+        "id": "variable:automation",
+        "width": 143.5,
+        "height": 39.6
+      },
+      {
+        "id": "variable:toil",
+        "width": 112.7,
+        "height": 39.6
+      },
+      {
+        "id": "variable:variable1",
+        "width": 105.0,
+        "height": 39.6
+      }
+    ],
+    "edges": [
+      {
+        "id": "link:incidents|onCallLoad",
+        "source": "variable:incidents",
+        "target": "variable:onCallLoad"
+      },
+      {
+        "id": "link:onCallLoad|fatigue",
+        "source": "variable:onCallLoad",
+        "target": "variable:fatigue"
+      },
+      {
+        "id": "link:fatigue|mistakes",
+        "source": "variable:fatigue",
+        "target": "variable:mistakes"
+      },
+      {
+        "id": "link:mistakes|incidents",
+        "source": "variable:mistakes",
+        "target": "variable:incidents"
+      },
+      {
+        "id": "link:fatigue|attrition",
+        "source": "variable:fatigue",
+        "target": "variable:attrition"
+      },
+      {
+        "id": "link:attrition|teamSize",
+        "source": "variable:attrition",
+        "target": "variable:teamSize"
+      },
+      {
+        "id": "link:teamSize|onCallLoad",
+        "source": "variable:teamSize",
+        "target": "variable:onCallLoad"
+      },
+      {
+        "id": "link:toil|onCallLoad",
+        "source": "variable:toil",
+        "target": "variable:onCallLoad"
+      },
+      {
+        "id": "link:automation|toil",
+        "source": "variable:automation",
+        "target": "variable:toil"
+      },
+      {
+        "id": "link:onCallLoad|automation",
+        "source": "variable:onCallLoad",
+        "target": "variable:automation"
+      },
+      {
+        "id": "link:variable1|teamSize",
+        "source": "variable:variable1",
+        "target": "variable:teamSize"
+      }
+    ]
+  },
+  "args": {
+    "separation": 40.0
+  },
+  "output": {
+    "positions": {
+      "variable:incidents": {
+        "x": -48.65,
+        "y": -282.64
+      },
+      "variable:onCallLoad": {
+        "x": 108.75,
+        "y": -221.15
+      },
+      "variable:fatigue": {
+        "x": 213.85,
+        "y": -65.44
+      },
+      "variable:mistakes": {
+        "x": 182.63,
+        "y": 111.62
+      },
+      "variable:attrition": {
+        "x": 41.25,
+        "y": 227.19
+      },
+      "variable:teamSize": {
+        "x": -138.55,
+        "y": 227.19
+      },
+      "variable:automation": {
+        "x": -330.6,
+        "y": -65.44
+      },
+      "variable:toil": {
+        "x": -225.3,
+        "y": -221.15
+      },
+      "variable:variable1": {
+        "x": -280.13,
+        "y": 111.62
+      }
+    }
+  }
+}
