@@ -198,6 +198,41 @@ fn every_example_tree_is_valid_against_the_schema() {
     }
 }
 
+/// `groupBy` is a macro (DISL 0.9, §12.4; ATD §6.3; spec 075, T018): the descriptions that group a list mark its call
+/// `macro` in their abstract tree, which the schema accepts.
+#[test]
+fn a_grouping_is_a_macro_in_a_tree_the_schema_accepts() {
+    let dir = spec_dir();
+    let schema: Value = serde_json::from_str(&std::fs::read_to_string(dir.join("atd.schema.json")).unwrap()).unwrap();
+    let mut tree_schema = schema.clone();
+    tree_schema["$ref"] = Value::String("#/$defs/Tree".into());
+    let validator = jsonschema::options()
+        .with_retriever(Vendored(dir.parent().unwrap().to_path_buf()))
+        .build(&tree_schema)
+        .expect("the schema compiles");
+    let path = dir.join("fixtures/grouping-at-limit/grouping-at-limit.atd");
+    let parse = adp_atd_syntax::parse(&std::fs::read_to_string(&path).unwrap());
+    let tree = adp_atd_syntax::lower(&parse, "grouping-at-limit.atd").expect("a tree");
+    assert!(validator.is_valid(&tree));
+    fn calls<'a>(node: &'a Value, out: &mut Vec<&'a Value>) {
+        if node.get("call").and_then(Value::as_str) == Some("groupBy") {
+            out.push(node);
+        }
+        match node {
+            Value::Object(map) => map.values().for_each(|v| calls(v, out)),
+            Value::Array(items) => items.iter().for_each(|v| calls(v, out)),
+            _ => {}
+        }
+    }
+    let mut found = Vec::new();
+    calls(&tree, &mut found);
+    assert_eq!(found.len(), 3);
+    assert!(
+        found.iter().all(|call| call["macro"] == Value::Bool(true)),
+        "{found:#?}"
+    );
+}
+
 #[test]
 fn a_broken_file_still_parses_after_the_error() {
     let text = "atd 0.1\ndiagram a/b version \"1\" {\n  model {\n    element Task {\n      attribute name required\n    }\n  }\n  constraint c for Task {\n    rule self.name != \"\"\n  }\n}\n";

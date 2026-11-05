@@ -9,7 +9,7 @@ use super::actions::{self, Parameters, Written};
 use super::values::{expression, names, settings, settings_of, text, type_name, value};
 
 /// The DISL version the lowered specification states.
-const DISL: &str = "0.3";
+const DISL: &str = "0.9";
 
 /// What lowering a diagram's description gives: the specification, and the statements each `extension` action runs,
 /// by its name.

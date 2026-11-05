@@ -322,7 +322,9 @@ const BEYOND_THE_STANDALONE_LOADER_ON_THE_REFRESHED_DEFINITIONS: [&str; 28] = [
 
 /// The library functions of DISL section 12.4 this runtime implements and the standalone host's evaluator did not:
 /// where the standalone host's loader refused a call of one of them, this one loads it.
-const BEYOND_THE_STANDALONE_HOST: [&str; 6] = [
+const BEYOND_THE_STANDALONE_HOST: [&str; 7] = [
+    // DISL 0.9's grouping (etalii.adp spec 075), which the standalone host follows under a specification of its own.
+    "groupBy",
     "inCycle",
     "reachable",
     "successors",

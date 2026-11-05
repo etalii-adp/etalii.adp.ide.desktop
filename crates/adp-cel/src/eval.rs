@@ -8,7 +8,8 @@ use std::rc::Rc;
 
 use crate::Environment;
 use crate::function::{BUDGET_EXCEEDED, Budget, Call, Function, Macro};
-use crate::value::{Map, TYPE_NAMES, Value};
+use crate::group::{self, Grouping};
+use crate::value::{Map, Object, TYPE_NAMES, Value};
 
 #[derive(Debug, Clone)]
 pub(crate) enum Node {
@@ -26,6 +27,8 @@ pub(crate) enum Node {
     Conditional(Box<Node>, Box<Node>, Box<Node>),
     /// `target.macro(variable, body)`: a comprehension over a list, or over a map's keys.
     Comprehension(Macro, Box<Node>, String, Box<Node>),
+    /// `target.groupBy(variable, key)` (DISL section 12.4), with the number of its key expression.
+    GroupBy(Box<Node>, String, Box<Node>, u64),
     /// `cel.bind(variable, init, body)`.
     Bind(String, Box<Node>, Box<Node>),
     /// A call; for a receiver call, the receiver is the first argument the function's body sees.
@@ -44,7 +47,9 @@ pub(crate) fn check_variables(node: &Node, environment: &Environment, bound: &mu
             }
             Ok(())
         }
-        Node::Comprehension(_, target, variable, body) | Node::Bind(variable, target, body) => {
+        Node::Comprehension(_, target, variable, body)
+        | Node::GroupBy(target, variable, body, _)
+        | Node::Bind(variable, target, body) => {
             check_variables(target, environment, bound)?;
             bound.push(variable.clone());
             let result = check_variables(body, environment, bound);
@@ -115,9 +120,62 @@ struct Scope<'a> {
     variables: &'a dyn Variables,
     bound: Vec<(String, Value)>,
     budget: &'a Budget,
+    /// While a grouping's key is evaluated: whether it read anything but its item (DISL section 12.4).
+    watch: Option<Watch>,
+}
+
+/// What a grouping's key reads, so that the grouping is kept only when it read nothing but its own item's stored
+/// values, literals and pure functions: no other variable, no element's id or derived value, no other element, no
+/// method of a host object and no function of a description.
+struct Watch {
+    /// The item the key is evaluated for.
+    item: Value,
+    /// Where the key's variable stands among the bound ones: a binding below it was made outside the key.
+    base: usize,
+    impure: bool,
 }
 
 impl Scope<'_> {
+    /// Notes a read of the variable `name` while a key is watched.
+    fn watch_variable(&mut self, name: &str) {
+        if let Some(watch) = &mut self.watch {
+            let inside = self
+                .bound
+                .iter()
+                .rposition(|(n, _)| n == name)
+                .is_some_and(|at| at >= watch.base);
+            if !inside {
+                watch.impure = true;
+            }
+        }
+    }
+
+    /// Notes a read of the member `name` of `target` while a key is watched: a stored value of the item itself, or a
+    /// key of a map, keeps the key pure.
+    fn watch_member(&mut self, target: &Value, name: &str) {
+        if let Some(watch) = &mut self.watch {
+            let target = match target {
+                Value::Optional(Some(value)) => value.as_ref(),
+                other => other,
+            };
+            if let Value::Object(object) = target {
+                let own = matches!(&watch.item, Value::Object(item) if std::ptr::addr_eq(Rc::as_ptr(item), Rc::as_ptr(object)));
+                if !own || !object.reads_stored(name) {
+                    watch.impure = true;
+                }
+            }
+        }
+    }
+
+    /// Notes a call of `function` while a key is watched, on a host object's method when `method`.
+    fn watch_call(&mut self, function: &Function, method: bool) {
+        if let Some(watch) = &mut self.watch
+            && (method || !function.is_pure())
+        {
+            watch.impure = true;
+        }
+    }
+
     fn step(&self) -> Result<(), String> {
         self.budget.charge(1)
     }
@@ -163,6 +221,7 @@ impl Program {
             variables,
             bound: Vec::new(),
             budget,
+            watch: None,
         };
         evaluate(&self.root, &mut scope)
     }
@@ -201,6 +260,7 @@ fn evaluate(node: &Node, scope: &mut Scope<'_>) -> Result<Value, String> {
         Node::Literal(value) => Ok(value.clone()),
         Node::Ident(name) => {
             scope.step()?;
+            scope.watch_variable(name);
             scope.lookup(name)
         }
         Node::List(items) => {
@@ -223,6 +283,7 @@ fn evaluate(node: &Node, scope: &mut Scope<'_>) -> Result<Value, String> {
         Node::Member(target, name, optional) => {
             scope.step()?;
             let target = evaluate(target, scope)?;
+            scope.watch_member(&target, name);
             match &target {
                 // Selection on an optional chains: none stays none, a value is selected from.
                 Value::Optional(Some(value)) => select(value, name, true),
@@ -242,7 +303,9 @@ fn evaluate(node: &Node, scope: &mut Scope<'_>) -> Result<Value, String> {
         }
         Node::Has(target, name) => {
             scope.step()?;
-            match evaluate(target, scope)? {
+            let target = evaluate(target, scope)?;
+            scope.watch_member(&target, name);
+            match target {
                 Value::Map(map) => Ok(Value::Bool(map.contains_key(name))),
                 Value::Object(object) if object.is_selectable() => Ok(Value::Bool(object.has_member(name))),
                 _ => Err("has() needs a map.".into()),
@@ -282,6 +345,18 @@ fn evaluate(node: &Node, scope: &mut Scope<'_>) -> Result<Value, String> {
             };
             comprehension(*kind, items, variable, body, scope)
         }
+        Node::GroupBy(target, variable, key, signature) => {
+            scope.step()?;
+            // A grouping made inside a key keeps that key from being kept.
+            if let Some(watch) = &mut scope.watch {
+                watch.impure = true;
+            }
+            let target = evaluate(target, scope)?;
+            let Value::List(list) = &target else {
+                return Err("'groupBy' needs a list.".into());
+            };
+            group_by(list, variable, key, *signature, scope)
+        }
         Node::Bind(variable, init, body) => {
             scope.step()?;
             let value = evaluate(init, scope)?;
@@ -300,6 +375,8 @@ fn evaluate(node: &Node, scope: &mut Scope<'_>) -> Result<Value, String> {
             for argument in arguments {
                 args.push(evaluate(argument, scope)?);
             }
+            let method = matches!(&receiver, Some(Value::Object(object)) if object.is_selectable());
+            scope.watch_call(function, method);
             if let Some(receiver) = receiver {
                 if let Value::Object(object) = &receiver
                     && object.is_selectable()
@@ -438,7 +515,58 @@ fn comprehension(
             }
             sort(keyed).map(Value::list)
         }
+        Macro::GroupBy => Err("'groupBy' is not a comprehension.".into()),
     }
+}
+
+/// `list.groupBy(variable, key)`: the grouping kept for the list and the key, charged its pass's cost again, or a new
+/// one, kept when its key read nothing but each item (DISL sections 12.4 and 12.5). A key that fails fails the whole
+/// grouping.
+fn group_by(
+    list: &Rc<Vec<Value>>,
+    variable: &str,
+    key: &Node,
+    signature: u64,
+    scope: &mut Scope<'_>,
+) -> Result<Value, String> {
+    if let Some((grouping, cost)) = group::kept(list, signature) {
+        scope.budget.charge(cost)?;
+        return Ok(Value::Object(grouping as Rc<dyn Object>));
+    }
+    group::made();
+    let outer = scope.watch.take();
+    let used = scope.budget.used();
+    scope.watch = Some(Watch {
+        item: Value::Null,
+        base: scope.bound.len(),
+        impure: false,
+    });
+    let mut keys = Vec::with_capacity(list.len());
+    let mut failure = None;
+    for item in list.iter() {
+        if let Some(watch) = &mut scope.watch {
+            watch.item = item.clone();
+        }
+        scope.bound.push((variable.to_owned(), item.clone()));
+        let result = evaluate(key, scope);
+        scope.bound.pop();
+        match result {
+            Ok(value) => keys.push(value),
+            Err(e) => {
+                failure = Some(e);
+                break;
+            }
+        }
+    }
+    let watch = std::mem::replace(&mut scope.watch, outer);
+    if let Some(e) = failure {
+        return Err(e);
+    }
+    let grouping = Rc::new(Grouping::new(list, keys)?);
+    if watch.is_some_and(|w| !w.impure) {
+        group::keep(list, signature, Rc::clone(&grouping), scope.budget.used() - used);
+    }
+    Ok(Value::Object(grouping as Rc<dyn Object>))
 }
 
 /// A stable sort by key; the keys must be all strings, all numbers or all bools (DISL section 12.1).

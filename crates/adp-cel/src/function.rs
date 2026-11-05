@@ -95,6 +95,9 @@ pub struct Function {
     pub max_arguments: usize,
     pub body: Option<Body>,
     cost: Option<Cost>,
+    /// Whether the function's result depends on its arguments alone, so that a grouping's key that calls it may be
+    /// kept (DISL section 12.4). The standard environment's functions are; any other is not unless it says so.
+    pure: bool,
 }
 
 impl fmt::Debug for Function {
@@ -116,6 +119,7 @@ impl Function {
             max_arguments,
             body,
             cost: None,
+            pure: false,
         }
     }
 
@@ -152,6 +156,16 @@ impl Function {
         self
     }
 
+    /// The function, its result depending on its arguments alone.
+    pub fn pure(mut self) -> Self {
+        self.pure = true;
+        self
+    }
+
+    pub fn is_pure(&self) -> bool {
+        self.pure
+    }
+
     /// The cost one call charges, at least one step; library functions over lists and strings charge their length.
     pub fn cost_of(&self, arguments: &[Value]) -> i64 {
         self.cost.as_ref().map(|c| c(arguments)).unwrap_or(1).max(1)
@@ -168,8 +182,8 @@ impl Function {
     }
 }
 
-/// A comprehension macro, written `target.name(x, expression)`: `all`, `exists`, `exists_one`, `filter`, `map` and
-/// `sortBy`. `has()` and `cel.bind()` are part of the language instead.
+/// A comprehension macro, written `target.name(x, expression)`: `all`, `exists`, `exists_one`, `filter`, `map`,
+/// `sortBy` and DISL's `groupBy`. `has()` and `cel.bind()` are part of the language instead.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Macro {
     All,
@@ -178,6 +192,8 @@ pub enum Macro {
     Filter,
     Map,
     SortBy,
+    /// `l.groupBy(x, key)` (DISL 0.9, section 12.4): a grouping of a list by key.
+    GroupBy,
 }
 
 impl Macro {
@@ -189,6 +205,7 @@ impl Macro {
             Macro::Filter => "filter",
             Macro::Map => "map",
             Macro::SortBy => "sortBy",
+            Macro::GroupBy => "groupBy",
         }
     }
 }

@@ -12,3 +12,11 @@ workspace = true
 
 [dependencies]
 regex = "1"
+
+[dev-dependencies]
+# The grouping fixtures of DISL 0.9 are JSON (spec 075, T013).
+serde_json = "1"
+
+# The grouping fixtures run in WebAssembly too (spec 075, T019, research R10).
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+wasm-bindgen-test = "0.3"
