@@ -33,7 +33,13 @@ pub fn record(cases: &Path) -> Result<Vec<PathBuf>, String> {
         let edges: Vec<Json> = model
             .links
             .iter()
-            .map(|link| json!({"source": format!("variable:{}", link.from), "target": format!("variable:{}", link.to)}))
+            .map(|link| {
+                json!({
+                    "id": format!("link:{}|{}", link.from, link.to),
+                    "source": format!("variable:{}", link.from),
+                    "target": format!("variable:{}", link.to),
+                })
+            })
             .collect();
         let boxes = ring::compute(&model, &metrics);
         let positions: Map<String, Json> = variables
