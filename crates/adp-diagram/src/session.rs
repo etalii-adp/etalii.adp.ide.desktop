@@ -452,11 +452,27 @@ impl DiagramSession {
                 if let Some(refusal) = refusals.into_iter().next() {
                     return Err(refusal.message);
                 }
-                changes.push(DiagramChange::Disl(DislChange::Set {
+                let set = DislChange::Set {
                     element_id: element.id(),
                     type_name: element.type_name(),
                     attributes: placed.attributes,
-                }));
+                };
+                // A description's change rules run on what a move sets, as on a property.
+                if document.tool().module.as_ref().is_some_and(|m| m.runs_change_rules()) {
+                    let working = builder::from(document.fbl(), specification).diagram;
+                    let hooked = adp_disl::behavior::hooks::after_sets(
+                        specification,
+                        &working,
+                        std::slice::from_ref(&set),
+                        &StandInIds::default(),
+                        Some(&self.env),
+                        "user",
+                    )?;
+                    changes.push(DiagramChange::Disl(set));
+                    changes.extend(hooked.into_iter().map(DiagramChange::Disl));
+                    continue;
+                }
+                changes.push(DiagramChange::Disl(set));
                 continue;
             }
             // A move does not change what contains the element (DISL section 8.8), so its new parent is its parent.
@@ -1021,9 +1037,24 @@ impl DiagramSession {
                     shown.validate(value)?;
                 }
             }
-            let transaction = form_commit::row(specification, &element, &row, value, &self.env, "inspector");
+            let mut transaction = form_commit::row(specification, &element, &row, value, &self.env, "inspector");
             if let Some(refusal) = transaction.refusal {
                 return Err(refusal);
+            }
+            // A description's change constraints and change hooks run on what the row sets, in the same edit, once
+            // the file can take it: what the binding refuses is refused first.
+            if document.tool().module.as_ref().is_some_and(|m| m.runs_change_rules()) {
+                let set: Vec<DiagramChange> = transaction.changes.iter().cloned().map(DiagramChange::Disl).collect();
+                document.plan("Change", &set)?;
+                let hooked = adp_disl::behavior::hooks::after_sets(
+                    specification,
+                    &working,
+                    &transaction.changes,
+                    &StandInIds::default(),
+                    Some(&self.env),
+                    "user",
+                )?;
+                transaction.changes.extend(hooked);
             }
             let written = match &document.tool().module {
                 Some(module) => module.written(&document.model().diagram, transaction.changes)?,
@@ -1576,6 +1607,12 @@ impl DiagramSession {
         {
             return Err(refusal.message);
         }
+        // A description's `std.endpoints` refuses what it would report, before an id is drawn (DISL section 8.4).
+        if document.tool().module.as_ref().is_some_and(|m| m.runs_change_rules())
+            && let Some(refusal) = gestures::endpoint_refusal(specification, relation_type, &from, &to, Some(&self.env))
+        {
+            return Err(refusal);
+        }
         let transaction = if relation.derived().is_some() {
             let working = builder::from(document.fbl(), specification).diagram;
             let (Some(from), Some(to)) = (working.element_by_id(source), working.element_by_id(target)) else {
@@ -1583,16 +1620,31 @@ impl DiagramSession {
             };
             operations::connect(specification, relation_type, &working, &from, &to, ids, Some(&self.env))
         } else {
-            DislTransaction {
+            let id = ids.next(relation_type)?;
+            let mut transaction = DislTransaction {
                 changes: vec![DislChange::Connect {
                     type_name: relation_type.to_owned(),
-                    id: ids.next(relation_type)?,
+                    id: id.clone(),
                     source_id: from.id(),
                     target_id: to.id(),
                     attributes: Map::default(),
                 }],
                 ..DislTransaction::default()
+            };
+            // A description's `on: connect` hooks run on the relation drawn, in the same edit (DISL section 9.2).
+            if document.tool().module.as_ref().is_some_and(|m| m.runs_change_rules()) {
+                let working = builder::from(document.fbl(), specification).diagram;
+                if let (Some(source), Some(target)) = (working.element_by_id(source), working.element_by_id(target)) {
+                    let relation =
+                        working.add_relation(relation_type, &id, Some(&source), Some(&target), Map::default())?;
+                    let hooked = hooks::after_connect(specification, &relation, ids, Some(&self.env), "user")?;
+                    if let Some(refusal) = hooked.refusal {
+                        return Err(refusal);
+                    }
+                    transaction.changes.extend(hooked.changes);
+                }
             }
+            transaction
         };
         self.write(workspace, "Connect", transaction)
     }

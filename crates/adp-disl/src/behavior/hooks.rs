@@ -232,3 +232,56 @@ fn max_depth(specification: &DislSpecification) -> i64 {
         .filter(|d| i32::try_from(*d).is_ok())
         .unwrap_or(100)
 }
+
+/// What a description's change rules make of the `Set`s among `changes` (DISL sections 8.4 and 9.2), on `working`:
+/// each attribute set is checked by the `change` constraints with its value as the element holds it, then assigned,
+/// and the `on: change` hooks of each element set run with a snapshot taken before; the changes the hooks make, or the
+/// first refusal. A host whose own code does this work does not call it.
+pub fn after_sets(
+    specification: &DislSpecification,
+    working: &crate::model::diagram::DislDiagram,
+    changes: &[DislChange],
+    ids: &dyn IdSource,
+    env: Option<&DislEnv>,
+    source: &str,
+) -> Result<Vec<DislChange>, String> {
+    let mut made = Vec::new();
+    for change in changes {
+        let DislChange::Set {
+            element_id, attributes, ..
+        } = change
+        else {
+            continue;
+        };
+        let Some(element) = working.element_by_id(element_id) else {
+            continue;
+        };
+        let old = element.snapshot();
+        let element_type = element.element_type();
+        let mut names = Vec::new();
+        for (name, stored) in attributes.iter() {
+            let value = match element_type.attributes.get(name) {
+                Some(declared) if !stored.is_null() => {
+                    crate::model::values::from_read(stored, declared, specification.metamodel())
+                        .unwrap_or_else(|| stored.clone())
+                }
+                _ => stored.clone(),
+            };
+            if let Some(refusal) =
+                crate::derivation::gestures::change(specification, &element, name, value.clone(), env)
+                    .into_iter()
+                    .next()
+            {
+                return Err(refusal.message);
+            }
+            element.store(name, value)?;
+            names.push(name.as_str());
+        }
+        let hooked = after_change(specification, &element, &old, &names, ids, env, source);
+        if let Some(refusal) = hooked.refusal {
+            return Err(refusal);
+        }
+        made.extend(hooked.changes);
+    }
+    Ok(made)
+}

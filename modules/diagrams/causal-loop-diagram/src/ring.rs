@@ -33,15 +33,8 @@ pub fn compute(model: &Model, metrics: &Metrics) -> HashMap<String, Rect> {
     ring::compute(&nodes, &edges, metrics.separation)
         .into_iter()
         .map(|(name, (x, y))| {
-            // The capability's corner is the point on the ring, which this module's box is centred on.
             let width = nodes.iter().find(|n| n.id == name).map_or(0.0, |n| n.width);
-            if nodes.len() == 1 {
-                return (name, Rect::new(x, y, width, height));
-            }
-            (
-                name,
-                Rect::new(settled(x - width / 2.0), settled(y - height / 2.0), width, height),
-            )
+            (name, Rect::new(x, y, width, height))
         })
         .collect()
 }

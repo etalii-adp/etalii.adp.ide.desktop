@@ -142,7 +142,7 @@ fn flagged<'e>(group: &'e [DislElement], setting: &BuiltIn<'_>) -> Vec<&'e DislE
     }
 }
 
-fn allows(end: Option<&DislRelationEnd>, element: &DislElement) -> bool {
+pub(crate) fn allows(end: Option<&DislRelationEnd>, element: &DislElement) -> bool {
     match end {
         None => true,
         Some(end) => {

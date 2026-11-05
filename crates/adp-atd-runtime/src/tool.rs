@@ -213,10 +213,10 @@ struct TidyLayout {
 struct ScaledPlacement {
     x: ScaledAxis,
     y: ScaledAxis,
-    /// The part of the node, as fractions of its size, that stands where its values say (`anchor`, DISL section 5.8).
-    anchor: (f64, f64),
     /// The attributes of the opposite corner of a node drawn between two points (`x2`, `y2`, DISL section 5.8).
     opposite: Option<(ScaledAxis, ScaledAxis)>,
+    /// The second point's axis of each of x and y where the placement states one (`x2`, `y2`).
+    seconds: Vec<(bool, ScaledAxis)>,
 }
 
 #[derive(Debug, Clone)]
@@ -224,29 +224,126 @@ struct ScaledAxis {
     attribute: String,
     /// The canvas units of one value along the axis (`scale`): 1 when the axis states none.
     scale: f64,
+    /// The value at canvas 0 (`origin`): a `yearMonth` axis's as its month index.
+    origin: f64,
+    /// What the placement adds to the value before it is placed (`offset`, DISL section 5.8).
+    offset: f64,
+    /// A time axis's scale `{unit, size}` (DISL section 5.5): `size` canvas units per step of the unit, the unit
+    /// given, or read from the diagram's attribute of that name.
+    time: Option<TimeScale>,
     /// Whether a value along the axis is whole (`precision: 0`).
     whole: bool,
     /// The values the axis runs between, where it runs from its maximum to its minimum (`reversed`): their sum.
     reversed: Option<f64>,
 }
 
+#[derive(Debug, Clone)]
+enum TimeUnitOf {
+    Given(String),
+    Attribute(String),
+}
+
+#[derive(Debug, Clone)]
+struct TimeScale {
+    unit: TimeUnitOf,
+    size: f64,
+}
+
+/// The months in one step of a DISL time unit (DISL section 5.5).
+fn months_of(unit: &str) -> f64 {
+    match unit {
+        "quarter" => 3.0,
+        "year" => 12.0,
+        "decade" => 120.0,
+        "century" => 1200.0,
+        "millennium" => 12000.0,
+        _ => 1.0,
+    }
+}
+
 impl ScaledAxis {
-    /// The canvas coordinate of `element`'s value along this axis; 0 for one that does not read as a number.
-    fn canvas(&self, element: &DislElement) -> f64 {
-        let value = element.value_of(&self.attribute).as_number().unwrap_or_default();
-        self.reversed.map_or(value, |sum| sum - value) * self.scale
+    /// The canvas units of one value along this axis for `element`'s diagram: a time axis's size per step of its unit.
+    fn units(&self, element: &DislElement) -> f64 {
+        self.units_in(&element.diagram())
     }
 
-    /// The value a canvas coordinate means along this axis: the nearest whole one on a whole axis.
-    fn value(&self, canvas: f64) -> Value {
-        let value = canvas / self.scale;
+    /// The canvas units of one value along this axis in `diagram`.
+    fn units_in(&self, diagram: &adp_disl::DislDiagram) -> f64 {
+        match &self.time {
+            Some(time) => {
+                let unit = match &time.unit {
+                    TimeUnitOf::Given(unit) => unit.clone(),
+                    TimeUnitOf::Attribute(name) => diagram.value_of(name).to_string(),
+                };
+                time.size / months_of(unit.trim_matches(['"', '\'']))
+            }
+            None => self.scale,
+        }
+    }
+
+    /// The canvas coordinate of `element`'s value along this axis; 0 for one that does not read as a number.
+    fn canvas(&self, element: &DislElement) -> f64 {
+        // An absent value is drawn at canvas 0, as an attribute that is never set is no value of the axis.
+        let set = element.attributes().get(&self.attribute).is_some_and(|v| !v.is_null());
+        match element.value_of(&self.attribute).as_number() {
+            Some(value) if set => self.at(element, value),
+            _ => 0.0,
+        }
+    }
+
+    /// The canvas coordinate of `value` along this axis, for `element`'s diagram, its placement's `offset` added.
+    fn at(&self, element: &DislElement, value: f64) -> f64 {
+        (self.reversed.map_or(value, |sum| sum - value) + self.offset - self.origin) * self.units(element)
+    }
+
+    /// The value a canvas coordinate means along this axis for `element`'s diagram: the nearest whole one on a whole
+    /// axis, and a month on a time axis.
+    fn value(&self, element: &DislElement, canvas: f64) -> Value {
+        if let Some(time) = &self.time {
+            // A whole step of the unit from the origin, halves away from zero (the axis's calendar snapping).
+            let months = time.size / self.units(element);
+            let steps = (canvas / time.size).round();
+            return Value::Int((self.origin + steps * months) as i64);
+        }
+        let value = canvas / self.units(element) + self.origin - self.offset;
         let value = self.reversed.map_or(value, |sum| sum - value);
-        if self.whole {
+        // A whole axis, or an attribute the model holds as an int, takes the nearest whole value.
+        let int = element
+            .element_type()
+            .attributes
+            .get(&self.attribute)
+            .is_some_and(|a| a.type_name == "int");
+        if self.whole || int {
             Value::Int(value.round() as i64)
         } else {
             Value::Double(value)
         }
     }
+}
+
+/// The axis `name` of the coordinates as a value-to-canvas mapping, with no attribute.
+fn axis_of(specification: &Json, name: &str) -> Option<ScaledAxis> {
+    let axis = specification["coordinates"]["axes"].get(name)?;
+    Some(ScaledAxis {
+        attribute: String::new(),
+        origin: match &axis["origin"] {
+            Json::String(text) => adp_disl::expressions::year_month::parse(text).map_or(0.0, |m| m as f64),
+            other => other.as_f64().unwrap_or(0.0),
+        },
+        offset: 0.0,
+        time: axis["scale"].as_object().map(|scale| TimeScale {
+            unit: match &scale["unit"] {
+                Json::Object(bound) if bound.get("attribute").is_some() => {
+                    TimeUnitOf::Attribute(lowering::values::text(&bound["attribute"]))
+                }
+                other => TimeUnitOf::Given(other.as_str().unwrap_or("month").to_owned()),
+            },
+            size: scale["size"].as_f64().unwrap_or(1.0),
+        }),
+        scale: axis["scale"].as_f64().filter(|s| *s != 0.0).unwrap_or(1.0),
+        whole: false,
+        reversed: None,
+    })
 }
 
 /// The placements of the description's node types that have an axis with a `scale` of its own; a placement on axes
@@ -257,8 +354,24 @@ fn scaled_placements(specification: &Json) -> HashMap<String, ScaledPlacement> {
         let attribute = placement[name]["attribute"].as_str()?.to_owned();
         let along = name.trim_end_matches('2');
         let axis = &coordinates["axes"][coordinates["systems"][system][along].as_str()?];
+        let time = axis["scale"].as_object().map(|scale| TimeScale {
+            unit: match &scale["unit"] {
+                Json::Object(bound) if bound.get("attribute").is_some() => {
+                    TimeUnitOf::Attribute(lowering::values::text(&bound["attribute"]))
+                }
+                other => TimeUnitOf::Given(other.as_str().unwrap_or("month").to_owned()),
+            },
+            size: scale["size"].as_f64().unwrap_or(1.0),
+        });
+        let origin = match &axis["origin"] {
+            Json::String(text) => adp_disl::expressions::year_month::parse(text).map_or(0.0, |m| m as f64),
+            other => other.as_f64().unwrap_or(0.0),
+        };
         Some(ScaledAxis {
             attribute,
+            origin,
+            offset: placement[name]["offset"].as_f64().unwrap_or(0.0),
+            time,
             scale: axis["scale"].as_f64().filter(|s| *s != 0.0).unwrap_or(1.0),
             whole: axis["precision"].as_i64() == Some(0),
             reversed: (axis["reversed"] == true)
@@ -276,17 +389,14 @@ fn scaled_placements(specification: &Json) -> HashMap<String, ScaledPlacement> {
             let scaled = ScaledPlacement {
                 x: axis(placement, system, "x")?,
                 y: axis(placement, system, "y")?,
-                anchor: match placement["anchor"].as_str() {
-                    Some("center") => (0.5, 0.5),
-                    Some("left") => (0.0, 0.5),
-                    Some("right") => (1.0, 0.5),
-                    Some("top") => (0.5, 0.0),
-                    Some("bottom") => (0.5, 1.0),
-                    _ => (0.0, 0.0),
-                },
                 opposite: axis(placement, system, "x2").zip(axis(placement, system, "y2")),
+                seconds: [(true, "x2"), (false, "y2")]
+                    .into_iter()
+                    .filter_map(|(on_x, name)| Some((on_x, axis(placement, system, name)?)))
+                    .collect(),
             };
-            (scaled.x.scale != 1.0 || scaled.y.scale != 1.0).then(|| (name.clone(), scaled))
+            let scales = |axis: &ScaledAxis| axis.scale != 1.0 || axis.time.is_some() || axis.origin != 0.0;
+            (scales(&scaled.x) || scales(&scaled.y)).then(|| (name.clone(), scaled))
         })
         .collect()
 }
@@ -302,6 +412,8 @@ pub struct RuntimeModule {
     missing: Vec<(String, String)>,
     layout: Option<CapabilityLayout>,
     tidy: Option<TidyLayout>,
+    /// The default coordinate system's x and y axes, which a point given on the canvas is a domain point of.
+    system: Option<(ScaledAxis, ScaledAxis)>,
     /// Each viewer's initial view state, by key: `collapsed` from `persistence.view.initial`.
     initial_view: serde_json::Map<String, Json>,
     /// The view state `view` actions set, by document and element, over the initial one.
@@ -355,6 +467,13 @@ impl RuntimeModule {
             missing,
             layout,
             tidy,
+            system: specification["coordinates"]["default"]
+                .as_str()
+                .and_then(|default| {
+                    let system = &specification["coordinates"]["systems"][default];
+                    axis_of(specification, system["x"].as_str()?).zip(axis_of(specification, system["y"].as_str()?))
+                })
+                .filter(|(x, y)| x.time.is_some() || y.time.is_some() || x.scale != 1.0 || y.scale != 1.0),
             initial_view,
             views: RefCell::default(),
         }
@@ -491,6 +610,111 @@ impl RuntimeModule {
 }
 
 impl RuntimeModule {
+    /// DISL's standard `rows` (DISL §10.2), run by the shared row packing the hype cycle graph's module arranged with
+    /// (`adp-layout`'s `row_packing`, etalii.adp spec 076, T045): each element of a type `extent` names, across from its
+    /// `from` to its `to` and as many rows tall as `rows` says, evaluated with `x`, `x2`, `width` and `height` of where
+    /// it is drawn, `clearance` apart on a row, and the relations of the type `affinity` names as the links. Each
+    /// element whose row changes has the attribute `writes` names set, the last written first, as one step.
+    fn rows(
+        &self,
+        specification: &DislSpecification,
+        diagram: &adp_disl::DislDiagram,
+    ) -> Option<Result<Vec<adp_disl::DislChange>, String>> {
+        use adp_layout::row_packing::{RowItem, pack};
+        let algorithm = specification.root()["layout"]["algorithms"]
+            .as_object()?
+            .values()
+            .find(|a| a["algorithm"] == "rows")?
+            .clone();
+        let settings = &algorithm["rows"];
+        let attribute = settings["writes"][0].as_str().unwrap_or("row").to_owned();
+        let clearance = settings["clearance"].as_f64().unwrap_or(0.0);
+        let mut items = Vec::new();
+        let mut placed: Vec<DislElement> = Vec::new();
+        for (type_name, extent) in settings["extent"].as_object().into_iter().flatten() {
+            let mut nodes: Vec<(usize, DislElement)> =
+                diagram.nodes_of_type(type_name).into_iter().enumerate().collect();
+            nodes.sort_by_key(|(index, node)| (node.line().unwrap_or(i32::MAX), *index));
+            for (_, node) in nodes {
+                let Some(placement) = self.scaled.get(&node.type_name()) else {
+                    continue;
+                };
+                if !node
+                    .attributes()
+                    .get(&placement.x.attribute)
+                    .is_some_and(|v| !v.is_null())
+                {
+                    continue;
+                }
+                let x = placement.x.canvas(&node);
+                let (width, height) = Self::size(specification, &node);
+                let x2 = placement
+                    .seconds
+                    .iter()
+                    .find(|(on_x, _)| *on_x)
+                    .map_or(x + width, |(_, second)| second.canvas(&node));
+                let width = x2 - x;
+                let evaluate = |value: &Json| -> Option<f64> {
+                    let source = value.get("cel").and_then(Json::as_str).or_else(|| value.as_str())?;
+                    let program = specification
+                        .environment("element", &["x", "x2", "width", "height"])
+                        .compile(source)
+                        .ok()?;
+                    let variables: HashMap<String, Value> = HashMap::from([
+                        ("self".to_owned(), node.to_value()),
+                        ("diagram".to_owned(), diagram.to_value()),
+                        ("x".to_owned(), Value::Double(x)),
+                        ("x2".to_owned(), Value::Double(x2)),
+                        ("width".to_owned(), Value::Double(width)),
+                        ("height".to_owned(), Value::Double(height)),
+                    ]);
+                    program.evaluate(&variables).ok()?.as_number()
+                };
+                let (Some(from), Some(to)) = (evaluate(&extent["from"]), evaluate(&extent["to"])) else {
+                    continue;
+                };
+                let rows = extent.get("rows").and_then(evaluate).map_or(1, |r| r.max(1.0) as usize);
+                items.push(RowItem::tall(node.id(), from, to, rows));
+                placed.push(node);
+            }
+        }
+        if items.is_empty() {
+            return Some(Err("There is nothing to arrange.".to_owned()));
+        }
+        let affinity = settings["affinity"].as_str().unwrap_or_default();
+        let links: Vec<(String, String)> = diagram
+            .relations_of_type(affinity)
+            .iter()
+            .map(|r| (r.source_id().unwrap_or_default(), r.target_id().unwrap_or_default()))
+            .collect();
+        let linked: Vec<(&str, &str)> = links.iter().map(|(a, b)| (a.as_str(), b.as_str())).collect();
+        let rows = pack(&items, &linked, clearance, &[]);
+        let mut changes: Vec<(i32, adp_disl::DislChange)> = placed
+            .iter()
+            .filter_map(|node| {
+                let row = *rows.get(&node.id())? as i64;
+                if node.value_of(&attribute).as_number() == Some(row as f64) {
+                    return None;
+                }
+                let mut attributes = Map::default();
+                attributes.insert(attribute.clone(), Value::Int(row));
+                Some((
+                    node.line().unwrap_or(i32::MAX),
+                    adp_disl::DislChange::Set {
+                        element_id: node.id(),
+                        type_name: node.type_name(),
+                        attributes,
+                    },
+                ))
+            })
+            .collect();
+        if changes.is_empty() {
+            return Some(Err("This diagram is already arranged.".to_owned()));
+        }
+        changes.sort_by_key(|(line, _)| std::cmp::Reverse(*line));
+        Some(Ok(changes.into_iter().map(|(_, change)| change).collect()))
+    }
+
     /// The centre of every node of a `tidyTree` (DISL §10.3): x as the tree alone places it, and every child of one
     /// parent in one row, at the first height the registration stores for any of them, else `layer` below its
     /// parent's bottom, never closer than `minGap`.
@@ -570,32 +794,54 @@ impl DiagramModule for RuntimeModule {
                 (placement.y.canvas(element) + y2.canvas(element)) / 2.0,
             ));
         }
-        let (width, height) = Self::stated_size(element);
-        Some((
-            placement.x.canvas(element) - placement.anchor.0 * width,
-            placement.y.canvas(element) - placement.anchor.1 * height,
-        ))
+        // The anchored point itself, as the cases record it (research R16).
+        Some((placement.x.canvas(element), placement.y.canvas(element)))
     }
 
     /// What a gesture to a canvas point writes of a node on an axis with a `scale`: the values the point means.
     fn placement(&self, element: &DislElement, x: f64, y: f64) -> Option<Result<ModulePlacement, String>> {
         let placement = self.scaled.get(&element.type_name())?;
-        let (width, height) = Self::stated_size(element);
-        let (x, y) = (x + placement.anchor.0 * width, y + placement.anchor.1 * height);
-        let (new_x, new_y) = (placement.x.value(x), placement.y.value(y));
-        let canvas = |axis: &ScaledAxis, value: &Value| {
-            let value = value.as_number().unwrap_or_default();
-            axis.reversed.map_or(value, |sum| sum - value) * axis.scale
-        };
+        let specification = element.diagram().specification();
+        let canvas = |axis: &ScaledAxis, value: &Value| axis.at(element, value.as_number().unwrap_or_default());
         let bounds =
             |x: f64, y: f64| -> Map { [("x", Value::Double(x)), ("y", Value::Double(y))].into_iter().collect() };
+        let (new_x, new_y) = (placement.x.value(element, x), placement.y.value(element, y));
+        let mut values = vec![
+            (placement.x.attribute.clone(), new_x.clone()),
+            (placement.y.attribute.clone(), new_y.clone()),
+        ];
+        // A node drawn between two points keeps its extent: its second point moves as far as its first.
+        {
+            for (on_x, second) in &placement.seconds {
+                let (first, moved) = if *on_x {
+                    (&placement.x, &new_x)
+                } else {
+                    (&placement.y, &new_y)
+                };
+                if second.attribute == first.attribute {
+                    continue;
+                }
+                let old = element.value_of(&first.attribute).as_number().unwrap_or_default();
+                let delta = moved.as_number().unwrap_or_default() - old;
+                if let Some(end) = element.value_of(&second.attribute).as_number() {
+                    let value = if second.time.is_some() || second.whole {
+                        Value::Int((end + delta).round() as i64)
+                    } else {
+                        Value::Double(end + delta)
+                    };
+                    values.push((second.attribute.clone(), value));
+                }
+            }
+        }
         let new_bounds = bounds(canvas(&placement.x, &new_x), canvas(&placement.y, &new_y));
-        let attributes: Map = [
-            (placement.x.attribute.as_str(), new_x),
-            (placement.y.attribute.as_str(), new_y),
-        ]
-        .into_iter()
-        .collect();
+        let type_name = element.type_name();
+        let attributes: Map = values
+            .into_iter()
+            .map(|(name, value)| {
+                let stored = adp_disl::behavior::write::stored_form(&specification, &type_name, &name, &value);
+                (name, stored)
+            })
+            .collect();
         Some(Ok(ModulePlacement {
             attributes,
             old_bounds: bounds(placement.x.canvas(element), placement.y.canvas(element)),
@@ -605,6 +851,26 @@ impl DiagramModule for RuntimeModule {
 
     fn rule_observer(&self) -> Option<RuleObserver> {
         self.rule_observer.clone()
+    }
+
+    /// The domain point a canvas point means on the default coordinate system's scaled axes (DISL section 5.5): what
+    /// an operation run there, or a tool dropped there, reads as `position`.
+    fn position_in(&self, diagram: &adp_disl::DislDiagram, x: f64, y: f64) -> Option<Map> {
+        let (along_x, along_y) = self.system.as_ref()?;
+        let value = |axis: &ScaledAxis, canvas: f64| canvas / axis.units_in(diagram) + axis.origin;
+        Some(
+            [
+                ("x", Value::Double(value(along_x, x))),
+                ("y", Value::Double(value(along_y, y))),
+            ]
+            .into_iter()
+            .collect(),
+        )
+    }
+
+    /// A description's change rules are the runtime's to run: no code of the tool type does their work.
+    fn runs_change_rules(&self) -> bool {
+        true
     }
 
     /// A `plugin` action naming a capability at the `arrange` extension point (ATD §13.3): the nodes the notation lets
@@ -696,10 +962,13 @@ impl DiagramModule for RuntimeModule {
     /// is left to the engines.
     fn layout(
         &self,
-        _specification: &DislSpecification,
+        specification: &DislSpecification,
         plugin: &str,
-        _diagram: &adp_disl::DislDiagram,
+        diagram: &adp_disl::DislDiagram,
     ) -> Option<Result<Vec<adp_disl::DislChange>, String>> {
+        if plugin == "rows" {
+            return self.rows(specification, diagram);
+        }
         let (_, reason) = self.missing.iter().find(|(name, _)| name == plugin)?;
         Some(Err(reason.clone()))
     }
@@ -869,12 +1138,7 @@ impl DiagramModule for RuntimeModule {
             } else {
                 Self::size(specification, &element)
             };
-            // Where it is drawn is a corner and the size it is drawn at: a width fitted to its text (`fitWidth`) only
-            // seats the node.
-            // A position is a node's centre where this module measures the node, and its top-left corner where the
-            // engines draw it at its notation's size (`size_of`).
-            let centred = boundary || self.size_of(document, &element).is_some();
-            sizes.insert(element.id(), if centred { (width, height) } else { (0.0, 0.0) });
+            sizes.insert(element.id(), (width, height));
             let mut attributes = serde_json::Map::new();
             for (key, value) in layout
                 .arguments

@@ -168,6 +168,13 @@ pub trait DiagramModule {
         None
     }
 
+    /// Whether the session runs the specification's change rules on a property it sets (DISL sections 8.4, 9.2): a
+    /// description's runtime does, where a hand-written module does that work in [`DiagramModule::written`]. False by
+    /// default, so a person's tool writes what it always has.
+    fn runs_change_rules(&self) -> bool {
+        false
+    }
+
     /// The changes the `plugin` action `name` makes with its evaluated `arguments` (DISL section 9.4), as one step with
     /// the operation that called it, or why it cannot; none when the module does not carry it out.
     fn plugin(

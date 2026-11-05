@@ -17,7 +17,7 @@ pub struct RingNode {
     pub height: f64,
 }
 
-/// Every node's top-left corner, its point on the ring, by id: `nodes` in input order, `edges` by the ids of their ends, and the
+/// Every node's top-left corner on the ring, by id: `nodes` in input order, `edges` by the ids of their ends, and the
 /// clear space `separation` kept between neighbours.
 pub fn compute(nodes: &[RingNode], edges: &[(String, String)], separation: f64) -> HashMap<String, (f64, f64)> {
     let mut corners = HashMap::with_capacity(nodes.len());
@@ -36,10 +36,13 @@ pub fn compute(nodes: &[RingNode], edges: &[(String, String)], separation: f64) 
     for (index, &node) in order.iter().enumerate() {
         // From the top, clockwise, as a reader traces a loop.
         let angle = (2.0 * std::f64::consts::PI * index as f64 / count) - (std::f64::consts::PI / 2.0);
-        // The point on the ring is the node's top-left corner, as the causal loop module draws it.
+        let node = &nodes[node];
         corners.insert(
-            nodes[node].id.clone(),
-            (settled(radius * angle.cos()), settled(radius * angle.sin())),
+            node.id.clone(),
+            (
+                settled(radius * angle.cos() - node.width / 2.0),
+                settled(radius * angle.sin() - node.height / 2.0),
+            ),
         );
     }
     corners

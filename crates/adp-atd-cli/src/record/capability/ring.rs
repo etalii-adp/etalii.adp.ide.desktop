@@ -1,7 +1,6 @@
 //! `layout.ring` from the causal loop diagram's ring (`modules/diagrams/causal-loop-diagram/src/ring.rs`, the layout
 //! `ring` its description names), on every diagram of its parity scripts: the variables with the sizes its metric gives
-//! them and the links between them in, and out the top-left corner it draws each at, the point on the ring (etalii.adp
-//! spec 076, T026).
+//! them and the links between them in, and the top-left corner the ring gives each out (etalii.adp spec 076, T026).
 
 use std::path::{Path, PathBuf};
 
@@ -46,14 +45,7 @@ pub fn record(cases: &Path) -> Result<Vec<PathBuf>, String> {
             .iter()
             .filter_map(|variable| {
                 let rect = boxes.get(&variable.name)?;
-                // The module draws a box with its top-left corner where it computes the box's centre: the point on the
-                // ring is that corner.
-                let (x, y) = if variables.len() == 1 {
-                    (rect.x, rect.y)
-                } else {
-                    (rect.center_x(), rect.center_y())
-                };
-                Some((variable.element_id(), json!({"x": round2(x), "y": round2(y)})))
+                Some((variable.element_id(), json!({"x": round2(rect.x), "y": round2(rect.y)})))
             })
             .collect();
         let from = Recorded {
