@@ -143,7 +143,7 @@ impl Family {
         }
     }
 
-    fn statement(&self, id: EntryId) -> &Statement {
+    pub(super) fn statement(&self, id: EntryId) -> &Statement {
         self.entries[id].statement()
     }
 

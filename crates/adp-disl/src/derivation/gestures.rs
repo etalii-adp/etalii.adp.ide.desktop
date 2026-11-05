@@ -291,3 +291,71 @@ fn refusals(
     }
     refusals
 }
+
+/// The refusal of a connect gesture that would draw a relation `std.endpoints` reports (sections 8.1, 8.4): an end of a
+/// type the relation type does not allow, a loop it does not allow, or a parallel it does not allow; the built-in's
+/// `refusal`, with `source`, `target` and `relationType` bound and the violation as `detail.violation`, else the
+/// runtime's sentence. None where the built-in is switched off or nothing is violated.
+pub fn endpoint_refusal(
+    specification: &DislSpecification,
+    relation_type: &str,
+    source: &DislElement,
+    target: &DislElement,
+    env: Option<&DislEnv>,
+) -> Option<String> {
+    use super::constraints::allows;
+    if !specification.is_built_in_enabled("std.endpoints") {
+        return None;
+    }
+    let declared = specification.metamodel().type_of(relation_type)?.clone();
+    let violation = if !allows(declared.source.as_ref(), source) {
+        "source"
+    } else if !allows(declared.target.as_ref(), target) {
+        "target"
+    } else if source == target && !declared.allow_self_loops {
+        "selfLoop"
+    } else if !declared.allow_parallel
+        && source.diagram().relations().iter().any(|r| {
+            r.is_a(relation_type)
+                && !r.is_derived()
+                && match (r.source(), r.target()) {
+                    (Some(s), Some(t)) => {
+                        (s == *source && t == *target) || (!declared.directed && s == *target && t == *source)
+                    }
+                    _ => false,
+                }
+        })
+    {
+        "parallel"
+    } else {
+        return None;
+    };
+    let fallback = match violation {
+        "selfLoop" => format!("A {relation_type} cannot connect an element to itself."),
+        "parallel" => format!("A {relation_type} already connects these two elements."),
+        end => format!("A {relation_type} cannot have this {end}."),
+    };
+    let Some(refusal) = json::get(specification.built_in_setting("std.endpoints"), "refusal") else {
+        return Some(fallback);
+    };
+    let mut detail = Map::default();
+    detail.insert("violation", Value::from(violation));
+    let mut variables = evaluation::vars([
+        ("relationType", Value::from(relation_type)),
+        ("source", source.to_value()),
+        ("target", target.to_value()),
+        ("sourcePort", Value::Null),
+        ("targetPort", Value::Null),
+        ("diagram", source.diagram().to_value()),
+        ("detail", Value::map(detail)),
+    ]);
+    variables.insert("env".into(), Value::map(env.cloned().unwrap_or_default().to_cel()));
+    Some(evaluation::message(
+        specification,
+        refusal,
+        "/constraints/builtIn/std.endpoints/refusal",
+        contexts::GESTURE_CONNECT,
+        &variables,
+        &fallback,
+    ))
+}

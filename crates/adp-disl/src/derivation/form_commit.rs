@@ -101,6 +101,12 @@ pub fn row(
         ));
     }
 
+    // A type item retypes the element (DISL 0.3 section 7.5, `behavior.retype`), to the type of the option chosen.
+    if json::string_of(item, "kind") == Some("type") {
+        let chosen = chosen_type(specification, item, &pointer, &current, value);
+        return crate::behavior::retype::change(specification, element, &chosen, Some(env));
+    }
+
     // A derived element's attribute is written by the operation its type names for it (section 4.11.4).
     if let Some(declared) = declared
         && let Some(transaction) =
@@ -138,6 +144,71 @@ pub fn row(
         return DislTransaction::refused(format!("'{row}' cannot be edited here."));
     };
     set(specification, element, declared, &chosen, value)
+}
+
+/// The type a type item's option names: the type whose `optionLabel` is `value`, else `value` itself as a type name.
+fn chosen_type(specification: &DislSpecification, item: &Json, pointer: &str, variables: &Vars, value: &str) -> String {
+    let Some(options) = json::get(item, "options") else {
+        return value.to_owned();
+    };
+    let Ok(Value::List(types)) = evaluation::expression(
+        specification,
+        options,
+        &json::pointer(pointer, "options"),
+        contexts::FORM,
+        variables,
+    ) else {
+        return value.to_owned();
+    };
+    let label_of = |type_value: &Value| match json::get(item, "optionLabel") {
+        Some(option_label) => {
+            let mut bound = variables.clone();
+            bound.insert("item".into(), type_value.clone());
+            evaluation::expression(
+                specification,
+                option_label,
+                &json::pointer(pointer, "optionLabel"),
+                contexts::FORM,
+                &bound,
+            )
+            .map(|v| evaluation::text_of(&v))
+            .unwrap_or_default()
+        }
+        None => evaluation::text_of(type_value),
+    };
+    types
+        .iter()
+        .find(|t| label_of(t) == value)
+        .map(evaluation::text_of)
+        .unwrap_or_else(|| value.to_owned())
+}
+
+/// The refusal a type item gives for the type `value` names (DISL 0.3 section 7.5): its first `refusals` entry that
+/// holds with that type as `newValue`, read before its options are, so that a type past them is refused with the
+/// item's own sentence. None for a row that is no type item.
+pub fn type_refusal(
+    specification: &DislSpecification,
+    element: &DislElement,
+    row: &str,
+    value: &str,
+    env: &DislEnv,
+    usage: &str,
+) -> Option<String> {
+    let (item, pointer) = form_of(specification, element, usage)
+        .and_then(|(form, pointer)| find(form, &json::pointer(&pointer, "items"), row))?;
+    if json::string_of(item, "kind") != Some("type") {
+        return None;
+    }
+    let mut variables = variables(Some(element), Value::Null, &env.to_cel(), None);
+    let chosen = chosen_type(specification, item, &pointer, &variables, value);
+    variables.insert("newValue".into(), Value::String(chosen));
+    evaluation::first_reason(
+        specification,
+        json::get(item, "refusals")?,
+        &json::pointer(&pointer, "refusals"),
+        contexts::FORM,
+        &variables,
+    )
 }
 
 /// What committing `value` to the row `row` of the diagram's own form does: refused with the sentence the definition

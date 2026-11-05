@@ -506,3 +506,35 @@ fn the_databricks_bindings_hold_their_readings_rules_of_fbls_example() {
         }
     }
 }
+
+/// The agent behavior model's binding is `behavior-tree.fbl`'s (etalii.adp spec 076, T004, research R2): every rule
+/// reads the items of the section its `within` names, which is what makes a document's tree, but for what the
+/// description states that FBL's example leaves out. `ETALII_ADP` runs it on another clone.
+#[test]
+fn the_behavior_models_binding_is_behavior_tree_fbl_but_for_what_the_description_states() {
+    let root = etalii();
+    let checked = check(
+        &FsFiles,
+        &root.join("definitions/diagrams/agent-behavior-modelling.atd"),
+    );
+    let members: Vec<&Json> = checked.description.members().collect();
+    let lowered = adp_atd_runtime::lowering::fbl::lower(&members).expect("the behavior model has a binding");
+    let written = read_json(&root.join("specifications/fbl/behavior-tree.fbl"));
+    let (lowered, written) = (
+        undocumented(&lowered["bindings"]["abm"]),
+        undocumented(&written["bindings"]["abm"]),
+    );
+    for (index, rule) in lowered["elements"].as_array().unwrap().iter().enumerate() {
+        assert_eq!(rule["within"], json!(["behavior"]), "rule {index} reads the section");
+    }
+    let mut found = BTreeSet::new();
+    differences(&lowered, &written, "", &mut found);
+    let expected: BTreeSet<String> = BEHAVIOR_TREE_DIFFERENCES.iter().map(|d| (*d).to_owned()).collect();
+    assert_eq!(found, expected);
+}
+
+/// What the agent behavior model's binding states that `behavior-tree.fbl` does not.
+const BEHAVIOR_TREE_DIFFERENCES: &[&str] = &[
+    // A Do written with its keyword is no implicit Do, which the cases state and FBL's example leaves unread.
+    "+ /elements/8/attributes/implicit",
+];

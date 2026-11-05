@@ -175,6 +175,17 @@ pub fn action(statement: &Json, parameters: &Parameters, arguments: &mut dyn Arg
             }
             json!({ "call": operation, "args": args })
         }
+        // `call plugin <capability>(…)` (ATD §12.3, §13.3): DISL's `plugin` action, which the host carries out.
+        "plugin" => {
+            let mut args = Map::new();
+            for (index, entry) in statement["args"].as_array().into_iter().flatten().enumerate() {
+                args.insert(
+                    text(&entry["key"]),
+                    arguments.argument("args", Some(&index.to_string()), &entry["value"]),
+                );
+            }
+            json!({ "plugin": text(&statement["operation"]), "args": args })
+        }
         _ => return None,
     };
     Some(action)

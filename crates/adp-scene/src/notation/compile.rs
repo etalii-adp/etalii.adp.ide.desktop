@@ -1245,7 +1245,8 @@ impl Compiler<'_> {
         let line = shape.get("line").and_then(Json::as_object).unwrap_or(&empty);
         let others = shape
             .keys()
-            .filter(|k| !["when", "doc", "line"].contains(&k.as_str()))
+            // A variant's `id` names it (DISL section 6.10) and changes nothing of the line.
+            .filter(|k| !["when", "doc", "line", "id"].contains(&k.as_str()))
             .count()
             + line
                 .keys()

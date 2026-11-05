@@ -10,7 +10,7 @@ mod tests;
 
 use std::collections::HashMap;
 
-use adp_cel::Value;
+use adp_cel::{Map, Value};
 
 use crate::documents::types::{HeaderSettings, Rule, Slot};
 use crate::families::{EntryId, Family, FamilyKind};
@@ -265,6 +265,22 @@ impl Family {
         let newline = self.newline_at(place.offset);
         let text = self.as_new_lines(&lines, place.offset, place.blank_before, &newline);
         plan.add(Operation::InsertEntry, place.offset, place.offset, text);
+        Ok(())
+    }
+
+    /// A retype of `element` to `rule`'s type (FBL 0.7 section 6.4): its item's text written again from `rule`'s
+    /// `emit` with `values`, as one `re-emit-line`.
+    pub(crate) fn bullets_retype(&self, plan: &mut Plan<'_>, element: usize, rule: usize, values: &Map) -> Planning {
+        let Some(emit) = self.rule(rule).insert.as_ref().and_then(|i| i.emit.as_deref()) else {
+            return refuse(format!(
+                "The binding gives no form to write a {} in.",
+                self.rule(rule).type_name
+            ));
+        };
+        let entry = plan.reading.element(element).entry();
+        let line = self.render_line(emit, rule, values, None, None, None);
+        let span = self.statement(entry).first_line_span;
+        plan.add_span(Operation::ReEmitLine, span, line);
         Ok(())
     }
 

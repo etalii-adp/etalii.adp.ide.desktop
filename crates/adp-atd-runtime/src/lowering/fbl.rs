@@ -183,6 +183,10 @@ fn rule(rule: &Json) -> Json {
             "when" => {
                 lowered.insert("when".into(), member["when"]["cel"].clone());
             }
+            // The sections or blocks a rule reads the entries of (FBL §4.7, §4.8): a rule without one reads statements.
+            "within" => {
+                lowered.insert("within".into(), json!(super::values::names(&member["rules"])));
+            }
             "setting" => {
                 let key = member["setting"]["key"].as_str().unwrap_or_default().to_owned();
                 lowered.insert(key, value(&member["setting"]["value"]));
