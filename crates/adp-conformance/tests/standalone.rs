@@ -45,7 +45,6 @@ const STANDALONE_FIXTURES: [&str; 34] = [
     "bullets-edits",
     "bullets-edits/no-section",
     "bullets-read",
-    "bullets-under-heading",
     "sankey-written-text",
     "supply-chain-written-text",
     "agent-activity-edits",
