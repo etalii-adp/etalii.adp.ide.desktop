@@ -1,0 +1,87 @@
+ded: "0.1"
+designer: etalii/knowledge
+# A table with each finding the Knowledge designer gives of a file as it is read.
+name: Findings
+activeView: v1
+properties:
+  - id: p1
+    name: Name
+    type: text
+    title: true
+  - id: p2
+    name: Country
+    type: selection
+    options:
+      - id: o1
+        name: Netherlands
+  - id: p3
+    name: name
+    type: number
+    title: true
+  - id: p4
+    name: Tags
+    type: multipleSelection
+    options:
+      - id: o3
+        name: Port
+  - id: p5
+    name: Province
+    type: relation
+    target: provinces.yaml
+    limit: one
+  - id: p6
+    name: Shade
+    type: colour
+  - id: p7
+    name: Elsewhere
+    type: relation
+    target: missing.yaml
+  - id: p8
+    name: Parent
+    type: relation
+    target: .
+    limit: one
+    parent: true
+  - name: Nickname
+    type: text
+views:
+  - id: v1
+    name: All
+    columns:
+      - property: p99
+    sorts:
+      - property: p98
+    filter:
+      - property: p97
+        operator: is-empty
+    groupBy: p96
+    freeze: p95
+rows:
+  - id: r1
+    colour: blue
+    cells:
+      - property: p1
+        text: Amsterdam
+      - property: p94
+        text: Somewhere
+      - property: p2
+        number: 3
+      - property: p8
+        rows:
+          - row: r2
+  - id: r2
+    cells:
+      - property: p1
+        text: Rotterdam
+      - property: p2
+        option: o9
+      - property: p4
+        options:
+          - option: o8
+      - property: p5
+        rows:
+          - row: nh
+          - row: zz
+      - property: p8
+        rows:
+          - row: r1

@@ -360,6 +360,7 @@ struct RecordedIds {
 }
 
 impl RecordedIds {
+    #[cfg(test)]
     fn new(generated: Vec<Generated>) -> Self {
         RecordedIds::with_minting(generated, false)
     }
@@ -507,6 +508,13 @@ pub fn replay_hierarchy_observed(
 ) -> Result<Verdict, String> {
     let (project, document) = prepare(case)?;
     hierarchy::replay_observed(case, project.path(), &document, observe)
+}
+
+/// A table designer's script replayed as [`replay`] does, showing `observe` the table once it opens and again after
+/// each step (etalii.adp spec 076, T067): `atd record` records a table designer's conformance case from these.
+pub fn replay_table_observed(case: &Case, observe: &mut dyn FnMut(&table::Observed)) -> Result<Verdict, String> {
+    let (project, document) = prepare(case)?;
+    table::replay_observed(case, project.path(), &document, observe)
 }
 
 /// Replays `case` in a copy of its fixture's folder, and compares the files its golden lists; an error is a script

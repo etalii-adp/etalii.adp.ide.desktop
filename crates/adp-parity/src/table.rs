@@ -31,6 +31,27 @@ pub fn is_table(tool: &str) -> bool {
 
 /// Replays `case` on the copy of its fixture's folder at `project`, opened at `document` (relative to it).
 pub fn replay(case: &Case, project: &Path, document: &Path) -> Result<Verdict, String> {
+    replay_observed(case, project, document, &mut |_| {})
+}
+
+/// What a table's replay shows after the table opens (`step` none) and after each step: how the step went, the
+/// project's folder, the session, and the ids the step made (etalii.adp spec 076, T067).
+pub struct Observed<'a> {
+    pub step: Option<usize>,
+    pub outcome: &'a Result<(), String>,
+    pub project: &'a Path,
+    pub session: &'a KnowledgeSession,
+    pub generated: Vec<String>,
+}
+
+/// [`replay`], showing `observe` the table once it opens and again after each step. A case without a golden mints
+/// the ids its steps make.
+pub fn replay_observed(
+    case: &Case,
+    project: &Path,
+    document: &Path,
+    observe: &mut dyn FnMut(&Observed),
+) -> Result<Verdict, String> {
     let opened = project.join(document);
     let Some(body) = project::body_of(&opened) else {
         return Ok(Verdict::CannotOpen(format!(
@@ -50,7 +71,7 @@ pub fn replay(case: &Case, project: &Path, document: &Path) -> Result<Verdict, S
     session.set_window(0, 60);
     session.take_changes();
 
-    let ids = Rc::new(RecordedIds::new(case.recorded.generated.clone()));
+    let ids = Rc::new(RecordedIds::with_minting(case.recorded.generated.clone(), case.minted));
     let unrecorded = Rc::new(RefCell::new(Vec::<String>::new()));
     {
         let (ids, unrecorded) = (ids.clone(), unrecorded.clone());
@@ -67,6 +88,13 @@ pub fn replay(case: &Case, project: &Path, document: &Path) -> Result<Verdict, S
         ids: ids.clone(),
         next_edit: 0,
     };
+    observe(&Observed {
+        step: None,
+        outcome: &Ok(()),
+        project,
+        session: &table.session,
+        generated: Vec::new(),
+    });
     let mut steps = Vec::new();
     for (index, step) in case.script.steps.iter().enumerate() {
         ids.step.set(index);
@@ -75,6 +103,13 @@ pub fn replay(case: &Case, project: &Path, document: &Path) -> Result<Verdict, S
         if let Some(reason) = unrecorded.borrow_mut().drain(..).next() {
             result = Err(reason);
         }
+        observe(&Observed {
+            step: Some(index),
+            outcome: &result,
+            project,
+            session: &table.session,
+            generated: ids.at_step(index),
+        });
         let what = match (result, refusal_expected) {
             (Ok(()), false) | (Err(_), true) => None,
             (Ok(()), true) => Some("the standalone host refused it; the desktop host accepted it".to_owned()),
