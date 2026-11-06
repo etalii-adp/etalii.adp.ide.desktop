@@ -282,6 +282,43 @@ impl DiagramSession {
             .unwrap_or_default()
     }
 
+    /// The specification's own findings, as [`DiagramSession::problems`] gives them, each with the line it states
+    /// beside the element it names: a finding at a place inside an element, such as a mention in its description
+    /// (DESL section 6.5). None for a module's view, or a module that finds its own problems.
+    pub fn findings(&self, documents: &DiagramDocuments) -> Option<Vec<adp_disl::DislFinding>> {
+        if self.view.is_some() {
+            return None;
+        }
+        let document = self.document(documents).ok()?;
+        // `diagram.file` is set as the problems set it.
+        let _ = self.problems(documents);
+        let mut reader_findings: Vec<DislReaderFinding> = document
+            .fbl()
+            .findings
+            .iter()
+            .filter(|f| f.code == codes::UNPARSEABLE)
+            .map(|f| DislReaderFinding::not_parsed(&f.message, f.location.as_ref().map(|l| l.line as i32), None))
+            .collect();
+        if let Some(module) = &document.tool().module {
+            reader_findings.extend(module.reader_findings(document));
+        }
+        let options = DislConstraintOptions {
+            env: Some(self.env.clone()),
+            reader_findings,
+            ..DislConstraintOptions::default()
+        };
+        if let Some(module) = &document.tool().module
+            && module.problems(document, options.clone()).is_some()
+        {
+            return None;
+        }
+        Some(constraints::evaluate(
+            document.tool().definition.specification(),
+            &document.model().diagram,
+            &options,
+        ))
+    }
+
     /// The findings of the diagram's constraints, each with its severity and where it is.
     pub fn problems(&self, documents: &DiagramDocuments) -> Vec<DiagramProblem> {
         if let Some(view) = &self.view {
@@ -1215,6 +1252,19 @@ impl DiagramSession {
         action_id: &str,
         ids: &dyn IdSource,
     ) -> ActionOutcome {
+        self.execute_given(workspace, target, action_id, None, ids)
+    }
+
+    /// [`DiagramSession::execute`], an operation handed the values `answered` names by its parameters' names, as a form
+    /// of several fields would answer them; what they leave takes its default.
+    pub fn execute_given(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        target: &ActionTarget,
+        action_id: &str,
+        answered: Option<&Map>,
+        ids: &dyn IdSource,
+    ) -> ActionOutcome {
         if let Some(view) = &self.view {
             return view.execute_with_ids(workspace, target, action_id, ids);
         }
@@ -1310,9 +1360,26 @@ impl DiagramSession {
                     operations::parameters(specification, &operation, &working, element.as_ref(), Some(&self.env));
                 // An entry hands the operation what its `args` state (DISL section 7.3), a pending connection its ends
                 // among them (`"args": {"from": "source", "to": "target"}`); only what they leave is asked.
-                let given = given_arguments(&parameters, &entry);
+                let mut given = given_arguments(&parameters, &entry);
+                let answered = match typed_answers(specification, &working, &parameters, answered) {
+                    Ok(answered) => answered,
+                    Err(refusal) => return ActionOutcome::Refused(refusal),
+                };
+                let answers = answered.is_some();
+                let answered = answered.unwrap_or_default();
+                for (name, value) in answered.iter() {
+                    given.insert(name.clone(), value.clone());
+                }
+                // What a form of several fields leaves takes the parameter's default.
+                if answers {
+                    for parameter in &parameters {
+                        if !given.contains_key(&parameter.name) && !parameter.default.is_null() {
+                            given.insert(parameter.name.clone(), parameter.default.clone());
+                        }
+                    }
+                }
                 let asked: Vec<_> = parameters.iter().filter(|p| !given.contains_key(&p.name)).collect();
-                if !given.is_empty() && asked.is_empty() {
+                if !given.is_empty() && (asked.is_empty() || answers) {
                     return match self.run_operation(workspace, target, &entry, &operation, Some(given), ids) {
                         Ok(()) => ActionOutcome::Done,
                         Err(refusal) => ActionOutcome::Refused(refusal),
@@ -2079,6 +2146,58 @@ fn plugin_layout(specification: &adp_disl::DislSpecification, algorithm: &str) -
 }
 
 /// What a menu entry's `args` give an operation's `parameters`, by name (DISL section 7.3).
+/// What `given` answers of `parameters`, by their names, each text as its parameter's type reads it, as the fields of
+/// a form are read: an element type's text names the element by its id, or by its name in any case (DESL section
+/// 7.7.2), and an empty one gives nothing. None when nothing was given; a text that names no element is refused.
+fn typed_answers(
+    specification: &adp_disl::DislSpecification,
+    working: &adp_disl::DislDiagram,
+    parameters: &[operations::DislOperationParameter],
+    given: Option<&Map>,
+) -> Result<Option<Map>, String> {
+    let Some(given) = given else { return Ok(None) };
+    let mut answers = Map::default();
+    for parameter in parameters {
+        let Some(value) = given.get(&parameter.name) else {
+            continue;
+        };
+        let Value::String(text) = value else {
+            answers.insert(parameter.name.clone(), value.clone());
+            continue;
+        };
+        if specification.metamodel().types.contains_key(&parameter.type_name) {
+            let text = text.trim();
+            if text.is_empty() {
+                continue;
+            }
+            let named = |e: &DislElement| match e.value_of("name") {
+                Value::String(name) => name.eq_ignore_ascii_case(text),
+                _ => false,
+            };
+            let of_type: Vec<DislElement> = working
+                .nodes()
+                .into_iter()
+                .filter(|e| e.is_a(&parameter.type_name))
+                .collect();
+            let Some(element) = of_type
+                .iter()
+                .find(|e| e.id() == text)
+                .or_else(|| of_type.iter().find(|e| named(e)))
+            else {
+                return Err(format!(
+                    "'{text}' is not a {} of this document.",
+                    parameter.type_name.to_lowercase()
+                ));
+            };
+            answers.insert(parameter.name.clone(), element.to_value());
+            continue;
+        }
+        let typed = parameter.value_of(text).unwrap_or_else(|| value.clone());
+        answers.insert(parameter.name.clone(), typed);
+    }
+    Ok(Some(answers))
+}
+
 fn given_arguments(parameters: &[operations::DislOperationParameter], entry: &DerivedMenuEntry) -> Map {
     parameters
         .iter()

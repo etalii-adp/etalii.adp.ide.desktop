@@ -481,6 +481,8 @@ impl DiagramDocument {
         if let Some(refusal) = self.refusal() {
             return Err(refusal);
         }
+        let numbered = self.with_numbering(changes)?;
+        let changes = numbered.as_slice();
         if let Some(document) = self.open_document() {
             return self.plan_through(document, label, changes);
         }
@@ -488,7 +490,12 @@ impl DiagramDocument {
         let options = self.tool.options(&file_name(&self.body_path), self.registration());
         let mut body = Body::open(&self.tool, self.body.to_vec(), options, &file_name(&self.body_path));
         let mut registration = self.registration.as_ref().map(|r| {
-            let mut open = OpenRegistration::open(r.to_vec());
+            // A binding that declares blocks has them written through its declarations (FBL section 8.1).
+            let mut open = if self.tool.binding.registration.blocks.is_empty() {
+                OpenRegistration::open(r.to_vec())
+            } else {
+                OpenRegistration::open_with(r.to_vec(), &self.tool.binding)
+            };
             open.created_block_ending = self.tool.module.as_ref().and_then(|m| m.created_block_ending());
             open
         });
@@ -499,6 +506,33 @@ impl DiagramDocument {
         };
         let changes = self.removals_bottom_up(changes, opened);
         for change in &changes {
+            // What a designer's setting keeps is a change of the registration's block (DESL section 5.5).
+            let mut change = change.clone();
+            if let DiagramChange::Disl(disl) = &change
+                && let Some((kept, stays)) =
+                    crate::settings::as_settings(specification, &self.reading.model.diagram, self.registration(), disl)
+            {
+                for setting in kept {
+                    let Some(registration) = registration.as_mut() else {
+                        return Err(NO_REGISTRATION.to_owned());
+                    };
+                    let before = Fingerprint::of(registration.bytes());
+                    match registration.change(&setting) {
+                        PlanResult::Planned(edit) if !edit.splices.is_empty() => steps.push(EditStep {
+                            file: EditedFile::Registration,
+                            splices: edit.splices,
+                            before,
+                        }),
+                        PlanResult::Planned(_) => {}
+                        PlanResult::Refused(reason) | PlanResult::Invalid(reason) => return Err(reason),
+                    }
+                }
+                match stays {
+                    Some(stays) => change = DiagramChange::Disl(stays),
+                    None => continue,
+                }
+            }
+            let change = &change;
             let (model_change, place, explicit) = match change {
                 DiagramChange::Disl(disl) => (
                     Some(self.addressed(write::to_fbl(specification, disl))),
@@ -545,6 +579,73 @@ impl DiagramDocument {
             body_path: self.body_path.clone(),
             steps,
         })
+    }
+
+    /// `changes` with what counted ids ask of an edit that writes the body (DESL section 5.3.5): each element read with
+    /// its counter's placeholder numbered first, in reading order, and each counter's mark set to the highest id the
+    /// edit gives. An edit of the registration alone numbers nothing.
+    fn with_numbering(&self, changes: &[DiagramChange]) -> Result<Vec<DiagramChange>, String> {
+        use adp_disl::model::counter::{Counter, numbering};
+        let specification = self.tool.definition.specification();
+        let diagram = &self.reading.model.diagram;
+        let writes_body = changes.iter().any(|change| match change {
+            DiagramChange::Disl(disl) => {
+                crate::settings::as_settings(specification, diagram, self.registration(), disl)
+                    .is_none_or(|(_, stays)| stays.is_some())
+            }
+            DiagramChange::Body(_) => true,
+            DiagramChange::Place { .. } => false,
+        });
+        let created: Vec<(Counter, String)> = changes
+            .iter()
+            .filter_map(|change| match change {
+                DiagramChange::Disl(DislChange::Create { type_name, id, .. }) => {
+                    Some((Counter::of(specification, type_name)?, id.clone()))
+                }
+                _ => None,
+            })
+            .collect();
+        let numbered = numbering(specification, diagram);
+        if !writes_body || (numbered.is_empty() && created.is_empty()) {
+            return Ok(changes.to_vec());
+        }
+        let mut all = Vec::new();
+        let mut highest: Vec<(Counter, String, u64)> = Vec::new();
+        let mut note = |counter: &Counter, id: &str| {
+            let Some(n) = counter.number(id) else { return };
+            match highest.iter_mut().find(|(c, _, _)| c == counter) {
+                Some(entry) if entry.2 < n => *entry = (counter.clone(), id.to_owned(), n),
+                Some(_) => {}
+                None => highest.push((counter.clone(), id.to_owned(), n)),
+            }
+        };
+        for (element, id, counter) in &numbered {
+            let mut attributes = adp_cel::Map::default();
+            attributes.insert("id", Value::String(id.clone()));
+            all.push(DiagramChange::Body(ModelChange::Set {
+                id: element.read_id().unwrap_or_else(|| element.id()),
+                attributes,
+            }));
+            note(counter, id);
+        }
+        for (counter, id) in &created {
+            note(counter, id);
+        }
+        all.extend(changes.iter().cloned());
+        for (counter, id, n) in highest {
+            let mark = match diagram.value_of(&counter.mark) {
+                Value::String(held) => counter.number(&held).unwrap_or(0),
+                _ => 0,
+            };
+            if n > mark {
+                all.extend(
+                    write::diagram_set(specification, &self.reading.fbl, &counter.mark, &Value::String(id))?
+                        .into_iter()
+                        .map(DiagramChange::Body),
+                );
+            }
+        }
+        Ok(all)
     }
 
     /// `changes` with each run of removals last in document order first (FBL 0.16 section 6.4), so that each is planned
@@ -1138,6 +1239,12 @@ impl DiagramDocuments {
                         (body.model(), None)
                     }
                 };
+                let mut fbl = fbl;
+                crate::settings::read_into(
+                    &mut fbl,
+                    tool.definition.specification(),
+                    registration_document.as_ref(),
+                );
                 let model = builder::from(&fbl, tool.definition.specification());
                 let reading = Rc::new(Reading {
                     fbl,

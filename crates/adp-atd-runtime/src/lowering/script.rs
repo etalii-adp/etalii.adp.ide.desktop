@@ -56,7 +56,10 @@ struct DislHost<'x, 'r, 'a> {
 
 impl Host for DislHost<'_, '_, '_> {
     fn variable(&self, name: &str) -> Option<Value> {
-        self.actions.variable(name)
+        // A designer's script names the diagram `document` (DESL section 9.3).
+        self.actions
+            .variable(name)
+            .or_else(|| (name == "document").then(|| self.actions.variable("diagram")).flatten())
     }
 
     fn perform(&mut self, action: &Action<'_>) -> Result<Performed, String> {

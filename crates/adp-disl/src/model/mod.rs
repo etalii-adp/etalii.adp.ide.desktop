@@ -5,6 +5,7 @@
 pub mod attribute_types;
 pub mod budgets;
 pub mod builder;
+pub mod counter;
 pub(crate) mod cycles;
 pub mod diagram;
 pub mod element;

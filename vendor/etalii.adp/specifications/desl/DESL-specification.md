@@ -7,7 +7,7 @@ parent: desl
 ---
 # DESL — Designer Specification Language
 
-**Specification, version 0.2 (Draft)**
+**Specification, version 0.3 (Draft)**
 
 |   |   |
 |---|---|
@@ -25,7 +25,7 @@ parent: desl
 
 ## Status of this document
 
-This is a draft, version 0.2. It holds what the designer types defined so far need and nothing more (constitution principle V), and any construct may change before 1.0 (constitution principle IV). DESL 0.1 (2026-10-09, spec 013) holds what the Knowledge designer (`definitions/designers/knowledge.des`) needs. DESL 0.2 (2026-10-14, spec 028, for the Hierarchical Requirement Designer) adds five constructs: the surface kind `hierarchy` (section 7.7), the id strategy `counter` (section 5.3.5), the facet `mentions` with the built-in `std.mentions` (sections 4.3, 6.5), the action `move` (section 8.2), and `persistence.settings`, the part of the model a document's registration keeps (section 5.5); by the maintainer's ruling of 2026-10-24 it also gives a hierarchy the widths of its columns of levels, which the user changes by dragging (`widths`, section 7.7). Every valid 0.1 specification is a valid 0.2 specification with the same meaning. DESL defines every construct it uses; it takes nothing from the specification languages of the other kinds of tool. Sections and paragraphs marked *(informative)* explain intent; everything else is *normative*.
+This is a draft, version 0.3. It holds what the designer types defined so far need and nothing more (constitution principle V), and any construct may change before 1.0 (constitution principle IV). DESL 0.1 (2026-10-09, spec 013) holds what the Knowledge designer (`definitions/designers/knowledge.des`) needs. DESL 0.2 (2026-10-14, spec 028, for the Hierarchical Requirement Designer) adds five constructs: the surface kind `hierarchy` (section 7.7), the id strategy `counter` (section 5.3.5), the facet `mentions` with the built-in `std.mentions` (sections 4.3, 6.5), the action `move` (section 8.2), and `persistence.settings`, the part of the model a document's registration keeps (section 5.5); by the maintainer's ruling of 2026-10-24 it also gives a hierarchy the widths of its columns of levels, which the user changes by dragging (`widths`, section 7.7). Every valid 0.1 specification is a valid 0.2 specification with the same meaning. DESL defines every construct it uses; it takes nothing from the specification languages of the other kinds of tool. Sections and paragraphs marked *(informative)* explain intent; everything else is *normative*. DESL 0.3 (2026-11-06, Peter's answer to spec 076's question Q3) names an element read with a counter's placeholder `line/<line>` until it is numbered (section 5.3.5); every valid 0.2 specification is a valid 0.3 specification with the same meaning.
 
 The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **MAY** and **OPTIONAL** are to be interpreted as described in RFC 2119 and RFC 8174 when, and only when, they appear in bold capitals.
 
@@ -384,7 +384,7 @@ With `strategy: "counter"`, given per type in `types`, a type's ids are a prefix
 - **The number of an id** is the integer its digits make, when the id is the prefix followed by digits only: `REQ-0012` and `REQ-12` have the number 12. They remain different ids. Every other id has no number.
 - **A new id** is the prefix and one more than the higher of the mark's number and the highest number of any id in the document that has the prefix. The mark is set to the new id in the same transaction, so a number is not given again after the element that carried it is deleted, and an undo that takes the element back takes the mark back with it.
 - **A missing mark**, or one without a number, reads as no mark: the count continues from the highest number in the document, and the mark is written with the next new id.
-- **An element read with the placeholder** has no usable id. It is reported by `std.missingId`, and under `missing: "assign"` receives a new id as section 5.3.4 says, with the next edit that writes the document, in reading order.
+- **An element read with the placeholder** has no usable id. It is reported by `std.missingId`, and under `missing: "assign"` receives a new id as section 5.3.4 says, with the next edit that writes the document, in reading order. *(DESL 0.3)* Until it receives one, a runtime **MUST** name it `line/<line>`, the 1-based line of the body its entry starts on, wherever it names an element: in a finding, in a reading and in a selection; `line/44` is the requirement written `REQ-NEW` on line 44. The name is no id: it is never written, it changes when the lines before it do, and nothing can refer to it.
 - **A hand-written number** is accepted when no other element has the id (5.3.1), and the count continues past it.
 - **Duplicates** follow section 5.3.4 unchanged. On an element that `std.duplicateId` reports, a runtime **SHOULD** offer to give it a new id; that is the user's action section 5.3.4 asks for, and writes the new id in place of the old one, which no reference can name (5.3.4).
 - Counted ids are stable: a runtime **MUST NOT** change one for any other reason.

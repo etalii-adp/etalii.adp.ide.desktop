@@ -37,6 +37,7 @@ pub mod module;
 pub mod problems;
 pub mod reload;
 pub mod session;
+pub mod settings;
 pub mod sibling_naming;
 pub mod sizing;
 pub mod tool;

@@ -3,6 +3,7 @@
 //! the engines that drive today's tools drive the description too. No code here knows a tool type (FR-040).
 
 pub mod actions;
+pub mod designer;
 pub mod disl;
 pub mod expressions;
 pub mod fbl;
@@ -32,7 +33,7 @@ pub struct LoadedDiagram {
 /// The DISL specification of a diagram's description.
 pub fn lower_diagram(description: &Description) -> Result<LoweredDiagram, String> {
     let tool = description.tool().ok_or("The description has no tool construct.")?;
-    if description.kind() != Some("diagram") {
+    if !matches!(description.kind(), Some("diagram" | "designer")) {
         return Err(format!(
             "A `{}` is not lowered onto DISL.",
             description.kind().unwrap_or("description")
@@ -41,6 +42,10 @@ pub fn lower_diagram(description: &Description) -> Result<LoweredDiagram, String
     let members: Vec<&Json> = description.members().collect();
     let mut lowered = disl::lower(tool, &members);
     expressions::as_disl_writes(&mut lowered.specification);
+    if description.kind() == Some("designer") {
+        designer::as_disl(&mut lowered.specification);
+        designer::as_disl_script(&mut lowered.scripts);
+    }
     Ok(lowered)
 }
 

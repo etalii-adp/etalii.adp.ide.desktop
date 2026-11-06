@@ -13,10 +13,11 @@
           "type": "string"
         },
         "desl": {
-          "description": "The DESL version the specification is written in: 0.1, or 0.2, which adds the hierarchy surface, counted ids, mentions, move and persistence.settings. See section 2.7.",
+          "description": "The DESL version the specification is written in: 0.1, 0.2, which adds the hierarchy surface, counted ids, mentions, move and persistence.settings, or 0.3, which names an element read with a counter's placeholder line/<line>. See section 2.7.",
           "enum": [
             "0.1",
-            "0.2"
+            "0.2",
+            "0.3"
           ]
         },
         "language": {
