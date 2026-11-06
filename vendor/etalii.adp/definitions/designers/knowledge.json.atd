@@ -1,0 +1,342 @@
+atd 0.1
+part of etalii/knowledge
+
+// The designer's JSON binding, in a part of its own (ATD §5.2, §11): knowledge.fbl's `json`.
+
+binding json family json {
+  label "Knowledge file, JSON"
+  claims {
+    extensions: [".json", ".ded"],
+    shared: true,
+    marker: { rootKey: designer, value: "etalii/knowledge" },
+    origins: ["etalii/knowledge"],
+    suggest: { contains: ["\"designer\": \"etalii/knowledge\""] }
+  }
+  text { newline: crlf, indent: 2, finalNewline: true }
+  header { key: ded, value: "0.1", required: true }
+
+  /// The root mapping: the table's own settings. A rule at '/' binds the root's keys, as databricks-pipeline.fbl's 'pipeline' rule does.
+  element Table as table at "/" {
+    attribute version from key "ded" {
+      readOnly: "The version is written when the file is created and changed by nobody but a migration."
+    }
+    attribute designer from key "designer" {
+      readOnly: "The designer type is written when the file is created and changed by nobody."
+    }
+    attribute name from key "name" { empty: keep }
+    attribute activeView from key "activeView" {
+      empty: "remove"
+      references view by id
+    }
+  }
+
+  element Property as property at "/properties/*" {
+    id from key "id"
+    attribute name from key "name" { empty: refuse }
+    attribute valueType from key "type" { empty: refuse }
+    attribute title from key "title" { empty: "remove", default: false }
+    attribute targetFile from key "target" { empty: "remove" }
+    attribute limit from key "limit" { empty: "remove", default: none }
+    attribute counterpart from key "counterpart" { empty: "remove" }
+    attribute computed from key "computed" { empty: "remove", default: false }
+    attribute isParent from key "parent" { empty: "remove", default: false }
+    insert {
+      place: after-last,
+      container: "/properties",
+      create: { at: { before: "views" } },
+      emit: "{ \"id\": \"{id}\", \"name\": \"{name}\", \"type\": \"{valueType}\"[, \"title\": {title}][, \"target\": \"{targetFile}\"][, \"limit\": \"{limit}\"][, \"counterpart\": \"{counterpart}\"][, \"computed\": {computed}][, \"parent\": {isParent}] }"
+    }
+    remove { cascade: [cell, column, sort, condition1, condition2, condition3] }
+  }
+
+  element Option as option at "/properties/*/options/*" {
+    id from key "id"
+    parent property slot options
+    attribute name from key "name" { empty: refuse }
+    attribute colour from key "colour" { empty: "remove", default: "default" }
+    insert {
+      place: after-last,
+      container: options,
+      create: { at: { after: type } },
+      emit: "{ \"id\": \"{id}\", \"name\": \"{name}\"[, \"colour\": \"{colour}\"] }"
+    }
+    remove { cascade: [cell, cellOption, condition1, condition2, condition3], container: remove-when-empty }
+  }
+
+  element View as view at "/views/*" {
+    id from key "id"
+    attribute name from key "name" { empty: refuse }
+    attribute filterMatch from key "filterMatch" { empty: "remove", default: all }
+    attribute groupBy from key "groupBy" {
+      empty: "remove"
+      references property by id
+    }
+    attribute hideEmptyGroups from key "hideEmptyGroups" { empty: "remove", default: false }
+    attribute freeze from key "freeze" {
+      empty: "remove"
+      references property by id
+    }
+    insert {
+      place: after-last,
+      container: "/views",
+      create: { at: { before: "rows" } },
+      emit: "{ \"id\": \"{id}\", \"name\": \"{name}\"[, \"filterMatch\": \"{filterMatch}\"][, \"groupBy\": \"{groupBy}\"][, \"hideEmptyGroups\": {hideEmptyGroups}][, \"freeze\": \"{freeze}\"] }"
+    }
+    remove {}
+  }
+
+  element Column as column at "/views/*/columns/*" {
+    parent view slot columns
+    attribute property from key "property" {
+      empty: refuse
+      references property by id
+    }
+    attribute visible from key "visible" { empty: "remove", default: true }
+    attribute width from key "width" { empty: "remove", number: shortest }
+    attribute wrap from key "wrap" { empty: "remove", default: false }
+    attribute calculate from key "calculate" {
+      empty: "remove",
+      map: {
+        count-all: countAll,
+        count-values: countValues,
+        count-unique: countUnique,
+        count-empty: countEmpty,
+        count-not-empty: countNotEmpty,
+        percent-empty: percentEmpty,
+        percent-not-empty: percentNotEmpty,
+        earliest: earliest,
+        latest: latest,
+        date-range: dateRange,
+        sum: sum,
+        average: average,
+        median: median,
+        min: min,
+        max: max,
+        range: range
+      }
+    }
+    insert {
+      place: after-last,
+      container: "columns",
+      create: { at: end },
+      emit: "{ \"property\": \"{property}\"[, \"visible\": {visible}][, \"width\": {width}][, \"wrap\": {wrap}][, \"calculate\": \"{calculate}\"] }"
+    }
+    remove { container: remove-when-empty }
+  }
+
+  element Sort as sort at "/views/*/sorts/*" {
+    parent view slot sorts
+    attribute property from key "property" {
+      empty: refuse
+      references property by id
+    }
+    attribute direction from key "direction" { empty: "remove", default: ascending }
+    insert {
+      place: after-last,
+      container: sorts,
+      create: { at: end },
+      emit: "{ \"property\": \"{property}\"[, \"direction\": \"{direction}\"] }"
+    }
+    remove { container: remove-when-empty }
+  }
+
+  element Condition as condition1 at "/views/*/filter/*" {
+    when has(entry.operator)
+    parent view slot filter
+    attribute property from key "property" {
+      empty: refuse
+      references property by id
+    }
+    attribute operator from key "operator" { empty: refuse }
+    attribute text from key "text" { empty: "remove" }
+    attribute number from key "number" { empty: "remove", number: shortest }
+    attribute checked from key "checked" { empty: "remove" }
+    attribute date from key "date" { empty: "remove", time: keep-precision }
+    attribute dateTime from key "dateTime" { empty: "remove", time: keep-precision }
+    attribute time from key "time" { empty: "remove" }
+    attribute option from key "option" {
+      empty: "remove"
+      references option by id
+    }
+    insert {
+      place: after-last,
+      container: filter,
+      create: { at: end },
+      emit: "{ \"property\": \"{property}\", \"operator\": \"{operator}\"[, \"text\": \"{text}\"][, \"number\": {number}][, \"checked\": {checked}][, \"date\": \"{date}\"][, \"dateTime\": \"{dateTime}\"][, \"time\": \"{time}\"][, \"option\": \"{option}\"] }"
+    }
+    remove { container: remove-when-empty }
+  }
+
+  element FilterGroup as filterGroup1 at "/views/*/filter/*" {
+    when has(entry.match)
+    parent view slot filter
+    attribute match from key "match" { empty: refuse }
+    insert { place: after-last, container: filter, create: { at: end }, emit: "{ \"match\": \"{match}\" }" }
+    remove { container: remove-when-empty }
+  }
+
+  element Condition as condition2 at "/views/*/filter/*/conditions/*" {
+    when has(entry.operator)
+    parent filterGroup1 slot conditions
+    attribute property from key "property" {
+      empty: refuse
+      references property by id
+    }
+    attribute operator from key "operator" { empty: refuse }
+    attribute text from key "text" { empty: "remove" }
+    attribute number from key "number" { empty: "remove", number: shortest }
+    attribute checked from key "checked" { empty: "remove" }
+    attribute date from key "date" { empty: "remove", time: keep-precision }
+    attribute dateTime from key "dateTime" { empty: "remove", time: keep-precision }
+    attribute time from key "time" { empty: "remove" }
+    attribute option from key "option" {
+      empty: "remove"
+      references option by id
+    }
+    insert {
+      place: after-last,
+      container: conditions,
+      create: { at: { after: match } },
+      emit: "{ \"property\": \"{property}\", \"operator\": \"{operator}\"[, \"text\": \"{text}\"][, \"number\": {number}][, \"checked\": {checked}][, \"date\": \"{date}\"][, \"dateTime\": \"{dateTime}\"][, \"time\": \"{time}\"][, \"option\": \"{option}\"] }"
+    }
+    remove { container: remove-when-empty }
+  }
+
+  element FilterGroup as filterGroup2 at "/views/*/filter/*/conditions/*" {
+    when has(entry.match)
+    parent filterGroup1 slot conditions
+    attribute match from key "match" { empty: refuse }
+    insert {
+      place: after-last,
+      container: conditions,
+      create: { at: { after: match } },
+      emit: "{ \"match\": \"{match}\" }"
+    }
+    remove { container: remove-when-empty }
+  }
+
+  element Condition as condition3 at "/views/*/filter/*/conditions/*/conditions/*" {
+    when has(entry.operator)
+    parent filterGroup2 slot conditions
+    attribute property from key "property" {
+      empty: refuse
+      references property by id
+    }
+    attribute operator from key "operator" { empty: refuse }
+    attribute text from key "text" { empty: "remove" }
+    attribute number from key "number" { empty: "remove", number: shortest }
+    attribute checked from key "checked" { empty: "remove" }
+    attribute date from key "date" { empty: "remove", time: keep-precision }
+    attribute dateTime from key "dateTime" { empty: "remove", time: keep-precision }
+    attribute time from key "time" { empty: "remove" }
+    attribute option from key "option" {
+      empty: "remove"
+      references option by id
+    }
+    insert {
+      place: after-last,
+      container: conditions,
+      create: { at: { after: match } },
+      emit: "{ \"property\": \"{property}\", \"operator\": \"{operator}\"[, \"text\": \"{text}\"][, \"number\": {number}][, \"checked\": {checked}][, \"date\": \"{date}\"][, \"dateTime\": \"{dateTime}\"][, \"time\": \"{time}\"][, \"option\": \"{option}\"] }"
+    }
+    remove { container: remove-when-empty }
+  }
+
+  element GroupSetting as groupOrder at "/views/*/groupOrder/*" {
+    parent view slot groupOrder
+    attribute key from key "key" { empty: refuse }
+    insert {
+      place: after-last,
+      container: groupOrder,
+      create: { at: { after: groupBy } },
+      emit: "{ \"key\": \"{key}\" }"
+    }
+    remove { container: remove-when-empty }
+  }
+
+  element GroupSetting as hiddenGroup at "/views/*/hiddenGroups/*" {
+    parent view slot hiddenGroups
+    attribute key from key "key" { empty: refuse }
+    insert {
+      place: after-last,
+      container: hiddenGroups,
+      create: { at: { after: groupBy } },
+      emit: "{ \"key\": \"{key}\" }"
+    }
+    remove { container: remove-when-empty }
+  }
+
+  element GroupSetting as collapsedGroup at "/views/*/collapsed/*" {
+    parent view slot collapsed
+    attribute key from key "key" { empty: refuse }
+    insert {
+      place: after-last,
+      container: collapsed,
+      create: { at: { after: groupBy } },
+      emit: "{ \"key\": \"{key}\" }"
+    }
+    remove { container: remove-when-empty }
+  }
+
+  element Row as row at "/rows/*" {
+    id from key "id"
+    insert {
+      place: after-last,
+      container: "/rows",
+      create: { at: { under: "/" }, text: "\"rows\": [\r\n  ]" },
+      emit: "{ \"id\": \"{id}\" }"
+    }
+    remove {}
+  }
+
+  element Cell as cell at "/rows/*/cells/*" {
+    parent row slot cells
+    attribute property from key "property" {
+      empty: refuse
+      references property by id
+    }
+    attribute text from key "text" { empty: "remove" }
+    attribute number from key "number" { empty: "remove", number: shortest }
+    attribute checked from key "checked" { empty: "remove" }
+    attribute date from key "date" { empty: "remove", time: keep-precision }
+    attribute dateTime from key "dateTime" { empty: "remove", time: keep-precision }
+    attribute time from key "time" { empty: "remove" }
+    attribute option from key "option" {
+      empty: "remove"
+      references option by id
+    }
+    insert {
+      place: after-last,
+      container: "cells",
+      create: { at: { after: "id" } },
+      emit: "{ \"property\": \"{property}\"[, \"text\": \"{text}\"][, \"number\": {number}][, \"checked\": {checked}][, \"date\": \"{date}\"][, \"dateTime\": \"{dateTime}\"][, \"time\": \"{time}\"][, \"option\": \"{option}\"] }"
+    }
+    remove { container: remove-when-empty }
+  }
+
+  element CellItem as cellOption at "/rows/*/cells/*/options/*" {
+    parent cell slot items
+    attribute option from key "option" {
+      empty: refuse
+      references option by id
+    }
+    insert {
+      place: after-last,
+      container: options,
+      create: { at: { after: property } },
+      emit: "{ \"option\": \"{option}\" }"
+    }
+    remove { container: remove-when-empty }
+  }
+
+  /// A related row, by its id in the target file. Not a reference: the target is another file, which the designer resolves (L5).
+  element CellItem as cellRow at "/rows/*/cells/*/rows/*" {
+    parent cell slot items
+    attribute row from key "row" { empty: refuse }
+    insert { place: after-last, container: "rows", create: { at: { after: property } }, emit: "{ \"row\": \"{row}\" }" }
+    remove { container: remove-when-empty }
+  }
+
+  registration { createOnFirstPlacement: false }
+  template "{\r\n  \"ded\": \"0.1\",\r\n  \"designer\": \"etalii/knowledge\",\r\n  \"name\": \"{base}\",\r\n  \"properties\": [\r\n    { \"id\": \"{newid:property}\", \"name\": \"Name\", \"type\": \"text\", \"title\": true }\r\n  ],\r\n  \"views\": [\r\n    { \"id\": \"{newid:view}\", \"name\": \"Table\" }\r\n  ],\r\n  \"rows\": [\r\n  ]\r\n}\r\n"
+}

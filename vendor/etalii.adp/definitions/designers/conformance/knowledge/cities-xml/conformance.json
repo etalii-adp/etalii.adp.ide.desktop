@@ -1,0 +1,1109 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record etalii/knowledge` from parity/scripts/etalii/knowledge/cities-xml.json of etalii.adp.ide.desktop; never edited by hand. A designer's page states no drawing; the table's gestures are written as the operations `knowledge.md`'s table of gestures names, and the steps state the body's bytes.",
+  "tool": "etalii/knowledge",
+  "description": "../../../knowledge.atd",
+  "inputs": {
+    "body": "cities.xml",
+    "registration": "cities.adp",
+    "provinces.yaml": "provinces.yaml"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "p1",
+        "type": "Property",
+        "parent": null,
+        "attributes": {
+          "name": "Name",
+          "valueType": "text",
+          "title": true,
+          "limit": "none",
+          "computed": false,
+          "isParent": false
+        }
+      },
+      {
+        "id": "p2",
+        "type": "Property",
+        "parent": null,
+        "attributes": {
+          "name": "Country",
+          "valueType": "selection",
+          "title": false,
+          "limit": "none",
+          "computed": false,
+          "isParent": false
+        }
+      },
+      {
+        "id": "p3",
+        "type": "Property",
+        "parent": null,
+        "attributes": {
+          "name": "Population",
+          "valueType": "number",
+          "title": false,
+          "limit": "none",
+          "computed": false,
+          "isParent": false
+        }
+      },
+      {
+        "id": "p4",
+        "type": "Property",
+        "parent": null,
+        "attributes": {
+          "name": "Tags",
+          "valueType": "multipleSelection",
+          "title": false,
+          "limit": "none",
+          "computed": false,
+          "isParent": false
+        }
+      },
+      {
+        "id": "p5",
+        "type": "Property",
+        "parent": null,
+        "attributes": {
+          "name": "Province",
+          "valueType": "relation",
+          "title": false,
+          "targetFile": "provinces.yaml",
+          "limit": "one",
+          "computed": false,
+          "isParent": false
+        }
+      },
+      {
+        "id": "p6",
+        "type": "Property",
+        "parent": null,
+        "attributes": {
+          "name": "Visited",
+          "valueType": "checkbox",
+          "title": false,
+          "limit": "none",
+          "computed": false,
+          "isParent": false
+        }
+      },
+      {
+        "id": "p7",
+        "type": "Property",
+        "parent": null,
+        "attributes": {
+          "name": "Founded",
+          "valueType": "date",
+          "title": false,
+          "limit": "none",
+          "computed": false,
+          "isParent": false
+        }
+      },
+      {
+        "id": "p8",
+        "type": "Property",
+        "parent": null,
+        "attributes": {
+          "name": "Updated",
+          "valueType": "dateTime",
+          "title": false,
+          "limit": "none",
+          "computed": false,
+          "isParent": false
+        }
+      },
+      {
+        "id": "p9",
+        "type": "Property",
+        "parent": null,
+        "attributes": {
+          "name": "Opens",
+          "valueType": "time",
+          "title": false,
+          "limit": "none",
+          "computed": false,
+          "isParent": false
+        }
+      },
+      {
+        "id": "r1",
+        "type": "Row",
+        "parent": null,
+        "attributes": {}
+      },
+      {
+        "id": "r2",
+        "type": "Row",
+        "parent": null,
+        "attributes": {}
+      },
+      {
+        "id": "45ako65f2m2wasyxq3mam8ikt",
+        "type": "Row",
+        "parent": null,
+        "attributes": {}
+      },
+      {
+        "id": "a8q7ddqb6zyubcyf5vuky6iwb",
+        "type": "Row",
+        "parent": null,
+        "attributes": {}
+      },
+      {
+        "id": "8heh3sdyy0a63fyq7gicize5a",
+        "type": "Row",
+        "parent": null,
+        "attributes": {}
+      },
+      {
+        "id": "7pa30fmuw51bv1vyl5jnmf5jh",
+        "type": "Row",
+        "parent": null,
+        "attributes": {}
+      },
+      {
+        "id": "8rj09k224141g98x6rguz7f5h",
+        "type": "Row",
+        "parent": null,
+        "attributes": {}
+      },
+      {
+        "id": "e1v5f01oi4bx1syl7x6ty3zeo",
+        "type": "Row",
+        "parent": null,
+        "attributes": {}
+      },
+      {
+        "id": "1dytemy0l8cen9xxkpcxzlgwq",
+        "type": "Row",
+        "parent": null,
+        "attributes": {}
+      },
+      {
+        "id": "9jh7yjm443uvm99io0nc6ekpi",
+        "type": "Row",
+        "parent": null,
+        "attributes": {}
+      },
+      {
+        "id": "9cwydn1h89znwl1wlxblxselj",
+        "type": "Row",
+        "parent": null,
+        "attributes": {}
+      },
+      {
+        "id": "r1/p1",
+        "type": "Cell",
+        "parent": "r1",
+        "attributes": {
+          "property": "p1",
+          "text": "Amsterdam"
+        }
+      },
+      {
+        "id": "r1/p2",
+        "type": "Cell",
+        "parent": "r1",
+        "attributes": {
+          "property": "p2",
+          "option": "o1"
+        }
+      },
+      {
+        "id": "r1/p3",
+        "type": "Cell",
+        "parent": "r1",
+        "attributes": {
+          "property": "p3",
+          "number": 931298
+        }
+      },
+      {
+        "id": "r1/p4",
+        "type": "Cell",
+        "parent": "r1",
+        "attributes": {
+          "property": "p4"
+        }
+      },
+      {
+        "id": "r1/p5",
+        "type": "Cell",
+        "parent": "r1",
+        "attributes": {
+          "property": "p5"
+        }
+      },
+      {
+        "id": "r1/p6",
+        "type": "Cell",
+        "parent": "r1",
+        "attributes": {
+          "property": "p6",
+          "checked": true
+        }
+      },
+      {
+        "id": "r1/p7",
+        "type": "Cell",
+        "parent": "r1",
+        "attributes": {
+          "property": "p7",
+          "date": "1275-10-27"
+        }
+      },
+      {
+        "id": "r1/p8",
+        "type": "Cell",
+        "parent": "r1",
+        "attributes": {
+          "property": "p8",
+          "dateTime": "2026-10-08T09:30:00Z"
+        }
+      },
+      {
+        "id": "r1/p9",
+        "type": "Cell",
+        "parent": "r1",
+        "attributes": {
+          "property": "p9",
+          "time": "09:00"
+        }
+      },
+      {
+        "id": "r2/p1",
+        "type": "Cell",
+        "parent": "r2",
+        "attributes": {
+          "property": "p1",
+          "text": "Antwerp"
+        }
+      },
+      {
+        "id": "r2/p2",
+        "type": "Cell",
+        "parent": "r2",
+        "attributes": {
+          "property": "p2",
+          "option": "o2"
+        }
+      },
+      {
+        "id": "r2/p4",
+        "type": "Cell",
+        "parent": "r2",
+        "attributes": {
+          "property": "p4"
+        }
+      },
+      {
+        "id": "45ako65f2m2wasyxq3mam8ikt/p2",
+        "type": "Cell",
+        "parent": "45ako65f2m2wasyxq3mam8ikt",
+        "attributes": {
+          "property": "p2",
+          "option": "o1"
+        }
+      },
+      {
+        "id": "45ako65f2m2wasyxq3mam8ikt/p3",
+        "type": "Cell",
+        "parent": "45ako65f2m2wasyxq3mam8ikt",
+        "attributes": {
+          "property": "p3",
+          "number": 345345
+        }
+      },
+      {
+        "id": "45ako65f2m2wasyxq3mam8ikt/p1",
+        "type": "Cell",
+        "parent": "45ako65f2m2wasyxq3mam8ikt",
+        "attributes": {
+          "property": "p1",
+          "text": "Sevenum"
+        }
+      },
+      {
+        "id": "45ako65f2m2wasyxq3mam8ikt/p4",
+        "type": "Cell",
+        "parent": "45ako65f2m2wasyxq3mam8ikt",
+        "attributes": {
+          "property": "p4"
+        }
+      },
+      {
+        "id": "a8q7ddqb6zyubcyf5vuky6iwb/p2",
+        "type": "Cell",
+        "parent": "a8q7ddqb6zyubcyf5vuky6iwb",
+        "attributes": {
+          "property": "p2",
+          "option": "o1"
+        }
+      },
+      {
+        "id": "a8q7ddqb6zyubcyf5vuky6iwb/p1",
+        "type": "Cell",
+        "parent": "a8q7ddqb6zyubcyf5vuky6iwb",
+        "attributes": {
+          "property": "p1",
+          "text": "Venlo"
+        }
+      },
+      {
+        "id": "a8q7ddqb6zyubcyf5vuky6iwb/p5",
+        "type": "Cell",
+        "parent": "a8q7ddqb6zyubcyf5vuky6iwb",
+        "attributes": {
+          "property": "p5"
+        }
+      },
+      {
+        "id": "8heh3sdyy0a63fyq7gicize5a/p2",
+        "type": "Cell",
+        "parent": "8heh3sdyy0a63fyq7gicize5a",
+        "attributes": {
+          "property": "p2",
+          "option": "b4ff5lo4rezgty4ge7siqndey"
+        }
+      },
+      {
+        "id": "8heh3sdyy0a63fyq7gicize5a/p1",
+        "type": "Cell",
+        "parent": "8heh3sdyy0a63fyq7gicize5a",
+        "attributes": {
+          "property": "p1",
+          "text": "Berlin"
+        }
+      },
+      {
+        "id": "7pa30fmuw51bv1vyl5jnmf5jh/p2",
+        "type": "Cell",
+        "parent": "7pa30fmuw51bv1vyl5jnmf5jh",
+        "attributes": {
+          "property": "p2",
+          "option": "dn1qx45l0fu88pip2l9ua7joz"
+        }
+      },
+      {
+        "id": "7pa30fmuw51bv1vyl5jnmf5jh/p1",
+        "type": "Cell",
+        "parent": "7pa30fmuw51bv1vyl5jnmf5jh",
+        "attributes": {
+          "property": "p1",
+          "text": "Paris"
+        }
+      },
+      {
+        "id": "8rj09k224141g98x6rguz7f5h/p2",
+        "type": "Cell",
+        "parent": "8rj09k224141g98x6rguz7f5h",
+        "attributes": {
+          "property": "p2",
+          "option": "7h1eyx85f462uj3sb6jlxdxvu"
+        }
+      },
+      {
+        "id": "8rj09k224141g98x6rguz7f5h/p1",
+        "type": "Cell",
+        "parent": "8rj09k224141g98x6rguz7f5h",
+        "attributes": {
+          "property": "p1",
+          "text": "Helsinki"
+        }
+      },
+      {
+        "id": "e1v5f01oi4bx1syl7x6ty3zeo/p2",
+        "type": "Cell",
+        "parent": "e1v5f01oi4bx1syl7x6ty3zeo",
+        "attributes": {
+          "property": "p2",
+          "option": "2xc52nefzictwc49wy8ldxh7t"
+        }
+      },
+      {
+        "id": "e1v5f01oi4bx1syl7x6ty3zeo/p1",
+        "type": "Cell",
+        "parent": "e1v5f01oi4bx1syl7x6ty3zeo",
+        "attributes": {
+          "property": "p1",
+          "text": "Venice"
+        }
+      },
+      {
+        "id": "1dytemy0l8cen9xxkpcxzlgwq/p1",
+        "type": "Cell",
+        "parent": "1dytemy0l8cen9xxkpcxzlgwq",
+        "attributes": {
+          "property": "p1",
+          "text": "Ahlen"
+        }
+      },
+      {
+        "id": "1dytemy0l8cen9xxkpcxzlgwq/p2",
+        "type": "Cell",
+        "parent": "1dytemy0l8cen9xxkpcxzlgwq",
+        "attributes": {
+          "property": "p2",
+          "option": "b4ff5lo4rezgty4ge7siqndey"
+        }
+      },
+      {
+        "id": "9jh7yjm443uvm99io0nc6ekpi/p1",
+        "type": "Cell",
+        "parent": "9jh7yjm443uvm99io0nc6ekpi",
+        "attributes": {
+          "property": "p1",
+          "text": "Koeln"
+        }
+      },
+      {
+        "id": "9jh7yjm443uvm99io0nc6ekpi/p2",
+        "type": "Cell",
+        "parent": "9jh7yjm443uvm99io0nc6ekpi",
+        "attributes": {
+          "property": "p2",
+          "option": "b4ff5lo4rezgty4ge7siqndey"
+        }
+      },
+      {
+        "id": "9cwydn1h89znwl1wlxblxselj/p2",
+        "type": "Cell",
+        "parent": "9cwydn1h89znwl1wlxblxselj",
+        "attributes": {
+          "property": "p2",
+          "option": "o1"
+        }
+      },
+      {
+        "id": "9cwydn1h89znwl1wlxblxselj/p1",
+        "type": "Cell",
+        "parent": "9cwydn1h89znwl1wlxblxselj",
+        "attributes": {
+          "property": "p1",
+          "text": "Enschede"
+        }
+      },
+      {
+        "id": "9cwydn1h89znwl1wlxblxselj/p5",
+        "type": "Cell",
+        "parent": "9cwydn1h89znwl1wlxblxselj",
+        "attributes": {
+          "property": "p5"
+        }
+      },
+      {
+        "id": "v1",
+        "type": "View",
+        "parent": null,
+        "attributes": {
+          "name": "All cities",
+          "filterMatch": "all",
+          "groupBy": "p2",
+          "hideEmptyGroups": false
+        }
+      },
+      {
+        "id": "v2",
+        "type": "View",
+        "parent": null,
+        "attributes": {
+          "name": "Map",
+          "filterMatch": "all",
+          "hideEmptyGroups": false
+        }
+      },
+      {
+        "id": "o1",
+        "type": "Option",
+        "parent": "p2",
+        "attributes": {
+          "name": "Netherlands",
+          "colour": "blue"
+        }
+      },
+      {
+        "id": "o2",
+        "type": "Option",
+        "parent": "p2",
+        "attributes": {
+          "name": "Belgium",
+          "colour": "yellow"
+        }
+      },
+      {
+        "id": "b4ff5lo4rezgty4ge7siqndey",
+        "type": "Option",
+        "parent": "p2",
+        "attributes": {
+          "name": "Germany",
+          "colour": "default"
+        }
+      },
+      {
+        "id": "dn1qx45l0fu88pip2l9ua7joz",
+        "type": "Option",
+        "parent": "p2",
+        "attributes": {
+          "name": "France",
+          "colour": "default"
+        }
+      },
+      {
+        "id": "7h1eyx85f462uj3sb6jlxdxvu",
+        "type": "Option",
+        "parent": "p2",
+        "attributes": {
+          "name": "Finland",
+          "colour": "default"
+        }
+      },
+      {
+        "id": "2xc52nefzictwc49wy8ldxh7t",
+        "type": "Option",
+        "parent": "p2",
+        "attributes": {
+          "name": "Italy",
+          "colour": "default"
+        }
+      },
+      {
+        "id": "o3",
+        "type": "Option",
+        "parent": "p4",
+        "attributes": {
+          "name": "Port",
+          "colour": "default"
+        }
+      },
+      {
+        "id": "o4",
+        "type": "Option",
+        "parent": "p4",
+        "attributes": {
+          "name": "Capital",
+          "colour": "red"
+        }
+      },
+      {
+        "id": "v1/columns/p3",
+        "type": "Column",
+        "parent": "v1",
+        "attributes": {
+          "property": "p3",
+          "visible": true,
+          "width": 175,
+          "wrap": false
+        }
+      },
+      {
+        "id": "v1/columns/p2",
+        "type": "Column",
+        "parent": "v1",
+        "attributes": {
+          "property": "p2",
+          "visible": true,
+          "width": 126,
+          "wrap": false
+        }
+      },
+      {
+        "id": "v1/columns/p6",
+        "type": "Column",
+        "parent": "v1",
+        "attributes": {
+          "property": "p6",
+          "visible": true,
+          "width": 104,
+          "wrap": false
+        }
+      },
+      {
+        "id": "v1/columns/p7",
+        "type": "Column",
+        "parent": "v1",
+        "attributes": {
+          "property": "p7",
+          "visible": true,
+          "width": 112,
+          "wrap": false
+        }
+      },
+      {
+        "id": "v1/sorts/p3",
+        "type": "Sort",
+        "parent": "v1",
+        "attributes": {
+          "property": "p3",
+          "direction": "descending"
+        }
+      },
+      {
+        "id": "v1/filter/0",
+        "type": "Condition",
+        "parent": "v1",
+        "attributes": {
+          "property": "p2",
+          "operator": "is",
+          "option": "o1"
+        }
+      },
+      {
+        "id": "v2/columns/p2",
+        "type": "Column",
+        "parent": "v2",
+        "attributes": {
+          "property": "p2",
+          "visible": true,
+          "width": 166,
+          "wrap": false
+        }
+      },
+      {
+        "id": "v2/columns/p1",
+        "type": "Column",
+        "parent": "v2",
+        "attributes": {
+          "property": "p1",
+          "visible": true,
+          "width": 143,
+          "wrap": false
+        }
+      },
+      {
+        "id": "v2/columns/p3",
+        "type": "Column",
+        "parent": "v2",
+        "attributes": {
+          "property": "p3",
+          "visible": true,
+          "wrap": false
+        }
+      },
+      {
+        "id": "v2/columns/p4",
+        "type": "Column",
+        "parent": "v2",
+        "attributes": {
+          "property": "p4",
+          "visible": true,
+          "wrap": false
+        }
+      },
+      {
+        "id": "v2/columns/p5",
+        "type": "Column",
+        "parent": "v2",
+        "attributes": {
+          "property": "p5",
+          "visible": true,
+          "wrap": false,
+          "calculate": "countUnique"
+        }
+      },
+      {
+        "id": "r1/p4/o3",
+        "type": "CellItem",
+        "parent": "r1/p4",
+        "attributes": {
+          "option": "o3"
+        }
+      },
+      {
+        "id": "r1/p4/o4",
+        "type": "CellItem",
+        "parent": "r1/p4",
+        "attributes": {
+          "option": "o4"
+        }
+      },
+      {
+        "id": "r1/p5/nh",
+        "type": "CellItem",
+        "parent": "r1/p5",
+        "attributes": {
+          "row": "nh"
+        }
+      },
+      {
+        "id": "r2/p4/o3",
+        "type": "CellItem",
+        "parent": "r2/p4",
+        "attributes": {
+          "option": "o3"
+        }
+      },
+      {
+        "id": "45ako65f2m2wasyxq3mam8ikt/p4/o3",
+        "type": "CellItem",
+        "parent": "45ako65f2m2wasyxq3mam8ikt/p4",
+        "attributes": {
+          "option": "o3"
+        }
+      },
+      {
+        "id": "a8q7ddqb6zyubcyf5vuky6iwb/p5/9wvrdvjn4ob2f2nw421bouq7y",
+        "type": "CellItem",
+        "parent": "a8q7ddqb6zyubcyf5vuky6iwb/p5",
+        "attributes": {
+          "row": "9wvrdvjn4ob2f2nw421bouq7y"
+        }
+      },
+      {
+        "id": "9cwydn1h89znwl1wlxblxselj/p5/cdns3i0ehcr45q7zh0z15iqzt",
+        "type": "CellItem",
+        "parent": "9cwydn1h89znwl1wlxblxselj/p5",
+        "attributes": {
+          "row": "cdns3i0ehcr45q7zh0z15iqzt"
+        }
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "action": "setText",
+      "select": [
+        "r1"
+      ],
+      "args": {
+        "property": "p1",
+        "value": "Amsterdam (NH)"
+      },
+      "expectFile": "after-1.xml",
+      "findings": []
+    },
+    {
+      "action": "setNumber",
+      "select": [
+        "r2"
+      ],
+      "args": {
+        "property": "p3",
+        "value": 530000
+      },
+      "expectFile": "after-2.xml",
+      "findings": []
+    },
+    {
+      "action": "setChecked",
+      "select": [
+        "r1"
+      ],
+      "args": {
+        "property": "p6",
+        "value": false
+      },
+      "expectFile": "after-3.xml",
+      "findings": []
+    },
+    {
+      "action": "setDate",
+      "select": [
+        "r2"
+      ],
+      "args": {
+        "property": "p7",
+        "value": "1291-01-01"
+      },
+      "expectFile": "after-4.xml",
+      "findings": []
+    },
+    {
+      "action": "setTime",
+      "select": [
+        "r2"
+      ],
+      "args": {
+        "property": "p9",
+        "value": "10:30"
+      },
+      "expectFile": "after-5.xml",
+      "findings": []
+    },
+    {
+      "action": "setOption",
+      "select": [
+        "r1"
+      ],
+      "args": {
+        "property": "p2",
+        "value": "o2"
+      },
+      "expectFile": "after-6.xml",
+      "findings": []
+    },
+    {
+      "action": "addItem",
+      "select": [
+        "r2"
+      ],
+      "args": {
+        "property": "p4",
+        "option": "o4"
+      },
+      "expectFile": "after-7.xml",
+      "findings": []
+    },
+    {
+      "action": "setNewOption",
+      "select": [
+        "r2"
+      ],
+      "args": {
+        "property": "p2",
+        "name": "Luxembourg",
+        "colour": "gray"
+      },
+      "ids": [
+        "dsmfoixq1rds14tk3t6x1w91e"
+      ],
+      "expectFile": "after-8.xml",
+      "findings": []
+    },
+    {
+      "action": "addRow",
+      "select": [
+        "document"
+      ],
+      "ids": [
+        "arvrj9kk9sv2jpu9hhq5o1das"
+      ],
+      "expectFile": "after-9.xml",
+      "findings": []
+    },
+    {
+      "action": "setText",
+      "select": [
+        "arvrj9kk9sv2jpu9hhq5o1das"
+      ],
+      "args": {
+        "property": "p1",
+        "value": "Utrecht"
+      },
+      "expectFile": "after-10.xml",
+      "findings": []
+    },
+    {
+      "action": "setNumber",
+      "select": [
+        "arvrj9kk9sv2jpu9hhq5o1das"
+      ],
+      "args": {
+        "property": "p3",
+        "value": 361924
+      },
+      "expectFile": "after-11.xml",
+      "findings": []
+    },
+    {
+      "action": "addItem",
+      "select": [
+        "arvrj9kk9sv2jpu9hhq5o1das"
+      ],
+      "args": {
+        "property": "p5",
+        "row": "zh"
+      },
+      "expectFile": "after-12.xml",
+      "findings": []
+    },
+    {
+      "undo": true,
+      "expectFile": "after-11.xml",
+      "findings": []
+    },
+    {
+      "redo": true,
+      "expectFile": "after-12.xml",
+      "findings": []
+    },
+    {
+      "action": "setNumber",
+      "select": [
+        "r1"
+      ],
+      "args": {
+        "property": "p3",
+        "value": "a great many"
+      },
+      "refused": {
+        "reason": "A number is expected."
+      },
+      "expectFile": "after-12.xml",
+      "findings": []
+    },
+    {
+      "action": "switchView",
+      "select": [
+        "v1"
+      ],
+      "expectFile": "after-13.xml",
+      "findings": []
+    },
+    {
+      "action": "addSort",
+      "select": [
+        "v1"
+      ],
+      "args": {
+        "property": "p1",
+        "direction": "descending"
+      },
+      "expectFile": "after-14.xml",
+      "findings": []
+    },
+    {
+      "action": "setSortDirection",
+      "select": [
+        "v1/sorts/p3"
+      ],
+      "args": {
+        "direction": "ascending"
+      },
+      "expectFile": "after-15.xml",
+      "findings": []
+    },
+    {
+      "action": "addCondition",
+      "select": [
+        "v1"
+      ],
+      "args": {
+        "property": "p3",
+        "operator": "greater-than"
+      },
+      "expectFile": "after-16.xml",
+      "findings": []
+    },
+    {
+      "action": "setCondition",
+      "select": [
+        "v1/filter/1"
+      ],
+      "args": {
+        "operator": "greater-than",
+        "number": 500000
+      },
+      "expectFile": "after-17.xml",
+      "findings": []
+    },
+    {
+      "action": "hideEmptyGroups",
+      "select": [
+        "v1"
+      ],
+      "args": {
+        "hide": true
+      },
+      "expectFile": "after-18.xml",
+      "findings": []
+    },
+    {
+      "action": "setGroup",
+      "select": [
+        "v1"
+      ],
+      "args": {
+        "slot": "collapsed",
+        "key": "o2"
+      },
+      "expectFile": "after-19.xml",
+      "findings": []
+    },
+    {
+      "action": "setColumn",
+      "select": [
+        "v1"
+      ],
+      "args": {
+        "property": "p6",
+        "visible": false
+      },
+      "expectFile": "after-20.xml",
+      "findings": []
+    },
+    {
+      "action": "setColumn",
+      "select": [
+        "v1"
+      ],
+      "args": {
+        "property": "p3",
+        "width": 200
+      },
+      "expectFile": "after-21.xml",
+      "findings": []
+    },
+    {
+      "action": "addView",
+      "select": [
+        "document"
+      ],
+      "ids": [
+        "484tua9zjtxsexz1n4j5zzox5"
+      ],
+      "expectFile": "after-22.xml",
+      "findings": []
+    },
+    {
+      "action": "renameView",
+      "select": [
+        "484tua9zjtxsexz1n4j5zzox5"
+      ],
+      "args": {
+        "name": "Recent"
+      },
+      "expectFile": "after-23.xml",
+      "findings": []
+    },
+    {
+      "undo": true
+    },
+    {
+      "undo": true,
+      "expectFile": "after-21.xml",
+      "findings": []
+    },
+    {
+      "action": "switchView",
+      "select": [
+        "v2"
+      ],
+      "expectFile": "after-24.xml",
+      "findings": []
+    },
+    {
+      "action": "deleteRows",
+      "select": [
+        "r2"
+      ],
+      "expectFile": "after-25.xml",
+      "findings": []
+    }
+  ],
+  "provenance": {
+    "bytes": {
+      "host": "standalone",
+      "repository": "etalii.adp.ide.standalone",
+      "commit": "8b6ccfc",
+      "source": "etalii.adp.ide.desktop/parity/goldens/etalii/knowledge/cities-xml/"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "12d8338",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "12d8338",
+      "source": "atd record (findings)"
+    }
+  }
+}

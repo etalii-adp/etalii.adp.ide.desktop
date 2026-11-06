@@ -1,0 +1,287 @@
+atd 0.1
+part of etalii/knowledge
+
+// The designer's XML binding, in a part of its own (ATD §5.2, §11): knowledge.fbl's `xml`.
+
+binding xml family xml {
+  label "Knowledge file, XML"
+  claims {
+    extensions: [".xml"],
+    shared: true,
+    marker: { pattern: "^<ded\\s[^>]*designer=\"etalii/knowledge\"" },
+    origins: ["etalii/knowledge"],
+    suggest: { contains: ["designer=\"etalii/knowledge\""] }
+  }
+  text { newline: crlf, indent: 2, finalNewline: true }
+  header { line: "^<ded(?:\\s|/|>)", required: true }
+
+  /// The root element: the table's own settings.
+  element Table as table at "/ded" {
+    attribute version from attribute "version" {
+      readOnly: "The version is written when the file is created and changed by nobody but a migration."
+    }
+    attribute designer from attribute "designer" {
+      readOnly: "The designer type is written when the file is created and changed by nobody."
+    }
+    attribute name from attribute "name" { empty: keep }
+    attribute activeView from attribute "activeView" {
+      empty: "remove"
+      references view by id
+    }
+  }
+
+  element Property as property at "/ded/properties/property" {
+    id from attribute "id"
+    attribute name from attribute "name" { empty: refuse }
+    attribute valueType from attribute "type" { empty: refuse }
+    attribute title from attribute "title" { empty: "remove", default: false }
+    attribute targetFile from attribute "target" { empty: "remove" }
+    attribute limit from attribute "limit" { empty: "remove", default: none }
+    attribute counterpart from attribute "counterpart" { empty: "remove" }
+    attribute computed from attribute "computed" { empty: "remove", default: false }
+    attribute isParent from attribute "parent" { empty: "remove", default: false }
+    insert {
+      place: after-last,
+      container: "/ded/properties",
+      emit: "<property id=\"{id}\" name=\"{name}\" type=\"{valueType}\"[ title=\"{title}\"][ target=\"{targetFile}\"][ limit=\"{limit}\"][ counterpart=\"{counterpart}\"][ computed=\"{computed}\"][ parent=\"{isParent}\"]/>"
+    }
+    remove { cascade: [cell, column, sort, condition1, condition2, condition3] }
+  }
+
+  element Option as option at "/ded/properties/property/option" {
+    id from attribute "id"
+    parent property slot options
+    attribute name from attribute "name" { empty: refuse }
+    attribute colour from attribute "colour" { empty: "remove", default: "default" }
+    insert { place: last-child, emit: "<option id=\"{id}\" name=\"{name}\"[ colour=\"{colour}\"]/>" }
+    remove { cascade: [cell, cellOption, condition1, condition2, condition3] }
+  }
+
+  element View as view at "/ded/views/view" {
+    id from attribute "id"
+    attribute name from attribute "name" { empty: refuse }
+    attribute filterMatch from attribute "filterMatch" { empty: "remove", default: all }
+    attribute groupBy from attribute "groupBy" {
+      empty: "remove"
+      references property by id
+    }
+    attribute hideEmptyGroups from attribute "hideEmptyGroups" { empty: "remove", default: false }
+    attribute freeze from attribute "freeze" {
+      empty: "remove"
+      references property by id
+    }
+    insert {
+      place: after-last,
+      container: "/ded/views",
+      emit: "<view id=\"{id}\" name=\"{name}\"[ filterMatch=\"{filterMatch}\"][ groupBy=\"{groupBy}\"][ hideEmptyGroups=\"{hideEmptyGroups}\"][ freeze=\"{freeze}\"]/>"
+    }
+    remove {}
+  }
+
+  element Column as column at "/ded/views/view/column" {
+    parent view slot columns
+    attribute property from attribute "property" {
+      empty: refuse
+      references property by id
+    }
+    attribute visible from attribute "visible" { empty: "remove", default: true }
+    attribute width from attribute "width" { empty: "remove", number: shortest }
+    attribute wrap from attribute "wrap" { empty: "remove", default: false }
+    attribute calculate from attribute "calculate" {
+      empty: "remove",
+      map: {
+        count-all: countAll,
+        count-values: countValues,
+        count-unique: countUnique,
+        count-empty: countEmpty,
+        count-not-empty: countNotEmpty,
+        percent-empty: percentEmpty,
+        percent-not-empty: percentNotEmpty,
+        earliest: earliest,
+        latest: latest,
+        date-range: dateRange,
+        sum: sum,
+        average: average,
+        median: median,
+        min: min,
+        max: max,
+        range: range
+      }
+    }
+    insert {
+      place: last-child,
+      emit: "<column property=\"{property}\"[ visible=\"{visible}\"][ width=\"{width}\"][ wrap=\"{wrap}\"][ calculate=\"{calculate}\"]/>"
+    }
+    remove {}
+  }
+
+  element Sort as sort at "/ded/views/view/sort" {
+    parent view slot sorts
+    attribute property from attribute "property" {
+      empty: refuse
+      references property by id
+    }
+    attribute direction from attribute "direction" { empty: "remove", default: ascending }
+    insert { place: last-child, emit: "<sort property=\"{property}\"[ direction=\"{direction}\"]/>" }
+    remove {}
+  }
+
+  element Condition as condition1 at "/ded/views/view/condition" {
+    parent view slot filter
+    attribute property from attribute "property" {
+      empty: refuse
+      references property by id
+    }
+    attribute operator from attribute "operator" { empty: refuse }
+    attribute text from attribute "text" { empty: "remove" }
+    attribute number from attribute "number" { empty: "remove", number: shortest }
+    attribute checked from attribute "checked" { empty: "remove" }
+    attribute date from attribute "date" { empty: "remove", time: keep-precision }
+    attribute dateTime from attribute "dateTime" { empty: "remove", time: keep-precision }
+    attribute time from attribute "time" { empty: "remove" }
+    attribute option from attribute "option" {
+      empty: "remove"
+      references option by id
+    }
+    insert {
+      place: last-child,
+      emit: "<condition property=\"{property}\" operator=\"{operator}\"[ text=\"{text}\"][ number=\"{number}\"][ checked=\"{checked}\"][ date=\"{date}\"][ dateTime=\"{dateTime}\"][ time=\"{time}\"][ option=\"{option}\"]/>"
+    }
+    remove {}
+  }
+
+  element FilterGroup as filterGroup1 at "/ded/views/view/filterGroup" {
+    parent view slot filter
+    attribute match from attribute "match" { empty: refuse }
+    insert { place: last-child, emit: "<filterGroup match=\"{match}\"/>" }
+    remove {}
+  }
+
+  element Condition as condition2 at "/ded/views/view/filterGroup/condition" {
+    parent filterGroup1 slot conditions
+    attribute property from attribute "property" {
+      empty: refuse
+      references property by id
+    }
+    attribute operator from attribute "operator" { empty: refuse }
+    attribute text from attribute "text" { empty: "remove" }
+    attribute number from attribute "number" { empty: "remove", number: shortest }
+    attribute checked from attribute "checked" { empty: "remove" }
+    attribute date from attribute "date" { empty: "remove", time: keep-precision }
+    attribute dateTime from attribute "dateTime" { empty: "remove", time: keep-precision }
+    attribute time from attribute "time" { empty: "remove" }
+    attribute option from attribute "option" {
+      empty: "remove"
+      references option by id
+    }
+    insert {
+      place: last-child,
+      emit: "<condition property=\"{property}\" operator=\"{operator}\"[ text=\"{text}\"][ number=\"{number}\"][ checked=\"{checked}\"][ date=\"{date}\"][ dateTime=\"{dateTime}\"][ time=\"{time}\"][ option=\"{option}\"]/>"
+    }
+    remove {}
+  }
+
+  element FilterGroup as filterGroup2 at "/ded/views/view/filterGroup/filterGroup" {
+    parent filterGroup1 slot conditions
+    attribute match from attribute "match" { empty: refuse }
+    insert { place: last-child, emit: "<filterGroup match=\"{match}\"/>" }
+    remove {}
+  }
+
+  element Condition as condition3 at "/ded/views/view/filterGroup/filterGroup/condition" {
+    parent filterGroup2 slot conditions
+    attribute property from attribute "property" {
+      empty: refuse
+      references property by id
+    }
+    attribute operator from attribute "operator" { empty: refuse }
+    attribute text from attribute "text" { empty: "remove" }
+    attribute number from attribute "number" { empty: "remove", number: shortest }
+    attribute checked from attribute "checked" { empty: "remove" }
+    attribute date from attribute "date" { empty: "remove", time: keep-precision }
+    attribute dateTime from attribute "dateTime" { empty: "remove", time: keep-precision }
+    attribute time from attribute "time" { empty: "remove" }
+    attribute option from attribute "option" {
+      empty: "remove"
+      references option by id
+    }
+    insert {
+      place: last-child,
+      emit: "<condition property=\"{property}\" operator=\"{operator}\"[ text=\"{text}\"][ number=\"{number}\"][ checked=\"{checked}\"][ date=\"{date}\"][ dateTime=\"{dateTime}\"][ time=\"{time}\"][ option=\"{option}\"]/>"
+    }
+    remove {}
+  }
+
+  element GroupSetting as groupOrder at "/ded/views/view/groupOrder" {
+    parent view slot groupOrder
+    attribute key from attribute "key" { empty: refuse }
+    insert { place: last-child, emit: "<groupOrder key=\"{key}\"/>" }
+    remove {}
+  }
+
+  element GroupSetting as hiddenGroup at "/ded/views/view/hiddenGroup" {
+    parent view slot hiddenGroups
+    attribute key from attribute "key" { empty: refuse }
+    insert { place: last-child, emit: "<hiddenGroup key=\"{key}\"/>" }
+    remove {}
+  }
+
+  element GroupSetting as collapsedGroup at "/ded/views/view/collapsed" {
+    parent view slot collapsed
+    attribute key from attribute "key" { empty: refuse }
+    insert { place: last-child, emit: "<collapsed key=\"{key}\"/>" }
+    remove {}
+  }
+
+  element Row as row at "/ded/rows/row" {
+    id from attribute "id"
+    insert { place: after-last, container: "/ded/rows", emit: "<row id=\"{id}\"/>" }
+    remove {}
+  }
+
+  element Cell as cell at "/ded/rows/row/cell" {
+    parent row slot cells
+    attribute property from attribute "property" {
+      empty: refuse
+      references property by id
+    }
+    attribute text from attribute "text" { empty: "remove" }
+    attribute number from attribute "number" { empty: "remove", number: shortest }
+    attribute checked from attribute "checked" { empty: "remove" }
+    attribute date from attribute "date" { empty: "remove", time: keep-precision }
+    attribute dateTime from attribute "dateTime" { empty: "remove", time: keep-precision }
+    attribute time from attribute "time" { empty: "remove" }
+    attribute option from attribute "option" {
+      empty: "remove"
+      references option by id
+    }
+    insert {
+      place: last-child,
+      emit: "<cell property=\"{property}\"[ text=\"{text}\"][ number=\"{number}\"][ checked=\"{checked}\"][ date=\"{date}\"][ dateTime=\"{dateTime}\"][ time=\"{time}\"][ option=\"{option}\"]/>"
+    }
+    remove {}
+  }
+
+  element CellItem as cellOption at "/ded/rows/row/cell/item" {
+    when has(entry.option)
+    parent cell slot items
+    attribute option from attribute "option" {
+      empty: refuse
+      references option by id
+    }
+    insert { place: last-child, emit: "<item option=\"{option}\"/>" }
+    remove {}
+  }
+
+  /// A related row, by its id in the target file. Not a reference: the target is another file, which the designer resolves (L5).
+  element CellItem as cellRow at "/ded/rows/row/cell/item" {
+    when has(entry.row)
+    parent cell slot items
+    attribute row from attribute "row" { empty: refuse }
+    insert { place: last-child, emit: "<item row=\"{row}\"/>" }
+    remove {}
+  }
+
+  registration { createOnFirstPlacement: false }
+  template "<ded version=\"0.1\" designer=\"etalii/knowledge\" name=\"{base}\">\r\n  <properties>\r\n    <property id=\"{newid:property}\" name=\"Name\" type=\"text\" title=\"true\"/>\r\n  </properties>\r\n  <views>\r\n    <view id=\"{newid:view}\" name=\"Table\"/>\r\n  </views>\r\n  <rows/>\r\n</ded>\r\n"
+}
