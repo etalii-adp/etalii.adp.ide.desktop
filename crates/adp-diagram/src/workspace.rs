@@ -253,6 +253,31 @@ impl DiagramWorkspace {
         change
     }
 
+    /// The body at `body_path` written by another program as `body` (ATD §2.3's `outside` step, for documents held in
+    /// memory): its document is read again, and the history ends there with `reason`, as [`DiagramWorkspace::reconcile`]
+    /// ends it for a file changed on disk.
+    pub fn changed_outside(&mut self, body_path: &Path, body: Vec<u8>, reason: &str) -> Result<(), String> {
+        let document = self
+            .documents
+            .get(body_path)
+            .ok_or_else(|| format!("{} is not open", body_path.display()))?;
+        let tool = document.tool().clone();
+        let registration_path = document.registration_path().map(Path::to_path_buf);
+        let registration = document.registration_bytes().map(<[u8]>::to_vec);
+        self.documents.close(body_path);
+        self.documents.open_bytes_beside(
+            tool,
+            body_path,
+            registration_path.as_deref(),
+            body,
+            registration,
+            &|_| None,
+        );
+        self.documents.mark_changed(body_path);
+        self.history.mark_changed_outside(Some(reason));
+        Ok(())
+    }
+
     /// The bodies whose documents changed since this was last asked, for their views to refresh.
     pub fn take_changed(&mut self) -> Vec<PathBuf> {
         self.documents.take_changed()

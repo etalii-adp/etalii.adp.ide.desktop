@@ -548,6 +548,9 @@ impl Replay {
         if let Some(movement) = step.get("move") {
             return self.movement(movement);
         }
+        if let Some(outside) = step.get("outside") {
+            return self.outside(outside);
+        }
         if step.get("undo").is_some() {
             return history(self.workspace.undo());
         }
@@ -555,6 +558,29 @@ impl Replay {
             return history(self.workspace.redo());
         }
         Err(format!("The runner knows no step {step}."))
+    }
+
+    /// An `outside` step (ATD §2.3): the body written as another program writes it, the first occurrence of `from`
+    /// replaced by `to`, and the host told, as its watcher tells it; the history starts afresh.
+    fn outside(&mut self, outside: &Json) -> Result<(), String> {
+        let file = outside["file"].as_str().ok_or("An outside step names its file.")?;
+        let from = outside["replace"]["from"]
+            .as_str()
+            .ok_or("An outside step says what it replaces.")?;
+        let to = outside["replace"]["to"].as_str().unwrap_or_default();
+        if self.body_path.file_name().and_then(|n| n.to_str()) != Some(file) {
+            return Err(format!("The runner writes only the body from outside, not {file}."));
+        }
+        let text = String::from_utf8_lossy(&self.bytes()).into_owned();
+        if !text.contains(from) {
+            return Err(format!("'{from}' is not in {file}"));
+        }
+        let reason = format!(
+            "{file} was changed by another program, so the edits made to it before that can no longer be undone."
+        );
+        let body_path = self.body_path.clone();
+        self.workspace
+            .changed_outside(&body_path, text.replacen(from, to, 1).into_bytes(), &reason)
     }
 
     fn select(&mut self, select: &Json) -> Result<(), String> {
@@ -571,6 +597,10 @@ impl Replay {
             }
             [one] => {
                 let id = one.as_str().ok_or("An element is named by a string.")?.to_owned();
+                // A designer's gesture names its entry by id: one the file no longer has is the page's drift.
+                if self.designer && self.session.select(self.workspace.documents(), &id).is_none() {
+                    return Err(DRIFTED.to_owned());
+                }
                 if self.session.select(self.workspace.documents(), &id).is_none() {
                     return Err(format!("nothing has the id '{id}'"));
                 }
@@ -914,6 +944,10 @@ fn surface_types(description: &Description) -> Vec<String> {
     }
     types
 }
+
+/// What a designer's page answers a gesture on an entry the file no longer has (the reference host's sentence).
+const DRIFTED: &str =
+    "The file changed while you were editing, so this change was not written. The page now shows the file as it is.";
 
 /// A step's JSON value as the value an operation's parameter takes.
 fn cel_of(value: &Json) -> adp_cel::Value {

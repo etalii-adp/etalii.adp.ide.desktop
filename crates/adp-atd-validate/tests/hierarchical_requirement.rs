@@ -18,65 +18,19 @@ fn designers() -> PathBuf {
         .join("definitions/designers")
 }
 
-/// The differences of the cases, by case, each as `step:part`, with their causes (T064 corrects the description; the
-/// rest wait on Peter or on later tasks).
+/// The differences of the cases, by case, each as `step:part`, with their causes, each waiting on Peter's ruling.
 const LISTED: &[(&str, &[&str])] = &[
-    // A refusal the description does not state yet (T064): an assessment's text of two lines; its undo and redo then
-    // differ too.
-    ("assessments", &["6:refused", "6:bytes", "7:bytes", "8:bytes"]),
-    // T064: 'urgent' names no state, and the case words it "could not be written: …", the reference runner's prefix
-    // (a question for Peter); a second category named Functional is not refused; the redo of a state's deletion.
-    (
-        "classification",
-        &["12:refused", "13:refused", "13:findings", "18:bytes"],
-    ),
-    // T064: the description states no bounds of a column's depth and width; T062: two refusals after an outside write.
-    (
-        "columns",
-        &["6:refused", "7:refused", "8:refused", "9:refused", "10:refused"],
-    ),
-    // T064: an empty filter is not refused; T062: a refusal after an outside write.
-    ("filters", &["4:refused", "5:refused", "6:refused"]),
-    // `hierarchy.add` is the shell's gesture that adds a document from the designer's template (a question for Peter).
+    // The case words a refusal "could not be written: <reason>", the reference runner's prefix; the description states
+    // the reason.
+    ("classification", &["12:refused", "13:refused"]),
+    ("tags", &["10:refused"]),
+    // The same prefix, before the reference host's sentence that a second column of one depth could not be written.
+    ("columns", &["9:refused"]),
+    // `hierarchy.add` is the shell's gesture that adds a document from the designer's template.
     ("new-document", &["1:refused", "2:refused"]),
-    // T064: a move into the item itself is refused in the reference host's words; `fbl.stale-view-data` is an error
-    // there and information in FBL section 13 (a question for Peter).
+    // The prefix again, and `fbl.stale-view-data`, an error in the reference host and information in FBL section 13.
     ("structure", &["9:refused", "11:findings"]),
     ("structure-lf", &["9:refused", "11:findings"]),
-    // T064: a tag's name with # and a second tag named Customer are not refused, and their undo and redo differ.
-    (
-        "tags",
-        &[
-            "9:refused",
-            "9:bytes",
-            "10:refused",
-            "10:bytes",
-            "10:findings",
-            "12:bytes",
-            "13:bytes",
-        ],
-    ),
-    // T064: a title of two lines is not refused, and its undo and redo differ.
-    ("text", &["6:refused", "6:bytes", "7:bytes", "8:bytes"]),
-    // T062: the outside write and what follows it.
-    (
-        "two-writers",
-        &[
-            "2:refused",
-            "2:bytes",
-            "2:findings",
-            "3:refused",
-            "3:bytes",
-            "3:findings",
-            "4:refused",
-            "4:bytes",
-            "4:findings",
-            "5:bytes",
-            "5:findings",
-            "6:bytes",
-            "6:findings",
-        ],
-    ),
 ];
 
 #[test]

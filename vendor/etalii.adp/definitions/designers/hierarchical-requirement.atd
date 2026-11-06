@@ -283,6 +283,9 @@ designer etalii/hierarchical-requirement version "0.1.0" {
   /// Typing in a title. The binding refuses an empty title.
   operation setTitle "Title" for Item, Requirement {
     param title: string required { minLength: 1 }
+    if p.title.contains('\n') {
+      fail 'A title is one line; the description holds the lines below it.'
+    }
     set title = p.title
   }
 
@@ -300,6 +303,9 @@ designer etalii/hierarchical-requirement version "0.1.0" {
     param item: Item { doc: "The item it goes into; absent, the top level." }
     param after: Item { doc: "The sibling it goes after there; absent, after the last item there, or to the front within its own parent." }
     let into = has(p.item) ? p.item : null
+    if has(p.item) && (p.item == self || p.item.ancestors().exists(a, a == self)) {
+      fail self.id + ' cannot be moved into itself or into anything it holds.'
+    }
     let siblings = has(p.item) ? p.item.childrenOfType('Item').filter(i, i != self) : document.elementsOfType('Item').filter(i, i.parent == null && i != self)
     if self.parent == into {
       if has(p.after) {
@@ -376,6 +382,9 @@ designer etalii/hierarchical-requirement version "0.1.0" {
   operation addTag "Add tag" for Item, Requirement {
     param name: string required { minLength: 1 }
     let name = p.name.trim().replace(' ', '-')
+    if name.contains('#') {
+      fail "'" + name + "' cannot be a tag: a tag's name is one word without #."
+    }
     let found = document.elementsOfType('Tag').filter(t, t.name.lowerAscii() == name.lowerAscii())
     if found.size() == 0 {
       create Tag { name: name, colour: 'default' }
@@ -396,6 +405,9 @@ designer etalii/hierarchical-requirement version "0.1.0" {
     param name: string required { minLength: 1 }
     let old = self.name.lowerAscii()
     let name = p.name.trim().replace(' ', '-')
+    if document.elementsOfType('Tag').exists(o, o != self && o.name.lowerAscii() == name.lowerAscii()) {
+      fail 'There is already a tag named ' + name + '.'
+    }
     for e in document.elementsOfType('Item') + document.elementsOfType('Requirement') limit 100000 {
       if e.tags.exists(t, t.lowerAscii() == old) {
         set e.tags = e.tags.map(t, t.lowerAscii() == old ? name : t)
@@ -452,7 +464,11 @@ designer etalii/hierarchical-requirement version "0.1.0" {
   operation addCategory "New category" for document {
     param name: string required { minLength: 1 }
     param colour: Colour default default
-    create Category { name: p.name.trim().replace(' ', '-'), colour: p.colour }
+    let name = p.name.trim().replace(' ', '-')
+    if document.elementsOfType('Category').exists(o, o.name.lowerAscii() == name.lowerAscii()) {
+      fail 'There is already a category named ' + name + '.'
+    }
+    create Category { name: name, colour: p.colour }
   }
 
   /// Every requirement that carries it follows, in the same step (R25).
@@ -460,6 +476,9 @@ designer etalii/hierarchical-requirement version "0.1.0" {
     param name: string required { minLength: 1 }
     let old = self.name.lowerAscii()
     let name = p.name.trim().replace(' ', '-')
+    if document.elementsOfType('Category').exists(o, o != self && o.name.lowerAscii() == name.lowerAscii()) {
+      fail 'There is already a category named ' + name + '.'
+    }
     for r in document.elementsOfType('Requirement').filter(r, r.category.lowerAscii() == old) limit 100000 {
       set r.category = name
     }
@@ -509,13 +528,20 @@ designer etalii/hierarchical-requirement version "0.1.0" {
   operation addState "New state" for document {
     param name: string required { minLength: 1 }
     param colour: Colour default default
-    create State { name: p.name.trim().replace(' ', '-'), colour: p.colour }
+    let name = p.name.trim().replace(' ', '-')
+    if document.elementsOfType('State').exists(o, o.name.lowerAscii() == name.lowerAscii()) {
+      fail 'There is already a state named ' + name + '.'
+    }
+    create State { name: name, colour: p.colour }
   }
 
   operation renameState "Rename" for State {
     param name: string required { minLength: 1 }
     let old = self.name.lowerAscii()
     let name = p.name.trim().replace(' ', '-')
+    if document.elementsOfType('State').exists(o, o != self && o.name.lowerAscii() == name.lowerAscii()) {
+      fail 'There is already a state named ' + name + '.'
+    }
     for r in document.elementsOfType('Requirement').filter(r, r.state.lowerAscii() == old) limit 100000 {
       set r.state = name
     }
@@ -556,6 +582,9 @@ designer etalii/hierarchical-requirement version "0.1.0" {
   operation addAssessment "New assessment" for Item, Requirement {
     param kind: AssessmentKind default question
     param text: string required
+    if p.text.contains('\n') {
+      fail 'The text of an assessment is one line; its detail holds the lines below it.'
+    }
     create Assessment { kind: p.kind, about: self.id, text: p.text }
   }
 
@@ -564,6 +593,9 @@ designer etalii/hierarchical-requirement version "0.1.0" {
     param kind: AssessmentKind required
     param text: string required
     param detail: text default ""
+    if p.text.contains('\n') {
+      fail 'The text of an assessment is one line; its detail holds the lines below it.'
+    }
     set kind = p.kind
     set text = p.text
     set detail = p.detail
@@ -586,7 +618,10 @@ designer etalii/hierarchical-requirement version "0.1.0" {
   operation storeFilter "Store filter" for document {
     param name: string required { minLength: 1 }
     param query: string required { minLength: 1 }
-    create Filter { name: p.name, query: p.query }
+    if p.query.trim() == '' {
+      fail 'There is no filter to store.'
+    }
+    create Filter { name: p.name.trim(), query: p.query.trim() }
   }
 
   operation renameFilter "Rename" for Filter {
@@ -601,15 +636,24 @@ designer etalii/hierarchical-requirement version "0.1.0" {
   /// Dragging the right edge of a column whose width is not stored yet: the column of that depth gets the width (DESL
   /// section 7.7.1).
   operation addColumnWidth "Set width" for document {
-    param level: string required { pattern: r"^[1-9][0-9]*$" }
-    param width: int required { min: 120, max: 2000 }
-    create Column { level: p.level, width: p.width }
+    param level: string required
+    param width: string required
+    if !p.level.matches('^[1-9][0-9]*$') {
+      fail 'A column is named by its depth, a whole number from 1.'
+    }
+    if !p.width.matches('^[0-9]{3,4}$') || int(p.width) < 120 || int(p.width) > 2000 {
+      fail 'A column is 120 to 2000 pixels wide.'
+    }
+    create Column { level: p.level, width: int(p.width) }
   }
 
   /// Dragging the right edge of a column whose width is stored.
   operation setColumnWidth "Set width" for Column {
-    param width: int required { min: 120, max: 2000 }
-    set width = p.width
+    param width: string required
+    if !p.width.matches('^[0-9]{3,4}$') || int(p.width) < 120 || int(p.width) > 2000 {
+      fail 'A column is 120 to 2000 pixels wide.'
+    }
+    set width = int(p.width)
   }
 
   /// Gives the column the host's width again.
