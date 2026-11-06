@@ -20,7 +20,9 @@ workspace = true
 [features]
 default = ["record"]
 record = [
+    "dep:adp-cel",
     "dep:adp-desl",
+    "dep:adp-designer-knowledge",
     "dep:adp-diagram",
     "dep:adp-diagram-agent-behavior-modelling",
     "dep:adp-diagram-c4",
@@ -35,6 +37,7 @@ record = [
     "dep:adp-editor-markdown",
     "dep:adp-editor-xml",
     "dep:adp-editor-yaml",
+    "dep:adp-fbl",
     "dep:adp-layout",
     "dep:adp-parity",
     "dep:adp-scene",
@@ -43,7 +46,9 @@ record = [
 ]
 
 [dependencies]
+adp-cel = { path = "../adp-cel", optional = true }
 adp-desl = { path = "../adp-desl", optional = true }
+adp-designer-knowledge = { path = "../../modules/designers/knowledge", optional = true }
 adp-diagram = { path = "../adp-diagram", optional = true }
 adp-diagram-c4 = { path = "../../modules/diagrams/c4", optional = true }
 adp-diagram-agent-behavior-modelling = { path = "../../modules/diagrams/agent-behavior-modelling", optional = true }
@@ -54,6 +59,7 @@ adp-editor-json = { path = "../../modules/editors/json", optional = true }
 adp-editor-markdown = { path = "../../modules/editors/markdown", optional = true }
 adp-editor-xml = { path = "../../modules/editors/xml", optional = true }
 adp-editor-yaml = { path = "../../modules/editors/yaml", optional = true }
+adp-fbl = { path = "../adp-fbl", optional = true }
 adp-diagram-rdf = { path = "../../modules/diagrams/rdf", optional = true }
 adp-diagram-mindmap = { path = "../../modules/diagrams/mindmap", optional = true }
 adp-diagram-timeline = { path = "../../modules/diagrams/timeline", optional = true }

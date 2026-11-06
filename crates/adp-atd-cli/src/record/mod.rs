@@ -16,6 +16,7 @@ pub mod check;
 mod editor;
 mod gesture;
 mod hierarchy;
+mod table;
 mod w3c;
 
 use std::cell::RefCell;
@@ -161,11 +162,10 @@ pub fn record(origin: &str, cases: &Path, description: Option<&str>) -> Result<V
     for case in loaded {
         let case = case?;
         let name = case.name.clone();
-        if adp_parity::table::is_table(&case.script.tool) {
-            return Err(format!("{name}: a designer's table is not recorded yet"));
-        }
         let folder = cases.join(name.rsplit('/').next().unwrap_or(&name));
-        if adp_parity::hierarchy::is_hierarchy(&case.script.tool) {
+        if adp_parity::table::is_table(&case.script.tool) {
+            table::record_case(&case, &folder, &description)?;
+        } else if adp_parity::hierarchy::is_hierarchy(&case.script.tool) {
             hierarchy::record_case(&case, &folder, &description)?;
         } else {
             record_case(&case, &folder, &description)?;

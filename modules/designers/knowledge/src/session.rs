@@ -205,6 +205,12 @@ impl KnowledgeSession {
         &self.shown
     }
 
+    /// The FBL model the table shown now is read from, edits not yet written included: its elements, as `atd record`
+    /// states a reading (etalii.adp spec 076, T067).
+    pub fn model(&self) -> &FblModel {
+        &self.shown_model
+    }
+
     /// The view this connection shows.
     pub fn active_view_id(&self) -> &str {
         &self.view_id

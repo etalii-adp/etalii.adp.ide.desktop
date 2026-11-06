@@ -1,0 +1,234 @@
+{
+  "tool": "etalii/knowledge",
+  "fixture": "etalii/knowledge/refusals/cities.yaml",
+  "registration": "etalii/knowledge/refusals/cities.adp",
+  "steps": [
+    {
+      "table": {
+        "kind": "setCell",
+        "row": "r1",
+        "column": "p3",
+        "values": [
+          "a great many"
+        ]
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "setCell",
+        "row": "r1",
+        "column": "p7",
+        "values": [
+          "yesterday"
+        ]
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "setCell",
+        "row": "r1",
+        "column": "p8",
+        "values": [
+          "soon"
+        ]
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "setCell",
+        "row": "r1",
+        "column": "p9",
+        "values": [
+          "noon"
+        ]
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "setCell",
+        "row": "r1",
+        "column": "p5",
+        "values": [
+          "nh",
+          "zh"
+        ]
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "setCell",
+        "row": "gone",
+        "column": "p1",
+        "values": [
+          "Nowhere"
+        ]
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "renameColumn",
+        "column": "p2",
+        "values": [
+          "name"
+        ]
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "renameColumn",
+        "column": "p2",
+        "values": [
+          ""
+        ]
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "deleteColumn",
+        "column": "p1"
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "hideColumn",
+        "column": "p1"
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "setColumnType",
+        "column": "p1",
+        "settings": {
+          "type": "number"
+        }
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "setColumnType",
+        "column": "p3",
+        "settings": {
+          "type": "colour"
+        }
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "addOption",
+        "column": "p2",
+        "values": [
+          "Netherlands"
+        ]
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "addOption",
+        "column": "p3",
+        "values": [
+          "Many"
+        ]
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "recolourOption",
+        "column": "p2",
+        "target": "o1",
+        "settings": {
+          "colour": "teal"
+        }
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "renameOption",
+        "column": "p2",
+        "target": "o1",
+        "values": [
+          ""
+        ]
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "deleteOption",
+        "column": "p2",
+        "target": "gone"
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "renameView",
+        "view": "v1",
+        "values": [
+          ""
+        ]
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "groupBy",
+        "column": "p3"
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "resizeColumn",
+        "column": "p3",
+        "settings": {
+          "width": "wide"
+        }
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "setColumnParent",
+        "column": "p5",
+        "settings": {
+          "parent": "true"
+        }
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "frobnicate"
+      },
+      "expect": "refused"
+    },
+    {
+      "table": {
+        "kind": "deleteView",
+        "view": "v1"
+      }
+    },
+    {
+      "table": {
+        "kind": "deleteView",
+        "view": "v2"
+      },
+      "expect": "refused"
+    }
+  ]
+}

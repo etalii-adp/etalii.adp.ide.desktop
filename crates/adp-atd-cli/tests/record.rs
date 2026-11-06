@@ -649,6 +649,101 @@ fn recording_the_requirement_designer_keeps_its_golden_bytes_and_states_its_page
     assert_eq!(files(cases.path()), files(record_requirements().path()));
 }
 
+/// Records the Knowledge designer's cases into a new folder (etalii.adp spec 076, T066); the folder and what `atd
+/// record` said on stderr.
+fn record_knowledge() -> (tempfile::TempDir, String) {
+    let folder = tempfile::tempdir().unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_atd"))
+        .args(["record", "etalii/knowledge", "--cases"])
+        .arg(folder.path())
+        .env("ATD_RECORDED_WITH", "0000000")
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+    (folder, String::from_utf8_lossy(&output.stderr).into_owned())
+}
+
+#[test]
+fn recording_the_knowledge_designer_keeps_its_golden_bytes_and_states_its_gestures_as_operations() {
+    let (cases, said) = record_knowledge();
+    let validator = validator("ConformanceFixture");
+    let mut recorded = 0;
+    for (folder, golden) in [
+        (
+            "parity/scripts/etalii/knowledge",
+            Some("parity/goldens/etalii/knowledge"),
+        ),
+        ("parity/cases/etalii/knowledge", None),
+    ] {
+        let Ok(scripts) = std::fs::read_dir(repository().join(folder)) else {
+            continue;
+        };
+        for script in scripts.flatten() {
+            let path = script.path();
+            if path.extension().is_none_or(|e| e != "json") {
+                continue;
+            }
+            let name = path.file_stem().unwrap().to_string_lossy().into_owned();
+            let case = cases.path().join(&name);
+            let fixture = json(&case.join("conformance.json"));
+            let errors: Vec<String> = validator
+                .iter_errors(&fixture)
+                .map(|e| format!("{e} at {}", e.instance_path()))
+                .collect();
+            assert!(errors.is_empty(), "{name}: {errors:?}");
+            recorded += 1;
+
+            // A designer's case states no drawing; it reads the model's elements, cells and their items among them.
+            assert!(fixture.get("drawing").is_none(), "{name}");
+            let elements = fixture["read"]["elements"].as_array().unwrap();
+            assert!(elements.iter().any(|e| e["type"] == "Property"), "{name}");
+            assert!(
+                elements.iter().all(|e| e["type"] != "Table"),
+                "{name}: the table is the document"
+            );
+
+            // The bytes the last step leaves are the golden's body, unchanged.
+            let body = fixture["inputs"]["body"].as_str().unwrap();
+            let steps = fixture["steps"].as_array().unwrap();
+            if let (Some(golden), Some(last)) = (golden, steps.iter().rev().find_map(|s| s["expectFile"].as_str())) {
+                let golden = repository().join(golden).join(&name).join(body);
+                assert_eq!(
+                    std::fs::read(case.join(last)).unwrap(),
+                    std::fs::read(golden).unwrap(),
+                    "{name}"
+                );
+            }
+            for step in steps {
+                if let Some(file) = step["expectFile"].as_str() {
+                    assert!(case.join(file).is_file(), "{name}: {file}");
+                }
+            }
+        }
+    }
+    assert!(recorded >= 3);
+
+    // A table gesture is the operation `knowledge.md` names for it, on the element it acts on.
+    let cities = json(&cases.path().join("cities-yaml/conformance.json"));
+    assert_eq!(cities["steps"][0]["action"], "setText");
+    assert_eq!(cities["steps"][0]["select"], serde_json::json!(["r1"]));
+    assert_eq!(
+        cities["steps"][0]["args"],
+        serde_json::json!({"property": "p1", "value": "Amsterdam (NH)"})
+    );
+    assert!(
+        cities["steps"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|s| s["action"] == "setSortDirection" && s["select"] == serde_json::json!(["v1/sorts/p3"]))
+    );
+    // A gesture no one operation makes is named.
+    assert!(said.contains("cities-yaml, script step 20: `setFilter`"), "{said}");
+
+    // Recording again gives the same files.
+    assert_eq!(files(cases.path()), files(record_knowledge().0.path()));
+}
+
 /// Records the cases of editor `origin` into a new folder (etalii.adp spec 035, T066); the folder.
 fn record_editor(origin: &str) -> tempfile::TempDir {
     let folder = tempfile::tempdir().unwrap();
