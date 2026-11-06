@@ -76,6 +76,7 @@ fn an_attribute_that_holds_elements_is_written_by_the_ids_they_were_read_with() 
             parent_id: None,
             at: Value::Null,
             index: None,
+            slot: None,
         },
     );
     let set = write::to_fbl(

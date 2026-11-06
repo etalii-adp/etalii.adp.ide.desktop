@@ -402,6 +402,7 @@ pub fn drop(
             parent_id: placed.as_ref().map(|(parent, _)| parent.id()),
             at: Value::map(position.clone()),
             index,
+            slot: None,
         }],
         host_actions: after,
         refusal: None,
@@ -577,6 +578,7 @@ pub fn connect_to_new(
                     parent_id: None,
                     at: Value::map(position.clone()),
                     index: None,
+                    slot: None,
                 },
                 DislChange::Connect {
                     type_name: relation_type.to_owned(),

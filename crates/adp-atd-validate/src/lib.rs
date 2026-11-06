@@ -768,7 +768,7 @@ impl Replay {
     /// An action of `target`'s menu, its prompt answered with `args.value` or `args.confirm`. An operation that asks
     /// nothing and ends by editing a label inline takes `args.value` as the text typed into it.
     fn action(&mut self, target: &ActionTarget, action: &str, args: &Json) -> Result<(), String> {
-        let value = args.get("value").and_then(Json::as_str);
+        let value = args.get("value").and_then(Json::as_str).filter(|_| !self.designer);
         let _ = self.session.take_host_actions();
         // What a step's `args` name besides the prompt's answer are the operation's parameters, as a form of several
         // fields answers them.
@@ -776,7 +776,10 @@ impl Replay {
             .as_object()
             .into_iter()
             .flatten()
-            .filter(|(name, _)| !matches!(name.as_str(), "value" | "confirm" | "target" | "at"))
+            // A designer's gesture states the operation's parameters in `args` (ATD §2.3), `value` among them.
+            .filter(|(name, _)| {
+                !matches!(name.as_str(), "confirm" | "target" | "at") && (self.designer || name.as_str() != "value")
+            })
             .map(|(name, value)| (name.clone(), cel_of(value)))
             .collect();
         let answered = (!answered.is_empty()).then_some(&answered);

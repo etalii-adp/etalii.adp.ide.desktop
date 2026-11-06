@@ -13,7 +13,7 @@ use std::collections::HashMap;
 
 use adp_cel::{Map, Value};
 
-use super::change::{DislChange, DislTransaction, HostAction};
+use super::change::{DIAGRAM, DislChange, DislTransaction, HostAction};
 use super::deletion;
 use super::extension::DislActions;
 use super::ids::IdSource;
@@ -171,6 +171,18 @@ impl<'a> ActionRunner<'a> {
         let body_at = json::pointer(at, kind);
         match kind {
             "set" => {
+                if let Some(diagram) = self.diagram_target(action, at, variables) {
+                    let mut values = Map::default();
+                    if let Some(members) = body.as_object() {
+                        for (name, value) in members {
+                            let Some(value) = self.value(value, &json::pointer(&body_at, name), variables) else {
+                                return false;
+                            };
+                            values.insert(name.clone(), stored(value));
+                        }
+                    }
+                    return self.set_diagram(&diagram, values);
+                }
                 let Some(target) = self.target(action, at, variables) else {
                     return false;
                 };
@@ -186,6 +198,10 @@ impl<'a> ActionRunner<'a> {
                 self.set(&target, values)
             }
             "unset" => {
+                if let Some(diagram) = self.diagram_target(action, at, variables) {
+                    let values = json::strings(body).into_iter().map(|n| (n, Value::Null)).collect();
+                    return self.set_diagram(&diagram, values);
+                }
                 let Some(target) = self.target(action, at, variables) else {
                     return false;
                 };
@@ -455,13 +471,15 @@ impl<'a> ActionRunner<'a> {
         let Some(mut attributes) = self.attributes(body, at, variables) else {
             return false;
         };
-        // A designer's new element is written with the defaults of what it is not given (DESL section 4.3).
+        // A designer's new element is written with the defaults of what it is not given (DESL section 4.3); an
+        // attribute the action gives as no value is given, and written as none.
         let metamodel = self.specification.metamodel();
+        let given = json::member(body, "attributes");
         if let Some(created_type) = metamodel.type_of(&type_name)
             && json::get(&created_type.json, "x-desl").is_some()
         {
             for (name, attribute) in &created_type.attributes {
-                if attributes.contains_key(name) || attribute.is_derived() {
+                if attributes.contains_key(name) || attribute.is_derived() || json::has(given, name) {
                     continue;
                 }
                 if let Some(value) = attribute
@@ -548,6 +566,7 @@ impl<'a> ActionRunner<'a> {
             parent_id: parent.map(|p| p.id()),
             at: point,
             index,
+            slot: slot.as_str().map(str::to_owned).filter(|s| !s.is_empty()),
         });
         if let Some(name) = json::string_of(action, "as") {
             variables.insert(name.to_owned(), created.to_value());
@@ -651,6 +670,37 @@ impl<'a> ActionRunner<'a> {
             self.changes.push(DislChange::Set {
                 element_id: target.id(),
                 type_name: target.type_name(),
+                attributes: values,
+            });
+        }
+        true
+    }
+
+    /// The diagram, when an action's `target` is the diagram itself (DESL section 8.2: `target` may be `document`).
+    fn diagram_target(
+        &mut self,
+        action: &Json,
+        at: &str,
+        variables: &Vars,
+    ) -> Option<crate::model::diagram::DislDiagram> {
+        let declared = json::get(action, "target")?;
+        if !declared.as_str().is_some_and(|t| t.trim() == "diagram") {
+            return None;
+        }
+        let value = self.value(declared, &json::pointer(at, "target"), variables)?;
+        crate::model::diagram::DislDiagram::from_value(&value)
+    }
+
+    /// Diagram attributes assigned, or forgotten where the value is null: a set whose element is the diagram's, which
+    /// whoever writes it writes where the type map keeps the diagram's attributes.
+    fn set_diagram(&mut self, diagram: &crate::model::diagram::DislDiagram, values: Map) -> bool {
+        for (name, value) in values.iter() {
+            diagram.set_attribute(name, value.clone());
+        }
+        if !values.is_empty() {
+            self.changes.push(DislChange::Set {
+                element_id: String::new(),
+                type_name: DIAGRAM.to_owned(),
                 attributes: values,
             });
         }

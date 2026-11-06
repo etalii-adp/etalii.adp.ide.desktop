@@ -737,8 +737,18 @@ fn recording_the_knowledge_designer_keeps_its_golden_bytes_and_states_its_gestur
             .iter()
             .any(|s| s["action"] == "setSortDirection" && s["select"] == serde_json::json!(["v1/sorts/p3"]))
     );
-    // A gesture no one operation makes is named.
-    assert!(said.contains("cities-yaml, script step 20: `setFilter`"), "{said}");
+    // A condition's value is set with its operator, and a new option typed in a cell is made with the colour the
+    // module picked: every gesture of these scripts is one operation, so none is named as one ATD cannot state.
+    let steps = cities["steps"].as_array().unwrap();
+    assert!(
+        steps
+            .iter()
+            .any(|s| s["action"] == "setCondition" && s["select"] == serde_json::json!(["v1/filter/1"]))
+    );
+    assert!(steps.iter().any(|s| s["action"] == "setNewOption"
+        && s["args"]["name"] == "Luxembourg"
+        && s["args"]["colour"].is_string()));
+    assert!(!said.contains("cannot state"), "{said}");
 
     // Recording again gives the same files.
     assert_eq!(files(cases.path()), files(record_knowledge().0.path()));

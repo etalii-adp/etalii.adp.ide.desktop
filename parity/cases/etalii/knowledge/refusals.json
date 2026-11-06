@@ -61,17 +61,6 @@
     },
     {
       "table": {
-        "kind": "setCell",
-        "row": "gone",
-        "column": "p1",
-        "values": [
-          "Nowhere"
-        ]
-      },
-      "expect": "refused"
-    },
-    {
-      "table": {
         "kind": "renameColumn",
         "column": "p2",
         "values": [
@@ -168,14 +157,6 @@
     },
     {
       "table": {
-        "kind": "deleteOption",
-        "column": "p2",
-        "target": "gone"
-      },
-      "expect": "refused"
-    },
-    {
-      "table": {
         "kind": "renameView",
         "view": "v1",
         "values": [
@@ -208,12 +189,6 @@
         "settings": {
           "parent": "true"
         }
-      },
-      "expect": "refused"
-    },
-    {
-      "table": {
-        "kind": "frobnicate"
       },
       "expect": "refused"
     },

@@ -1,0 +1,1338 @@
+atd 0.1
+
+/// The Knowledge designer: ADP's first designer, specified by the standalone specification `knowledge-designer` and by etalii.adp's spec 013.
+///
+/// This description carries `knowledge.des` and the three bindings of `knowledge.fbl` (in knowledge.yaml.atd, knowledge.json.atd and knowledge.xml.atd). What it cannot state is the host's, as `knowledge.md` lists it.
+designer etalii/knowledge version "0.1.0" {
+  label "Knowledge"
+  id: "net.etalii.adp.etalii.knowledge"
+  authors: [{ name: "Peter Vrenken", url: "https://github.com/vrenken" }]
+  license: "Apache-2.0"
+  homepage: "https://etalii.net/adp"
+  icon: "mdi-table"
+  doc {
+    summary: "Rows and typed properties in a YAML, JSON or XML file you own, with stored views and relations between files, working the way Notion's table does."
+    description: "One table per knowledge file: properties (text, number, checkbox, date, date and time, time, selection, multiple selection and relation), rows with one value per property, and named views that choose, order, size, sort, filter and group the columns. The file is plain text that a person or a language model can read and write without ADP, and every setting lives in it; the `.adp` registration beside it only identifies it. What DESL 0.1 cannot say - the file in each format, the layout and behaviour taken from Notion, the conversion table, the steps that write two files, the findings and the handling of entries without an id - is in `knowledge.md` beside this file."
+    rationale: "A table of knowledge is a table, not a drawing: a relation is a value in a cell and nothing is drawn connected, which is why this is a designer."
+    tags: ["knowledge", "table", "database", "notion", "properties", "views"]
+    seeAlso: [{ title: "What DESL cannot express for this tool", href: "knowledge.md" }, {
+      title: "Notion: database properties",
+      href: "https://www.notion.com/help/database-properties"
+    }
+    ]
+  }
+
+  import "knowledge.yaml.atd"
+  import "knowledge.json.atd"
+  import "knowledge.xml.atd"
+
+  /// DESL's `uniqueName` (DESL section 8.3): `name` when no string of `names` equals it ignoring case; otherwise
+  /// `name` and the smallest number from 2 that makes it so.
+  fn uniqueName(name: string, names: list<string>) -> string {
+    let taken = names.map(n, n.lowerAscii())
+    if !taken.exists(t, t == name.lowerAscii()) {
+      return name
+    }
+    var n = 2
+    while taken.exists(t, t == (name + ' ' + string(n)).lowerAscii()) limit 100000 {
+      n = n + 1
+    }
+    return name + ' ' + string(n)
+  }
+
+  /// The id of the row a row's parent relation names, or the empty text: the first related row of its cell of the
+  /// parent relation (knowledge.md, section 9).
+  fn parentOf(row: Element) -> string {
+    let cells = row.childrenOfType('Cell').filter(c, c.property != null && c.property.isParent && c.children.size() > 0)
+    return cells.size() > 0 ? cells[0].children[0].row : ''
+  }
+
+  /// Whether walking up the parent relation from the row `at` reaches the row `start`: `knowledge.parent-cycle`, the
+  /// recursive walk over values DESL's expressions cannot make (knowledge.md, section 7; spec 035, T064).
+  fn reaches(start: string, at: string, rows: list<Element>, depth: int) -> bool recursion 64 {
+    if at == '' || depth >= 60 {
+      return false
+    }
+    if at == start {
+      return true
+    }
+    let found = rows.filter(r, r.id == at)
+    return found.size() > 0 && reaches(start, parentOf(found[0]), rows, depth + 1)
+  }
+
+  model {
+    /// The table: the root of a knowledge file. Its DED envelope (`ded` and `designer`; `version` and `designer` in XML, DED section 2) is the binding's header and host attributes, not attributes of the model.
+    document {
+      contains Property, View, Row
+      /// The table's name, shown on its tab.
+      attribute name: string required
+      /// The view the table was last left in; absent, the first view (Requirement 6.10).
+      attribute activeView: View
+    }
+
+    /// A property's type (Requirement 3.1); the keys of `surface.valueTypes`.
+    enum ValueType {
+      text { label: "Text", icon: "mdi-format-text" }
+      number { label: "Number", icon: "mdi-pound" }
+      checkbox { label: "Checkbox", icon: "mdi-checkbox-marked-outline" }
+      date { label: "Date", icon: "mdi-calendar" }
+      dateTime { label: "Date and time", icon: "mdi-calendar-clock" }
+      time { label: "Time", icon: "mdi-clock-outline" }
+      selection { label: "Selection", icon: "mdi-chevron-down-circle-outline" }
+      multipleSelection { label: "Multiple selection", icon: "mdi-format-list-bulleted" }
+      relation { label: "Relation", icon: "mdi-arrow-top-right" }
+    }
+
+    /// An option's colour: Notion's ten names. Each is a light and a dark theme token in the host (Requirement 7.4).
+    enum Colour {
+      default { label: "Default" }
+      gray { label: "Gray" }
+      brown { label: "Brown" }
+      orange { label: "Orange" }
+      yellow { label: "Yellow" }
+      green { label: "Green" }
+      blue { label: "Blue" }
+      purple { label: "Purple" }
+      pink { label: "Pink" }
+      red { label: "Red" }
+    }
+
+    /// How many rows a relation cell may hold.
+    enum Limit {
+      none { label: "No limit" }
+      one { label: "1 row" }
+    }
+
+    enum Direction {
+      ascending { label: "Ascending" }
+      descending { label: "Descending" }
+    }
+
+    /// Whether a filter's conditions must all hold or any one.
+    enum Match {
+      all { label: "All" }
+      any { label: "Any" }
+    }
+
+    /// What the line under a column shows of the rows in sight, as Notion's calculations do; the bindings write each as Notion's name, `countAll` as `count-all`. The counts and percentages suit every value type, earliest, latest and dateRange the dates, and sum to range the numbers (knowledge.md).
+    enum Calculation {
+      countAll { label: "Count all" }
+      countValues { label: "Count values" }
+      countUnique { label: "Count unique values" }
+      countEmpty { label: "Count empty" }
+      countNotEmpty { label: "Count not empty" }
+      percentEmpty { label: "Percent empty" }
+      percentNotEmpty { label: "Percent not empty" }
+      earliest { label: "Earliest date" }
+      latest { label: "Latest date" }
+      dateRange { label: "Date range" }
+      sum { label: "Sum" }
+      average { label: "Average" }
+      median { label: "Median" }
+      min { label: "Min" }
+      max { label: "Max" }
+      range { label: "Range" }
+    }
+
+    /// A column of the table. Document order is the property order.
+    element Property {
+      label "Property"
+      icon: "mdi-table-column"
+      labelAttribute: name
+      /// Unique within the table (Requirement 3.9).
+      attribute name: string required
+      /// Stored under the key `type`, which DESL reserves.
+      attribute valueType: ValueType required
+      /// Marks the one text property whose value names a row (Requirement 3.7).
+      attribute title: bool default false
+      /// A relation's target knowledge file, relative to this file; `.` is this file. Stored under the key `target`; the model calls it targetFile so that it never reads as the `target` of an action.
+      attribute targetFile: string
+      /// How many rows a relation cell may hold.
+      attribute limit: Limit default none
+      /// A two-way relation's property in the target file, by its id there. The side that was created holds the values; the counterpart is `computed` (Requirement 5.4, Q5).
+      attribute counterpart: string
+      /// The counterpart side of a two-way relation: it shows the rows that point at this table's rows and holds no cells.
+      attribute computed: bool default false
+      /// A relation to this file whose value is the row's parent (Requirement 5.9). Stored under the key `parent`, which DESL reserves.
+      attribute isParent: bool default false
+      contains Option ordered
+      contains Option as options
+    }
+
+    /// One value a selection or a multiple selection can take. Document order is the order a selection sorts and groups in.
+    element Option {
+      label "Option"
+      labelAttribute: name
+      attribute name: string required
+      attribute colour: Colour default "default"
+    }
+
+    /// A named way of showing the table, stored with it. It stores only what differs from the default (DESL section 7.4).
+    element View {
+      label "View"
+      icon: "mdi-table-eye"
+      labelAttribute: name
+      attribute name: string required
+      /// How the view's top-level conditions combine.
+      attribute filterMatch: Match default all
+      /// The property the rows are grouped by: a selection, a multiple selection, a checkbox, a relation, or the parent relation for nesting (Requirements 6.6, 6.7).
+      attribute groupBy: Property
+      attribute hideEmptyGroups: bool default false
+      /// The columns up to and including this property's column stay in sight when the table scrolls sideways.
+      attribute freeze: Property
+      contains Column, Sort, Condition, FilterGroup, GroupSetting ordered
+      contains Column as columns
+      contains Sort as sorts
+      contains Condition, FilterGroup as filter
+      contains GroupSetting as groupOrder
+      contains GroupSetting as hiddenGroups
+      contains GroupSetting as collapsed
+    }
+
+    /// A property's place, visibility, width, wrapping and calculation in one view. Listed columns come first, in their order; the rest follow in property order.
+    element Column {
+      attribute property: Property required
+      attribute visible: bool default true
+      /// In pixels at 100% zoom.
+      attribute width: int { min: 32 }
+      attribute wrap: bool default false
+      /// The calculation shown under the column; none when absent.
+      attribute calculate: Calculation
+    }
+
+    /// One sort of a view; the first sorts first.
+    element Sort {
+      attribute property: Property required
+      attribute direction: Direction default ascending
+    }
+
+    /// One filter condition. The compared value sits under the key its property's value type names, as in a cell.
+    element Condition {
+      attribute property: Property required
+      /// One of the comparisons its property's value type lists, or `is-empty` or `is-not-empty`.
+      attribute operator: string required
+      /// The compared text, for text.
+      attribute text: text
+      /// The compared number.
+      attribute number: number
+      /// The compared checkbox.
+      attribute checked: bool
+      /// The compared date, ISO 8601.
+      attribute date: date
+      /// The compared date and time, ISO 8601 with its offset.
+      attribute dateTime: datetime { timezone: preserve }
+      /// The compared time of day, ISO 8601.
+      attribute time: time
+      /// The compared option of a selection, by id.
+      attribute option: Option
+    }
+
+    /// A nested group of conditions, to three levels counting the view's own (Requirement 6.5).
+    element FilterGroup {
+      attribute match: Match required
+      contains Condition, FilterGroup ordered
+      contains Condition, FilterGroup as conditions
+    }
+
+    /// One group's place in `groupOrder`, or its being in `hiddenGroups` or `collapsed`, by its slot.
+    element GroupSetting {
+      /// The group: an option's id, a related row's id, `true` or `false` for a checkbox, or `none` for the rows without a value.
+      attribute key: string required
+    }
+
+    /// One entry of the table. Document order is the order of rows where no sort applies.
+    element Row {
+      label "Row"
+      icon: "mdi-table-row"
+      contains Cell ordered
+      contains Cell as cells
+    }
+
+    /// A row's value for one property, under the key the property's value type names; several values are items. A row has at most one cell per property; a property without a cell in a row is empty there.
+    element Cell {
+      attribute property: Property required
+      /// The cell's text, for text.
+      attribute text: text
+      /// The cell's number.
+      attribute number: number
+      /// The cell's checkbox.
+      attribute checked: bool
+      /// The cell's date, ISO 8601.
+      attribute date: date
+      /// The cell's date and time, ISO 8601 with its offset.
+      attribute dateTime: datetime { timezone: preserve }
+      /// The cell's time of day, ISO 8601.
+      attribute time: time
+      /// The cell's option of a selection, by id.
+      attribute option: Option
+      contains CellItem ordered
+      contains CellItem as items
+    }
+
+    /// One of several values: an option or a related row.
+    element CellItem {
+      /// An option of a multiple selection.
+      attribute option: Option
+      /// A row of the relation's target file, by its id there. Not a reference: the target is another file, which the designer resolves.
+      attribute row: string
+    }
+  }
+
+  /// A knowledge file is YAML, JSON or XML, chosen when it is added and never changed (DESL section 5). `knowledge.md` describes each format.
+  persistence {
+    format: fbl
+    typeMap: {
+      Table: {
+        as: "document",
+        hostAttributes: [version, designer],
+        doc: "The root's keys are the table's own attributes, after the DED envelope: `version` and `designer` are the envelope, read and checked by the binding."
+      }
+    }
+    ids: {
+      strategy: uuid-v4
+      encoding: base36
+      stable: true
+      missing: assign
+      types: {
+        Column: { strategy: derived, expression: (self.parent.id + '/columns/' + self.property.id) }
+        Sort: { strategy: derived, expression: (self.parent.id + '/sorts/' + self.property.id) }
+        Condition: {
+          strategy: derived,
+          expression: (self.parent.id + (self.parent.isA('View') ? '/filter/' : '/') + string(self.positionIn(self.parent.children.filter(c, c.isA('Condition') || c.isA('FilterGroup'))))),
+          ephemeral: true,
+          doc: "Its place in the filter: a condition has no identity beyond it."
+        }
+        FilterGroup: {
+          strategy: derived,
+          expression: (self.parent.id + (self.parent.isA('View') ? '/filter/' : '/') + string(self.positionIn(self.parent.children.filter(c, c.isA('Condition') || c.isA('FilterGroup'))))),
+          ephemeral: true
+        }
+        GroupSetting: { strategy: derived, expression: (self.parent.id + '/' + self.slot + '/' + self.key) }
+        Cell: {
+          strategy: derived,
+          expression: (self.parent.id + '/' + self.property.id),
+          doc: "A cell is its row and its property (Q3)."
+        }
+        CellItem: {
+          strategy: derived,
+          expression: (self.parent.id + '/' + (self.option != null ? self.option.id : self.row))
+        }
+      }
+      doc: "Properties, options, views and rows get a ShortGuid: a version 4 GUID written as 25 characters of base 36, never reused and never changed (Requirement 2.6). Ids written by hand are kept as written. An entry read without an id is given one by the first edit made in ADP (Requirement 8.5)."
+    }
+  }
+
+  /// The findings `knowledge.md` lists that a constraint can state. The others (an unresolved relation target or row, a parent cycle, a missing id, a newer version, an unknown type, unknown keys) are the host's, as `knowledge.md` says.
+  constraints {
+    defaults: { timing: [live] }
+    blockSaveOn: never
+
+    constraint noTitle for document {
+      rule document.elementsOfType('Property').exists(p, p.title)
+      severity warning
+      message "The table has no title property; mark one text property as the title."
+      code: "knowledge.no-title"
+    }
+
+    constraint severalTitles for Property {
+      when self.title
+      rule self.positionIn(document.elementsOfType('Property').filter(p, p.title)) == 0
+      severity warning
+      message ("'" + self.name + "' is marked as the title, and so is '" + document.elementsOfType('Property').filter(p, p.title)[0].name + "'; the first is used.")
+      code: "knowledge.several-titles"
+    }
+
+    constraint titleIsText for Property {
+      when self.title
+      rule self.valueType == 'text'
+      severity error
+      message ("The title property '" + self.name + "' is a " + self.valueType + "; a title is text.")
+      code: "knowledge.title-not-text"
+      enforcement: prevent-and-report
+    }
+
+    constraint uniquePropertyNames for Property {
+      rule self.positionIn(document.elementsOfType('Property').filter(p, p.name.lowerAscii() == self.name.lowerAscii())) == 0
+      severity error
+      message ("Another property is already called '" + self.name + "'.")
+      code: "knowledge.duplicate-property-name"
+      enforcement: prevent-and-report
+    }
+
+    constraint unknownProperty for Cell {
+      rule self.property != null
+      severity warning
+      message "This cell names a property the table does not have."
+      code: "knowledge.unknown-property"
+    }
+
+    constraint valueOfAnotherType for Cell {
+      when self.property != null
+      rule (!has(self.text) || self.property.valueType == 'text') && (!has(self.number) || self.property.valueType == 'number') && (!has(self.checked) || self.property.valueType == 'checkbox') && (!has(self.date) || self.property.valueType == 'date') && (!has(self.dateTime) || self.property.valueType == 'dateTime') && (!has(self.time) || self.property.valueType == 'time') && (!has(self.option) || self.property.valueType == 'selection')
+      severity warning
+      message ('This value is not a ' + self.property.valueType + '; it is kept as it is.')
+      code: "knowledge.value-of-another-type"
+    }
+
+    constraint unknownOption for Cell {
+      when self.property != null && self.property.valueType == 'selection' && has(self.option)
+      rule self.option != null
+      severity warning
+      message "This value names an option the property does not have."
+      code: "knowledge.unknown-option"
+    }
+
+    constraint unknownItemOption for CellItem {
+      when self.parent.property != null && self.parent.property.valueType == 'multipleSelection'
+      rule self.option != null
+      severity warning
+      message "This value names an option the property does not have."
+      code: "knowledge.unknown-option"
+    }
+
+    constraint relationOverLimit for Cell {
+      when self.property != null && self.property.valueType == 'relation' && self.property.limit == 'one'
+      rule self.children.size() <= 1
+      severity warning
+      message ("'" + self.property.name + "' relates to one row, and this cell names " + string(self.children.size()) + "; they are kept as they are.")
+      code: "knowledge.relation-over-limit"
+    }
+
+    constraint viewNamesMissingProperty for Column, Sort, Condition {
+      rule self.property != null
+      severity warning
+      message "This setting names a property the table does not have; the view opens without it."
+      code: "knowledge.view-names-missing-property"
+    }
+
+    constraint groupByMissingProperty for View {
+      when has(self.groupBy)
+      rule self.groupBy != null
+      severity warning
+      message "This view is grouped by a property the table does not have; it opens ungrouped."
+      code: "knowledge.view-names-missing-property"
+    }
+
+    constraint freezeMissingProperty for View {
+      when has(self.freeze)
+      rule self.freeze != null
+      severity warning
+      message "This view freezes columns up to a property the table does not have; it opens with none frozen."
+      code: "knowledge.view-names-missing-property"
+    }
+
+    constraint filterDepth for FilterGroup {
+      rule self.ancestors().filter(a, a.isA('FilterGroup')).size() < 2
+      severity warning
+      message "Filter groups nest to three levels, counting the view's own conditions."
+      code: "knowledge.filter-too-deep"
+    }
+
+    constraint lastView for document {
+      rule document.elementsOfType('View').size() > 0
+      severity warning
+      message "The table has no view; ADP shows it as if it had one view with no settings."
+      code: "knowledge.no-view"
+    }
+
+    /// A row that is its own ancestor through the parent relation, reported at its cell of that relation: what
+    /// `knowledge.md` gives the host, stated with a function of the description's script.
+    constraint parentCycle for Cell {
+      when self.property != null && self.property.isParent
+      rule !reaches(self.parent.id, parentOf(self.parent), document.elementsOfType('Row'), 0)
+      severity error
+      message ("This row is its own ancestor through '" + self.property.name + "'.")
+      code: "knowledge.parent-cycle"
+    }
+  }
+
+  /// Laid out as Notion's table view; `knowledge.md` section 6 says how.
+  surface table {
+    columns Property {
+      name: name,
+      valueType: "valueType",
+      title: title,
+      parent: isParent,
+      options: { type: Option, name: name, colour: colour }
+    }
+    rows Row
+    cells Cell { column: property, items: CellItem }
+    views View {
+      name: name,
+      active: activeView,
+      settings: { columns: Column, sorts: Sort, conditions: Condition, filterGroups: FilterGroup, groups: GroupSetting }
+    }
+    valueType text "Text" {
+      key: "text"
+      editor: "text"
+      comparisons: [is, is-not, "contains", does-not-contain, starts-with, ends-with]
+      sort: "text"
+      convert number parse
+      convert checkbox parse
+      convert date parse
+      convert dateTime parse
+      convert time parse
+      convert selection match-option
+      convert multipleSelection match-option
+    }
+    valueType number "Number" {
+      key: "number"
+      editor: "number"
+      comparisons: [equals, does-not-equal, greater-than, less-than, at-least, at-most]
+      sort: "number"
+      convert text written-form
+    }
+    valueType checkbox "Checkbox" {
+      key: checked
+      editor: checkbox
+      comparisons: [is-checked, is-not-checked]
+      sort: false-first
+      convert text written-form
+    }
+    valueType date "Date" {
+      key: "date"
+      editor: "date"
+      comparisons: [is, is-before, is-after, is-on-or-before, is-on-or-after]
+      sort: chronological
+      convert text written-form
+    }
+    valueType dateTime "Date and time" {
+      key: dateTime
+      editor: dateTime
+      comparisons: [is, is-before, is-after, is-on-or-before, is-on-or-after]
+      sort: chronological
+      convert text written-form
+    }
+    valueType time "Time" {
+      key: "time"
+      editor: "time"
+      comparisons: [is, is-before, is-after, is-on-or-before, is-on-or-after]
+      sort: chronological
+      convert text written-form
+    }
+    valueType selection "Selection" {
+      key: option
+      editor: choice
+      comparisons: [is, is-not]
+      sort: option-order
+      convert text written-form
+      convert multipleSelection wrap
+    }
+    valueType multipleSelection "Multiple selection" {
+      key: option
+      many: true
+      editor: choices
+      comparisons: ["contains", does-not-contain]
+      sort: option-order
+      convert text written-form
+      convert selection unwrap
+    }
+    valueType relation "Relation" {
+      key: row
+      many: true
+      editor: "rows"
+      comparisons: ["contains", does-not-contain]
+      sort: title
+      convert text written-form
+    }
+  }
+
+  /// The `+` after the last column, or insert left or right from a column's menu (`after` the column to the left).
+  operation addProperty "New property" for document {
+    param name: string required
+    param valueType: ValueType default "text"
+    param after: Property
+    if has(p.after) {
+      create Property {
+        name: uniqueName(p.name, document.elementsOfType('Property').map(x, x.name)),
+        valueType: p.valueType,
+        title: null,
+        limit: null,
+        computed: null,
+        isParent: null
+      }
+      after p.after
+    }
+    if !has(p.after) {
+      create Property {
+        name: uniqueName(p.name, document.elementsOfType('Property').map(x, x.name)),
+        valueType: p.valueType,
+        title: null,
+        limit: null,
+        computed: null,
+        isParent: null
+      }
+    }
+  }
+
+  /// Refused, where the name is typed, when another property has the name (`uniquePropertyNames`).
+  operation renameProperty "Rename" for Property {
+    param name: string required
+    if p.name.trim() == '' {
+      fail 'A property needs a name.'
+    }
+    if document.elementsOfType('Property').exists(o, o != self && o.name.lowerAscii() == p.name.trim().lowerAscii()) {
+      fail "Another property is already called '" + p.name.trim() + "'."
+    }
+    set name = p.name
+  }
+
+  /// The host converts every cell of the property in the same step, by `surface.valueTypes[*].converts` (DESL section 7.6); a value with no conversion stays and is a finding.
+  operation changePropertyType "Change type" for Property {
+    param valueType: ValueType required
+    unavailable [{ when: (self.title), message: "The title property is always text." }]
+    if !(p.valueType in ['text', 'number', 'checkbox', 'date', 'dateTime', 'time', 'selection', 'multipleSelection', 'relation']) {
+      fail "'" + p.valueType + "' is not a type a property can have."
+    }
+    set valueType = p.valueType
+  }
+
+  /// Copies the property and its options with new ids, right after it; the values are not copied.
+  operation duplicateProperty "Duplicate" for Property {
+    unavailable [{
+      when: (self.computed),
+      message: "The other side of a two-way relation is duplicated from its own table."
+    }
+    ]
+    create Property {
+      name: uniqueName(self.name, document.elementsOfType('Property').map(x, x.name)),
+      valueType: self.valueType,
+      targetFile: self.targetFile,
+      limit: (self.limit) == 'none' ? null : (self.limit),
+      title: null,
+      computed: null,
+      isParent: null
+    }
+    after self as copy
+    for o in self.childrenOfType('Option') limit 100000 {
+      create Option { name: o.name, colour: (o.colour) == 'default' ? null : (o.colour) } in copy slot options
+    }
+  }
+
+  /// Dragging a column's header: the property moves after `after`, or to the front.
+  operation moveProperty "Move" for Property {
+    param after: Property
+    if has(p.after) {
+      reorder self after p.after
+    }
+    if !has(p.after) {
+      reorder self before document.elementsOfType('Property')[0]
+    }
+  }
+
+  /// The binding's cascade removes its cells, columns, sorts and conditions (Requirement 3.8); a view grouped by it is ungrouped first, and a view frozen up to it freezes none.
+  operation deleteProperty "Delete" for Property {
+    unavailable [{ when: (self.title), message: "The title property is always there: it cannot be deleted or hidden." }]
+    confirm {
+      message: ('Delete `' + self.name + '` and its values in ' + string(count) + ' rows?'),
+      count: (document.elementsOfType('Cell').filter(c, c.property == self).size()),
+      threshold: 1
+    }
+    for v in document.elementsOfType('View').filter(v, v.groupBy == self) limit 100000 {
+      for g in v.childrenOfType('GroupSetting') limit 100000 {
+        delete g
+      }
+      unset v.groupBy
+    }
+    for v in document.elementsOfType('View').filter(v, v.freeze == self) limit 100000 {
+      unset v.freeze
+    }
+    delete self
+  }
+
+  /// Moves the title to this text property.
+  operation setTitleProperty "Use as title" for Property {
+    unavailable [{ when: (self.valueType != 'text'), message: "Only a text property can be the title." }]
+    for x in document.elementsOfType('Property').filter(x, x.title) limit 100000 {
+      unset x.title
+    }
+    set title = (true) == false ? null : (true)
+  }
+
+  /// Notion's steps: the target file, one row or no limit, and optionally the other side's name (Requirement 7.6). With `counterpartName`, the host adds the computed counterpart to the target file and sets `counterpart` here in the same step (`knowledge.md`, two-file steps).
+  operation createRelation "New relation" for document {
+    param name: string required
+    param targetFile: string required
+    param limit: Limit default none
+    param counterpartName: string
+    create Property {
+      name: uniqueName(p.name, document.elementsOfType('Property').map(x, x.name)),
+      valueType: 'relation',
+      targetFile: p.targetFile,
+      limit: (p.limit) == 'none' ? null : (p.limit),
+      title: null,
+      computed: null,
+      isParent: null
+    }
+  }
+
+  /// A relation to this file becomes the parent relation (Requirement 5.9).
+  operation setParentRelation "Use as parent" for Property {
+    unavailable [{
+      when: (self.valueType != 'relation' || (self.targetFile != '.' && has(self.targetFile)) || self.limit != 'one' || self.computed),
+      message: "Only a relation to this table that holds one row can be the parent relation."
+    }
+    ]
+    for x in document.elementsOfType('Property').filter(x, x.isParent) limit 100000 {
+      unset x.isParent
+    }
+    set isParent = (true) == false ? null : (true)
+    set limit = ('one') == 'none' ? null : ('one')
+  }
+
+  /// Also what typing a new name in a selection cell does, before the value is set.
+  operation addOption "New option" for Property {
+    param name: string required
+    param colour: Colour default "default"
+    unavailable [{
+      when: (self.valueType != 'selection' && self.valueType != 'multipleSelection'),
+      message: "Only a selection has options."
+    }
+    ]
+    if self.childrenOfType('Option').exists(o, o.name.lowerAscii() == p.name.trim().lowerAscii()) {
+      fail "'" + self.name + "' already has an option called '" + p.name.trim() + "'."
+    }
+    create Option { name: p.name, colour: (p.colour) == 'default' ? null : (p.colour) } in self slot options
+  }
+
+  /// Cells and conditions store the option's id, so nothing else changes.
+  operation renameOption "Rename" for Option {
+    param name: string required
+    if p.name.trim() == '' {
+      fail 'An option needs a name.'
+    }
+    set name = p.name
+  }
+
+  /// One of the ten colours.
+  operation recolourOption "Colour" for Option {
+    param colour: Colour required
+    if !(p.colour in ['default', 'gray', 'brown', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink', 'red']) {
+      fail "'" + p.colour + "' is not a colour an option can have."
+    }
+    set colour = (p.colour) == 'default' ? null : (p.colour)
+  }
+
+  /// Dragging an option in the property's menu.
+  operation moveOption "Move" for Option {
+    param after: Option
+    if has(p.after) {
+      reorder self after p.after
+    }
+    if !has(p.after) {
+      reorder self before self.parent.childrenOfType('Option')[0]
+    }
+  }
+
+  /// The binding's cascade clears the cells, items and conditions naming it (Requirement 3.6); the group settings keyed by it go too.
+  operation deleteOption "Delete" for Option {
+    confirm {
+      message: (string(count) + ' rows use `' + self.name + '`. Delete it and clear them?'),
+      count: (document.elementsOfType('Cell').filter(c, c.option == self).size() + document.elementsOfType('CellItem').filter(i, i.option == self).size()),
+      threshold: 1
+    }
+    for g in document.elementsOfType('GroupSetting').filter(g, g.key == self.id) limit 100000 {
+      delete g
+    }
+    delete self
+  }
+
+  /// The *new* row at the bottom of the table. In a group, the host also sets the value that puts the row there, in the same step (Requirement 4.2).
+  operation addRow "New row" for document {
+    create Row
+  }
+
+  /// Every selected row, in one step (Requirement 4.6). The host says first how many rows of other files relate to them (Requirement 5.8).
+  operation deleteRows "Delete" for Row {
+    for r in selection.filter(e, e.isA('Row')) limit 100000 {
+      delete r
+    }
+  }
+
+  /// Dragging a row, where the view has no sort.
+  operation moveRow "Move" for Row {
+    param after: Row
+    if has(p.after) {
+      reorder self after p.after
+    }
+    if !has(p.after) {
+      reorder self before document.elementsOfType('Row')[0]
+    }
+  }
+
+  /// Sets a cell's text; a row without a cell for the property gets one.
+  operation setText "Set text" for Row {
+    param property: Property required
+    param value: text required
+    let cell = self.childrenOfType('Cell').filter(c, c.property == p.property)
+    if cell.size() == 0 {
+      create Cell { property: p.property, text: p.value } in self slot cells
+    } else {
+      let first = cell[0]
+      set first.text = p.value
+    }
+  }
+
+  /// Sets a cell's number; a row without a cell for the property gets one.
+  operation setNumber "Set number" for Row {
+    param property: Property required
+    param value: number required
+    if type(p.value) == string {
+      fail 'A number is expected.'
+    }
+    let cell = self.childrenOfType('Cell').filter(c, c.property == p.property)
+    if cell.size() == 0 {
+      create Cell { property: p.property, number: p.value } in self slot cells
+    } else {
+      let first = cell[0]
+      set first.number = p.value
+    }
+  }
+
+  /// Sets a cell's checkbox; a row without a cell for the property gets one.
+  operation setChecked "Set checkbox" for Row {
+    param property: Property required
+    param value: bool required
+    let cell = self.childrenOfType('Cell').filter(c, c.property == p.property)
+    if !p.value {
+      if cell.size() > 0 {
+        delete cell[0]
+      }
+    } else {
+      if cell.size() == 0 {
+        create Cell { property: p.property, checked: true } in self slot cells
+      } else {
+        let first = cell[0]
+        set first.checked = true
+      }
+    }
+  }
+
+  /// Sets a cell's date; a row without a cell for the property gets one.
+  operation setDate "Set date" for Row {
+    param property: Property required
+    param value: date required
+    if !string(p.value).matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') {
+      fail 'A date is expected, as year-month-day.'
+    }
+    let cell = self.childrenOfType('Cell').filter(c, c.property == p.property)
+    if cell.size() == 0 {
+      create Cell { property: p.property, date: p.value } in self slot cells
+    } else {
+      let first = cell[0]
+      set first.date = p.value
+    }
+  }
+
+  /// Sets a cell's date and time; a row without a cell for the property gets one.
+  operation setDateTime "Set date and time" for Row {
+    param property: Property required
+    param value: datetime required
+    if !string(p.value).matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}') {
+      fail 'A date and a time are expected.'
+    }
+    let cell = self.childrenOfType('Cell').filter(c, c.property == p.property)
+    if cell.size() == 0 {
+      create Cell { property: p.property, dateTime: p.value } in self slot cells
+    } else {
+      let first = cell[0]
+      set first.dateTime = p.value
+    }
+  }
+
+  /// Sets a cell's time; a row without a cell for the property gets one.
+  operation setTime "Set time" for Row {
+    param property: Property required
+    param value: time required
+    if !string(p.value).matches('^[0-9]{1,2}:[0-9]{2}(:[0-9]{2})?$') {
+      fail 'A time is expected, as hours:minutes.'
+    }
+    let cell = self.childrenOfType('Cell').filter(c, c.property == p.property)
+    if cell.size() == 0 {
+      create Cell { property: p.property, time: p.value } in self slot cells
+    } else {
+      let first = cell[0]
+      set first.time = p.value
+    }
+  }
+
+  /// Sets a cell's option; a row without a cell for the property gets one.
+  operation setOption "Set option" for Row {
+    param property: Property required
+    param value: Option required
+    let cell = self.childrenOfType('Cell').filter(c, c.property == p.property)
+    if cell.size() == 0 {
+      create Cell { property: p.property, option: p.value } in self slot cells
+    } else {
+      let first = cell[0]
+      set first.option = p.value
+    }
+  }
+
+  /// Empties the cell; the cell keeps naming its property.
+  operation clearCell "Clear" for Cell {
+    unset text
+    unset number
+    unset checked
+    unset date
+    unset dateTime
+    unset time
+    unset option
+    for i in self.childrenOfType('CellItem') limit 100000 {
+      delete i
+    }
+  }
+
+  /// One more option of a multiple selection, or one more related row; for a relation limited to one row the host replaces the value instead.
+  operation addItem "Add value" for Row {
+    param property: Property required
+    param option: Option
+    param row: string
+    if p.property.valueType == 'relation' && p.property.limit == 'one' && self.childrenOfType('Cell').exists(c, c.property == p.property && c.children.size() > 0) {
+      fail 'This relation holds one row.'
+    }
+    let cell = self.childrenOfType('Cell').filter(c, c.property == p.property)
+    if cell.size() == 0 {
+      create Cell { property: p.property } in self slot cells as made
+      create CellItem { option: has(p.option) ? p.option : null, row: has(p.row) ? p.row : null } in made slot items
+    } else {
+      create CellItem { option: has(p.option) ? p.option : null, row: has(p.row) ? p.row : null } in cell[0] slot items
+    }
+  }
+
+  /// One of several values.
+  operation removeItem "Remove value" for CellItem {
+    delete self
+  }
+
+  /// A new view with no settings, made the active one.
+  operation addView "New view" for document {
+    create View {
+      name: uniqueName('View', document.elementsOfType('View').map(v, v.name)),
+      filterMatch: null,
+      hideEmptyGroups: null
+    }
+  }
+
+  operation renameView "Rename" for View {
+    param name: string required
+    if p.name.trim() == '' {
+      fail 'A view needs a name.'
+    }
+    set name = p.name
+  }
+
+  /// The copy holds every setting of the original, after it. The bindings write it as one entry holding its settings, as the fixtures show.
+  operation duplicateView "Duplicate" for View {
+    create View {
+      name: self.name + ' copy',
+      filterMatch: (self.filterMatch) == 'all' ? null : (self.filterMatch),
+      groupBy: self.groupBy,
+      hideEmptyGroups: (self.hideEmptyGroups) == false ? null : (self.hideEmptyGroups),
+      freeze: self.freeze
+    }
+    after self as v
+    for c in self.childrenOfType('Column') limit 100000 {
+      create Column {
+        property: c.property,
+        visible: (c.visible) == true ? null : (c.visible),
+        width: c.width,
+        wrap: (c.wrap) == false ? null : (c.wrap),
+        calculate: c.calculate
+      }
+      in v slot columns
+    }
+    for c in self.childrenOfType('Sort') limit 100000 {
+      create Sort { property: c.property, direction: (c.direction) == 'ascending' ? null : (c.direction) } in v slot sorts
+    }
+    for c1 in self.children.filter(x, x.isA('Condition') || x.isA('FilterGroup')) limit 100000 {
+      if c1.isA('Condition') {
+        create Condition {
+          property: c1.property,
+          operator: c1.operator,
+          text: c1.text,
+          number: c1.number,
+          checked: c1.checked,
+          date: c1.date,
+          dateTime: c1.dateTime,
+          time: c1.time,
+          option: c1.option
+        }
+        in v slot filter
+      }
+      if c1.isA('FilterGroup') {
+        create FilterGroup { match: c1.match } in v slot filter as g1
+      }
+      if c1.isA('FilterGroup') {
+        for c2 in c1.children.filter(x, x.isA('Condition') || x.isA('FilterGroup')) limit 100000 {
+          if c2.isA('Condition') {
+            create Condition {
+              property: c2.property,
+              operator: c2.operator,
+              text: c2.text,
+              number: c2.number,
+              checked: c2.checked,
+              date: c2.date,
+              dateTime: c2.dateTime,
+              time: c2.time,
+              option: c2.option
+            }
+            in g1 slot conditions
+          }
+          if c2.isA('FilterGroup') {
+            create FilterGroup { match: c2.match } in g1 slot conditions as g2
+          }
+          if c2.isA('FilterGroup') {
+            for c3 in c2.children.filter(x, x.isA('Condition') || x.isA('FilterGroup')) limit 100000 {
+              if c3.isA('Condition') {
+                create Condition {
+                  property: c3.property,
+                  operator: c3.operator,
+                  text: c3.text,
+                  number: c3.number,
+                  checked: c3.checked,
+                  date: c3.date,
+                  dateTime: c3.dateTime,
+                  time: c3.time,
+                  option: c3.option
+                }
+                in g2 slot conditions
+              }
+            }
+          }
+        }
+      }
+    }
+    for c in self.childrenOfType('GroupSetting') limit 100000 {
+      if c.slot == 'groupOrder' {
+        create GroupSetting { key: c.key } in v slot groupOrder
+      }
+      if c.slot == 'hiddenGroups' {
+        create GroupSetting { key: c.key } in v slot hiddenGroups
+      }
+      if c.slot == 'collapsed' {
+        create GroupSetting { key: c.key } in v slot collapsed
+      }
+    }
+  }
+
+  /// Dragging a view's tab.
+  operation moveView "Move" for View {
+    param after: View
+    if has(p.after) {
+      reorder self after p.after
+    }
+    if !has(p.after) {
+      reorder self before document.elementsOfType('View')[0]
+    }
+  }
+
+  operation deleteView "Delete" for View {
+    unavailable [{ when: (document.elementsOfType('View').size() == 1), message: "A table keeps at least one view." }]
+    if document.activeView == self {
+      set document.activeView = document.elementsOfType('View').filter(v, v != self)[0]
+    }
+    delete self
+  }
+
+  /// Clicking a view's tab; stored, so the file opens in it again (Requirement 6.10).
+  operation switchView "Open" for View {
+    set document.activeView = self
+  }
+
+  /// Hiding or showing a column, dragging its border, or switching wrap: the view gets a column setting when it has none for the property.
+  operation setColumn "Column" for View {
+    param property: Property required
+    param visible: bool default true
+    param width: int
+    param wrap: bool default false
+    if has(p.width) && type(p.width) == string {
+      fail 'A width is a number of pixels.'
+    }
+    if !p.visible && p.property.title {
+      fail 'The title property is always there: it cannot be deleted or hidden.'
+    }
+    let column = self.childrenOfType('Column').filter(c, c.property == p.property)
+    if column.size() == 0 {
+      create Column {
+        property: p.property,
+        visible: (p.visible) == true ? null : (p.visible),
+        width: has(p.width) ? p.width : null,
+        wrap: (p.wrap) == false ? null : (p.wrap)
+      }
+      in self slot columns
+    } else {
+      let first = column[0]
+      set first.visible = (p.visible) == true ? null : (p.visible)
+      if has(p.width) {
+        set first.width = p.width
+      }
+      set first.wrap = (p.wrap) == false ? null : (p.wrap)
+    }
+  }
+
+  /// Dragging a column in one view. A property with no column setting gets one first, by `setColumn`.
+  operation moveColumn "Move" for Column {
+    param after: Column
+    if has(p.after) {
+      reorder self after p.after
+    }
+    if !has(p.after) {
+      reorder self before self.parent.childrenOfType('Column')[0]
+    }
+  }
+
+  /// Back to the default: visible, default width, no wrap, no calculation.
+  operation resetColumn "Reset" for Column {
+    delete self
+  }
+
+  /// Choosing a calculation from the line under a column: the view gets a column setting when it has none for the property.
+  operation calculate "Calculate" for View {
+    param property: Property required
+    param calculation: Calculation required
+    let column = self.childrenOfType('Column').filter(c, c.property == p.property)
+    if column.size() == 0 {
+      create Column { property: p.property, calculate: p.calculation, visible: null, wrap: null } in self slot columns
+    } else {
+      let first = column[0]
+      set first.calculate = p.calculation
+    }
+  }
+
+  /// Choosing None under a column.
+  operation removeCalculation "None" for Column {
+    unset calculate
+  }
+
+  /// The columns up to and including the property stay in sight when the table scrolls sideways.
+  operation freeze "Freeze up to column" for View {
+    param property: Property required
+    set freeze = p.property
+  }
+
+  operation unfreeze "Unfreeze columns" for View {
+    unset freeze
+  }
+
+  /// Sort ascending or descending from a column's menu, or a new sort in the sort bar.
+  operation addSort "Sort" for View {
+    param property: Property required
+    param direction: Direction default ascending
+    create Sort { property: p.property, direction: (p.direction) == 'ascending' ? null : (p.direction) } in self slot sorts
+  }
+
+  operation setSortDirection "Direction" for Sort {
+    param direction: Direction required
+    set direction = (p.direction) == 'ascending' ? null : (p.direction)
+  }
+
+  /// Dragging a sort in the sort bar.
+  operation moveSort "Move" for Sort {
+    param after: Sort
+    if has(p.after) {
+      reorder self after p.after
+    }
+    if !has(p.after) {
+      reorder self before self.parent.childrenOfType('Sort')[0]
+    }
+  }
+
+  operation removeSort "Remove" for Sort {
+    delete self
+  }
+
+  /// A condition with its comparison and the value under its property's key.
+  operation addCondition "Add filter" for View, FilterGroup {
+    param property: Property required
+    param operator: string required
+    param text: text { doc: "The compared text, for text." }
+    param number: number { doc: "The compared number." }
+    param checked: bool { doc: "The compared checkbox." }
+    param date: date { doc: "The compared date, ISO 8601." }
+    param dateTime: datetime { timezone: preserve, doc: "The compared date and time, ISO 8601 with its offset." }
+    param time: time { doc: "The compared time of day, ISO 8601." }
+    param option: Option { doc: "The compared option of a selection, by id." }
+    if self.isA('View') {
+      create Condition {
+        property: p.property,
+        operator: p.operator,
+        text: has(p.text) ? p.text : null,
+        number: has(p.number) ? p.number : null,
+        checked: has(p.checked) ? p.checked : null,
+        date: has(p.date) ? p.date : null,
+        dateTime: has(p.dateTime) ? p.dateTime : null,
+        time: has(p.time) ? p.time : null,
+        option: has(p.option) ? p.option : null
+      }
+      in self slot filter
+    } else {
+      create Condition {
+        property: p.property,
+        operator: p.operator,
+        text: has(p.text) ? p.text : null,
+        number: has(p.number) ? p.number : null,
+        checked: has(p.checked) ? p.checked : null,
+        date: has(p.date) ? p.date : null,
+        dateTime: has(p.dateTime) ? p.dateTime : null,
+        time: has(p.time) ? p.time : null,
+        option: has(p.option) ? p.option : null
+      }
+      in self slot conditions
+    }
+  }
+
+  /// The value is set as a cell's is, by the value key of the property's type.
+  operation setCondition "Edit filter" for Condition {
+    param operator: string required
+    param text: text { doc: "The compared text, for text." }
+    param number: number { doc: "The compared number." }
+    param checked: bool { doc: "The compared checkbox." }
+    param date: date { doc: "The compared date, ISO 8601." }
+    param dateTime: datetime { timezone: preserve, doc: "The compared date and time, ISO 8601 with its offset." }
+    param time: time { doc: "The compared time of day, ISO 8601." }
+    param option: Option { doc: "The compared option of a selection, by id." }
+    unset text
+    unset number
+    unset checked
+    unset date
+    unset dateTime
+    unset time
+    unset option
+    set operator = p.operator
+    if has(p.text) {
+      set text = p.text
+    }
+    if has(p.number) {
+      set number = p.number
+    }
+    if has(p.checked) {
+      set checked = p.checked
+    }
+    if has(p.date) {
+      set date = p.date
+    }
+    if has(p.dateTime) {
+      set dateTime = p.dateTime
+    }
+    if has(p.time) {
+      set time = p.time
+    }
+    if has(p.option) {
+      set option = p.option
+    }
+  }
+
+  /// A group goes with its conditions.
+  operation removeCondition "Remove" for Condition, FilterGroup {
+    delete self
+  }
+
+  operation addFilterGroup "Add filter group" for View, FilterGroup {
+    param match: Match default all
+    unavailable [{
+      when: (self.isA('FilterGroup') && self.ancestors().filter(a, a.isA('FilterGroup')).size() >= 1),
+      message: "Filter groups nest to three levels."
+    }
+    ]
+    if self.isA('View') {
+      create FilterGroup { match: p.match } in self slot filter
+    } else {
+      create FilterGroup { match: p.match } in self slot conditions
+    }
+  }
+
+  operation setMatch "All or any" for View, FilterGroup {
+    param match: Match required
+    if self.isA('View') {
+      set filterMatch = (p.match) == 'all' ? null : (p.match)
+    }
+    if self.isA('FilterGroup') {
+      set match = p.match
+    }
+  }
+
+  /// Group settings belong to the grouping, so a new grouping starts without them.
+  operation groupBy "Group by" for View {
+    param property: Property required
+    if !(p.property.valueType in ['selection', 'multipleSelection', 'checkbox', 'relation']) {
+      fail 'A view is grouped by a selection, a checkbox or a relation.'
+    }
+    for g in self.childrenOfType('GroupSetting') limit 100000 {
+      delete g
+    }
+    set groupBy = p.property
+  }
+
+  operation ungroup "Ungroup" for View {
+    for g in self.childrenOfType('GroupSetting') limit 100000 {
+      delete g
+    }
+    unset groupBy
+    unset hideEmptyGroups
+  }
+
+  operation hideEmptyGroups "Hide empty groups" for View {
+    param hide: bool required
+    set hideEmptyGroups = (p.hide) == false ? null : (p.hide)
+  }
+
+  /// Hiding (`hiddenGroups`) or collapsing (`collapsed`) a group, or giving it its place (`groupOrder`); collapsing a parent row in a nested view is the same, keyed by the row's id (Requirement 6.9).
+  operation setGroup "Group" for View {
+    param slot: string required
+    param key: string required
+    if p.slot == 'groupOrder' || !self.childrenOfType('GroupSetting').exists(g, g.slot == p.slot && g.key == p.key) {
+      if p.slot == 'groupOrder' {
+        create GroupSetting { key: p.key } in self slot groupOrder
+      }
+      if p.slot == 'hiddenGroups' {
+        create GroupSetting { key: p.key } in self slot hiddenGroups
+      }
+      if p.slot == 'collapsed' {
+        create GroupSetting { key: p.key } in self slot collapsed
+      }
+    }
+  }
+
+  /// Showing a hidden group or expanding a collapsed one.
+  operation unsetGroup "Show or expand" for GroupSetting {
+    delete self
+  }
+
+  /// Dragging a group heading: its place in `groupOrder`.
+  operation moveGroup "Move" for GroupSetting {
+    param after: GroupSetting
+    if has(p.after) {
+      reorder self after p.after
+    }
+    if !has(p.after) {
+      reorder self by -self.positionIn(self.parent.childrenOfType('GroupSetting').filter(g, g.slot == 'groupOrder'))
+    }
+  }
+
+  /// Typing a name that is no option in a selection's cell: the option is made, at the end of the property's options, with the colour the host picked for it, and the cell given it, in one step (knowledge.md, section 11). A name an option already has, ignoring case, picks that option.
+  operation setNewOption "New option" for Row {
+    param property: Property required
+    param name: string required { minLength: 1 }
+    param colour: Colour default default
+    let name = p.name.trim()
+    let found = p.property.childrenOfType('Option').filter(o, o.name.lowerAscii() == name.lowerAscii())
+    let cell = self.childrenOfType('Cell').filter(c, c.property == p.property)
+    if found.size() == 0 {
+      create Option { name: name, colour: p.colour == 'default' ? null : p.colour } in p.property slot options as made
+      if cell.size() == 0 {
+        create Cell { property: p.property, option: made } in self slot cells
+      } else {
+        let first = cell[0]
+        set first.option = made
+      }
+    } else {
+      if cell.size() == 0 {
+        create Cell { property: p.property, option: found[0] } in self slot cells
+      } else {
+        let first = cell[0]
+        set first.option = found[0]
+      }
+    }
+  }
+}

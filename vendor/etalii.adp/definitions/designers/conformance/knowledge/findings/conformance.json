@@ -1,0 +1,521 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/ConformanceFixture",
+  "doc": "Recorded by `atd record etalii/knowledge` from parity/cases/etalii/knowledge/findings.json of etalii.adp.ide.desktop; never edited by hand. A designer's page states no drawing; the table's gestures are written as the operations `knowledge.md`'s table of gestures names, and the steps state the body's bytes.",
+  "tool": "etalii/knowledge",
+  "description": "../../../knowledge.atd",
+  "inputs": {
+    "body": "findings.yaml",
+    "registration": "findings.adp",
+    "provinces.yaml": "provinces.yaml"
+  },
+  "read": {
+    "elements": [
+      {
+        "id": "p1",
+        "type": "Property",
+        "parent": null,
+        "attributes": {
+          "name": "Name",
+          "valueType": "text",
+          "title": true,
+          "limit": "none",
+          "computed": false,
+          "isParent": false
+        }
+      },
+      {
+        "id": "p2",
+        "type": "Property",
+        "parent": null,
+        "attributes": {
+          "name": "Country",
+          "valueType": "selection",
+          "title": false,
+          "limit": "none",
+          "computed": false,
+          "isParent": false
+        }
+      },
+      {
+        "id": "p3",
+        "type": "Property",
+        "parent": null,
+        "attributes": {
+          "name": "name",
+          "valueType": "number",
+          "title": true,
+          "limit": "none",
+          "computed": false,
+          "isParent": false
+        }
+      },
+      {
+        "id": "p4",
+        "type": "Property",
+        "parent": null,
+        "attributes": {
+          "name": "Tags",
+          "valueType": "multipleSelection",
+          "title": false,
+          "limit": "none",
+          "computed": false,
+          "isParent": false
+        }
+      },
+      {
+        "id": "p5",
+        "type": "Property",
+        "parent": null,
+        "attributes": {
+          "name": "Province",
+          "valueType": "relation",
+          "title": false,
+          "targetFile": "provinces.yaml",
+          "limit": "one",
+          "computed": false,
+          "isParent": false
+        }
+      },
+      {
+        "id": "p6",
+        "type": "Property",
+        "parent": null,
+        "attributes": {
+          "name": "Shade",
+          "valueType": "colour",
+          "title": false,
+          "limit": "none",
+          "computed": false,
+          "isParent": false
+        }
+      },
+      {
+        "id": "p7",
+        "type": "Property",
+        "parent": null,
+        "attributes": {
+          "name": "Elsewhere",
+          "valueType": "relation",
+          "title": false,
+          "targetFile": "missing.yaml",
+          "limit": "none",
+          "computed": false,
+          "isParent": false
+        }
+      },
+      {
+        "id": "p8",
+        "type": "Property",
+        "parent": null,
+        "attributes": {
+          "name": "Parent",
+          "valueType": "relation",
+          "title": false,
+          "targetFile": ".",
+          "limit": "one",
+          "computed": false,
+          "isParent": true
+        }
+      },
+      {
+        "id": "property@45",
+        "type": "Property",
+        "parent": null,
+        "attributes": {
+          "name": "Nickname",
+          "valueType": "text",
+          "title": false,
+          "limit": "none",
+          "computed": false,
+          "isParent": false
+        }
+      },
+      {
+        "id": "r1",
+        "type": "Row",
+        "parent": null,
+        "attributes": {}
+      },
+      {
+        "id": "r2",
+        "type": "Row",
+        "parent": null,
+        "attributes": {}
+      },
+      {
+        "id": "r1/p1",
+        "type": "Cell",
+        "parent": "r1",
+        "attributes": {
+          "property": "p1",
+          "text": "Amsterdam"
+        }
+      },
+      {
+        "id": "r1/p94",
+        "type": "Cell",
+        "parent": "r1",
+        "attributes": {
+          "property": "p94",
+          "text": "Somewhere"
+        }
+      },
+      {
+        "id": "r1/p2",
+        "type": "Cell",
+        "parent": "r1",
+        "attributes": {
+          "property": "p2",
+          "number": 3
+        }
+      },
+      {
+        "id": "r1/p8",
+        "type": "Cell",
+        "parent": "r1",
+        "attributes": {
+          "property": "p8"
+        }
+      },
+      {
+        "id": "r2/p1",
+        "type": "Cell",
+        "parent": "r2",
+        "attributes": {
+          "property": "p1",
+          "text": "Rotterdam"
+        }
+      },
+      {
+        "id": "r2/p2",
+        "type": "Cell",
+        "parent": "r2",
+        "attributes": {
+          "property": "p2",
+          "option": "o9"
+        }
+      },
+      {
+        "id": "r2/p4",
+        "type": "Cell",
+        "parent": "r2",
+        "attributes": {
+          "property": "p4"
+        }
+      },
+      {
+        "id": "r2/p5",
+        "type": "Cell",
+        "parent": "r2",
+        "attributes": {
+          "property": "p5"
+        }
+      },
+      {
+        "id": "r2/p8",
+        "type": "Cell",
+        "parent": "r2",
+        "attributes": {
+          "property": "p8"
+        }
+      },
+      {
+        "id": "v1",
+        "type": "View",
+        "parent": null,
+        "attributes": {
+          "name": "All",
+          "filterMatch": "all",
+          "groupBy": "p96",
+          "hideEmptyGroups": false,
+          "freeze": "p95"
+        }
+      },
+      {
+        "id": "o1",
+        "type": "Option",
+        "parent": "p2",
+        "attributes": {
+          "name": "Netherlands",
+          "colour": "default"
+        }
+      },
+      {
+        "id": "o3",
+        "type": "Option",
+        "parent": "p4",
+        "attributes": {
+          "name": "Port",
+          "colour": "default"
+        }
+      },
+      {
+        "id": "v1/columns/p99",
+        "type": "Column",
+        "parent": "v1",
+        "attributes": {
+          "property": "p99",
+          "visible": true,
+          "wrap": false
+        }
+      },
+      {
+        "id": "v1/sorts/p98",
+        "type": "Sort",
+        "parent": "v1",
+        "attributes": {
+          "property": "p98",
+          "direction": "ascending"
+        }
+      },
+      {
+        "id": "v1/filter/0",
+        "type": "Condition",
+        "parent": "v1",
+        "attributes": {
+          "property": "p97",
+          "operator": "is-empty"
+        }
+      },
+      {
+        "id": "r1/p8/r2",
+        "type": "CellItem",
+        "parent": "r1/p8",
+        "attributes": {
+          "row": "r2"
+        }
+      },
+      {
+        "id": "r2/p4/o8",
+        "type": "CellItem",
+        "parent": "r2/p4",
+        "attributes": {
+          "option": "o8"
+        }
+      },
+      {
+        "id": "r2/p5/nh",
+        "type": "CellItem",
+        "parent": "r2/p5",
+        "attributes": {
+          "row": "nh"
+        }
+      },
+      {
+        "id": "r2/p5/zz",
+        "type": "CellItem",
+        "parent": "r2/p5",
+        "attributes": {
+          "row": "zz"
+        }
+      },
+      {
+        "id": "r2/p8/r1",
+        "type": "CellItem",
+        "parent": "r2/p8",
+        "attributes": {
+          "row": "r1"
+        }
+      }
+    ],
+    "findings": [
+      {
+        "code": "std.missingId",
+        "severity": "warning",
+        "message": "This Property has no id; it is addressed by its place. (line 45)"
+      },
+      {
+        "code": "fbl.dangling-reference",
+        "severity": "warning",
+        "message": "'p96' in groupBy names no property. (line 57)"
+      },
+      {
+        "code": "fbl.dangling-reference",
+        "severity": "warning",
+        "message": "'p95' in freeze names no property. (line 58)"
+      },
+      {
+        "code": "fbl.dangling-reference",
+        "severity": "warning",
+        "message": "'p99' in property names no property. (line 51)"
+      },
+      {
+        "code": "fbl.dangling-reference",
+        "severity": "warning",
+        "message": "'p98' in property names no property. (line 53)"
+      },
+      {
+        "code": "fbl.dangling-reference",
+        "severity": "warning",
+        "message": "'p97' in property names no property. (line 55)"
+      },
+      {
+        "code": "fbl.dangling-reference",
+        "severity": "warning",
+        "message": "'p94' in property names no property. (line 65)"
+      },
+      {
+        "code": "fbl.dangling-reference",
+        "severity": "warning",
+        "message": "'o9' in option names no option. (line 77)"
+      },
+      {
+        "code": "fbl.dangling-reference",
+        "severity": "warning",
+        "message": "'o8' in option names no option. (line 80)"
+      },
+      {
+        "code": "knowledge.unknown-key",
+        "severity": "info",
+        "message": "The key 'colour' is not one this file's binding reads; it is kept as it is. (line 61)"
+      },
+      {
+        "code": "knowledge.several-titles",
+        "severity": "warning",
+        "element": "p3",
+        "line": 17,
+        "message": "'name' is marked as the title, and so is 'Name'; the first is used."
+      },
+      {
+        "code": "knowledge.title-not-text",
+        "severity": "error",
+        "element": "p3",
+        "line": 17,
+        "message": "The title property 'name' is a number; a title is text."
+      },
+      {
+        "code": "knowledge.duplicate-property-name",
+        "severity": "error",
+        "element": "p3",
+        "line": 17,
+        "message": "Another property is already called 'name'."
+      },
+      {
+        "code": "knowledge.unknown-type",
+        "severity": "warning",
+        "element": "p6",
+        "line": 32,
+        "message": "'Shade' has the type 'colour', which is none this application knows; its values are shown and cannot be changed here."
+      },
+      {
+        "code": "knowledge.unknown-property",
+        "severity": "warning",
+        "element": "r1/p94",
+        "line": 65,
+        "message": "This cell names a property the table does not have ('p94'); it is kept as it is."
+      },
+      {
+        "code": "knowledge.value-of-another-type",
+        "severity": "warning",
+        "element": "r1/p2",
+        "line": 67,
+        "message": "This value is not a selection; it is kept as it is."
+      },
+      {
+        "code": "knowledge.unknown-option",
+        "severity": "warning",
+        "element": "r2/p2",
+        "line": 76,
+        "message": "This value names an option 'Country' does not have ('o9'); it is kept as it is."
+      },
+      {
+        "code": "knowledge.unknown-option",
+        "severity": "warning",
+        "element": "r2/p4",
+        "line": 78,
+        "message": "This value names an option 'Tags' does not have ('o8'); it is kept as it is."
+      },
+      {
+        "code": "knowledge.relation-over-limit",
+        "severity": "warning",
+        "element": "r2/p5",
+        "line": 81,
+        "message": "'Province' relates to one row, and this cell names 2; they are kept as they are."
+      },
+      {
+        "code": "knowledge.unresolved-row",
+        "severity": "warning",
+        "element": "r2/p5",
+        "line": 81,
+        "message": "This value names a row that is not in Provinces ('zz'); it is kept as it is."
+      },
+      {
+        "code": "knowledge.unresolved-target",
+        "severity": "warning",
+        "element": "p7",
+        "line": 35,
+        "message": "'Elsewhere' relates to a table that cannot be shown: 'missing.yaml' is not there. Its values are kept as they are."
+      },
+      {
+        "code": "knowledge.view-names-missing-property",
+        "severity": "warning",
+        "message": "The view 'All' has a setting for a property the table does not have ('p99'); the view opens without it."
+      },
+      {
+        "code": "knowledge.view-names-missing-property",
+        "severity": "warning",
+        "message": "The view 'All' has a setting for a property the table does not have ('p98'); the view opens without it."
+      },
+      {
+        "code": "knowledge.view-names-missing-property",
+        "severity": "warning",
+        "message": "The view 'All' has a setting for a property the table does not have ('p97'); the view opens without it."
+      },
+      {
+        "code": "knowledge.view-names-missing-property",
+        "severity": "warning",
+        "message": "The view 'All' has a setting for a property the table does not have ('p96'); the view opens without it."
+      },
+      {
+        "code": "knowledge.view-names-missing-property",
+        "severity": "warning",
+        "message": "The view 'All' has a setting for a property the table does not have ('p95'); the view opens without it."
+      },
+      {
+        "code": "knowledge.parent-cycle",
+        "severity": "error",
+        "element": "r1/p8",
+        "line": 69,
+        "message": "This row is its own ancestor through 'Parent'."
+      },
+      {
+        "code": "knowledge.parent-cycle",
+        "severity": "error",
+        "element": "r2/p8",
+        "line": 85,
+        "message": "This row is its own ancestor through 'Parent'."
+      },
+      {
+        "code": "knowledge.missing-id",
+        "severity": "info",
+        "element": "property@45",
+        "line": 45,
+        "message": "A property on line 45 has no id; it is shown, and anything that names it cannot until it has one."
+      }
+    ]
+  },
+  "steps": [],
+  "provenance": {
+    "bytes": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "12d8338",
+      "source": "atd record (bytes)"
+    },
+    "reading": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "12d8338",
+      "source": "atd record (reading)"
+    },
+    "findings": {
+      "host": "desktop",
+      "repository": "etalii.adp.ide.desktop",
+      "commit": "fe5feec",
+      "recordedWith": "12d8338",
+      "source": "atd record (findings)"
+    }
+  }
+}

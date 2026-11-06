@@ -538,3 +538,25 @@ const BEHAVIOR_TREE_DIFFERENCES: &[&str] = &[
     // A Do written with its keyword is no implicit Do, which the cases state and FBL's example leaves unread.
     "+ /elements/8/attributes/implicit",
 ];
+
+/// The Knowledge designer's three binding parts are `knowledge.fbl`'s bindings in ATD (etalii.adp spec 076, T071): each
+/// lowers to the binding of its name, but for its documentation.
+#[test]
+fn the_knowledge_designers_bindings_are_knowledge_fbl() {
+    let root = etalii();
+    let checked = check(&FsFiles, &root.join("definitions/designers/knowledge.atd"));
+    let members: Vec<&Json> = checked.description.members().collect();
+    let lowered = adp_atd_runtime::lowering::fbl::lower(&members).expect("the Knowledge designer has bindings");
+    let written = read_json(&root.join("definitions/designers/knowledge.fbl"));
+    for name in ["yaml", "json", "xml"] {
+        let (lowered, written) = (
+            undocumented(&lowered["bindings"][name]),
+            undocumented(&written["bindings"][name]),
+        );
+        let mut found = BTreeSet::new();
+        differences(&lowered, &written, "", &mut found);
+        // A row binds no attribute, which FBL's file writes as an empty map and ATD as none.
+        found.remove("- /elements/14/attributes");
+        assert!(found.is_empty(), "{name}: {found:?}");
+    }
+}
