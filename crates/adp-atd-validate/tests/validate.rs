@@ -465,3 +465,90 @@ fn a_create_and_a_connect_are_attributed_to_what_they_run() {
     // The operation `addNodeHere`.
     assert_eq!(short(bytes), "dependency-graph.atd:201");
 }
+
+// ---- seeded differences in a designer's description (etalii.adp spec 076, T051) ------------------------------------
+
+fn designers() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../vendor/etalii.adp/definitions/designers")
+}
+
+/// The Knowledge designer's case `name` validated against its description with the file `file` (the root or a part)
+/// changed by `seed`: the first occurrence of one text after a marker replaced by another. The differences the seed
+/// adds to those of the description as written.
+fn seeded(name: &str, file: &str, seed: (&str, &str, &str)) -> Vec<Difference> {
+    let root = designers().join("knowledge.atd");
+    let path = designers().join(file);
+    let text = std::fs::read_to_string(&path).unwrap();
+    let at = text.find(seed.0).expect("the marker is in the file");
+    let found = at + text[at..].find(seed.1).expect("the seeded text follows the marker");
+    let changed = format!("{}{}{}", &text[..found], seed.2, &text[found + seed.1.len()..]);
+    let held = case_in(&designers().join("conformance/knowledge").join(name));
+    let run = |open: BTreeMap<PathBuf, String>| {
+        let files = Overlay { open, under: &FsFiles };
+        let checked = check(&files, &root);
+        let symbols = checked.symbols.as_ref().unwrap();
+        let body = held.fixture["inputs"]["body"].as_str().unwrap();
+        let tool =
+            adp_atd_runtime::diagram_tool_for(&checked.description, symbols, &RuntimeHost::default(), Some(body))
+                .unwrap();
+        validate(&tool, &checked.description, &held)
+    };
+    let before = places(&run(BTreeMap::new()));
+    run(BTreeMap::from([(path, changed)]))
+        .into_iter()
+        .filter(|d| !before.contains(&places(std::slice::from_ref(d)).pop_first().unwrap()))
+        .collect()
+}
+
+#[test]
+fn a_seeded_difference_in_a_designers_binding_rule_is_one_difference_at_that_rule() {
+    // The cell's date and time read from another key: Amsterdam's cell of Updated is read without its value, and no
+    // step of the case writes one.
+    let found = seeded(
+        "cities-yaml",
+        "knowledge.yaml.atd",
+        ("as cell at", "from key \"dateTime\"", "from key \"updated\""),
+    );
+    assert_eq!(
+        places(&found),
+        BTreeSet::from(["read:reading".to_owned()]),
+        "{found:#?}"
+    );
+    assert!(
+        short(&found[0]).starts_with("knowledge.yaml.atd:"),
+        "{}",
+        short(&found[0])
+    );
+}
+
+#[test]
+fn a_seeded_difference_in_a_designers_operation_is_one_difference_at_that_operation() {
+    // A new view named otherwise: step 25 writes it; the rename after it and the undos give the case's bytes again.
+    let found = seeded(
+        "cities-yaml",
+        "knowledge.atd",
+        ("operation addView", "uniqueName('View'", "uniqueName('Vista'"),
+    );
+    assert_eq!(places(&found), BTreeSet::from(["25:bytes".to_owned()]), "{found:#?}");
+    let text = std::fs::read_to_string(designers().join("knowledge.atd")).unwrap();
+    let line = text.lines().position(|l| l.contains("operation addView")).unwrap() + 1;
+    assert_eq!(short(&found[0]), format!("knowledge.atd:{line}"));
+}
+
+#[test]
+fn a_seeded_difference_in_a_designers_constraint_is_reported_at_that_constraint_alone() {
+    // The table warned while it has one view: the refusals case deletes one of its two, so the step that does and the
+    // refused deletion after it give the finding, and nothing else differs.
+    let found = seeded(
+        "refusals",
+        "knowledge.atd",
+        ("constraint lastView", "size() > 0", "size() > 1"),
+    );
+    assert!(!found.is_empty());
+    let text = std::fs::read_to_string(designers().join("knowledge.atd")).unwrap();
+    let line = text.lines().position(|l| l.contains("constraint lastView")).unwrap() + 1;
+    for difference in &found {
+        assert_eq!(difference.part, "findings", "{found:#?}");
+        assert_eq!(short(difference), format!("knowledge.atd:{line}"), "{found:#?}");
+    }
+}
