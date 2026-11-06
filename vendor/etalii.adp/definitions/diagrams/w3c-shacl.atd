@@ -37,7 +37,7 @@ diagram w3c/shacl version "2.0.0" {
       }
     }
   }
-  requires: { conformance: standard, features: ["limits.budgets", "persistence.fbl"] }
+  requires: { conformance: standard, features: ["limits.budgets", "persistence.fbl", "cel.groupBy"] }
   doc {
     tags: ["shacl", "shapes", "constraints", "application profile", "rdf", "semantic web"]
     seeAlso: [{ title: "W3C SHACL recommendation", href: "https://www.w3.org/TR/shacl/" }, {
@@ -368,14 +368,14 @@ diagram w3c/shacl version "2.0.0" {
   /// or a node that is no cons cell.
   fn collectionMembers(cell: string) -> list recursion 64 {
     // uses: ["diagram"]
-    return cel.bind(f, diagram.nodesOfType('Triple').filter(t, t.sKind == 'blank' && t.s == cell && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first'), cel.bind(r, diagram.nodesOfType('Triple').filter(t, t.sKind == 'blank' && t.s == cell && t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest'), f.size() == 0 ? [] : [f[0]] + (r.size() > 0 && r[0].oKind == 'blank' && isCell(r[0].o) ? collectionMembers(r[0].o) : [])))
+    return cel.bind(f, diagram.nodesOfType('Triple').groupBy(t, t.sKind == 'blank' ? 'blank:' + t.s : '').get('blank:' + cell).filter(t, t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first'), cel.bind(r, diagram.nodesOfType('Triple').groupBy(t, t.sKind == 'blank' ? 'blank:' + t.s : '').get('blank:' + cell).filter(t, t.p == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest'), f.size() == 0 ? [] : [f[0]] + (r.size() > 0 && r[0].oKind == 'blank' && isCell(r[0].o) ? collectionMembers(r[0].o) : [])))
   }
 
   /// The repeat counter of a stored triple or prefix declaration (11.5.2): '' for the first with its parts, '|1' for
   /// the second and so on, in reading order.
   fn repeatSuffix(e: Element) -> string {
     // uses: ["diagram"]
-    return cel.bind(same, e.isA('Triple') ? diagram.nodesOfType('Triple').filter(u, u.s == e.s && u.p == e.p && u.o == e.o) : diagram.nodesOfType('Prefix').filter(u, u.name == e.name), cel.bind(n, e.positionIn(same), n > 0 ? '|' + string(n) : ''))
+    return cel.bind(same, e.isA('Triple') ? diagram.nodesOfType('Triple').groupBy(u, u.s + ' ' + u.p + ' ' + u.o).get(e.s + ' ' + e.p + ' ' + e.o) : diagram.nodesOfType('Prefix').filter(u, u.name == e.name), cel.bind(n, e.positionIn(same), n > 0 ? '|' + string(n) : ''))
   }
 
   /// Each item of `xs`, whose first entry is its key, with the number of earlier items of the same key appended: the
@@ -401,7 +401,7 @@ diagram w3c/shacl version "2.0.0" {
   /// while it is, because the tool gates every reading's edits on that one count.
   fn familyTruncated() -> bool {
     // uses: ["diagram"]
-    return diagram.nodesOfType('Triple').map(t, cardTerms(t)).flatten().map(c, cardId(c[0], c[1])).distinct().size() > 1000
+    return diagram.nodesOfType('Triple').map(t, cardTerms(t)).flatten().map(c, cardId(c[0], c[1])).groupBy(v, v).keys().size() > 1000
   }
 
   /// The triples whose subject is the term with this id, in document order.
