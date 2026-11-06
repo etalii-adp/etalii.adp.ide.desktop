@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use adp_atd_check::{Checked, Severity};
-use adp_atd_runtime::{RuntimeHost, diagram_tool};
+use adp_atd_runtime::{RuntimeHost, diagram_tool_for};
 use serde_json::{Value as Json, json};
 
 use crate::{At, Case, Difference, validate};
@@ -60,14 +60,26 @@ pub fn validate_description(checked: &Checked, host: &RuntimeHost, cases: &[Case
         Some(kind) => return Err(format!("A {kind}'s description has no runtime yet; diagrams' have.")),
         None => return Err("The file is not part of a tool description.".to_owned()),
     }
-    let runtime = diagram_tool(&checked.description, symbols, host)?;
-    Ok(cases
-        .iter()
-        .map(|case| CaseResult {
+    // A designer of several formats has a binding per format family (ATD §11.1): a case's body is read with the binding
+    // that claims it, and a runtime is made once per body extension.
+    let mut runtimes: BTreeMap<String, adp_atd_runtime::RuntimeTool> = BTreeMap::new();
+    let mut results = Vec::new();
+    for case in cases {
+        let body = case.fixture["inputs"]["body"].as_str().unwrap_or_default();
+        let extension = body
+            .rsplit_once('.')
+            .map(|(_, e)| e.to_ascii_lowercase())
+            .unwrap_or_default();
+        if !runtimes.contains_key(&extension) {
+            let runtime = diagram_tool_for(&checked.description, symbols, host, Some(body))?;
+            runtimes.insert(extension.clone(), runtime);
+        }
+        results.push(CaseResult {
             name: case.name.clone(),
-            differences: validate(&runtime, &checked.description, case),
-        })
-        .collect())
+            differences: validate(&runtimes[&extension], &checked.description, case),
+        });
+    }
+    Ok(results)
 }
 
 /// The cases of the description whose root is `root` (ATD §2.3): each `conformance/<type>/<case>/` folder beside it

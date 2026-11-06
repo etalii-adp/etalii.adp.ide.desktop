@@ -68,7 +68,18 @@ fn rename(json: &mut Json) {
                 .into_owned();
         }
         Json::Array(items) => items.iter_mut().for_each(rename),
-        Json::Object(map) => map.values_mut().for_each(rename),
+        Json::Object(map) => {
+            // An action on the document and a constraint of the document are DISL's on the diagram.
+            for key in ["target", "scope"] {
+                if map
+                    .get(key)
+                    .is_some_and(|v| v == "document" || *v == serde_json::json!(["document"]))
+                {
+                    map.insert(key.into(), Json::String("diagram".into()));
+                }
+            }
+            map.values_mut().for_each(rename)
+        }
         _ => {}
     }
 }

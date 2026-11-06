@@ -64,6 +64,25 @@ fn stated(value: &Value) -> Option<Json> {
     }
 }
 
+/// A value as its attribute's type states it: an XML file holds every value as text, which the model means as a bool
+/// or a number where the attribute is one.
+fn typed_as(value: Json, declared: &str) -> Json {
+    let Some(text) = value.as_str() else { return value };
+    match declared {
+        "bool" => match text {
+            "true" => json!(true),
+            "false" => json!(false),
+            _ => value,
+        },
+        "int" | "number" => text
+            .parse::<i64>()
+            .map(|n| json!(n))
+            .or_else(|_| text.parse::<f64>().map(|n| json!(n)))
+            .unwrap_or(value),
+        _ => value,
+    }
+}
+
 /// The elements the designer read, in the surface's order, each with the attributes its type declares.
 fn elements(model: &FblModel) -> Vec<Json> {
     let types = metamodel();
@@ -95,6 +114,7 @@ fn elements(model: &FblModel) -> Vec<Json> {
                     .attributes
                     .get(name)
                     .and_then(stated)
+                    .map(|v| typed_as(v, declaration["type"].as_str().unwrap_or_default()))
                     .or_else(|| declaration.get("default").cloned());
                 if let Some(value) = value {
                     attributes.insert(name.clone(), value);
@@ -197,9 +217,11 @@ fn typed(value: &str, value_type: &str) -> Json {
 fn operation(action: &str, select: Option<String>, args: Map<String, Json>) -> Translated {
     let mut step = Map::new();
     step.insert("action".into(), json!(action));
-    if let Some(select) = select {
-        step.insert("select".into(), json!([select]));
-    }
+    // An operation on the document selects `document` (ATD §2.3), as the table's toolbar acts on it.
+    step.insert(
+        "select".into(),
+        json!([select.unwrap_or_else(|| "document".to_owned())]),
+    );
     if !args.is_empty() {
         step.insert("args".into(), Json::Object(args));
     }
@@ -211,7 +233,7 @@ fn args<const N: usize>(pairs: [(&str, Json); N]) -> Map<String, Json> {
 }
 
 /// A table step as a case's step, on the model as it stood before it.
-fn translate(step: &Json, before: &Seen, generated: &[String]) -> Translated {
+fn translate(step: &Json, before: &Seen, after: &Seen, generated: &[String]) -> Translated {
     for key in ["undo", "redo"] {
         if let Some(n) = step.get(key) {
             let mut undo = Map::new();
@@ -266,8 +288,23 @@ fn translate(step: &Json, before: &Seen, generated: &[String]) -> Translated {
             let property = json!(column);
             match value_type.as_str() {
                 "text" | "number" | "checkbox" | "date" | "dateTime" | "time" | "selection" => {
-                    if setting("newOption").is_some() {
-                        return unstated("with a new option is an option added and a value set, two operations");
+                    if let Some(name) = setting("newOption").filter(|n| !n.trim().is_empty()) {
+                        if value_type != "selection" {
+                            return unstated(
+                                "with a new option on a property of several is an option and an item added",
+                            );
+                        }
+                        // The colour the host picked for the new option is the gesture's, given to the operation.
+                        let made = after
+                            .model
+                            .elements
+                            .iter()
+                            .find(|e| e.type_name == "Option" && after.generated.contains(&e.id));
+                        let mut given = args([("property", property), ("name", json!(name))]);
+                        if let Some(colour) = made.and_then(|o| o.attributes.get("colour")).and_then(stated) {
+                            given.insert("colour".into(), colour);
+                        }
+                        return operation("setNewOption", Some(row), given);
                     }
                     let Some(value) = values.first() else {
                         return match element(&cell) {
@@ -361,6 +398,30 @@ fn translate(step: &Json, before: &Seen, generated: &[String]) -> Translated {
                 args([("property", json!(column)), ("operator", json!(operator))]),
             )
         }
+        "setFilter" => {
+            let condition = format!("{view}/filter/{}", text("target").unwrap_or_default());
+            let Some(held) = element(&condition) else {
+                return unstated("of a condition the view does not have makes no operation");
+            };
+            let operator = setting("comparison").unwrap_or_else(|| attribute(&condition, "operator"));
+            let property = held
+                .attributes
+                .get("property")
+                .map(adp_diagram::document::text_of)
+                .unwrap_or_default();
+            let mut given = args([("operator", json!(operator))]);
+            if let Some(value) = values.first().filter(|v| !v.is_empty()) {
+                let value_type = attribute(&property, "valueType");
+                let key = match value_type.as_str() {
+                    "checkbox" => "checked",
+                    "selection" | "multipleSelection" => "option",
+                    "text" | "number" | "date" | "dateTime" | "time" => value_type.as_str(),
+                    _ => return unstated("on a property of no comparable type makes no operation"),
+                };
+                given.insert(key.into(), typed(value, &value_type));
+            }
+            operation("setCondition", Some(condition), given)
+        }
         "setHideEmptyGroups" => operation(
             "hideEmptyGroups",
             Some(view),
@@ -389,7 +450,15 @@ fn translate(step: &Json, before: &Seen, generated: &[String]) -> Translated {
                 Some(view),
                 args([("property", json!(column)), ("width", json!(width))]),
             ),
-            None => unstated("without a whole width makes no operation"),
+            // A width that is no number is given as the gesture gave it, for the operation to refuse.
+            None => operation(
+                "setColumn",
+                Some(view),
+                args([
+                    ("property", json!(column)),
+                    ("width", json!(setting("width").unwrap_or_default())),
+                ]),
+            ),
         },
         "addView" => operation("addView", None, Map::new()),
         "renameView" => match values.first() {
@@ -490,7 +559,7 @@ pub(super) fn record_case(case: &Case, folder: &Path, description: &str) -> Resu
     let mut steps: Vec<Json> = Vec::new();
     for (index, step) in case.script.steps.iter().enumerate() {
         let (before, after) = (&seen[index], &seen[index + 1]);
-        let (mut gesture, repeat) = match translate(step, before, &generated) {
+        let (mut gesture, repeat) = match translate(step, before, after, &generated) {
             Translated::Step(fields, repeat) => (fields, repeat),
             Translated::Unstated(fields, reason) => {
                 let name = &case.name;

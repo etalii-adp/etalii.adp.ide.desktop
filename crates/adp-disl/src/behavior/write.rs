@@ -28,6 +28,7 @@ pub fn to_fbl(specification: &DislSpecification, change: &DislChange) -> ModelCh
             attributes,
             parent_id,
             index,
+            slot,
             ..
         } => ModelChange::Add {
             type_name: map.binding_type_of(type_name),
@@ -38,7 +39,7 @@ pub fn to_fbl(specification: &DislSpecification, change: &DislChange) -> ModelCh
             attributes: written(specification, &map, type_name, attributes),
             parent_id: parent_id.as_ref().map(|p| read_id_of_any(specification, p)),
             index: *index,
-            slot: None,
+            slot: slot.clone(),
         },
         DislChange::Connect {
             type_name,

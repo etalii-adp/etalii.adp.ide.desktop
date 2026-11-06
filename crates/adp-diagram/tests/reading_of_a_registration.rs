@@ -281,6 +281,7 @@ fn a_created_element_is_written_under_its_natural_id() {
         .collect(),
         parent_id: None,
         index: None,
+        slot: None,
         at: Value::Null,
     };
     let edit = document.plan("Add", &[DiagramChange::Disl(change)]).unwrap();

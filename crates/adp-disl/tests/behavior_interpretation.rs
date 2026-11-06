@@ -252,6 +252,7 @@ fn a_change_is_written_in_the_bindings_terms_and_stored_forms() {
             parent_id: None,
             at: Value::Null,
             index: None,
+            slot: None,
         },
     );
     let ModelChange::Add {

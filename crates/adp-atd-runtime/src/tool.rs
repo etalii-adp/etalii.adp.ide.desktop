@@ -58,6 +58,18 @@ pub struct RuntimeTool {
 
 /// The tool of a checked diagram description.
 pub fn diagram_tool(description: &Description, symbols: &Symbols, host: &RuntimeHost) -> Result<RuntimeTool, String> {
+    diagram_tool_for(description, symbols, host, None)
+}
+
+/// [`diagram_tool`] with the binding that claims `body`, a body's file name, among a description's several bindings,
+/// one per format family (ATD §11.1): the first of the tool type's origin whose extensions end the name, else the first
+/// of its origin.
+pub fn diagram_tool_for(
+    description: &Description,
+    symbols: &Symbols,
+    host: &RuntimeHost,
+    body: Option<&str>,
+) -> Result<RuntimeTool, String> {
     let loaded = lowering::load_diagram(description, symbols, &host.functions).map_err(|diagnostics| {
         let lines: Vec<String> = diagnostics.iter().map(ToString::to_string).collect();
         format!("The description does not lower to DISL: {}", lines.join("; "))
@@ -83,10 +95,20 @@ pub fn diagram_tool(description: &Description, symbols: &Symbols, host: &Runtime
         format!("The description's binding does not lower to FBL: {}", lines.join("; "))
     })?;
     let origin = description.origin().unwrap_or_default().to_owned();
+    let claims = |b: &adp_fbl::FblBinding| {
+        body.is_some_and(|body| {
+            let body = body.to_ascii_lowercase();
+            b.claims
+                .extensions
+                .iter()
+                .any(|e| body.ends_with(&e.to_ascii_lowercase()))
+        })
+    };
     let (name, mut binding) = read
         .bindings
         .iter()
-        .find(|(_, b)| b.claims.origins.contains(&origin))
+        .find(|(_, b)| b.claims.origins.contains(&origin) && claims(b))
+        .or_else(|| read.bindings.iter().find(|(_, b)| b.claims.origins.contains(&origin)))
         .or_else(|| read.bindings.first())
         .map(|(name, binding)| (name.clone(), binding.clone()))
         .ok_or("The description's binding does not lower to FBL.")?;

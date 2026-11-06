@@ -505,6 +505,9 @@ impl DiagramDocument {
             _ => None,
         };
         let changes = self.removals_bottom_up(changes, opened);
+        // An element created in this edit whose id is computed (DISL section 11.5) is read back under the id the binding
+        // gives it, which an add under it in the same edit names as its parent.
+        let mut made: HashMap<String, String> = HashMap::new();
         for change in &changes {
             // What a designer's setting keeps is a change of the registration's block (DESL section 5.5).
             let mut change = change.clone();
@@ -542,9 +545,46 @@ impl DiagramDocument {
                 DiagramChange::Body(model_change) => (Some(model_change.clone()), None, false),
                 DiagramChange::Place { id, x, y } => (None, Some((id.clone(), *x, *y)), true),
             };
-            if let Some(model_change) = model_change {
+            if let Some(mut model_change) = model_change {
+                if let ModelChange::Add {
+                    parent_id: Some(parent),
+                    ..
+                } = &mut model_change
+                    && let Some(read) = made.get(parent.as_str())
+                {
+                    *parent = read.clone();
+                }
+                // An entry the binding names by its place (an id it does not store) is named by the place it has now:
+                // an earlier change of this edit may have moved it.
+                if !steps.is_empty() {
+                    model_change = placed_now(&self.reading.fbl, &body.model(), model_change);
+                }
+                // A slot is said only to a binding that writes the type by a rule per slot.
+                if let ModelChange::Add { type_name, slot, .. } = &mut model_change
+                    && slot.is_some()
+                    && !self.tool.binding.rules.iter().any(|r| {
+                        r.type_name == *type_name && r.parent.as_ref().and_then(|p| p.slot.as_ref()) == slot.as_ref()
+                    })
+                {
+                    *slot = None;
+                }
+                let created = match (change, &model_change) {
+                    (DiagramChange::Disl(DislChange::Create { id, .. }), ModelChange::Add { .. }) => Some(id.clone()),
+                    _ => None,
+                };
+                let known: Option<std::collections::HashSet<String>> = created
+                    .as_ref()
+                    .map(|_| body.model().elements.into_iter().map(|e| e.id).collect());
                 let before = Fingerprint::of(body.bytes());
-                match body.change(&model_change) {
+                let planned = body.change(&model_change);
+                if let (Some(id), Some(known)) = (created, known)
+                    && matches!(planned, PlanResult::Planned(_))
+                    && let Some(new) = body.model().elements.into_iter().find(|e| !known.contains(&e.id))
+                    && new.id != id
+                {
+                    made.insert(id, new.id);
+                }
+                match planned {
                     PlanResult::Planned(edit) if !edit.splices.is_empty() => steps.push(EditStep {
                         file: EditedFile::Body,
                         splices: edit.splices,
@@ -588,6 +628,25 @@ impl DiagramDocument {
         use adp_disl::model::counter::{Counter, numbering};
         let specification = self.tool.definition.specification();
         let diagram = &self.reading.model.diagram;
+        // A set of the diagram's own attributes (DESL section 8.2, `target: document`) is written where the type map
+        // keeps them.
+        let mut expanded = Vec::with_capacity(changes.len());
+        for change in changes {
+            match change {
+                DiagramChange::Disl(DislChange::Set {
+                    element_id,
+                    type_name,
+                    attributes,
+                }) if element_id.is_empty() && type_name == adp_disl::behavior::change::DIAGRAM => {
+                    for (name, value) in attributes.iter() {
+                        let written = write::diagram_set(specification, &self.reading.fbl, name, value)?;
+                        expanded.extend(written.into_iter().map(DiagramChange::Body));
+                    }
+                }
+                other => expanded.push(other.clone()),
+            }
+        }
+        let changes = &expanded[..];
         let writes_body = changes.iter().any(|change| match change {
             DiagramChange::Disl(disl) => {
                 crate::settings::as_settings(specification, diagram, self.registration(), disl)
@@ -901,6 +960,95 @@ fn whole_text_splice(before: &[u8], after: &[u8]) -> Option<Splice> {
         end: before.len() - suffix,
         text: String::from_utf8_lossy(&after[prefix..after.len() - suffix]).into_owned(),
     })
+}
+
+/// Where each element of `model` is: its rule and its place among the entries of that rule under the same parent, from
+/// the top level down.
+fn places(model: &FblModel) -> HashMap<String, Vec<(String, usize)>> {
+    let mut counts: HashMap<(Option<String>, String), usize> = HashMap::new();
+    let mut own: HashMap<String, (Option<String>, String, usize)> = HashMap::new();
+    for element in &model.elements {
+        let key = (element.parent_id.clone(), element.rule.clone());
+        let n = counts.entry(key).or_default();
+        own.insert(
+            element.id.clone(),
+            (element.parent_id.clone(), element.rule.clone(), *n),
+        );
+        *n += 1;
+    }
+    let mut out = HashMap::new();
+    for element in &model.elements {
+        let mut path = Vec::new();
+        let mut at = Some(element.id.clone());
+        while let Some(id) = at {
+            let Some((parent, rule, n)) = own.get(&id) else { break };
+            path.push((rule.clone(), *n));
+            at = parent.clone();
+            if path.len() > 64 {
+                break;
+            }
+        }
+        path.reverse();
+        out.insert(element.id.clone(), path);
+    }
+    out
+}
+
+/// `change` with each id of an entry `before` names by its place (an id the binding does not store) as `now` names
+/// the entry at that place.
+fn placed_now(before: &FblModel, now: &FblModel, change: ModelChange) -> ModelChange {
+    let unstored: std::collections::HashSet<&str> = before
+        .elements
+        .iter()
+        .filter(|e| !e.id_is_stored)
+        .map(|e| e.id.as_str())
+        .collect();
+    let involved = |id: &str| unstored.contains(id) && now.elements.iter().all(|e| e.id != id || !e.id_is_stored);
+    let ids: Vec<&str> = match &change {
+        ModelChange::Set { id, .. } | ModelChange::Remove { id } => vec![id.as_str()],
+        ModelChange::Add {
+            parent_id: Some(parent),
+            ..
+        } => vec![parent.as_str()],
+        _ => Vec::new(),
+    };
+    if !ids.iter().any(|id| involved(id)) {
+        return change;
+    }
+    let (was, is) = (places(before), places(now));
+    let current = |id: String| -> String {
+        if !unstored.contains(id.as_str()) {
+            return id;
+        }
+        let Some(path) = was.get(&id) else { return id };
+        is.iter()
+            .find(|(_, p)| *p == path)
+            .map(|(found, _)| found.clone())
+            .unwrap_or(id)
+    };
+    match change {
+        ModelChange::Set { id, attributes } => ModelChange::Set {
+            id: current(id),
+            attributes,
+        },
+        ModelChange::Remove { id } => ModelChange::Remove { id: current(id) },
+        ModelChange::Add {
+            type_name,
+            id,
+            attributes,
+            parent_id,
+            index,
+            slot,
+        } => ModelChange::Add {
+            type_name,
+            id,
+            attributes,
+            parent_id: parent_id.map(current),
+            index,
+            slot,
+        },
+        other => other,
+    }
 }
 
 /// A body opened to be read or planned against: through its binding's declared rules, through the persistence plugin

@@ -5,6 +5,9 @@
 
 use adp_cel::{Map, Value};
 
+/// The type a [`DislChange::Set`] names when what it sets is the diagram's own attributes, with an empty element id.
+pub const DIAGRAM: &str = "diagram";
+
 /// One model change an action list made.
 #[derive(Debug, Clone)]
 pub enum DislChange {
@@ -18,6 +21,9 @@ pub enum DislChange {
         parent_id: Option<String>,
         at: Value,
         index: Option<i64>,
+        /// The parent's slot it was created in, when the action named one (DESL section 8.2): a binding with a rule
+        /// per slot writes it by that slot's rule.
+        slot: Option<String>,
     },
     /// A relation of `type_name` created with `id` from `source_id` to `target_id` (`connect`), with the attributes
     /// its action gave.

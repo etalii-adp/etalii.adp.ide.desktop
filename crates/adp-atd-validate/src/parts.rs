@@ -118,6 +118,8 @@ pub fn designer_reading(document: &adp_diagram::DiagramDocument, types: &[String
                     }
                     adp_cel::Value::Bool(flag) => json!(flag),
                     adp_cel::Value::Int(n) => json!(n),
+                    // A whole number is stated as the file writes it, whether the model holds it as a decimal or not.
+                    adp_cel::Value::Double(n) if n.fract() == 0.0 && n.abs() < 1e15 => json!(n as i64),
                     adp_cel::Value::Double(n) => json!(n),
                     other => {
                         let text = adp_diagram::document::text_of(&other);
