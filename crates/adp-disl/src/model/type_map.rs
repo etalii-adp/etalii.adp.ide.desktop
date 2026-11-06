@@ -73,11 +73,17 @@ impl TypeMap {
         })
     }
 
-    /// The binding type mapped as `diagram` whose `attributes` name diagram attribute `attribute`.
+    /// The binding type mapped as `diagram` whose `attributes` name diagram attribute `attribute`, else the first
+    /// mapped as `diagram` that renames none of its attributes, whose attributes are then the diagram's own names.
     pub(crate) fn diagram_type_holding(&self, attribute: &str) -> Option<String> {
         self.mappings
             .iter()
             .find(|(_, m)| m.as_type == "diagram" && m.attributes.values().any(|a| a == attribute))
+            .or_else(|| {
+                self.mappings
+                    .iter()
+                    .find(|(_, m)| m.as_type == "diagram" && m.attributes.is_empty())
+            })
             .map(|(k, _)| k.clone())
     }
 

@@ -254,6 +254,13 @@ impl Builder<'_> {
         new.id_is_stored = element.id_is_stored;
         let made = DislElement::make(self.diagram, &new, t.clone()).ok()?;
         let node = self.diagram.add_made(made).ok()?;
+        // An entry written with its counter's placeholder is named by its line until it is numbered (DESL 0.3).
+        if let (Some(counter), Some(line)) = (super::counter::Counter::of(self.specification, &t.name), new.line)
+            && counter.placeholder_id().as_deref() == Some(element.id.as_str())
+        {
+            node.keep_read_id();
+            node.set_id(&format!("line/{line}"));
+        }
         self.built.insert(position, node.clone());
         self.by_read_id
             .entry(element.id.clone())

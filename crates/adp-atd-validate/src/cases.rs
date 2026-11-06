@@ -56,7 +56,7 @@ pub fn validate_description(checked: &Checked, host: &RuntimeHost, cases: &[Case
     }
     let symbols = checked.symbols.as_ref().ok_or("The description was not checked.")?;
     match checked.description.kind() {
-        Some("diagram") => {}
+        Some("diagram" | "designer") => {}
         Some(kind) => return Err(format!("A {kind}'s description has no runtime yet; diagrams' have.")),
         None => return Err("The file is not part of a tool description.".to_owned()),
     }

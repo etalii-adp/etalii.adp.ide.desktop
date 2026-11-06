@@ -427,7 +427,9 @@ fn attributes(
         let at = json::pointer(&json::pointer(pointer, "attributes"), name);
         let type_name = json::string_of(value, "type");
         if let Some(diagnostics) = diagnostics.as_deref_mut() {
-            if is_reserved(name) {
+            // A type lowered from a designer's description (`x-desl`) keeps DESL's names, which reserves none of
+            // these (DESL section 4.3): an attribute shadows the member of its name (section 12.2).
+            if is_reserved(name) && json::get(owner, "x-desl").is_none() {
                 diagnostics.push(DislDiagnostic::error(
                     at.clone(),
                     format!("'{name}' is a reserved name and cannot be an attribute (DISL §2.2)."),

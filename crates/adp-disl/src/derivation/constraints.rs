@@ -56,6 +56,8 @@ pub fn evaluate(
     run.reader();
     if !run.primary_unparseable {
         run.duplicate_ids();
+        run.missing_ids();
+        run.mentions();
         run.endpoints();
         run.references();
         run.rules();
@@ -93,7 +95,7 @@ impl BuiltIn<'_> {
         json::string_of(self.json, "severity")
             .map(str::to_owned)
             .unwrap_or_else(|| match self.id.as_str() {
-                "std.unreadableEntry" | "std.duplicateId" | "std.missingId" => "warning".into(),
+                "std.unreadableEntry" | "std.duplicateId" | "std.missingId" | "std.mentions" => "warning".into(),
                 _ => "error".into(),
             })
     }
@@ -280,6 +282,89 @@ impl Run<'_> {
             subject: None,
         };
         self.found.push((made, -1, position.line()));
+    }
+
+    /// `std.missingId` of an element read with its counter's placeholder (DESL 0.2 section 5.3.5): named
+    /// `line/<line>`, and numbered with the next edit, in reading order.
+    fn missing_ids(&mut self) {
+        if !setting_of(self.specification, "std.missingId").enabled() {
+            return;
+        }
+        for (element, next, counter) in crate::model::counter::numbering(self.specification, self.diagram) {
+            let written = counter.placeholder_id().unwrap_or_default();
+            let mut detail = Map::default();
+            detail.insert("next", Value::String(next.clone()));
+            detail.insert("written", Value::String(written.clone()));
+            let fallback = format!("{next} is numbered when the document is next changed: the file holds {written}.");
+            self.add("std.missingId", &element, detail, &fallback, &element);
+        }
+    }
+
+    /// `std.mentions` (DESL 0.2 sections 4.3, 6.5): each mention a `mentions` facet reads in an attribute's text that
+    /// names no element of the facet's types, at the mention's line. An element whose id is its place (an ephemeral
+    /// derived id, DESL section 5.3) is named by its line alone. A `text` attribute is written below its element's
+    /// first line, a `string` on it.
+    fn mentions(&mut self) {
+        let setting = setting_of(self.specification, "std.mentions");
+        if !setting.enabled() {
+            return;
+        }
+        let metamodel = self.specification.metamodel();
+        let ephemeral = |type_name: &str| {
+            self.specification
+                .root()
+                .pointer(&format!("/persistence/ids/types/{type_name}/ephemeral"))
+                .and_then(Json::as_bool)
+                == Some(true)
+        };
+        let mut found = Vec::new();
+        for element in self.diagram.elements() {
+            let Some(element_type) = metamodel.type_of(&element.type_name()) else {
+                continue;
+            };
+            for (name, attribute) in &element_type.attributes {
+                let facet = json::member(&attribute.json, "mentions");
+                let Some(pattern) = json::string_of(facet, "pattern") else {
+                    continue;
+                };
+                let Ok(pattern) = regex::Regex::new(pattern) else {
+                    continue;
+                };
+                let types = json::strings_of(facet, "types");
+                let Value::String(text) = element.value_of(name) else {
+                    continue;
+                };
+                for captures in pattern.captures_iter(&text) {
+                    let Some(id) = captures.name("id") else { continue };
+                    let named = self
+                        .diagram
+                        .element_by_id(id.as_str())
+                        .is_some_and(|e| types.iter().any(|t| e.is_a(t)));
+                    if named {
+                        continue;
+                    }
+                    let below = usize::from(attribute.type_name == "text");
+                    let line = element
+                        .line()
+                        .map(|l| l + (below + text[..id.start()].matches('\n').count()) as i32);
+                    found.push((element.clone(), id.as_str().to_owned(), types.clone(), line));
+                }
+            }
+        }
+        for (element, id, types, line) in found {
+            let mut detail = Map::default();
+            detail.insert("id", Value::String(id.clone()));
+            let kinds: Vec<String> = types.iter().map(|t| t.to_lowercase()).collect();
+            let fallback = format!("{id} names no {} of this document.", kinds.join(" or "));
+            self.add("std.mentions", &element, detail, &fallback, &element);
+            if let Some((made, _, at)) = self.found.last_mut() {
+                made.line = line;
+                *at = line;
+                if ephemeral(&element.type_name()) {
+                    made.element_ids.clear();
+                }
+            }
+        }
     }
 
     /// `std.duplicateId`: per written id held by several stored elements, each later holder, in reading order.

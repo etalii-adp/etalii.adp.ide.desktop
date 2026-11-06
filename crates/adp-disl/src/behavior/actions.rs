@@ -215,15 +215,32 @@ impl<'a> ActionRunner<'a> {
                 }
                 true
             }
-            "reparent" => {
+            "reparent" | "reorder" => {
                 let self_value = variables.get("self").cloned().unwrap_or(Value::Null);
                 let Some(target) = self.member(body, &body_at, "target", variables, self_value) else {
                     return false;
                 };
-                let Some(parent) = self.member(body, &body_at, "parent", variables, Value::Null) else {
-                    return false;
+                // A reorder keeps the element under its parent, placed after or before a sibling (section 9.4).
+                let own_parent = match DislElement::from_value(&target).and_then(|e| e.parent()) {
+                    Some(parent) if kind == "reorder" => parent.to_value(),
+                    _ => Value::Null,
                 };
-                let Some(slot) = self.member(body, &body_at, "slot", variables, Value::Null) else {
+                if kind == "reorder" && json::get(body, "by").is_some() {
+                    return self.refuse(format!("This runtime cannot run a `reorder` by a count yet ({at})."));
+                }
+                let parent = if kind == "reorder" {
+                    own_parent
+                } else {
+                    let Some(parent) = self.member(body, &body_at, "parent", variables, Value::Null) else {
+                        return false;
+                    };
+                    parent
+                };
+                let own_slot = match DislElement::from_value(&target).and_then(|e| e.slot()) {
+                    Some(slot) if kind == "reorder" => Value::String(slot),
+                    _ => Value::Null,
+                };
+                let Some(slot) = self.member(body, &body_at, "slot", variables, own_slot) else {
                     return false;
                 };
                 let Some(after) = self.member(body, &body_at, "after", variables, Value::Null) else {
@@ -435,9 +452,27 @@ impl<'a> ActionRunner<'a> {
         let Some(point) = self.member(body, at, "at", variables, Value::Null) else {
             return false;
         };
-        let Some(attributes) = self.attributes(body, at, variables) else {
+        let Some(mut attributes) = self.attributes(body, at, variables) else {
             return false;
         };
+        // A designer's new element is written with the defaults of what it is not given (DESL section 4.3).
+        let metamodel = self.specification.metamodel();
+        if let Some(created_type) = metamodel.type_of(&type_name)
+            && json::get(&created_type.json, "x-desl").is_some()
+        {
+            for (name, attribute) in &created_type.attributes {
+                if attributes.contains_key(name) || attribute.is_derived() {
+                    continue;
+                }
+                if let Some(value) = attribute
+                    .default
+                    .as_ref()
+                    .and_then(|d| values::from_json(d, attribute, metamodel))
+                {
+                    attributes.insert(name.clone(), value);
+                }
+            }
+        }
         let Some(after) = self.member(body, at, "after", variables, Value::Null) else {
             return false;
         };
@@ -484,7 +519,12 @@ impl<'a> ActionRunner<'a> {
             },
             (None, None) => None,
         };
-        let created = self.ids.next(&type_name).and_then(|id| match &parent {
+        // A counted id is the counter's next (DESL section 5.3.5), not the host's.
+        let next = match crate::model::counter::Counter::of(self.specification, &type_name) {
+            Some(counter) => Ok(counter.next(self.specification, self.diagram)),
+            None => self.ids.next(&type_name),
+        };
+        let created = next.and_then(|id| match &parent {
             Some(parent) => self
                 .diagram
                 .add_child(&type_name, &id, attributes.clone(), parent, slot.as_str()),

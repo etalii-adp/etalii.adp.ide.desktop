@@ -249,7 +249,7 @@ pub fn operation_entry(
     let admitted = json::strings_of(operation, "for");
     let admits = match target {
         DislMenuTarget::Element(element) => admitted.iter().any(|n| element.is_a(n)),
-        _ => admitted.is_empty(),
+        _ => admitted.is_empty() || admitted.iter().any(|n| n == "diagram"),
     };
     if !admits {
         return None;

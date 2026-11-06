@@ -408,3 +408,52 @@ diagram test/links version "0.1.0" {
         )]
     );
 }
+
+/// A designer's description lowered onto DISL (etalii.adp spec 076, T052): its operations, constraints and ids, with
+/// `document` read as the diagram, `elementsOfType` as `nodesOfType`, and a name DISL §2.2 reserves kept on a type
+/// marked `x-desl`.
+#[test]
+fn a_lowered_designer_has_its_operations_constraints_and_ids_with_document_as_the_diagram() {
+    let path = definitions().join("../designers/hierarchical-requirement.atd");
+    let loaded = load(&FsFiles, &path);
+    let json = &loaded.json;
+    let operations = json.pointer("/behavior/operations").and_then(Json::as_object).unwrap();
+    assert!(operations.contains_key("addTag") && operations.contains_key("moveItem"));
+    assert_eq!(operations["addTopItem"]["for"], Json::String("diagram".into()));
+    assert!(json.pointer("/persistence/ids/types/Requirement").is_some());
+    let text = serde_json::to_string(&json["behavior"]).unwrap();
+    assert!(!text.contains("document.elementsOfType") && text.contains("diagram.nodesOfType"));
+    let assessment = json.pointer("/metamodel/types/Assessment").unwrap();
+    assert_eq!(assessment["x-desl"], Json::Bool(true));
+    assert!(
+        loaded
+            .specification
+            .metamodel()
+            .type_of("Assessment")
+            .unwrap()
+            .attributes
+            .contains_key("kind")
+    );
+    assert_eq!(
+        json.pointer("/persistence/typeMap/Marks/as"),
+        Some(&Json::String("diagram".into()))
+    );
+}
+
+/// DESL's `counter` strategy (etalii.adp spec 076, T053, DESL section 5.3.5): its prefix, digits, mark and placeholder,
+/// and the next number of a document without one. A placeholder numbered with the next edit in reading order, the mark
+/// written and `std.missingId` with its sentence are the cases' (`tags`, step 1, and every case's reading).
+#[test]
+fn a_counted_id_is_its_prefix_and_number_and_the_placeholder_waits_for_one() {
+    use adp_disl::model::counter::Counter;
+    let path = definitions().join("../designers/hierarchical-requirement.atd");
+    let loaded = load(&FsFiles, &path);
+    let counter = Counter::of(&loaded.specification, "Requirement").expect("a counted type");
+    assert_eq!(counter.placeholder_id().as_deref(), Some("REQ-NEW"));
+    assert_eq!(counter.number("REQ-0012"), Some(12));
+    assert_eq!(counter.number("REQ-NEW"), None);
+    assert_eq!(counter.id(13), "REQ-0013");
+    let empty = DislDiagram::new(&loaded.specification);
+    assert_eq!(counter.next(&loaded.specification, &empty), "REQ-0001");
+    assert!(Counter::of(&loaded.specification, "Assessment").is_none());
+}

@@ -148,14 +148,34 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
             ..StepIds::default()
         },
         selection: None,
+        designer: description.kind() == Some("designer"),
     };
 
-    // The reading.
+    // The reading: a designer's as its model holds it, in its surface's order (ATD §2.3).
+    let designer = replay.designer;
+    let surface_types = surface_types(description);
     let elements = replay.session.render(replay.workspace.documents()).unwrap_or_default();
-    let (nodes, relations) = parts::reading(&elements);
+    let (nodes, relations) = if designer {
+        let document = replay.workspace.documents().get(&replay.body_path);
+        (
+            document
+                .map(|d| parts::designer_reading(d, &surface_types))
+                .unwrap_or_default(),
+            Vec::new(),
+        )
+    } else {
+        parts::reading(&elements)
+    };
+    let findings_of = |replay: &Replay| {
+        if designer {
+            parts::designer_findings(&replay.session, replay.workspace.documents())
+        } else {
+            parts::findings(&replay.session, replay.workspace.documents())
+        }
+    };
     let read = &case.fixture["read"];
     let read_by = |item: &Json| constructs.rule(item["type"].as_str());
-    let found_by = |item: &Json| constructs.code(item["rule"].as_str());
+    let found_by = |item: &Json| constructs.code(item["rule"].as_str().or_else(|| item["code"].as_str()));
     let from_module = case.fixture["recordedFrom"] == "module";
     let (nodes, relations) = (Json::Array(nodes), Json::Array(relations));
     if from_module {
@@ -196,7 +216,7 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
             &read_by,
         );
     }
-    let findings = parts::findings(&replay.session, replay.workspace.documents());
+    let findings = findings_of(&replay);
     compare(
         &mut differences,
         (None, "findings"),
@@ -290,7 +310,7 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
             });
         }
         if let Some(expected) = step.get("findings") {
-            let findings = parts::findings(&replay.session, replay.workspace.documents());
+            let findings = findings_of(&replay);
             compare(
                 &mut differences,
                 (number, "findings"),
@@ -438,6 +458,8 @@ struct Replay {
     body_path: PathBuf,
     ids: StepIds,
     selection: Option<String>,
+    /// Whether the tool type is a designer, whose steps with nothing selected are made on the document.
+    designer: bool,
 }
 
 impl Replay {
@@ -542,6 +564,11 @@ impl Replay {
                 self.selection = None;
                 Ok(())
             }
+            // A designer's step on the document selects `document` (ATD §2.3), as its toolbar acts on it.
+            [one] if self.designer && one.as_str() == Some("document") => {
+                self.selection = None;
+                Ok(())
+            }
             [one] => {
                 let id = one.as_str().ok_or("An element is named by a string.")?.to_owned();
                 if self.session.select(self.workspace.documents(), &id).is_none() {
@@ -562,6 +589,8 @@ impl Replay {
         }
         match args.get("target").and_then(Json::as_str) {
             Some(target) => Ok(ActionTarget::Element(target.to_owned())),
+            // A designer's step with nothing selected is made on the document, as its toolbar's actions are.
+            None if self.designer && self.selection.is_none() => Ok(ActionTarget::Canvas { x: 0.0, y: 0.0 }),
             None => self
                 .selection
                 .clone()
@@ -711,7 +740,20 @@ impl Replay {
     fn action(&mut self, target: &ActionTarget, action: &str, args: &Json) -> Result<(), String> {
         let value = args.get("value").and_then(Json::as_str);
         let _ = self.session.take_host_actions();
-        let prompt = match self.session.execute(&mut self.workspace, target, action, &self.ids) {
+        // What a step's `args` name besides the prompt's answer are the operation's parameters, as a form of several
+        // fields answers them.
+        let answered: adp_cel::Map = args
+            .as_object()
+            .into_iter()
+            .flatten()
+            .filter(|(name, _)| !matches!(name.as_str(), "value" | "confirm" | "target" | "at"))
+            .map(|(name, value)| (name.clone(), cel_of(value)))
+            .collect();
+        let answered = (!answered.is_empty()).then_some(&answered);
+        let prompt = match self
+            .session
+            .execute_given(&mut self.workspace, target, action, answered, &self.ids)
+        {
             ActionOutcome::Done => {
                 let Some(value) = value else { return Ok(()) };
                 let edited = self.session.take_host_actions().into_iter().find_map(|a| match a {
@@ -729,7 +771,11 @@ impl Replay {
             ActionOutcome::Prompt(prompt) => prompt,
         };
         let answer = match prompt {
-            Prompt::Confirm { .. } => (args.get("confirm").and_then(Json::as_bool) == Some(true)).then(String::new),
+            // A designer's gesture names the operation it made (ATD §2.3): what the tool asks first is confirmed.
+            Prompt::Confirm { .. } => {
+                let confirm = args.get("confirm").and_then(Json::as_bool);
+                (confirm == Some(true) || (self.designer && confirm.is_none())).then(String::new)
+            }
             Prompt::Closed { message } => return Err(format!("the prompt closed: {message}")),
             _ => value.map(str::to_owned),
         };
@@ -839,5 +885,50 @@ fn history(outcome: Outcome) -> Result<(), String> {
     match outcome {
         Outcome::Refused(refusal) => Err(refusal.0),
         _ => Ok(()),
+    }
+}
+
+/// The types of a designer's surface, in the order it names them (ATD §9): the order its reading lists elements in.
+fn surface_types(description: &Description) -> Vec<String> {
+    let mut types = Vec::new();
+    for surface in description
+        .members()
+        .filter(|m| m["kind"].as_str().is_some_and(|k| k.ends_with("Surface")))
+    {
+        for member in surface["members"].as_array().into_iter().flatten() {
+            // Levels and entries are one tree, read in document order: they share the first place.
+            let tree = matches!(member["kind"].as_str(), Some("levels" | "entries"));
+            let named = member["type"]["name"]["text"]
+                .as_str()
+                .map(|t| if tree { format!("tree:{t}") } else { t.to_owned() })
+                .or_else(|| {
+                    member["settings"].as_array()?.iter().find(|s| s["key"] == "options")?["value"]["settings"]
+                        .as_array()?
+                        .iter()
+                        .find(|s| s["key"] == "type")?["value"]["literal"]
+                        .as_str()
+                        .map(str::to_owned)
+                });
+            types.extend(named);
+        }
+    }
+    types
+}
+
+/// A step's JSON value as the value an operation's parameter takes.
+fn cel_of(value: &Json) -> adp_cel::Value {
+    use adp_cel::Value;
+    match value {
+        Json::Null => Value::Null,
+        Json::Bool(b) => Value::Bool(*b),
+        Json::Number(n) => match n.as_i64() {
+            Some(i) => Value::Int(i),
+            None => Value::Double(n.as_f64().unwrap_or_default()),
+        },
+        Json::String(s) => Value::String(s.clone()),
+        Json::Array(items) => Value::List(std::rc::Rc::new(items.iter().map(cel_of).collect())),
+        Json::Object(fields) => Value::Map(std::rc::Rc::new(
+            fields.iter().map(|(k, v)| (k.clone(), cel_of(v))).collect(),
+        )),
     }
 }
