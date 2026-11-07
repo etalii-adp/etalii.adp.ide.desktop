@@ -177,7 +177,7 @@ impl Page {
             if let SurfaceChange::Outcome(outcome) = change
                 && !outcome.written
             {
-                return Err(format!("could not be written: {}", outcome.error));
+                return Err(outcome.error);
             }
         }
         Ok(())
