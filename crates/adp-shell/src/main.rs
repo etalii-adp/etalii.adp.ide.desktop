@@ -4,7 +4,7 @@
 
 #![cfg_attr(not(test), windows_subsystem = "windows")]
 
-use adp_shell::{shell, theme};
+use adp_shell::{crash, shell, theme};
 use eframe::egui;
 
 struct App {
@@ -37,6 +37,17 @@ impl eframe::App for App {
 }
 
 fn main() -> eframe::Result {
+    // `ADP_STATE` keeps the state in a folder of the caller's choosing, as a portable install or the start-up probe
+    // does; else the platform's folder.
+    let state = match std::env::var_os("ADP_STATE") {
+        Some(folder) => Ok(adp_core::state::StateFolder::at(folder)),
+        None => adp_core::state::StateFolder::for_platform(),
+    };
+    // Without a console a failed start would close the program without a word: it is written to the crash log and
+    // shown, except to the start-up probe, which reads the log instead.
+    let crash_log = crash::log_file(state.as_ref().ok().map(|s| s.root()));
+    let quiet = std::env::var_os("ADP_STARTUP_PROBE").is_some();
+    crash::install_panic_hook(crash_log.clone(), quiet);
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_title("ADP")
@@ -44,17 +55,11 @@ fn main() -> eframe::Result {
             .with_min_inner_size([640.0, 400.0]),
         ..Default::default()
     };
-    eframe::run_native(
+    let result = eframe::run_native(
         "ADP",
         options,
         Box::new(|cc| {
             theme::install(&cc.egui_ctx);
-            // `ADP_STATE` keeps the state in a folder of the caller's choosing, as a portable install or the start-up
-            // probe does; else the platform's folder.
-            let state = match std::env::var_os("ADP_STATE") {
-                Some(folder) => Ok(adp_core::state::StateFolder::at(folder)),
-                None => adp_core::state::StateFolder::for_platform(),
-            };
             let mut shell = match state {
                 Ok(state) => shell::Shell::with_state(state),
                 Err(_) => shell::Shell::default(),
@@ -67,5 +72,10 @@ fn main() -> eframe::Result {
             let probe = std::env::var_os("ADP_STARTUP_PROBE").map(|file| (file.into(), 0));
             Ok(Box::new(App { shell, probe }))
         }),
-    )
+    );
+    if let Err(error) = &result {
+        // The window could not be made, as when no graphics adapter answers.
+        crash::report(&crash_log, &format!("The window could not be opened: {error}"), quiet);
+    }
+    result
 }

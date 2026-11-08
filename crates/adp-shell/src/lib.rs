@@ -8,6 +8,8 @@ mod a11y;
 mod add_dialog;
 mod atd_client;
 mod canvas;
+/// What a failed start leaves behind: a crash log and a message box.
+pub mod crash;
 mod debugger;
 mod documents;
 mod editor;
