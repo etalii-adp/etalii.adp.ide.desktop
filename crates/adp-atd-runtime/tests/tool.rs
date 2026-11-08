@@ -197,8 +197,6 @@ const C4_DIFFERENCES: &[&str] = &[
     "+ /elements/9/attributes/targetWritten",
     "+ /elements/16/attributes/sourceWritten",
     "+ /elements/16/attributes/targetWritten",
-    // A relationship written inside an element's block has that element as its source, as FBL's example says in words.
-    "+ /elements/9/attributes/from/secondary",
     // An element's parent is the element whose block it is in, of any kind, and `misplacedElement` says so.
     "~ /elements/3/parent/rules/0",
     "~ /elements/3/parent/rules/1",
@@ -208,30 +206,6 @@ const C4_DIFFERENCES: &[&str] = &[
     "~ /elements/6/parent/rules",
     "~ /elements/7/parent/rules",
     "~ /elements/8/parent/rules",
-    // FBL's example writes a set name, description and technology again between double quotes (`escape.requote`, FBL
-    // 0.15 section 6.3), for the standalone host (etalii.adp spec 068, e51a765); the descriptions, which the cases
-    // recorded from the module hold, write the value's span, as the module does.
-    "- /elements/1/attributes/description/escape/requote",
-    "- /elements/1/attributes/name/escape/requote",
-    "- /elements/2/attributes/description/escape/requote",
-    "- /elements/2/attributes/name/escape/requote",
-    "- /elements/3/attributes/description/escape/requote",
-    "- /elements/3/attributes/name/escape/requote",
-    "- /elements/3/attributes/technology/escape/requote",
-    "- /elements/4/attributes/description/escape/requote",
-    "- /elements/4/attributes/name/escape/requote",
-    "- /elements/4/attributes/technology/escape/requote",
-    "- /elements/5/attributes/description/escape/requote",
-    "- /elements/5/attributes/name/escape/requote",
-    "- /elements/5/attributes/technology/escape/requote",
-    "- /elements/6/attributes/description/escape/requote",
-    "- /elements/6/attributes/name/escape/requote",
-    "- /elements/6/attributes/technology/escape/requote",
-    "- /elements/9/attributes/description/escape/requote",
-    "- /elements/9/attributes/technology/escape/requote",
-    // FBL's example reads a relationship's missing source from the identifier of the declaration whose block holds it
-    // with a further slot (`or`, FBL 0.15; spec 068, 5dad4f7); the descriptions read it with `secondary`, above.
-    "- /elements/9/attributes/from/or",
 ];
 
 #[test]

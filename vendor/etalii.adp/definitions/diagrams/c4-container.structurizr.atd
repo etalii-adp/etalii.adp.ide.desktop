@@ -117,12 +117,12 @@ binding structurizr family grammar {
     attribute identifier from node "identifier" { readOnly: true }
     attribute name from node "name" {
       match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
-      escape: { with: "\\", quote: "\"" }
+      escape: { with: "\\", quote: "\"", requote: "\"" }
       empty: keep
     }
     attribute description from node "description" {
       match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
-      escape: { with: "\\", quote: "\"" }
+      escape: { with: "\\", quote: "\"", requote: "\"" }
       empty: keep
       create: { emit: " \"{value}\"", after: ["name"], pad: true }
     }
@@ -149,12 +149,12 @@ binding structurizr family grammar {
     attribute identifier from node "identifier" { readOnly: true }
     attribute name from node "name" {
       match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
-      escape: { with: "\\", quote: "\"" }
+      escape: { with: "\\", quote: "\"", requote: "\"" }
       empty: keep
     }
     attribute description from node "description" {
       match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
-      escape: { with: "\\", quote: "\"" }
+      escape: { with: "\\", quote: "\"", requote: "\"" }
       empty: keep
       create: { emit: " \"{value}\"", after: ["name"], pad: true }
     }
@@ -182,18 +182,18 @@ binding structurizr family grammar {
     attribute identifier from node "identifier" { readOnly: true }
     attribute name from node "name" {
       match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
-      escape: { with: "\\", quote: "\"" }
+      escape: { with: "\\", quote: "\"", requote: "\"" }
       empty: keep
     }
     attribute description from node "description" {
       match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
-      escape: { with: "\\", quote: "\"" }
+      escape: { with: "\\", quote: "\"", requote: "\"" }
       empty: keep
       create: { emit: " \"{value}\"", after: ["name"], pad: true }
     }
     attribute technology from node "technology" {
       match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
-      escape: { with: "\\", quote: "\"" }
+      escape: { with: "\\", quote: "\"", requote: "\"" }
       empty: keep
       create: { emit: " \"{value}\"", after: ["description", "name"], pad: true }
     }
@@ -221,18 +221,18 @@ binding structurizr family grammar {
     attribute identifier from node "identifier" { readOnly: true }
     attribute name from node "name" {
       match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
-      escape: { with: "\\", quote: "\"" }
+      escape: { with: "\\", quote: "\"", requote: "\"" }
       empty: keep
     }
     attribute description from node "description" {
       match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
-      escape: { with: "\\", quote: "\"" }
+      escape: { with: "\\", quote: "\"", requote: "\"" }
       empty: keep
       create: { emit: " \"{value}\"", after: ["name"], pad: true }
     }
     attribute technology from node "technology" {
       match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
-      escape: { with: "\\", quote: "\"" }
+      escape: { with: "\\", quote: "\"", requote: "\"" }
       empty: keep
       create: { emit: " \"{value}\"", after: ["description", "name"], pad: true }
     }
@@ -260,18 +260,18 @@ binding structurizr family grammar {
     attribute identifier from node "identifier" { readOnly: true }
     attribute name from node "name" {
       match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
-      escape: { with: "\\", quote: "\"" }
+      escape: { with: "\\", quote: "\"", requote: "\"" }
       empty: keep
     }
     attribute description from node "description" {
       match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
-      escape: { with: "\\", quote: "\"" }
+      escape: { with: "\\", quote: "\"", requote: "\"" }
       empty: keep
       create: { emit: " \"{value}\"", after: ["name"], pad: true }
     }
     attribute technology from node "technology" {
       match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
-      escape: { with: "\\", quote: "\"" }
+      escape: { with: "\\", quote: "\"", requote: "\"" }
       empty: keep
       create: { emit: " \"{value}\"", after: ["description", "name"], pad: true }
     }
@@ -297,18 +297,18 @@ binding structurizr family grammar {
     attribute identifier from node "identifier" { readOnly: true }
     attribute name from node "name" {
       match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
-      escape: { with: "\\", quote: "\"" }
+      escape: { with: "\\", quote: "\"", requote: "\"" }
       empty: keep
     }
     attribute description from node "description" {
       match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
-      escape: { with: "\\", quote: "\"" }
+      escape: { with: "\\", quote: "\"", requote: "\"" }
       empty: keep
       create: { emit: " \"{value}\"", after: ["name"], pad: true }
     }
     attribute technology from node "technology" {
       match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
-      escape: { with: "\\", quote: "\"" }
+      escape: { with: "\\", quote: "\"", requote: "\"" }
       empty: keep
       create: { emit: " \"{value}\"", after: ["description", "name"], pad: true }
     }
@@ -386,7 +386,7 @@ binding structurizr family grammar {
       references person, softwareSystem, container, component, deploymentNode, infrastructureNode, containerInstance, softwareSystemInstance by id
       match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
       escape: { with: "\\", quote: "\"" }
-      secondary: { parent: "identifier" }
+      or: [{ node: "../identifier", match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?", escape: { with: "\\", quote: "\"" } }]
     }
     attribute to from node "destination" {
       references person, softwareSystem, container, component, deploymentNode, infrastructureNode, containerInstance, softwareSystemInstance by id
@@ -395,13 +395,13 @@ binding structurizr family grammar {
     }
     attribute description from node "description" {
       match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
-      escape: { with: "\\", quote: "\"" }
+      escape: { with: "\\", quote: "\"", requote: "\"" }
       empty: keep
       create: { emit: " \"{value}\"", after: ["to"], pad: true }
     }
     attribute technology from node "technology" {
       match: "\"?(?<value>(?:[^\"\\\\]|\\\\.)*)\"?"
-      escape: { with: "\\", quote: "\"" }
+      escape: { with: "\\", quote: "\"", requote: "\"" }
       empty: keep
       create: { emit: " \"{value}\"", after: ["description", "to"], pad: true }
     }
