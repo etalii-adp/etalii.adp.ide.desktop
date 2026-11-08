@@ -1159,9 +1159,28 @@
     "setCondition": {
       "label": "Edit filter",
       "for": ["Condition"],
-      "params": { "operator": { "type": "string", "required": true } },
-      "actions": [{ "set": { "operator": "p.operator" } }],
-      "doc": "The value is set as a cell's is, by the value key of the property's type."
+      "params": {
+        "operator": { "type": "string", "required": true },
+        "text": { "type": "text", "doc": "The compared text, for text." },
+        "number": { "type": "number", "doc": "The compared number." },
+        "checked": { "type": "bool", "doc": "The compared checkbox." },
+        "date": { "type": "date", "doc": "The compared date, ISO 8601." },
+        "dateTime": { "type": "datetime", "timezone": "preserve", "doc": "The compared date and time, ISO 8601 with its offset." },
+        "time": { "type": "time", "doc": "The compared time of day, ISO 8601." },
+        "option": { "type": "Option", "doc": "The compared option of a selection, by id." }
+      },
+      "actions": [
+        { "unset": ["text", "number", "checked", "date", "dateTime", "time", "option"] },
+        { "set": { "operator": "p.operator" } },
+        { "set": { "text": "p.text" }, "when": "has(p.text)" },
+        { "set": { "number": "p.number" }, "when": "has(p.number)" },
+        { "set": { "checked": "p.checked" }, "when": "has(p.checked)" },
+        { "set": { "date": "p.date" }, "when": "has(p.date)" },
+        { "set": { "dateTime": "p.dateTime" }, "when": "has(p.dateTime)" },
+        { "set": { "time": "p.time" }, "when": "has(p.time)" },
+        { "set": { "option": "p.option" }, "when": "has(p.option)" }
+      ],
+      "doc": "The value is set as a cell's is, by the value key of the property's type, with its operator, in one step; the value of another type goes."
     },
     "removeCondition": { "label": "Remove", "for": ["Condition", "FilterGroup"], "actions": [{ "delete": "self" }], "doc": "A group goes with its conditions." },
     "addFilterGroup": {
@@ -1233,6 +1252,42 @@
         }
       ],
       "doc": "Dragging a group heading: its place in `groupOrder`."
+    },
+    "setNewOption": {
+      "label": "New option",
+      "for": ["Row"],
+      "params": {
+        "property": { "type": "Property", "required": true },
+        "name": { "type": "string", "required": true, "minLength": 1 },
+        "colour": { "type": "Colour", "default": "default" }
+      },
+      "actions": [
+        { "let": { "name": "p.name.trim()" } },
+        { "let": { "found": "p.property.childrenOfType('Option').filter(o, o.name.lowerAscii() == name.lowerAscii())" } },
+        { "let": { "cell": "self.childrenOfType('Cell').filter(c, c.property == p.property)" } },
+        {
+          "if": "found.size() == 0",
+          "then": [
+            {
+              "create": { "type": "'Option'", "parent": "p.property", "slot": "'options'", "attributes": { "name": "name", "colour": "p.colour == 'default' ? null : p.colour" } },
+              "as": "made"
+            },
+            {
+              "if": "cell.size() == 0",
+              "then": [{ "create": { "type": "'Cell'", "parent": "self", "slot": "'cells'", "attributes": { "property": "p.property", "option": "made" } } }],
+              "else": [{ "set": { "option": "made" }, "target": "cell[0]" }]
+            }
+          ],
+          "else": [
+            {
+              "if": "cell.size() == 0",
+              "then": [{ "create": { "type": "'Cell'", "parent": "self", "slot": "'cells'", "attributes": { "property": "p.property", "option": "found[0]" } } }],
+              "else": [{ "set": { "option": "found[0]" }, "target": "cell[0]" }]
+            }
+          ]
+        }
+      ],
+      "doc": "Typing a name that is no option in a selection's cell: the option is made, at the end of the property's options, with the colour the host picked for it, and the cell given it, in one step (knowledge.md, section 11). A name an option already has, ignoring case, picks that option."
     }
   }
 }

@@ -267,7 +267,7 @@ Where it differs: there is no table, no column, no view tab and no property grid
 | The category and state lists: add, rename, colour, drag, delete | `addCategory`, `renameCategory`, `recolourCategory`, `moveCategory`, `deleteCategory`, and the same for `State` | As the tag list |
 | The assessment icon and its list | `addAssessment`, `changeAssessment`, `resolveAssessment`, `removeAssessment` | The file, under `Assessments`; resolving replaces one character, except on an assessment written without a checkbox, whose line is written again with one |
 | Storing the applied filter under a name; renaming or removing a stored one | `storeFilter`, `renameFilter`, `removeFilter` | The registration's `filters` block |
-| Dragging the right edge of a column of items; taking its width away | `addColumnWidth` the first time, then `setColumnWidth`; `resetColumnWidth` | The registration's `widths` block |
+| Dragging the right edge of a column of items; taking its width away | `addColumnWidth` the first time, then `setColumnWidth`; `resetColumnWidth`. `addColumnWidth` on a depth that has a width already is refused as a change made against an older file | The registration's `widths` block |
 | Narrowing, sorting, focusing on an item, selecting a reference box | none | Nothing |
 | Giving a duplicate a new number, from its finding | none: part of the `counter` strategy (DESL section 5.3.5) | The file: the new number and line 2 |
 

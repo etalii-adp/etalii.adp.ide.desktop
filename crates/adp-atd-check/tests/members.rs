@@ -152,3 +152,24 @@ fn a_field_of_an_operations_parameter_form_names_a_parameter() {
         ]
     );
 }
+
+#[test]
+fn an_operation_may_be_written_for_the_selection_and_a_constraint_may_not() {
+    // DISL §9.3 and DESL §8.1: `for selection` makes an operation of the selected elements, bound as `selection`
+    // (etalii.adp spec 076, Peter's ruling of 2026-11-07, Q9). A constraint applies to types, or to the document.
+    let text = format!(
+        "atd 0.1\ndiagram example/tasks version \"0.1.0\" {{{MODEL}
+  operation finishAll \"Finish\" for selection {{
+    for t in selection.filter(e, e.isA('Task')) limit 1000 {{
+      set t.done = true
+    }}
+  }}
+  constraint titled for selection {{
+    rule true
+    message \"Never.\"
+  }}
+}}
+"
+    );
+    assert_eq!(findings(&text), vec!["ATD2002 15:25 No element type `selection`."]);
+}

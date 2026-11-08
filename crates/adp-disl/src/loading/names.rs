@@ -53,8 +53,13 @@ impl Resolver<'_> {
 
     /// A property naming what something applies to: types, or one of the words `diagram`, `connection` and the like.
     fn targets(&mut self, owner: &Json, property: &str, pointer: &str) {
+        self.targets_or(owner, property, pointer, &[]);
+    }
+
+    /// [`Self::targets`], where the words `also` are admitted too.
+    fn targets_or(&mut self, owner: &Json, property: &str, pointer: &str, also: &[&str]) {
         for name in json::strings_of(owner, property) {
-            if !TARGET_WORDS.contains(&name.as_str()) {
+            if !TARGET_WORDS.contains(&name.as_str()) && !also.contains(&name.as_str()) {
                 self.name(&name, &json::pointer(pointer, property));
             }
         }
@@ -135,7 +140,8 @@ pub(crate) fn resolve(root: &Json, metamodel: &DislMetamodel, diagnostics: &mut 
 
     for (name, operation) in json::members(behavior, "operations") {
         let pointer = json::pointer("/behavior/operations", name);
-        r.targets(operation, "for", &pointer);
+        // An operation may apply to the selected elements, bound as `selection` (DISL section 9.3).
+        r.targets_or(operation, "for", &pointer, &["selection"]);
         if let Some(form) = json::string_of(operation, "paramsForm")
             && !forms.contains(form)
         {

@@ -214,7 +214,7 @@ impl Table {
                 written: false, error, ..
             } = change
             {
-                return Err(format!("could not be written: {error}"));
+                return Err(error);
             }
         }
         Ok(())

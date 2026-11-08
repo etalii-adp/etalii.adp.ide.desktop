@@ -15,7 +15,7 @@ pub mod meaning;
 pub mod parts;
 
 use std::cell::{Cell, RefCell};
-use std::collections::{BTreeMap, VecDeque};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
@@ -149,6 +149,13 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
         },
         selection: None,
         designer: description.kind() == Some("designer"),
+        files: case.files.clone(),
+        inputs: inputs
+            .as_object()
+            .into_iter()
+            .flatten()
+            .filter_map(|(_, name)| name.as_str().map(str::to_owned))
+            .collect(),
     };
 
     // The reading: a designer's as its model holds it, in its surface's order (ATD §2.3).
@@ -460,6 +467,10 @@ struct Replay {
     selection: Option<String>,
     /// Whether the tool type is a designer, whose steps with nothing selected are made on the document.
     designer: bool,
+    /// The case's files by their name under its folder, with the documents `hierarchy.add` added.
+    files: BTreeMap<String, Vec<u8>>,
+    /// The names of the case's input files, those in its folders included.
+    inputs: BTreeSet<String>,
 }
 
 impl Replay {
@@ -529,6 +540,9 @@ impl Replay {
         }
         let args = step.get("args").unwrap_or(&Json::Null);
         if let Some(action) = step.get("action").and_then(Json::as_str) {
+            if action == "hierarchy.add" {
+                return self.add(args);
+            }
             let target = self.target(args)?;
             return self.action(&target, action, args);
         }
@@ -558,6 +572,81 @@ impl Replay {
             return history(self.workspace.redo());
         }
         Err(format!("The runner knows no step {step}."))
+    }
+
+    /// `hierarchy.add` (ATD §2.3): the explorer's add of a document of the case's own tool type, named `args.text`, into
+    /// the folder of the case named `args.entry`, written as its binding's template (FBL section 13). A file of that
+    /// name that the binding's marker claims is that document already, and nothing is written.
+    fn add(&mut self, args: &Json) -> Result<(), String> {
+        let entry = args["entry"].as_str().ok_or("An add names its entry.")?;
+        let value = args["value"].as_str().unwrap_or_default();
+        let text = args["text"].as_str().unwrap_or_default().trim();
+        let (origin, extension) = value.split_once('@').unwrap_or((value, ""));
+        let binding = &self.tool.binding;
+        let extension = if extension.is_empty() {
+            binding.claims.extensions.first().cloned().unwrap_or_default()
+        } else {
+            extension.to_owned()
+        };
+        if origin != self.tool.origin || !binding.claims.extensions.contains(&extension) {
+            return Err(format!(
+                "The runner adds only a document of {}, not {value}.",
+                self.tool.origin
+            ));
+        }
+        let folder = self.folder_named(entry).ok_or_else(|| format!("no folder '{entry}'"))?;
+        let base = text.strip_suffix(extension.as_str()).unwrap_or(text);
+        if base.is_empty() {
+            return Err("A document needs a name.".to_owned());
+        }
+        let name = format!("{folder}{base}{extension}");
+        if self.inputs.contains(&name) && !self.files.contains_key(&name) {
+            return Err(format!(
+                "An item named '{base}{extension}' already exists in this folder."
+            ));
+        }
+        if let Some(bytes) = self.files.get(&name) {
+            let claimed = binding
+                .claims
+                .marker
+                .as_ref()
+                .is_some_and(|marker| adp_fbl::routing::marker_matches(marker, bytes));
+            return if claimed {
+                Ok(())
+            } else {
+                Err(format!(
+                    "An item named '{base}{extension}' already exists in this folder."
+                ))
+            };
+        }
+        let new_id = |type_name: &str| self.ids.next(type_name).unwrap_or_default();
+        let bytes = adp_fbl::routing::produce(binding, Some(origin), &name, &new_id).ok_or_else(|| {
+            format!(
+                "A {} document cannot be created: its binding has no template.",
+                self.tool.display_name
+            )
+        })?;
+        self.files.insert(name, bytes);
+        Ok(())
+    }
+
+    /// The case's first folder named `name`, breadth first in name order, as the explorer's entry is looked up; as the
+    /// prefix of the names of the files under it.
+    fn folder_named(&self, name: &str) -> Option<String> {
+        let mut folders: Vec<String> = self
+            .files
+            .keys()
+            .chain(&self.inputs)
+            .flat_map(|file| {
+                let parts: Vec<&str> = file.split('/').collect();
+                (1..parts.len()).map(move |n| parts[..n].join("/"))
+            })
+            .collect();
+        folders.sort_by_key(|folder| (folder.matches('/').count(), folder.clone()));
+        folders
+            .into_iter()
+            .find(|folder| folder.rsplit('/').next() == Some(name))
+            .map(|folder| format!("{folder}/"))
     }
 
     /// An `outside` step (ATD §2.3): the body written as another program writes it, the first occurrence of `from`

@@ -333,6 +333,12 @@ const BEYOND_THE_STANDALONE_HOST: [&str; 7] = [
     "textHeight",
 ];
 
+/// The standalone host's refusal of an operation `for` the selection, which DISL section 9.3 admits and this runtime
+/// reads (etalii.adp spec 076, Peter's ruling of 2026-11-07, Q9).
+const BEYOND_THE_STANDALONE_LOADER: [&str; 1] = [
+    "error at /behavior/operations/extractComposite/for: 'selection' is not a type of this specification (DISL §2.7).",
+];
+
 /// What the standalone host's loader reports since it reads constraints, hooks and names typed at load (its spec 025,
 /// T224) and this runtime does not yet: a value the loader compiles no expression at, written as a quoted CEL string.
 const NOT_YET_HERE: [&str; 1] = [
@@ -350,6 +356,7 @@ fn expected_here(recorded: &str) -> String {
             || BEYOND_THE_STANDALONE_LIBRARY.contains(&line)
             || BEYOND_THE_STANDALONE_LOADER_ON_THE_REFRESHED_DEFINITIONS.contains(&line)
             || NOT_YET_HERE.contains(&line)
+            || BEYOND_THE_STANDALONE_LOADER.contains(&line)
     };
     let mut out = String::new();
     let mut lines = recorded.lines().peekable();
