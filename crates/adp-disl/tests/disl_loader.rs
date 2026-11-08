@@ -259,6 +259,18 @@ fn tools_operations_and_scopes_that_name_nothing_are_refused() {
     );
 }
 
+#[test]
+fn an_operation_for_the_selection_names_no_type() {
+    // DISL section 9.3: an operation's `for` is types, `"selection"` or `"diagram"`. The standalone host's loader at
+    // `bea7007` refuses `"selection"` (`statemachine.dis`); this one reads it as DISL states it (etalii.adp spec 076, Q9).
+    let json = with(
+        r#""behavior": { "operations": { "renameAll": { "label": "Rename", "for": "selection",
+          "actions": [ { "forEach": "selection", "as": "t", "do": [ { "set": { "name": "'x'" }, "target": "t" } ] } ] } } }"#,
+    );
+
+    assert_eq!(Vec::<String>::new(), diagnostics(&json));
+}
+
 // Step 8.
 
 #[test]

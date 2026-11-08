@@ -49,6 +49,9 @@ const PRIMITIVES: &[&str] = &[
 /// Names that stand for the document itself where a construct names types it applies to.
 const DOCUMENT_TYPES: &[&str] = &["document", "diagram"];
 
+/// What an operation names in place of types when it is made on the selected elements (DISL §9.3, DESL §8.1).
+const SELECTION: &str = "selection";
+
 /// What a context tool set opens on besides element types (DISL §7.3): the empty canvas and a pending connection.
 const CONTEXT_TARGETS: &[&str] = &["diagram", "connection"];
 
@@ -488,7 +491,13 @@ impl Checker<'_> {
                 }
             }
             "operation" => {
-                let types = self.types_of(member, "for", true);
+                // `for selection` makes an operation of the selected elements, bound as `selection` (DISL §9.3, DESL
+                // §8.1); it names no type.
+                let types = if Self::for_selection(member) {
+                    Vec::new()
+                } else {
+                    self.types_of(member, "for", true)
+                };
                 let scope = self.self_scope(&types);
                 if let Some(expr) = member.get("enabled") {
                     self.bool_expression(expr, &scope, "An operation's `enabled`");
@@ -707,6 +716,11 @@ impl Checker<'_> {
                 }
             }
         }
+    }
+
+    /// Whether an operation is written `for selection`, of the selected elements (DISL §9.3, DESL §8.1).
+    fn for_selection(operation: &Json) -> bool {
+        matches!(operation["for"].as_array().map(Vec::as_slice), Some([one]) if text(one) == SELECTION)
     }
 
     /// The types a construct is written for: what `self` is inside it.

@@ -743,7 +743,7 @@ designer etalii/knowledge version "0.1.0" {
   }
 
   /// Every selected row, in one step (Requirement 4.6). The host says first how many rows of other files relate to them (Requirement 5.8).
-  operation deleteRows "Delete" for Row {
+  operation deleteRows "Delete" for selection {
     for r in selection.filter(e, e.isA('Row')) limit 100000 {
       delete r
     }

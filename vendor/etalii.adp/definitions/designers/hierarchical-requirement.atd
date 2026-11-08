@@ -644,6 +644,11 @@ designer etalii/hierarchical-requirement version "0.1.0" {
     if !p.width.matches('^[0-9]{3,4}$') || int(p.width) < 120 || int(p.width) > 2000 {
       fail 'A column is 120 to 2000 pixels wide.'
     }
+    // The gesture is offered only on a column without a stored width, so a column of that depth that has one means the
+    // page was made against an older file.
+    if document.elementsOfType('Column').exists(c, c.level == p.level) {
+      fail 'The file changed while you were editing, so this change was not written. The page now shows the file as it is.'
+    }
     create Column { level: p.level, width: int(p.width) }
   }
 

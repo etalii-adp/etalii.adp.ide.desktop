@@ -248,7 +248,8 @@ pub fn operation_entry(
         .find(|(name, _)| ids.action_id(&types, "operation", Some(name), &Map::default()) == action_id)?;
     let admitted = json::strings_of(operation, "for");
     let admits = match target {
-        DislMenuTarget::Element(element) => admitted.iter().any(|n| element.is_a(n)),
+        // An operation of the selection (DISL section 9.3) is offered on an element, which is then what is selected.
+        DislMenuTarget::Element(element) => admitted.iter().any(|n| n == "selection" || element.is_a(n)),
         _ => admitted.is_empty() || admitted.iter().any(|n| n == "diagram"),
     };
     if !admits {

@@ -114,4 +114,11 @@ views:
     name: All books
 """
   }
+
+  /// Every selected book, in one step: an operation of the selection, bound as `selection` (DESL section 8.1).
+  operation removeBooks "Remove" for selection {
+    for b in selection.filter(e, e.isA('Book')) limit 100000 {
+      delete b
+    }
+  }
 }
