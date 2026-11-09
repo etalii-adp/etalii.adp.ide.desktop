@@ -209,6 +209,67 @@ fn the_stw_vocabularies_draw_within_the_budgets() {
     }
 }
 
+/// The RDF description gives each card of the two vocabularies of the STW Thesaurus its place among the cards, which the
+/// card carries from its derived type's `from` (etalii.adp spec 078, FR-001, SC-004): every card is derived, with no
+/// finding, and the places are those of the cards, each once.
+#[test]
+fn the_stw_vocabularies_place_every_rdf_card() {
+    let root = diagrams().join("w3c-rdf.atd");
+    let checked = check(&FsFiles, &root);
+    let examples = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../modules/diagrams/rdf/tests/examples/stw");
+    for (name, resources, blank) in [("geographic-names.ttl", 453, 14), ("business-economics.ttl", 1209, 158)] {
+        let body = std::fs::read(examples.join(name)).unwrap();
+        let fixture = serde_json::json!({
+            "tool": "w3c/rdf",
+            "inputs": { "body": name },
+            "read": { "elements": [], "relations": [], "findings": [] },
+            "steps": []
+        });
+        let case = adp_atd_validate::Case {
+            name: name.to_owned(),
+            fixture,
+            files: [(name.to_owned(), body)].into_iter().collect(),
+        };
+        let results = validate_description(&checked, &RuntimeHost::default(), &[case]).unwrap();
+        let findings: Vec<String> = results[0]
+            .differences
+            .iter()
+            .filter(|d| d.part == "findings")
+            .map(|d| d.actual.clone())
+            .collect();
+        assert!(findings.is_empty(), "{name}: {findings:?}");
+        let read: Vec<serde_json::Value> = results[0]
+            .differences
+            .iter()
+            .filter(|d| d.part == "reading")
+            .filter_map(|d| serde_json::from_str::<Vec<serde_json::Value>>(&d.actual).ok())
+            .flatten()
+            .collect();
+        let count = |kind: &str| read.iter().filter(|e| e["type"] == kind).count();
+        assert_eq!(
+            (count("Resource"), count("BlankNode")),
+            (resources, blank),
+            "{name} derives every card"
+        );
+        let mut places: Vec<usize> = read
+            .iter()
+            .filter(|e| matches!(e["type"].as_str(), Some("Resource" | "BlankNode")))
+            .map(|e| {
+                e["attributes"]["place"]
+                    .as_str()
+                    .and_then(|p| p.parse().ok())
+                    .unwrap_or_else(|| panic!("{name}: {} carries no place", e["id"]))
+            })
+            .collect();
+        places.sort_unstable();
+        assert_eq!(
+            places,
+            (0..resources + blank).collect::<Vec<_>>(),
+            "{name}: each place once"
+        );
+    }
+}
+
 /// None of them requires a reader, and the Turtle's words are FBL's (`adp-atd-runtime`'s test holds the four bindings equal).
 #[test]
 fn no_reader_is_required() {

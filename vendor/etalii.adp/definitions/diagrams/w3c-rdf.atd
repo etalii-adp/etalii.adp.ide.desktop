@@ -134,6 +134,9 @@ diagram w3c/rdf version "2.0.0" {
       /// Objects of the term's `rdf:type` triples with an IRI object, in document order, duplicates kept.
       attribute types: uri many readonly
       attribute rows: LiteralRow many readonly
+      /// Where the card stands among the cards, in the order the file first names them: what the layout fills its bands
+      /// in. Carried from the derived type's `from`, which orders the cards once per reading.
+      attribute place: int readonly default 0
       attribute badgeLine: string { derived: (self.types.map(t, rdfDisplayName(t)).join(' · ')) }
       /// The layout band: the display form of the first type, '' for an untyped card.
       attribute band: string { derived: (size(self.types) > 0 ? rdfDisplayName(self.types[0]) : '') }
@@ -161,11 +164,12 @@ diagram w3c/rdf version "2.0.0" {
       }
       labelAttribute: "display"
       derived: {
-        from: (diagram.nodesOfType('Triple').map(t, cardTerms(t)).flatten().filter(c, c[1] == 'iri'))
+        from: (rdfPlaced(diagram.nodesOfType('Triple').map(t, cardTerms(t)).flatten(), 'iri'))
         key: (item[0])
         id: ('res:' + item[0])
         attributes: {
           iri: (item[0])
+          place: (item[4])
           types: (group.map(g, g[3]).distinct().filter(t, t.s == item[0] && typeTriple(t)).map(t, t.o))
           rows: (group.map(g, g[3]).distinct().filter(t, t.s == item[0] && !typeTriple(t)).map(t, t.oKind == 'literal' ? [{
             'predicate': rdfDisplayName(t.p),
@@ -203,12 +207,13 @@ diagram w3c/rdf version "2.0.0" {
       }
       labelAttribute: "name"
       derived: {
-        from: (diagram.nodesOfType('Triple').map(t, cardTerms(t)).flatten().filter(c, c[1] == 'blank'))
+        from: (rdfPlaced(diagram.nodesOfType('Triple').map(t, cardTerms(t)).flatten(), 'blank'))
         key: (item[0])
         id: ('blank:' + item[0])
         attributes: {
           ordinal: (item[0])
           writtenLabel: (item[2])
+          place: (item[4])
           types: (group.map(g, g[3]).distinct().filter(t, t.s == item[0] && t.sKind == 'blank' && typeTriple(t)).map(t, t.o))
           rows: (group.map(g, g[3]).distinct().filter(t, t.s == item[0] && t.sKind == 'blank' && !typeTriple(t)).map(t, t.oKind == 'literal' ? [{
             'predicate': rdfDisplayName(t.p),
@@ -314,10 +319,12 @@ diagram w3c/rdf version "2.0.0" {
     return diagram.nodesOfType('Triple').map(t, cardTerms(t)).flatten().map(c, cardId(c[0], c[1])).groupBy(v, v).keys().size() > 1000
   }
 
-  /// Where a card stands among the cards, in the order the file first names them: what the layout fills its bands in.
-  fn rdfCardOrder(id: string) -> int {
-    // uses: ["diagram"]
-    return diagram.nodesOfType('Triple').map(t, cardTerms(t)).flatten().map(c, cardId(c[0], c[1])).groupBy(v, v).keys().indexOf(id)
+  /// The card terms of one kind among `terms`, every card term of the body in the order the tool meets them, each with
+  /// its card's place appended: where the card stands among the cards of both kinds, in the order the file first names
+  /// them. The order is made once, for every term of the kind together; a card's id is written out as `cardId` writes
+  /// it, since a call per term would count against the reading's step budget.
+  fn rdfPlaced(terms: list, kind: string) -> list {
+    return cel.bind(ids, terms.groupBy(c, (c[1] == 'blank' ? 'blank:' : 'res:') + c[0]).keys(), cel.bind(at, lists.range(ids.size()).groupBy(i, ids[i]), terms.filter(c, c[1] == kind).map(c, c + [at.get((kind == 'blank' ? 'blank:' : 'res:') + c[0])[0]])))
   }
 
   /// The card a subject or object term is drawn as.
