@@ -59,6 +59,7 @@ internal sealed partial class Replay : IAsyncDisposable
     private readonly List<GeneratedId> _generated = [];
     private long _lastDeltaTicks;
     private int _currentStep = -1;
+    private bool _writeRefused;
 
     private Metadata _headers = new();
     private WireShortGuid _projectId = new();
@@ -389,9 +390,21 @@ internal sealed partial class Replay : IAsyncDisposable
 
     // ---- steps ---------------------------------------------------------------------------------
 
+    /// <summary>
+    /// The refusal of an edit the standalone host accepted and then did not write: the outcome's own sentence, as the
+    /// standalone host gives it, recorded as the step's detail without a word of the recorder's (Peter's ruling of
+    /// 2026-11-09, 12a). The step is marked as a failed write, which a step that did not expect it reports as such.
+    /// </summary>
+    private string? WriteRefusal(bool written, string error)
+    {
+        _writeRefused = !written;
+        return written ? null : error;
+    }
+
     private async Task RunStepAsync(Step step, CancellationToken cancellationToken)
     {
         Volatile.Write(ref _currentStep, step.Index);
+        _writeRefused = false;
 
         // The explorer's entry for the document is renewed when the standalone host replaces the
         // file on disk; a client hears of that on its hierarchy stream and names the new entry from
@@ -428,7 +441,9 @@ internal sealed partial class Replay : IAsyncDisposable
         var kind = step.GetType().Name.Replace("Step", "", StringComparison.Ordinal).ToLowerInvariant();
         if (refusal is not null && !step.ExpectRefusal)
         {
-            throw new ScriptException(_script.SourcePath, $"step {step.Index} ({kind}) was refused by the standalone host: {refusal}");
+            // A write that failed says so, which is what Program's retry of a failed write looks for.
+            var refused = _writeRefused ? "could not be written by the standalone host" : "was refused by the standalone host";
+            throw new ScriptException(_script.SourcePath, $"step {step.Index} ({kind}) {refused}: {refusal}");
         }
 
         if (refusal is null && step.ExpectRefusal)

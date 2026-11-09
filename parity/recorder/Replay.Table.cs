@@ -173,7 +173,7 @@ internal sealed partial class Replay
 
             if (outcome is not null)
             {
-                return ("DesignerService.Edit", outcome.Written ? null : $"could not be written: {outcome.Error}", detail);
+                return ("DesignerService.Edit", WriteRefusal(outcome.Written, outcome.Error), detail);
             }
 
             await Task.Delay(50, cancellationToken);
@@ -202,7 +202,7 @@ internal sealed partial class Replay
                 if (_outcomes.Count > before)
                 {
                     var outcome = _outcomes[^1];
-                    return ("DesignerService.SetTableView", outcome.Written ? null : $"could not be written: {outcome.Error}", viewId);
+                    return ("DesignerService.SetTableView", WriteRefusal(outcome.Written, outcome.Error), viewId);
                 }
             }
 

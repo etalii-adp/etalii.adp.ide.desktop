@@ -158,7 +158,7 @@ internal sealed partial class Replay
 
             if (outcome is not null)
             {
-                return ("DesignerService.HierarchySurfaceGesture", outcome.Written ? null : $"could not be written: {outcome.Error}", detail);
+                return ("DesignerService.HierarchySurfaceGesture", WriteRefusal(outcome.Written, outcome.Error), detail);
             }
 
             await Task.Delay(50, cancellationToken);
