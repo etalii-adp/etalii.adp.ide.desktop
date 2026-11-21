@@ -388,59 +388,7 @@ fn reader_markdown(text: &str) -> Json {
     json!({"elements": elements, "relations": [], "findings": []})
 }
 
-/// `render.markdown`: the Markdown editor's preview (`preview`), each block's runs with the block they stand in
-/// (`heading-<level>`, `paragraph`, `item`, `code`, `rule`) and how each is set.
+/// `render.markdown`: the Markdown editor's preview, as the capability renders it.
 fn render_markdown(text: &str) -> Json {
-    use adp_editor_markdown::{Block, Span};
-    let span_runs = |spans: &[Span], block: &str, extra: &Map<String, Json>| -> Vec<Json> {
-        spans
-            .iter()
-            .map(|span| {
-                let mut style = extra.clone();
-                for (key, on) in [
-                    ("strong", span.strong),
-                    ("emphasis", span.emphasis),
-                    ("code", span.code),
-                ] {
-                    if on {
-                        style.insert(key.into(), json!(true));
-                    }
-                }
-                if let Some(link) = &span.link {
-                    style.insert("link".into(), json!(link));
-                }
-                json!({"text": span.text, "style": style, "block": block})
-            })
-            .collect()
-    };
-    let mut runs = Vec::new();
-    for block in adp_editor_markdown::preview(text) {
-        match block {
-            Block::Heading { level, spans } => runs.extend(span_runs(&spans, &format!("heading-{level}"), &Map::new())),
-            Block::Paragraph { spans, quote_depth } => {
-                let mut extra = Map::new();
-                if quote_depth > 0 {
-                    extra.insert("quoteDepth".into(), json!(quote_depth));
-                }
-                runs.extend(span_runs(&spans, "paragraph", &extra));
-            }
-            Block::Item { depth, number, spans } => {
-                let mut extra = Map::new();
-                extra.insert("depth".into(), json!(depth));
-                if let Some(number) = number {
-                    extra.insert("number".into(), json!(number));
-                }
-                runs.extend(span_runs(&spans, "item", &extra));
-            }
-            Block::Code { language, text } => {
-                let mut style = Map::new();
-                if !language.is_empty() {
-                    style.insert("language".into(), json!(language));
-                }
-                runs.push(json!({"text": text, "style": style, "block": "code"}));
-            }
-            Block::Rule => runs.push(json!({"text": "", "style": {}, "block": "rule"})),
-        }
-    }
-    json!({"runs": runs})
+    adp_atd_runtime::capabilities::markdown::runs(text)
 }

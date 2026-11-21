@@ -10,8 +10,11 @@ pub mod forward_bezier;
 pub mod grid;
 pub mod layered_columns;
 pub mod layered_regions;
+pub mod markdown;
 pub mod ranked_boundaries;
 pub mod ring;
+pub mod row_packed;
+pub mod row_packing;
 pub mod self_organising;
 pub mod tidy_tree;
 pub mod two_sided_tree;
@@ -158,6 +161,16 @@ fn list_query(node: &Json, args: &Json, name: &str) -> Result<Vec<String>, Strin
         .collect())
 }
 
+/// A query argument's answer as a number: evaluated where `args` holds its text, else the node's attribute of that name,
+/// a number or the text of one.
+fn number_query(node: &Json, args: &Json, name: &str) -> Result<Option<f64>, String> {
+    Ok(answer(node, args, name)?.and_then(|value| match value {
+        Json::Number(number) => number.as_f64(),
+        Json::String(text) => text.parse().ok(),
+        _ => None,
+    }))
+}
+
 /// A query argument's answer as a Boolean.
 fn bool_query(node: &Json, args: &Json, name: &str) -> Result<Option<bool>, String> {
     Ok(answer(node, args, name)?.and_then(|value| match value {
@@ -274,6 +287,12 @@ pub trait ArrangeCapability {
     fn moves(&self, input: &Json, args: &Json) -> Result<self_organising::Moves, String>;
 }
 
+/// A capability at the `render` extension point (ATD §13.3): `$defs/RenderInput` to `$defs/RenderResult`, text runs or
+/// a drawing.
+pub trait RenderCapability {
+    fn render(&self, input: &Json, args: &Json) -> Result<Json, String>;
+}
+
 /// `arrange.selfOrganising`.
 struct SelfOrganising;
 
@@ -295,6 +314,7 @@ pub struct Capabilities {
     routings: BTreeMap<&'static str, Rc<dyn RoutingCapability>>,
     readers: BTreeMap<&'static str, Rc<dyn PersistencePlugin>>,
     arrangers: BTreeMap<&'static str, Rc<dyn ArrangeCapability>>,
+    renderers: BTreeMap<&'static str, Rc<dyn RenderCapability>>,
 }
 
 impl Capabilities {
@@ -326,11 +346,23 @@ impl Capabilities {
             .insert("layout.tidyTree", Rc::new(tidy_tree::TidyTreeLayout));
         capabilities.layouts.insert("layout.ring", Rc::new(ring::Ring));
         capabilities
+            .layouts
+            .insert("layout.rowPacked", Rc::new(row_packed::RowPacked));
+        capabilities
+            .layouts
+            .insert("layout.rowPacking", Rc::new(row_packing::RowPacking));
+        capabilities
             .arrangers
             .insert("arrange.selfOrganising", Rc::new(SelfOrganising));
         capabilities
             .routings
             .insert("routing.forwardBezier", Rc::new(forward_bezier::ForwardBezier));
+        capabilities
+            .readers
+            .insert("reader.markdown", Rc::new(markdown::MarkdownReader));
+        capabilities
+            .renderers
+            .insert("render.markdown", Rc::new(markdown::MarkdownRenderer));
         capabilities
     }
 
@@ -352,6 +384,10 @@ impl Capabilities {
         self.readers.get(name).cloned()
     }
 
+    pub fn renderer(&self, name: &str) -> Option<Rc<dyn RenderCapability>> {
+        self.renderers.get(name).cloned()
+    }
+
     pub fn arranger(&self, name: &str) -> Option<Rc<dyn ArrangeCapability>> {
         self.arrangers.get(name).cloned()
     }
@@ -362,7 +398,8 @@ impl Capabilities {
         let provided = self.layouts.contains_key(name)
             || self.routings.contains_key(name)
             || self.readers.contains_key(name)
-            || self.arrangers.contains_key(name);
+            || self.arrangers.contains_key(name)
+            || self.renderers.contains_key(name);
         provided.then_some(Version(1, 0, 0))
     }
 
@@ -386,6 +423,7 @@ impl Capabilities {
             .chain(self.routings.keys())
             .chain(self.readers.keys())
             .chain(self.arrangers.keys())
+            .chain(self.renderers.keys())
             .copied()
             .collect();
         names.sort_unstable();
@@ -402,10 +440,85 @@ impl Capabilities {
         if let Some(arranger) = self.arranger(name) {
             return arranger.arrange(&fixture["input"], args);
         }
+        if let Some(renderer) = self.renderer(name) {
+            return renderer.render(&fixture["input"], args);
+        }
+        if let Some(reader) = self.reader(name) {
+            return reading(reader.as_ref(), &fixture["input"]);
+        }
         match self.routing(name) {
             Some(routing) => routing.routing(&fixture["input"], args),
             None => Err(format!("This host provides no capability `{name}`.")),
         }
+    }
+}
+
+/// `$defs/ReaderResult` of a reader for `$defs/ReaderInput`'s body: its elements (an element's `parent` where it has
+/// one), its relations and its findings.
+fn reading(reader: &dyn PersistencePlugin, input: &Json) -> Result<Json, String> {
+    use adp_fbl::plugins::{PluginFile, PluginReadRequest};
+
+    let body = input["body"].as_str().ok_or("The input has no `body`.")?;
+    let read = reader.read(&PluginReadRequest {
+        files: vec![PluginFile::new("", body.as_bytes().to_vec())],
+        supplementary_entries: Vec::new(),
+    });
+    let mut elements = Vec::new();
+    let mut relations = Vec::new();
+    for element in &read.elements {
+        let attributes: Map<String, Json> = element
+            .attributes
+            .iter()
+            .map(|(key, value)| (key.clone(), json_of(value)))
+            .collect();
+        let mut entry = Map::new();
+        entry.insert("id".into(), json!(element.id));
+        entry.insert("type".into(), json!(element.type_name));
+        if element.is_relation {
+            entry.insert("source".into(), json!(element.source));
+            entry.insert("target".into(), json!(element.target));
+        } else if let Some(parent) = &element.parent_id {
+            entry.insert("parent".into(), json!(parent));
+        }
+        entry.insert("attributes".into(), Json::Object(attributes));
+        if element.is_relation {
+            relations.push(Json::Object(entry));
+        } else {
+            elements.push(Json::Object(entry));
+        }
+    }
+    let findings: Vec<Json> = read
+        .findings
+        .iter()
+        .map(|finding| {
+            let mut entry = Map::new();
+            entry.insert("code".into(), json!(finding.code));
+            entry.insert(
+                "severity".into(),
+                json!(format!("{:?}", finding.severity).to_lowercase()),
+            );
+            if let Some(location) = &finding.location {
+                entry.insert("line".into(), json!(location.line));
+                entry.insert("column".into(), json!(location.column));
+            }
+            entry.insert("message".into(), json!(finding.message));
+            Json::Object(entry)
+        })
+        .collect();
+    Ok(json!({"elements": elements, "relations": relations, "findings": findings}))
+}
+
+/// A CEL value as JSON.
+fn json_of(value: &adp_cel::Value) -> Json {
+    match value {
+        adp_cel::Value::Null => Json::Null,
+        adp_cel::Value::Bool(flag) => json!(flag),
+        adp_cel::Value::Int(number) => json!(number),
+        adp_cel::Value::Double(number) => json!(number),
+        adp_cel::Value::String(text) => json!(text),
+        adp_cel::Value::List(items) => Json::Array(items.iter().map(json_of).collect()),
+        adp_cel::Value::Map(map) => Json::Object(map.iter().map(|(k, v)| (k.clone(), json_of(v))).collect()),
+        other => json!(other.to_string()),
     }
 }
 
