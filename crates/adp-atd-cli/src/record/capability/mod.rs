@@ -374,18 +374,13 @@ fn markdown(cases: &Path, name: &str, output: fn(&str) -> Json) -> Result<Vec<Pa
 }
 
 /// `reader.markdown`: the ATX headings outside fenced code, each an element `heading` with its level, its title and its
-/// line, as the Markdown editor's outline reads them (`headings_of`).
+/// line, as the capability reads them.
 fn reader_markdown(text: &str) -> Json {
-    let elements: Vec<Json> = adp_editor_markdown::headings_of(text)
-        .into_iter()
-        .map(|h| {
-            json!({
-                "id": format!("heading-{}", h.line), "type": "heading",
-                "attributes": {"level": h.level, "title": h.title, "line": h.line},
-            })
-        })
-        .collect();
-    json!({"elements": elements, "relations": [], "findings": []})
+    adp_atd_runtime::capabilities::reader_result(
+        &adp_atd_runtime::capabilities::markdown::MarkdownReader,
+        &json!({ "body": text }),
+    )
+    .unwrap_or_default()
 }
 
 /// `render.markdown`: the Markdown editor's preview, as the capability renders it.

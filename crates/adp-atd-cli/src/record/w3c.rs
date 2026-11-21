@@ -10,7 +10,7 @@ use std::path::{Path, PathBuf};
 
 use std::collections::BTreeMap;
 
-use adp_diagram::problems::DiagramProblemLocation;
+use adp_diagram_rdf::capabilities::TurtleReader;
 use adp_diagram_rdf::graph::RdfReading;
 use adp_diagram_rdf::model::{RdfModel, RdfTerm};
 use adp_diagram_rdf::owl::OwlReading;
@@ -24,7 +24,6 @@ use adp_diagram_rdf::shacl::{ShaclReading, card_height};
 use adp_diagram_rdf::skos::projection::SkosEdgeKind;
 use adp_diagram_rdf::skos::{SkosReading, registration_language};
 use adp_diagram_rdf::store::RdfDocument;
-use adp_diagram_rdf::validator;
 use adp_diagram_rdf::vocabulary::owl;
 use adp_diagram_rdf::{registration_layout, shacl};
 use serde_json::{Map, Value as Json, json};
@@ -89,7 +88,7 @@ pub fn turtle(cases: &Path) -> Result<Vec<PathBuf>, String> {
     for origin in ["w3c/rdf", "w3c/owl", "w3c/shacl", "w3c/skos"] {
         for Opened {
             case,
-            document,
+            document: _,
             registration,
             ..
         } in opened_of(origin)?
@@ -115,22 +114,11 @@ pub fn turtle(cases: &Path) -> Result<Vec<PathBuf>, String> {
             bodies.push(key);
             let short = case.name.rsplit('/').next().unwrap_or(&case.name);
             let source = if case.minted { "parity/cases" } else { "parity/scripts" };
-            let findings: Vec<Json> = validator::validate(&document.text)
-                .into_iter()
-                .map(|p| {
-                    let line = match p.location {
-                        Some(DiagramProblemLocation::Line(line)) => json!(line),
-                        _ => Json::Null,
-                    };
-                    json!({"rule": p.rule_id, "severity": format!("{:?}", p.severity).to_lowercase(), "line": line, "message": p.message})
-                })
-                .collect();
-            let mut elements = vec![document_of(registration.as_deref())];
-            elements.extend(stored_of(&document.model));
             let mut input = json!({"body": body});
             if !files.is_empty() {
                 input["files"] = Json::Object(files);
             }
+            let output = adp_atd_runtime::capabilities::reader_result(&TurtleReader, &input)?;
             let fixture = json!({
                 "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
                 "doc": format!(
@@ -139,7 +127,7 @@ pub fn turtle(cases: &Path) -> Result<Vec<PathBuf>, String> {
                 ),
                 "input": input,
                 "args": {"prefixes": "keep"},
-                "output": {"elements": elements, "relations": [], "findings": findings},
+                "output": output,
             });
             let file = cases.join(format!("{short}.json"));
             write_json(&file, &fixture)?;
@@ -159,73 +147,6 @@ fn document_of(registration: Option<&Path>) -> Json {
         attributes["language"] = json!(language);
     }
     json!({"id": "document", "type": "document", "parent": null, "attributes": attributes})
-}
-
-/// The base, the prefix declarations and the triples of `model` in document order, as stored elements with the ids
-/// the W3C descriptions give them: `base`, `prefix:<name>` and `triple:<s>|<p>|<o>`, `|<n>` added for the n-th repeat.
-fn stored_of(model: &RdfModel) -> Vec<Json> {
-    let mut elements = Vec::new();
-    if let Some(iri) = &model.base_iri {
-        elements.push(json!({"id": "base", "type": "Base", "parent": null, "attributes": {"iri": iri}}));
-    }
-    let mut seen: BTreeMap<String, usize> = BTreeMap::new();
-    for declaration in &model.prefixes {
-        let id = repeated(&mut seen, format!("prefix:{}", declaration.prefix));
-        elements.push(json!({
-            "id": id, "type": "Prefix", "parent": null,
-            "attributes": {"name": declaration.prefix, "iri": declaration.iri, "line": declaration.line + 1},
-        }));
-    }
-    for triple in &model.triples {
-        let (s, s_kind, s_label, s_written) = stored_term(&triple.subject);
-        let (o, o_kind, o_label, _) = stored_term(&triple.object);
-        let literal = triple.object.as_literal();
-        let id = repeated(&mut seen, format!("triple:{s}|{}|{o}", triple.predicate.iri));
-        elements.push(json!({
-            "id": id, "type": "Triple", "parent": null,
-            "attributes": {
-                "s": s, "sKind": s_kind, "sLabel": s_label, "sWritten": s_written,
-                "p": triple.predicate.iri,
-                "o": o, "oKind": o_kind, "oLabel": o_label,
-                "language": literal.and_then(|l| l.language.clone()).unwrap_or_default(),
-                "datatype": literal.and_then(|l| l.datatype.clone()).unwrap_or_default(),
-                "line": triple.span.start_line + 1,
-            },
-        }));
-    }
-    elements
-}
-
-/// `id`, with `|<n>` added when it is the n-th repeat of an id already given.
-fn repeated(seen: &mut BTreeMap<String, usize>, id: String) -> String {
-    let count = seen.entry(id.clone()).or_insert(0);
-    let out = if *count == 0 {
-        id.clone()
-    } else {
-        format!("{id}|{count}")
-    };
-    *count += 1;
-    out
-}
-
-/// A term as a stored triple holds it: its value (an IRI, a blank node's ordinal, a literal's lexical form), its kind,
-/// a blank node's label as written, and an IRI's spelling as written.
-fn stored_term(term: &RdfTerm) -> (String, &'static str, String, String) {
-    match term {
-        RdfTerm::Iri(iri) => (iri.iri.clone(), "iri", String::new(), iri.as_written.clone()),
-        RdfTerm::Blank(blank) => (
-            blank.ordinal.to_string(),
-            "blank",
-            blank.label.clone().unwrap_or_default(),
-            String::new(),
-        ),
-        RdfTerm::Literal(literal) => (
-            literal.lexical.clone(),
-            "literal",
-            String::new(),
-            literal.as_written.clone(),
-        ),
-    }
 }
 
 /// One fixture per class expression an OWL case's ontology states as a blank node, rendered at the canvas's depth

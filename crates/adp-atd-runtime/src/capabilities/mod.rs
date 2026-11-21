@@ -372,6 +372,12 @@ impl Capabilities {
         self
     }
 
+    /// These capabilities with `renderer` as the render capability `name`.
+    pub fn with_renderer(mut self, name: &'static str, renderer: Rc<dyn RenderCapability>) -> Self {
+        self.renderers.insert(name, renderer);
+        self
+    }
+
     pub fn layout(&self, name: &str) -> Option<Rc<dyn LayoutCapability>> {
         self.layouts.get(name).cloned()
     }
@@ -444,7 +450,7 @@ impl Capabilities {
             return renderer.render(&fixture["input"], args);
         }
         if let Some(reader) = self.reader(name) {
-            return reading(reader.as_ref(), &fixture["input"]);
+            return reader_result(reader.as_ref(), &fixture["input"]);
         }
         match self.routing(name) {
             Some(routing) => routing.routing(&fixture["input"], args),
@@ -453,14 +459,23 @@ impl Capabilities {
     }
 }
 
-/// `$defs/ReaderResult` of a reader for `$defs/ReaderInput`'s body: its elements (an element's `parent` where it has
-/// one), its relations and its findings.
-fn reading(reader: &dyn PersistencePlugin, input: &Json) -> Result<Json, String> {
+/// `$defs/ReaderResult` of a reader for `$defs/ReaderInput`: the body handed as the file it reads, and each file of
+/// `files` (a registration, by its name) handed beside it. Its elements, each with its `parent` (null at the top), its
+/// relations and its findings, each with its rule, severity, line (null where it has none) and message, as a
+/// conformance case records them.
+pub fn reader_result(reader: &dyn PersistencePlugin, input: &Json) -> Result<Json, String> {
     use adp_fbl::plugins::{PluginFile, PluginReadRequest};
 
     let body = input["body"].as_str().ok_or("The input has no `body`.")?;
+    let mut files = vec![PluginFile::new("", body.as_bytes().to_vec())];
+    for (name, text) in input["files"].as_object().into_iter().flatten() {
+        files.push(PluginFile::new(
+            name.clone(),
+            text.as_str().unwrap_or_default().as_bytes().to_vec(),
+        ));
+    }
     let read = reader.read(&PluginReadRequest {
-        files: vec![PluginFile::new("", body.as_bytes().to_vec())],
+        files,
         supplementary_entries: Vec::new(),
     });
     let mut elements = Vec::new();
@@ -477,8 +492,8 @@ fn reading(reader: &dyn PersistencePlugin, input: &Json) -> Result<Json, String>
         if element.is_relation {
             entry.insert("source".into(), json!(element.source));
             entry.insert("target".into(), json!(element.target));
-        } else if let Some(parent) = &element.parent_id {
-            entry.insert("parent".into(), json!(parent));
+        } else {
+            entry.insert("parent".into(), json!(element.parent_id));
         }
         entry.insert("attributes".into(), Json::Object(attributes));
         if element.is_relation {
@@ -492,15 +507,12 @@ fn reading(reader: &dyn PersistencePlugin, input: &Json) -> Result<Json, String>
         .iter()
         .map(|finding| {
             let mut entry = Map::new();
-            entry.insert("code".into(), json!(finding.code));
+            entry.insert("rule".into(), json!(finding.code));
             entry.insert(
                 "severity".into(),
                 json!(format!("{:?}", finding.severity).to_lowercase()),
             );
-            if let Some(location) = &finding.location {
-                entry.insert("line".into(), json!(location.line));
-                entry.insert("column".into(), json!(location.column));
-            }
+            entry.insert("line".into(), json!(finding.location.as_ref().map(|l| l.line)));
             entry.insert("message".into(), json!(finding.message));
             Json::Object(entry)
         })

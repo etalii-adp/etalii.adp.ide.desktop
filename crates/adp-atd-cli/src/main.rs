@@ -461,6 +461,10 @@ fn validate_command(args: &[String]) -> ExitCode {
         }
     }
     let checked = check(&FsFiles, root);
+    // With the modules built in, the capabilities they contribute too, as the shell assembles them.
+    #[cfg(feature = "record")]
+    let host = adp_shell::runtime_host();
+    #[cfg(not(feature = "record"))]
     let host = adp_atd_runtime::RuntimeHost::default();
     let results = match adp_atd_validate::validate_description(&checked, &host, &cases) {
         Ok(results) => results,
