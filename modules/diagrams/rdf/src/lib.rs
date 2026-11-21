@@ -22,6 +22,7 @@
 //! - [`store`]: one reading per body, shared by every view of it, kept in the project's documents.
 
 pub mod actions;
+pub mod capabilities;
 pub mod commands;
 pub mod family;
 pub mod graph;

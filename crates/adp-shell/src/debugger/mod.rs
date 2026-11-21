@@ -170,7 +170,7 @@ impl DebuggerPanel {
             };
             let host = RuntimeHost {
                 debugger: Some(Rc::new(debugger)),
-                ..RuntimeHost::default()
+                ..crate::runtime_host()
             };
             match validate_description(&checked, &host, std::slice::from_ref(&case)) {
                 Ok(results) => {

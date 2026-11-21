@@ -45,10 +45,14 @@ fn starts_with_ignoring_case(text: &str, prefix: &str) -> bool {
 /// The display language the registration declares, lowercased, and the 1-based line of a `language:` header that sits
 /// above a core header (`0` otherwise), in which case the language is none (`SkosRegistrationLanguage.Read`).
 pub fn read(registration: Option<&Path>) -> (Option<String>, usize) {
-    let Some(text) = registration.and_then(|path| fs::read(path).ok()) else {
-        return (None, 0);
-    };
-    let text = String::from_utf8_lossy(&text);
+    match registration.and_then(|path| fs::read(path).ok()) {
+        Some(text) => read_text(&String::from_utf8_lossy(&text)),
+        None => (None, 0),
+    }
+}
+
+/// [`read`] of a registration's text.
+pub fn read_text(text: &str) -> (Option<String>, usize) {
     let text = text.trim_start_matches('\u{feff}');
 
     let mut language = None;

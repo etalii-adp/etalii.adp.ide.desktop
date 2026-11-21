@@ -34,3 +34,17 @@ mod screenshot;
 #[path = "table/tests.rs"]
 mod table_tests;
 pub mod theme;
+
+/// The capabilities of the desktop host as the shell assembles them (etalii.adp spec 035, T125, research R14): the
+/// registry's own, and those the modules contribute from code that stays with them.
+pub fn capabilities() -> adp_atd_runtime::Capabilities {
+    adp_diagram_rdf::capabilities::contribute(adp_atd_runtime::Capabilities::desktop())
+}
+
+/// A runtime host with every capability of the desktop host.
+pub fn runtime_host() -> adp_atd_runtime::RuntimeHost {
+    adp_atd_runtime::RuntimeHost {
+        capabilities: capabilities(),
+        ..adp_atd_runtime::RuntimeHost::default()
+    }
+}

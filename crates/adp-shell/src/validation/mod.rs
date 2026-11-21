@@ -174,7 +174,7 @@ impl ValidationTab {
                 return;
             }
         };
-        let host = RuntimeHost::default();
+        let host = crate::runtime_host();
         match validate_description(&checked, &host, std::slice::from_ref(&case)) {
             Ok(mut results) => {
                 self.problem = None;

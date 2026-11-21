@@ -10,6 +10,8 @@ publish = false
 [dependencies]
 # The layouts every W3C reading is drawn by (spec 067, T040).
 adp-atd-runtime = { path = "../../../crates/adp-atd-runtime" }
+# The values a reader capability reads attributes into (spec 035, T125).
+adp-cel = { path = "../../../crates/adp-cel" }
 adp-context = { path = "../../../crates/adp-context" }
 adp-diagram = { path = "../../../crates/adp-diagram" }
 adp-documents = { path = "../../../crates/adp-documents" }
@@ -21,6 +23,7 @@ adp-layout = { path = "../../../crates/adp-layout" }
 adp-theme = { path = "../../../crates/adp-theme" }
 # The shapes reading groups by first appearance, as the standalone host's ordered LINQ groupings do.
 indexmap = "2"
+serde_json = { version = "1", features = ["preserve_order"] }
 
 [dev-dependencies]
 adp-core = { path = "../../../crates/adp-core" }
