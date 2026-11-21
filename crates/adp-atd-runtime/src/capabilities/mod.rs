@@ -12,6 +12,8 @@ pub mod layered_columns;
 pub mod layered_regions;
 pub mod ranked_boundaries;
 pub mod ring;
+pub mod row_packed;
+pub mod row_packing;
 pub mod self_organising;
 pub mod tidy_tree;
 pub mod two_sided_tree;
@@ -156,6 +158,16 @@ fn list_query(node: &Json, args: &Json, name: &str) -> Result<Vec<String>, Strin
         .iter()
         .filter_map(|item| item.as_str().map(str::to_owned))
         .collect())
+}
+
+/// A query argument's answer as a number: evaluated where `args` holds its text, else the node's attribute of that name,
+/// a number or the text of one.
+fn number_query(node: &Json, args: &Json, name: &str) -> Result<Option<f64>, String> {
+    Ok(answer(node, args, name)?.and_then(|value| match value {
+        Json::Number(number) => number.as_f64(),
+        Json::String(text) => text.parse().ok(),
+        _ => None,
+    }))
 }
 
 /// A query argument's answer as a Boolean.
@@ -325,6 +337,12 @@ impl Capabilities {
             .layouts
             .insert("layout.tidyTree", Rc::new(tidy_tree::TidyTreeLayout));
         capabilities.layouts.insert("layout.ring", Rc::new(ring::Ring));
+        capabilities
+            .layouts
+            .insert("layout.rowPacked", Rc::new(row_packed::RowPacked));
+        capabilities
+            .layouts
+            .insert("layout.rowPacking", Rc::new(row_packing::RowPacking));
         capabilities
             .arrangers
             .insert("arrange.selfOrganising", Rc::new(SelfOrganising));
