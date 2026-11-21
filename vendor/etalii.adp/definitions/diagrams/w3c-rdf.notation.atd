@@ -252,7 +252,7 @@ layout {
     rowHeight: 160
     bandGap: 80
     band: (self.band)
-    sequence: (rdfCardOrder(self.id))
+    sequence: (self.place)
   }
   /// The declarative approximation of typeBands, for a runtime without the capability: one lane per `band` value.
   algorithm fallback {

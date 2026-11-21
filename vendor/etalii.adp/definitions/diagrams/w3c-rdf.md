@@ -91,4 +91,13 @@ The gaps stand for the plugin binding `w3c-turtle.fbl`, which the description no
 | `w3c-owl` | 6.4 s (155.8 s before) | 38.5 s |
 | `w3c-shacl` | 2.3 s (20.7 s before) | 3.3 s |
 
-The SKOS case `geographic-names` takes 29.8 s against 789 s before. What still grows with the body is the RDF description's budget order, which makes the list of every card again for each card it orders, and the OWL description's per-term reads that are no filter; neither goes over a limit.
+The SKOS case `geographic-names` takes 29.8 s against 789 s before.
+
+**The budget order is made once per reading (spec 078).** Each card carries its place among the cards through its derived type's `from` (`rdfPlaced`), as the SKOS description carries `walkOrder`, and the layout reads it; before, the layout asked `rdfCardOrder` for each card's place, and each ask made the list of every card again. One reading of each body through this description, with no step, in a release build on 2026-11-09 (one run each, on the same Mac, at a load average of about 2.3):
+
+| `w3c-rdf` | `stw/geographic-names.ttl`, 5,083 triples | `stw/business-economics.ttl`, 17,683 triples |
+| --- | ---: | ---: |
+| Before | 33.1 s | 145.9 s |
+| After | 3.7 s | 8.2 s |
+
+No case's result changed. On `business-economics` every ask of `rdfCardOrder` went over ATD's step budget, so its cards were laid out in the model's order, every resource before every blank node; they now stand in the order the file first names them, as on every smaller body, which moves four of its thousand drawn cards. Contrary to what is said above, on both bodies the `Statement` edges are not derived, before and after: `withRepeat`, the edges' repeat counter, goes over `limits.celCost` (spec 078, research R5). What else still grows with the body is the OWL description's per-term reads that are no filter.
