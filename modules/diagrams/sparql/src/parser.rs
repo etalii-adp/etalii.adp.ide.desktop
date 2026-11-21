@@ -548,9 +548,9 @@ impl Parser<'_> {
         }
         if projects_all {
             // SELECT * projects the subquery's own in-scope names: every variable its text mentions.
-            for i in select + 1..close {
-                if self.tokens[i].kind == TokenKind::Variable {
-                    let name = without_sigil(&self.tokens[i].value);
+            for token in self.tokens.iter().take(close).skip(select + 1) {
+                if token.kind == TokenKind::Variable {
+                    let name = without_sigil(&token.value);
                     if !projected_names.contains(&name) {
                         projected_names.push(name);
                     }
@@ -1232,8 +1232,7 @@ impl Parser<'_> {
     /// The first `keyword` between the bounds at bracket depth zero relative to `start`.
     fn find_top_level_keyword(&self, start: usize, end_exclusive: usize, keyword: &str) -> Option<usize> {
         let mut depth = 0_i64;
-        for i in start..end_exclusive {
-            let token = &self.tokens[i];
+        for (i, token) in self.tokens.iter().enumerate().take(end_exclusive).skip(start) {
             if token.kind == TokenKind::Punct {
                 if is_open(token) {
                     depth += 1;
