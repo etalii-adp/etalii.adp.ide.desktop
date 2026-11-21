@@ -25,5 +25,7 @@ adp-layout = { path = "../adp-layout" }
 adp-scene = { path = "../adp-scene" }
 # A layout's boxes are kept in the order they were placed.
 indexmap = "2"
+# The Markdown capabilities read CommonMark.
+pulldown-cmark = { version = "0.13", default-features = false }
 regex = "1"
 serde_json = { version = "1", features = ["preserve_order"] }
