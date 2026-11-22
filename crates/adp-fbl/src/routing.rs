@@ -263,16 +263,65 @@ pub fn recognise(binding: &FblBinding, folder: &Path, ignore_case: Option<bool>)
     }
     let caseless = ignore_case.unwrap_or_else(platform_ignores_case);
     let entries: Vec<String> = folder_entries(folder, true).into_iter().map(|(r, _)| r).collect();
+    recognises(binding, &entries, caseless)
+}
+
+/// [`recognise`] of a folder held in memory: its files by their relative, `/`-separated paths, the folders that hold
+/// them counting as its entries too.
+pub fn recognise_held(binding: &FblBinding, files: &[String], ignore_case: Option<bool>) -> bool {
+    binding.body.is_folder
+        && recognises(
+            binding,
+            &held_entries(files),
+            ignore_case.unwrap_or_else(platform_ignores_case),
+        )
+}
+
+/// Whether the entries qualify the folder: every `all` glob matches one, at least one `any` glob does when there are
+/// any, and no `none` glob does.
+fn recognises(binding: &FblBinding, entries: &[String], caseless: bool) -> bool {
     let any = |glob: &String| entries.iter().any(|e| glob_matches(glob, e, caseless));
     binding.body.recognise_all.iter().all(any)
         && (binding.body.recognise_any.is_empty() || binding.body.recognise_any.iter().any(any))
         && !binding.body.recognise_none.iter().any(any)
 }
 
+/// A folder's entries from its files' relative paths: each file and each folder above it, in ordinal order.
+fn held_entries(files: &[String]) -> Vec<String> {
+    let mut entries: Vec<String> = Vec::new();
+    for file in files {
+        let mut at = 0;
+        while let Some(slash) = file[at..].find('/') {
+            entries.push(file[..at + slash].to_owned());
+            at += slash + 1;
+        }
+        entries.push(file.clone());
+    }
+    entries.sort();
+    entries.dedup();
+    entries
+}
+
 /// The files the binding's file rules select (FBL section 10.2), first matching rule each, `ignore` excluded.
 pub fn folder_files(binding: &FblBinding, folder: &Path, ignore_case: Option<bool>) -> Vec<FolderFile> {
     let caseless = ignore_case.unwrap_or_else(platform_ignores_case);
-    folder_entries(folder, false)
+    select(binding, folder_entries(folder, false), caseless)
+}
+
+/// [`folder_files`] of a folder held in memory, its files by their relative, `/`-separated paths; each file's full
+/// path is its relative one under `folder`.
+pub fn held_files(binding: &FblBinding, folder: &Path, files: &[String], ignore_case: Option<bool>) -> Vec<FolderFile> {
+    let mut entries: Vec<(String, PathBuf)> = files
+        .iter()
+        .map(|f| (f.clone(), folder.join(f.replace('/', std::path::MAIN_SEPARATOR_STR))))
+        .collect();
+    entries.sort_by(|a, b| a.0.cmp(&b.0));
+    select(binding, entries, ignore_case.unwrap_or_else(platform_ignores_case))
+}
+
+/// The entries the binding's file rules select, first matching rule each, `ignore` excluded.
+fn select(binding: &FblBinding, entries: Vec<(String, PathBuf)>, caseless: bool) -> Vec<FolderFile> {
+    entries
         .into_iter()
         .filter(|(relative, _)| !binding.body.ignore.iter().any(|g| glob_matches(g, relative, caseless)))
         .filter_map(|(relative, full)| {

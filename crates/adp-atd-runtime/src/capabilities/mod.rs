@@ -367,8 +367,15 @@ impl Capabilities {
     }
 
     /// These capabilities with `reader` as the reader capability `name`.
+    ///
+    /// The reader answers to the capability's name, whatever id its module gives it, since a binding names it so.
     pub fn with_reader(mut self, name: &'static str, reader: Rc<dyn PersistencePlugin>) -> Self {
-        self.readers.insert(name, reader);
+        let named: Rc<dyn PersistencePlugin> = if reader.id() == name {
+            reader
+        } else {
+            Rc::new(Named { name, reader })
+        };
+        self.readers.insert(name, named);
         self
     }
 
@@ -456,6 +463,34 @@ impl Capabilities {
             Some(routing) => routing.routing(&fixture["input"], args),
             None => Err(format!("This host provides no capability `{name}`.")),
         }
+    }
+}
+
+/// A module's reader under its capability's name.
+struct Named {
+    name: &'static str,
+    reader: Rc<dyn PersistencePlugin>,
+}
+
+impl PersistencePlugin for Named {
+    fn id(&self) -> &str {
+        self.name
+    }
+
+    fn read(&self, request: &adp_fbl::plugins::PluginReadRequest) -> adp_fbl::plugins::PluginReadResult {
+        self.reader.read(request)
+    }
+
+    fn plan(&self, request: &adp_fbl::plugins::PluginPlanRequest<'_>) -> adp_fbl::plugins::PluginPlanResult {
+        self.reader.plan(request)
+    }
+
+    fn template(&self, request: &adp_fbl::plugins::PluginTemplateRequest) -> Vec<u8> {
+        self.reader.template(request)
+    }
+
+    fn watch(&self, last: &adp_fbl::plugins::PluginReadResult) -> Vec<String> {
+        self.reader.watch(last)
     }
 }
 

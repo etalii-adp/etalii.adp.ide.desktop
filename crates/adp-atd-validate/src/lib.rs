@@ -107,6 +107,23 @@ impl IdSource for StepIds {
 }
 
 /// Replays `case` through `runtime`, the tool of `description`, and every difference from what it states.
+/// The files of a folder subject's case, by their paths in the case: every input the case names (FBL section 10). None
+/// for a file body.
+pub fn folder_of(runtime: &RuntimeTool, case: &Case) -> Option<BTreeMap<String, Vec<u8>>> {
+    if !runtime.tool.binding.body.is_folder {
+        return None;
+    }
+    Some(
+        case.fixture["inputs"]
+            .as_object()
+            .into_iter()
+            .flatten()
+            .filter_map(|(_, name)| name.as_str())
+            .filter_map(|name| Some((name.to_owned(), case.files.get(name)?.clone())))
+            .collect(),
+    )
+}
+
 pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -> Vec<Difference> {
     let constructs = Constructs::of(description, &runtime.loaded.json);
     let mut differences = Vec::new();
@@ -125,7 +142,7 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
     let registration_name = inputs["registration"].as_str();
     let registration_path = registration_name.map(|r| Path::new(ROOT).join(r));
     let mut workspace = DiagramWorkspace::in_memory(ROOT);
-    let session = workspace.open_bytes_beside(
+    let session = workspace.open_bytes_in_folder(
         runtime.tool.clone(),
         &body_path,
         registration_path.as_deref(),
@@ -137,6 +154,7 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
             let name = path.strip_prefix(root).ok()?.to_str()?.replace('\\', "/");
             case.files.get(&name).cloned()
         },
+        folder_of(runtime, case),
     );
     let mut replay = Replay {
         tool: runtime.tool.clone(),

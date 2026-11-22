@@ -361,7 +361,8 @@
       "variable": {
         "fill": { "token": "color.surface" },
         "stroke": { "color": { "token": "color.border" }, "width": 1 },
-        "font": { "family": { "token": "font.body" }, "size": 14, "color": { "token": "color.text" } }
+        "font": { "family": { "token": "font.body" }, "size": 14, "color": { "token": "color.text" } },
+        "padding": [10, 14]
       },
       "link": {
         "stroke": { "color": { "token": "color.text" }, "width": 1.5 }
@@ -379,6 +380,7 @@
         "shape": "pill",
         "style": "variable",
         "size": { "default": [90, 39.6], "min": [90, 39.6], "autoSize": "fitWidth", "resizable": false },
+        "placement": { "anchor": "center", "doc": "A position is the centre of the pill, as the registration's `layout:` block stores it and as the ring and Arrange diagram place it." },
         "labels": [
           {
             "id": "display",

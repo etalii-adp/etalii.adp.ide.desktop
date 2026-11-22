@@ -114,6 +114,65 @@ impl FolderBody {
         Ok(FolderBody::open(folder, binding, plugin, options, None)?.model())
     }
 
+    /// Reads a folder held in memory once (FBL section 10): `files` by their relative, `/`-separated paths, as a case
+    /// of a conformance suite holds them. It qualifies by `recognise`, the file rules select what the plugin is handed,
+    /// in ordinal order, and nothing is watched; without the plugin it reads as on disk, with `std.pluginMissing`.
+    pub fn read_held(
+        binding: &FblBinding,
+        plugin: Option<Rc<dyn PersistencePlugin>>,
+        options: &FblOptions,
+        files: &std::collections::BTreeMap<String, Vec<u8>>,
+    ) -> FblModel {
+        let names: Vec<String> = files.keys().cloned().collect();
+        let result = if !routing::recognise_held(binding, &names, None) {
+            unreadable("The folder is not one this binding recognises, so it is not read.")
+        } else {
+            let reader = binding.plugin.as_ref().map(|p| p.plugin.clone()).unwrap_or_default();
+            match plugin.filter(|p| p.id() == reader) {
+                None => PluginReadResult::new(
+                    Vec::new(),
+                    vec![finding(
+                        codes::PLUGIN_MISSING,
+                        FindingSeverity::Warning,
+                        format!(
+                            "The plugin '{reader}' that reads this folder is not installed, so it is opened read-only."
+                        ),
+                        None,
+                    )],
+                    false,
+                ),
+                Some(plugin) => {
+                    let handed = routing::held_files(binding, Path::new(""), &names, None)
+                        .into_iter()
+                        .map(|file| {
+                            let bytes = files.get(&file.relative_path).cloned().unwrap_or_default();
+                            if bytes.len() > options.max_body_bytes {
+                                PluginFile {
+                                    is_oversized: true,
+                                    ..PluginFile::new(file.relative_path, Vec::new())
+                                }
+                            } else {
+                                PluginFile::new(file.relative_path, bytes)
+                            }
+                        })
+                        .collect();
+                    let result = plugin.read(&PluginReadRequest {
+                        files: handed,
+                        supplementary_entries: Vec::new(),
+                    });
+                    let findings = located(&result);
+                    PluginReadResult { findings, ..result }
+                }
+            }
+        };
+        FblModel {
+            elements: result.elements,
+            findings: result.findings,
+            unreadable: result.unreadable,
+            ..FblModel::default()
+        }
+    }
+
     pub fn model(&self) -> FblModel {
         FblModel {
             elements: self.last.elements.clone(),

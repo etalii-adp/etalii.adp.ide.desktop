@@ -80,6 +80,7 @@ pub fn record(name: &str, cases: &Path) -> Result<Vec<PathBuf>, String> {
         "arrange.selfOrganising" => self_organising::record(cases),
         "routing.forwardBezier" => forward_bezier::record(cases),
         "reader.markdown" => markdown(cases, "reader.markdown", reader_markdown),
+        "reader.helmChart" => helm_chart(cases),
         "render.markdown" => markdown(cases, "render.markdown", render_markdown),
         "reader.turtle" => super::w3c::turtle(cases),
         "render.descriptionLogic" => super::w3c::description_logic(cases),
@@ -336,6 +337,55 @@ fn layout_of(elements: &[adp_diagram::DiagramElement]) -> Json {
         positions.insert(element.id.clone(), at);
     }
     json!({"input": {"nodes": nodes, "edges": edges}, "output": {"positions": positions}})
+}
+
+/// `reader.helmChart` from the Helm chart module's folder reader (`modules/diagrams/helm-chart/src/plugin.rs`), on the
+/// chart folder of every Helm chart parity script: the registration as the body, the files the binding's file rules
+/// select as `files`, and what the reader reads them to. One fixture per script, named after it.
+fn helm_chart(cases: &Path) -> Result<Vec<PathBuf>, String> {
+    use adp_diagram_helm_chart::definition::HelmDefinition;
+    use adp_diagram_helm_chart::plugin::HelmChartFolderPlugin;
+
+    let binding = HelmDefinition::get().binding;
+    fs::create_dir_all(cases).map_err(|e| format!("{}: {e}", cases.display()))?;
+    let fixtures = adp_parity::repository_root().join("parity/fixtures");
+    let mut written = Vec::new();
+    for name in adp_parity::script_names()
+        .into_iter()
+        .filter(|n| n.starts_with("helm/chart/"))
+    {
+        let case = adp_parity::Case::load(&name)?;
+        let registration = fixtures.join(&case.script.fixture);
+        let folder = registration
+            .parent()
+            .ok_or("The chart's registration is in no folder.")?;
+        let mut names = Vec::new();
+        super::collect_files(folder, folder, &mut names);
+        names.sort();
+        let mut files = Map::new();
+        for file in adp_fbl::routing::held_files(&binding, Path::new(""), &names, Some(false)) {
+            let path = folder.join(&file.relative_path);
+            let text = fs::read_to_string(&path).map_err(|e| format!("{}: {e}", path.display()))?;
+            files.insert(file.relative_path, json!(text));
+        }
+        let body = fs::read_to_string(&registration).map_err(|e| format!("{}: {e}", registration.display()))?;
+        let input = json!({"body": body, "files": files});
+        let output = adp_atd_runtime::capabilities::reader_result(&HelmChartFolderPlugin, &input)?;
+        let short = name.rsplit('/').next().unwrap_or(&name);
+        let fixture = json!({
+            "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+            "doc": format!(
+                "Recorded by `atd record --capability reader.helmChart` from modules/diagrams/helm-chart/src/plugin.rs of etalii.adp.ide.desktop, on the chart folder parity/scripts/{name}.json opens: the registration as the body, the files the binding's file rules select as `files`; never edited by hand."
+            ),
+            "input": input,
+            "args": {},
+            "output": output,
+        });
+        let file = cases.join(format!("{short}.json"));
+        write_json(&file, &fixture)?;
+        written.push(file);
+    }
+    Ok(written)
 }
 
 /// A capability of Markdown, recorded from the Markdown editor's module (`modules/editors/markdown/src/lib.rs`) on every

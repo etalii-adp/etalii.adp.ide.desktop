@@ -67,6 +67,10 @@ notation {
     }
     style: variable
     size: { default: [90, 39.6], min: [90, 39.6], autoSize: fitWidth, resizable: false }
+    placement: {
+      anchor: center
+      doc: "A position is the centre of the pill, as the registration's `layout:` block stores it and as the ring and Arrange diagram place it."
+    }
     anchors: { mode: outline }
     doubleClick: editLabel
     tooltip: (self.label != '' && self.label != self.name ? self.label + ' (' + self.name + ')' : self.name)

@@ -1360,3 +1360,64 @@ fn a_file_that_can_be_opened_again_is_read_once_its_change_settles() {
     );
     assert!(body.model().findings.is_empty());
 }
+
+/// A folder held in memory (etalii.adp spec 035, T132), as a conformance case holds its folder body's files.
+fn held_folder(pairs: &[(&str, &str)]) -> std::collections::BTreeMap<String, Vec<u8>> {
+    pairs
+        .iter()
+        .map(|(name, text)| ((*name).to_owned(), text.as_bytes().to_vec()))
+        .collect()
+}
+
+#[test]
+fn a_folder_held_in_memory_is_read_as_on_disk_selected_files_in_ordinal_order() {
+    let plugin = Rc::new(RecordingFolderPlugin::new(FOLDER_PLUGIN_ID));
+    let files = held_folder(&[
+        ("pages/b/c.txt", "c"),
+        ("pages/a.txt", "a"),
+        ("index.txt", "index"),
+        ("pages/Z.txt", "Z"),
+        ("pages/b/.hidden", "never"),
+        ("notes.md", "never"),
+    ]);
+
+    let reader: Rc<dyn PersistencePlugin> = plugin.clone();
+    let model = FolderBody::read_held(&binding(), Some(reader), &FblOptions::default(), &files);
+
+    assert_eq!(plugin.reads(), 1);
+    assert_eq!(
+        plugin.paths(0),
+        ["index.txt", "pages/Z.txt", "pages/a.txt", "pages/b/c.txt"]
+    );
+    assert_eq!(model.elements.len(), 4);
+    assert!(!model.unreadable);
+}
+
+#[test]
+fn a_folder_held_in_memory_that_is_not_recognised_is_unreadable_and_read_by_nobody() {
+    let plugin = Rc::new(RecordingFolderPlugin::new(FOLDER_PLUGIN_ID));
+    let reader: Rc<dyn PersistencePlugin> = plugin.clone();
+
+    let model = FolderBody::read_held(
+        &binding(),
+        Some(reader),
+        &FblOptions::default(),
+        &held_folder(&[("pages/a.txt", "a")]),
+    );
+
+    assert!(model.unreadable);
+    assert_eq!(plugin.reads(), 0);
+}
+
+#[test]
+fn a_folder_held_in_memory_without_its_plugin_says_the_plugin_is_missing() {
+    let model = FolderBody::read_held(
+        &binding(),
+        None,
+        &FblOptions::default(),
+        &held_folder(&[("index.txt", "index")]),
+    );
+
+    assert!(model.elements.is_empty());
+    assert_eq!(model.findings[0].code, codes::PLUGIN_MISSING);
+}

@@ -26,7 +26,7 @@ The tool it describes is the standalone module `src/diagrams/causal-loop-diagram
 | Computed loop polarity | enum `LoopPolarity`, derived `Loop.computed` | Reinforcing, balancing, undecidable, from the count of negative links around the cycle. |
 | Cycle enumeration | `causalCycles` of the plugin `net.etalii.adp.systems.cldCycles`, with `diagram.cycles('CausalLink', max)` as its fallback, and `diagram.cyclesTruncated` | DISL 12.4 and 13.1.1. The plugin is the tool's order; see [Other differences: the order of cycles](#other-differences-a-runtime-will-meet). |
 | The body | `persistence.format: "fbl"`, binding `cld` | The standalone module's own copy of the binding; `typeMap` maps its entry types onto the metamodel. |
-| Positions | `persistence.view.store: ["bounds"]` | Stored in the `.adp` registration's `layout:` block under the element ids, never in the body. |
+| Positions | `persistence.view.store: ["bounds"]`, the Variable's `placement.anchor: "center"`, and the binding's `registration.layoutPoint: "anchor"` (FBL 0.20) | Stored in the `.adp` registration's `layout:` block under the element ids, never in the body: the centre of each variable's pill, which the binding declares by naming the placement anchor as its layout point. |
 | Ring layout | layout `ring`, the capability `layout.ring` | See [gap 5](#5-disl-the-seating-order-and-radius-of-circular), closed by the capability. |
 | Arrange diagram | operation `arrange`, layout `selfOrganizing` from the plugin `net.etalii.adp.systems.cld` | The layout stays code; the plugin provides it alone and is not required to read the document. |
 
