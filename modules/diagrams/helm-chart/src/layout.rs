@@ -60,9 +60,9 @@ fn role_rank(node: &DislElement) -> u8 {
     }
 }
 
-/// The computed box of every node, in the order they were placed; a second node of an id already placed takes the
-/// first one's slot, as a dictionary keeps it.
-pub fn compute(diagram: &DislDiagram) -> Vec<(String, Rect)> {
+/// The five columns of the anatomy, left to right, each in the order its nodes stack in: metadata, values, templates,
+/// dependencies and vendored content (`layout.rankedColumns` places them, a column's index its rank).
+pub fn columns(diagram: &DislDiagram) -> [Vec<DislElement>; 5] {
     let nodes = diagram.nodes();
     let of = |types: &[&str]| -> Vec<DislElement> {
         nodes
@@ -89,10 +89,15 @@ pub fn compute(diagram: &DislDiagram) -> Vec<(String, Rect)> {
     dependencies.sort_by_key(name_of);
     let mut vendored: Vec<DislElement> = nodes.iter().filter(|n| n.is_a("Vendored")).cloned().collect();
     vendored.sort_by_key(path_of);
+    [metadata, values, templates, dependencies, vendored]
+}
 
+/// The computed box of every node, in the order they were placed; a second node of an id already placed takes the
+/// first one's slot, as a dictionary keeps it.
+pub fn compute(diagram: &DislDiagram) -> Vec<(String, Rect)> {
     let mut boxes = Vec::new();
     let mut x = LEFT;
-    for column in [metadata, values, templates, dependencies, vendored] {
+    for column in columns(diagram) {
         x = place_column(&mut boxes, &column, x);
     }
     boxes
