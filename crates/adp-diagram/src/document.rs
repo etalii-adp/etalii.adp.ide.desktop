@@ -33,7 +33,7 @@ use adp_disl::{DislChange, DislElement, DislModel};
 use adp_documents::SelfWriteGuard;
 use adp_fbl::history::{DRIFT_UNDO, apply_in_order, inverse};
 use adp_fbl::model::{SourceLocation, codes};
-use adp_fbl::plugins::PluginBody;
+use adp_fbl::plugins::{FolderBody, PluginBody};
 use adp_fbl::registration::document::DocumentFiles;
 use adp_fbl::registration::legacy_sidecar::LegacySidecar;
 use adp_fbl::{
@@ -156,6 +156,10 @@ struct LegacyFile {
 struct Beside {
     layout: Option<LegacyFile>,
     identities: Option<LegacyFile>,
+    /// The files of a folder subject held in memory, by their relative, `/`-separated paths (etalii.adp spec 035,
+    /// T132): what a case of a conformance suite hands its folder body. None for a file body, and for a folder read
+    /// from disk.
+    folder: Option<Rc<BTreeMap<String, Vec<u8>>>>,
 }
 
 impl Beside {
@@ -173,6 +177,7 @@ impl Beside {
         Beside {
             layout: file(&settings.legacy_layout),
             identities: file(&settings.legacy_identities),
+            folder: None,
         }
     }
 
@@ -488,7 +493,13 @@ impl DiagramDocument {
         }
         let specification = self.tool.definition.specification();
         let options = self.tool.options(&file_name(&self.body_path), self.registration());
-        let mut body = Body::open(&self.tool, self.body.to_vec(), options, &file_name(&self.body_path));
+        let mut body = Body::open(
+            &self.tool,
+            self.body.to_vec(),
+            options,
+            &self.body_path,
+            self.beside.folder.as_deref(),
+        );
         let mut registration = self.registration.as_ref().map(|r| {
             // A binding that declares blocks has them written through its declarations (FBL section 8.1).
             let mut open = if self.tool.binding.registration.blocks.is_empty() {
@@ -1057,11 +1068,57 @@ fn placed_now(before: &FblModel, now: &FblModel, change: ModelChange) -> ModelCh
 enum Body {
     Declared(Box<OpenBody>),
     Plugin(PluginBody),
-    Missing { bytes: Vec<u8>, finding: Finding },
+    Missing {
+        bytes: Vec<u8>,
+        finding: Finding,
+    },
+    /// A folder subject (FBL section 10), read once by the plugin its binding names, from the files held in memory or
+    /// from the folder the registration is in; this host writes no folder's files (section 10.4), so it plans no edit.
+    Folder {
+        bytes: Vec<u8>,
+        model: FblModel,
+        refusal: String,
+    },
 }
 
 impl Body {
-    fn open(tool: &DiagramTool, bytes: Vec<u8>, options: FblOptions, file_name: &str) -> Body {
+    fn open(
+        tool: &DiagramTool,
+        bytes: Vec<u8>,
+        options: FblOptions,
+        body_path: &Path,
+        folder: Option<&BTreeMap<String, Vec<u8>>>,
+    ) -> Body {
+        let file_name = &file_name(body_path);
+        if tool.binding.body.is_folder {
+            let model = match folder {
+                Some(files) => FolderBody::read_held(&tool.binding, tool.persistence(), &options, files),
+                None => FolderBody::read_once(
+                    body_path.parent().unwrap_or(Path::new("")),
+                    tool.binding.clone(),
+                    tool.persistence(),
+                    Rc::new(options),
+                )
+                .unwrap_or_else(|reason| FblModel {
+                    findings: vec![Finding {
+                        code: codes::UNPARSEABLE.into(),
+                        severity: FindingSeverity::Error,
+                        message: reason,
+                        location: None,
+                        detail: None,
+                    }],
+                    unreadable: true,
+                    ..FblModel::default()
+                }),
+            };
+            let refusal = match (&tool.binding.read_only, model.unreadable) {
+                (_, true) => "The folder could not be read, so it is never written.".to_owned(),
+                (Some(reason), _) if !reason.is_empty() => reason.clone(),
+                (Some(_), _) => "This folder is read-only.".to_owned(),
+                (None, _) => "The files of a folder are not written by this host, so the change is not applied.".into(),
+            };
+            return Body::Folder { bytes, model, refusal };
+        }
         let Some(reader) = &tool.binding.plugin else {
             return Body::Declared(Box::new(OpenBody::open(bytes, tool.binding.clone(), Rc::new(options))));
         };
@@ -1102,7 +1159,7 @@ impl Body {
         match self {
             Body::Declared(body) => body.bytes(),
             Body::Plugin(body) => body.bytes(),
-            Body::Missing { bytes, .. } => bytes,
+            Body::Missing { bytes, .. } | Body::Folder { bytes, .. } => bytes,
         }
     }
 
@@ -1115,6 +1172,7 @@ impl Body {
                 unreadable: true,
                 ..FblModel::default()
             },
+            Body::Folder { model, .. } => model.clone(),
         }
     }
 
@@ -1123,6 +1181,7 @@ impl Body {
             Body::Declared(body) => body.change(change),
             Body::Plugin(body) => body.change(change),
             Body::Missing { finding, .. } => PlanResult::Refused(finding.message.clone()),
+            Body::Folder { refusal, .. } => PlanResult::Refused(refusal.clone()),
         }
     }
 }
@@ -1274,10 +1333,27 @@ impl DiagramDocuments {
         registration: Option<Vec<u8>>,
         beside: &dyn Fn(&Path) -> Option<Vec<u8>>,
     ) -> &DiagramDocument {
+        self.open_bytes_in_folder(tool, body_path, registration_path, body, registration, beside, None)
+    }
+
+    /// [`DiagramDocuments::open_bytes_beside`] of a folder subject whose files `folder` holds, by their relative,
+    /// `/`-separated paths (FBL section 10; etalii.adp spec 035, T132).
+    #[allow(clippy::too_many_arguments)]
+    pub fn open_bytes_in_folder(
+        &mut self,
+        tool: Rc<DiagramTool>,
+        body_path: &Path,
+        registration_path: Option<&Path>,
+        body: Vec<u8>,
+        registration: Option<Vec<u8>>,
+        beside: &dyn Fn(&Path) -> Option<Vec<u8>>,
+        folder: Option<BTreeMap<String, Vec<u8>>>,
+    ) -> &DiagramDocument {
         if let Some(index) = self.index_of(body_path) {
             return &self.documents[index];
         }
-        let beside = Beside::of(&tool, body_path, beside);
+        let mut beside = Beside::of(&tool, body_path, beside);
+        beside.folder = folder.map(Rc::new);
         let document = self.read(
             tool,
             body_path.to_path_buf(),
@@ -1372,6 +1448,12 @@ impl DiagramDocuments {
             key.push(0);
             key.extend_from_slice(file.as_ref().map(|f| &*f.bytes).unwrap_or_default());
         }
+        for (name, bytes) in beside.folder.iter().flat_map(|f| f.iter()) {
+            key.push(0);
+            key.extend_from_slice(name.as_bytes());
+            key.push(0);
+            key.extend_from_slice(bytes);
+        }
         let reading = match self.recent.find(&key) {
             Some(reading) => reading,
             None => {
@@ -1383,7 +1465,7 @@ impl DiagramDocuments {
                     Some(document) => (document.model().unwrap_or_default(), document.legacy_positions()),
                     None => {
                         let options = tool.options(&file_name(&body_path), registration_document.as_ref());
-                        let body = Body::open(&tool, body.to_vec(), options, &file_name(&body_path));
+                        let body = Body::open(&tool, body.to_vec(), options, &body_path, beside.folder.as_deref());
                         (body.model(), None)
                     }
                 };

@@ -1,7 +1,7 @@
 {
   "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
-  "fbl": "0.2",
-  "doc": "The causal loop diagram's .cld body (definitions/diagrams/causal-loop-diagram.dis, causal-loop-diagram.md): the lines family, as the standalone module reads it. One statement per line. The header is read as an entry of its own, so a missing or repeated one raises nothing. A link is an element whose ends are reference attributes, so a link with an end that names nothing is kept and reported rather than dropped; its cause and effect names are read again as read-only value slots, which the definition keys the link by. A word after a link's arrow is a quoted run, a weight written as a number, or a bare word without '='; a link with any other word, such as weight=heavy, is not a link. A name may be quoted, and a quoted name may hold spaces. A variable's label is the first word after its name that is quoted or holds no '=', so that its start= and push= words are never read as its label. The title and flow statements hold the values an exported flow page starts from (specs/074-desktop-cld-flow-export); the definition maps them onto the diagram. A flow statement with a word the rule does not read is not a flow statement: the last rule keeps it and reports it. The last rule takes every statement no other rule reads, so it is kept byte for byte and reported on its line. Removing a variable removes the links and loops that name it.",
+  "fbl": "0.20",
+  "doc": "The causal loop diagram's .cld body (definitions/diagrams/causal-loop-diagram.dis, causal-loop-diagram.md): the lines family, as the standalone module reads it. One statement per line. The header is read as an entry of its own, so a missing or repeated one raises nothing. A link is an element whose ends are reference attributes, so a link with an end that names nothing is kept and reported rather than dropped; its cause and effect names are read again as read-only value slots, which the definition keys the link by. A word after a link's arrow is a quoted run, a weight written as a number, or a bare word without '='; a link with any other word, such as weight=heavy, is not a link. A name may be quoted, and a quoted name may hold spaces. A variable's label is the first word after its name that is quoted or holds no '=', so that its start= and push= words are never read as its label. The title and flow statements hold the values an exported flow page starts from (specs/074-desktop-cld-flow-export); the definition maps them onto the diagram. A flow statement with a word the rule does not read is not a flow statement: the last rule keeps it and reports it. The last rule takes every statement no other rule reads, so it is kept byte for byte and reported on its line. Removing a variable removes the links and loops that name it. A variable's stored position is the centre of its pill, the point its placement anchor names (registration.layoutPoint, FBL 0.20).",
   "bindings": {
     "cld": {
       "title": "Causal loop diagram",
@@ -16,6 +16,9 @@
       "body": {
         "kind": "file",
         "family": "lines"
+      },
+      "registration": {
+        "layoutPoint": "anchor"
       },
       "reader": "declared",
       "text": {

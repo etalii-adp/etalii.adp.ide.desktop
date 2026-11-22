@@ -131,17 +131,27 @@ pub fn read_case(dir: &Path) -> Result<Case, String> {
         .map(|n| n.to_string_lossy().into_owned())
         .unwrap_or_default();
     let mut files = BTreeMap::new();
+    read_into(dir, "", &mut files)?;
+    case_of(name, files)
+}
+
+/// Every file under `dir`, by its path relative to the case, `/`-separated: a folder subject's files are in folders of
+/// the case (etalii.adp spec 035, T132).
+fn read_into(dir: &Path, prefix: &str, files: &mut BTreeMap<String, Vec<u8>>) -> Result<(), String> {
     for entry in std::fs::read_dir(dir)
         .map_err(|e| format!("{}: {e}", dir.display()))?
         .flatten()
     {
         let path = entry.path();
-        if path.is_file() {
+        let name = format!("{prefix}{}", entry.file_name().to_string_lossy());
+        if path.is_dir() {
+            read_into(&path, &format!("{name}/"), files)?;
+        } else if path.is_file() {
             let bytes = std::fs::read(&path).map_err(|e| format!("{}: {e}", path.display()))?;
-            files.insert(entry.file_name().to_string_lossy().into_owned(), bytes);
+            files.insert(name, bytes);
         }
     }
-    case_of(name, files)
+    Ok(())
 }
 
 /// The case `name` of `files`, by their names in the case: its fixture is `conformance.json`.

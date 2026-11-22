@@ -92,10 +92,26 @@ impl DiagramWorkspace {
         registration: Option<Vec<u8>>,
         beside: &dyn Fn(&Path) -> Option<Vec<u8>>,
     ) -> DiagramSession {
+        self.open_bytes_in_folder(tool, body_path, registration_path, body, registration, beside, None)
+    }
+
+    /// [`DiagramWorkspace::open_bytes_beside`] of a folder subject whose files `folder` holds, by their relative,
+    /// `/`-separated paths (FBL section 10; etalii.adp spec 035, T132).
+    #[allow(clippy::too_many_arguments)]
+    pub fn open_bytes_in_folder(
+        &mut self,
+        tool: Rc<DiagramTool>,
+        body_path: &Path,
+        registration_path: Option<&Path>,
+        body: Vec<u8>,
+        registration: Option<Vec<u8>>,
+        beside: &dyn Fn(&Path) -> Option<Vec<u8>>,
+        folder: Option<std::collections::BTreeMap<String, Vec<u8>>>,
+    ) -> DiagramSession {
         let session =
             DiagramSession::new(body_path.to_path_buf()).in_default_viewpoint(tool.definition.specification());
         self.documents
-            .open_bytes_beside(tool, body_path, registration_path, body, registration, beside);
+            .open_bytes_in_folder(tool, body_path, registration_path, body, registration, beside, folder);
         session
     }
 
