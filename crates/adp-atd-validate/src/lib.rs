@@ -242,7 +242,7 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
             &read_by,
         );
     }
-    let findings = findings_of(&replay);
+    let findings = at_lines(&replay, &read["findings"], findings_of(&replay), from_module);
     compare(
         &mut differences,
         (None, "findings"),
@@ -336,7 +336,7 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
             });
         }
         if let Some(expected) = step.get("findings") {
-            let findings = findings_of(&replay);
+            let findings = at_lines(&replay, expected, findings_of(&replay), from_module);
             compare(
                 &mut differences,
                 (number, "findings"),
@@ -350,6 +350,40 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
         }
     }
     differences
+}
+
+/// `findings` with each one at an element stated at the line that element is written on, where the case, recorded
+/// from a module, states that finding there (ATD §2.3, Peter's choice of 2026-11-23): a finding at an element and one
+/// at its line are at the same place.
+fn at_lines(replay: &Replay, expected: &Json, findings: Vec<Json>, from_module: bool) -> Vec<Json> {
+    if !from_module {
+        return findings;
+    }
+    let Some(document) = replay.workspace.documents().get(&replay.body_path) else {
+        return findings;
+    };
+    let expected = expected.as_array().cloned().unwrap_or_default();
+    findings
+        .into_iter()
+        .map(|finding| {
+            let Some(id) = finding["element"].as_str() else {
+                return finding;
+            };
+            let Some(line) = document.fbl().elements.iter().find(|e| e.id == id).map(|e| e.line) else {
+                return finding;
+            };
+            let mut at_line = finding.clone();
+            if let Some(object) = at_line.as_object_mut() {
+                object.remove("element");
+                let message = object.remove("message");
+                object.insert("line".into(), json!(line));
+                if let Some(message) = message {
+                    object.insert("message".into(), message);
+                }
+            }
+            if expected.contains(&at_line) { at_line } else { finding }
+        })
+        .collect()
 }
 
 /// Whether two reasons a gesture was refused with are the same refusal (ATD §2.3, spec 067, FR-011): both tools refuse
