@@ -44,6 +44,8 @@ const PRIMITIVES: &[&str] = &[
     "map",
     "uint",
     "Element",
+    // DISL 0.12, §4.12: a link to an element of another document, as FBL §17.1 writes it.
+    "link",
 ];
 
 /// Names that stand for the document itself where a construct names types it applies to.
@@ -364,6 +366,11 @@ impl Checker<'_> {
         }
     }
 
+    /// Every element type the description declares.
+    fn symbol_types(&self) -> impl Iterator<Item = String> + '_ {
+        self.symbols.types.keys().cloned()
+    }
+
     fn attribute_of(&mut self, types: &[String], name: &str, at: &Json) {
         if types.is_empty() || BUILT_IN_FIELDS.contains(&name.split('.').next().unwrap_or(name)) {
             return;
@@ -377,6 +384,15 @@ impl Checker<'_> {
             known.extend(self.symbols.attributes_of(t).into_keys());
         }
         if known.contains(first) {
+            return;
+        }
+        // A field for a base type may name a subtype's attribute: it applies to the elements of that subtype, as the
+        // mind map's form shows a linked node's link (DISL 0.12, §4.12).
+        let of_subtype = self.symbol_types().any(|t| {
+            types.iter().any(|base| t != *base && self.symbols.is_a(&t, base))
+                && self.symbols.attributes_of(&t).contains_key(first)
+        });
+        if of_subtype {
             return;
         }
         let suggestions = closest(first, known.iter().map(String::as_str).collect::<Vec<_>>());

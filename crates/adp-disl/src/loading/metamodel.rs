@@ -10,7 +10,7 @@ use indexmap::IndexMap;
 use crate::json::{self, Json};
 
 /// The primitive types of DISL section 4.2.
-pub const PRIMITIVES: [&str; 15] = [
+pub const PRIMITIVES: [&str; 16] = [
     "string",
     "text",
     "int",
@@ -26,6 +26,8 @@ pub const PRIMITIVES: [&str; 15] = [
     "expression",
     "json",
     "binary",
+    // DISL 0.12, section 4.12: a link to an element of another document, as FBL section 17.1 writes it.
+    "link",
 ];
 
 /// One attribute of a node type, a relation type or the diagram (DISL section 4.3), after inheritance is flattened:

@@ -18,9 +18,11 @@ binding timeline family yaml {
   claims { extensions: [".tml"], origins: ["generic/timeline"] }
   text { newline: crlf, indent: 2, sequenceIndent: indented, finalNewline: true, quote: double }
   registration { createOnFirstPlacement: false }
+  /// The top-level key `id` is the document id (FBL §17.2, spec 089).
+  document: { id: { key: id } }
 
   element Period as period at "/elements/*" {
-    when entry.all(k, true) && has(entry.end) && !(type(entry.end) in [map, list])
+    when entry.all(k, true) && !has(entry.link) && has(entry.end) && !(type(entry.end) in [map, list])
     id from key "id"
     attribute storedId from key "id" { readOnly: true }
     attribute label from key "label" { empty: keep }
@@ -32,7 +34,7 @@ binding timeline family yaml {
   }
 
   element Moment as moment at "/elements/*" {
-    when entry.all(k, true) && (!has(entry.end) || type(entry.end) in [map, list])
+    when entry.all(k, true) && !has(entry.link) && (!has(entry.end) || type(entry.end) in [map, list])
     id from key "id"
     attribute storedId from key "id" { readOnly: true }
     attribute label from key "label" { empty: keep }
@@ -42,16 +44,41 @@ binding timeline family yaml {
     remove { cascade: [connection] }
   }
 
+  /// An entry with a `link` key is a linked element (spec 089): a linked period with an `end`, a linked moment
+  /// without. It has no `label` key; its label is its target's name.
+  element LinkedPeriod as linkedPeriod at "/elements/*" {
+    when entry.all(k, true) && has(entry.link) && has(entry.end) && !(type(entry.end) in [map, list])
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute link from key "link"
+    attribute begin from key "begin" { read: text time: keep-precision default: "" }
+    attribute end from key "end" { read: text time: keep-precision empty: remove }
+    attribute row from key "row" { read: text default: 0 }
+    insert { place: end, container: "/elements", keys: [id, link, begin, end, row] }
+    remove { cascade: [connection] }
+  }
+
+  element LinkedMoment as linkedMoment at "/elements/*" {
+    when entry.all(k, true) && has(entry.link) && (!has(entry.end) || type(entry.end) in [map, list])
+    id from key "id"
+    attribute storedId from key "id" { readOnly: true }
+    attribute link from key "link"
+    attribute begin from key "begin" { read: text time: keep-precision default: "" }
+    attribute row from key "row" { read: text default: 0 }
+    insert { place: end, container: "/elements", keys: [id, link, begin, row] }
+    remove { cascade: [connection] }
+  }
+
   element Connection as connection at "/connections/*" {
     when entry.all(k, true)
     id from key "id"
     attribute storedId from key "id" { readOnly: true }
-    attribute from from key "from" { references period, moment by storedId }
-    attribute to from key "to" { references period, moment by storedId }
+    attribute from from key "from" { references period, moment, linkedPeriod, linkedMoment by storedId }
+    attribute to from key "to" { references period, moment, linkedPeriod, linkedMoment by storedId }
     attribute label from key "label" { empty: remove }
     insert { place: after-last, container: "/connections", create: { at: end-of-document }, keys: [id, from, to, label] }
     remove { container: keep }
   }
 
-  template "timeline: 1\r\nelements: []\r\n"
+  template "timeline: 1\r\nid: {newid:document}\r\nelements: []\r\n"
 }

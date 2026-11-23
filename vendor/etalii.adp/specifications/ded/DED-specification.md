@@ -17,15 +17,15 @@ parent: ded
 | File extension | `.ded` (the JSON form; a designer type's bindings may claim other extensions, `.md` among them) |
 | Paired language | DESL, the Designer Specification Language (`.des`) |
 | Definition schema | `ded.schema.json` (JSON Schema, draft 2020-12), `$defs/Definition`, `$id` `https://etalii.net/adp/ded/schema/0.1/ded.schema.json` (the address 0.1 gave it) |
-| Version key | `"ded": "0.2"` |
-| Builds on | [FBL](../fbl/FBL-specification.md) 0.3 for storage |
+| Version key | `"ded": "0.3"` |
+| Builds on | [FBL](../fbl/FBL-specification.md) 0.3 for storage, 0.23 for the document id |
 | Licence | [Apache License 2.0](https://github.com/etalii-adp/etalii.adp/blob/develop/LICENSE) (`Apache-2.0`) |
 
 ---
 
 ## Status of this document
 
-This is a draft, version 0.2. It holds what the designer types defined so far need of a stored document and nothing more (constitution principle V): the envelope every definition starts with, how a host recognises and reads one, and how a new one is written. DED 0.1 (2026-10-09, for the Knowledge designer, spec 013) states the envelope in YAML, JSON and XML. DED 0.2 (2026-10-14, for the Hierarchical Requirement Designer, spec 028) states it in Markdown (section 2), names `.md` among the shared extensions a binding claims with the envelope as its marker (section 4), and changes nothing else: every valid 0.1 definition is a valid 0.2 definition with the same meaning, and it **MAY** go on saying `0.1`. Any construct may change before 1.0 (constitution principle IV). Sections and paragraphs marked *(informative)* explain intent; everything else is *normative*.
+This is a draft, version 0.3. It holds what the designer types defined so far need of a stored document and nothing more (constitution principle V): the envelope every definition starts with, how a host recognises and reads one, and how a new one is written. DED 0.1 (2026-10-09, for the Knowledge designer, spec 013) states the envelope in YAML, JSON and XML. DED 0.2 (2026-10-14, for the Hierarchical Requirement Designer, spec 028) states it in Markdown (section 2), names `.md` among the shared extensions a binding claims with the envelope as its marker (section 4), and changes nothing else: every valid 0.1 definition is a valid 0.2 definition with the same meaning, and it **MAY** go on saying `0.1`. Any construct may change before 1.0 (constitution principle IV). Sections and paragraphs marked *(informative)* explain intent; everything else is *normative*. DED 0.3 (2026-11-23, for links between documents, spec 089) lets the envelope carry the document's id, `id`, in YAML, JSON and XML (section 2), the id that links between documents resolve by (FBL section 17.2); every 0.2 definition is a 0.3 definition with the same meaning.
 
 The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **MAY** and **OPTIONAL** are to be interpreted as described in RFC 2119 and RFC 8174 when, and only when, they appear in bold capitals.
 
@@ -60,12 +60,13 @@ DED says what the documents of all designer types hold; DESL says what one desig
 
 Every DED definition **MUST** begin with its envelope: the version of DED and the designer type's origin (DESL section 3.2). How the envelope is written depends on the body's format.
 
-**YAML and JSON.** The envelope is two root keys, in this order, before every other root key:
+**YAML and JSON.** The envelope is two root keys, in this order, before every other root key, and *(DED 0.3)* a third, `id`, after them when the definition has a document id:
 
 | Key        | Value | Meaning |
 |------------|-------|---------|
-| `ded`      | string `"0.1"` or `"0.2"` | The version of DED the definition is written in. In YAML it is quoted, so that it reads as a string. |
+| `ded`      | string `"0.1"`, `"0.2"` or `"0.3"` | The version of DED the definition is written in. In YAML it is quoted, so that it reads as a string. |
 | `designer` | string `<vendor>/<type>` | The origin of the designer type, matching `^[a-z0-9-]+/[a-z0-9-]+$` (`etalii/knowledge`). |
+| `id`       | string | *(DED 0.3)* Optional. The document id (FBL section 17.2), made by the designer type's `persistence.documentId` (DESL section 5.3); one or more characters, none of them `#`, `$`, `%`, `.`, `=`, `@`, a space or a control character. A definition that holds it **MUST** have `ded` `"0.3"` or later. |
 
 ```yaml
 ded: "0.1"
@@ -73,7 +74,7 @@ designer: etalii/knowledge
 name: Cities
 ```
 
-**XML.** The root element is `ded`, with the envelope as its first two attributes, `version` and `designer`, with the values above. The designer type's own attributes of its document follow them on the same element, and its content is the root element's content.
+**XML.** The root element is `ded`, with the envelope as its first two attributes, `version` and `designer`, with the values above, and *(DED 0.3)* `id` as its third when the definition has a document id. The designer type's own attributes of its document follow them on the same element, and its content is the root element's content.
 
 ```xml
 <ded version="0.1" designer="etalii/knowledge" name="Cities">
@@ -87,9 +88,9 @@ name: Cities
 
 The line is `<!--`, `ded:` and the version, `designer:` and the origin, and `-->`. A host **MUST** write one space between these parts and nothing else on the line, and **MUST** read the line with any run of spaces and tabs between them and after the last, which is the expression `^<!--[ \t]+ded:[ \t]+(?<ded>[^ \t]+)[ \t]+designer:[ \t]+(?<designer>[^ \t]+)[ \t]+-->[ \t]*$` (FBL section 2.5). The version is written without quotes. Only a byte-order mark **MAY** stand before the comment. A Markdown viewer does not show the line, and a person or an agent that reads the file as text does not take it for content *(informative)*.
 
-**Other formats.** A designer type whose bindings read another format **MUST** state in its DESL specification where the envelope is written, as the header of its binding (FBL section 5.6), and **MUST** write both values.
+**Other formats.** A designer type whose bindings read another format **MUST** state in its DESL specification where the envelope is written, as the header of its binding (FBL section 5.6), and **MUST** write both values. DED 0.3 defines no place for `id` in Markdown or another format; a designer type that holds links in one states it in its DESL specification, as its binding's `document.id` (FBL section 17.2).
 
-The envelope belongs to DED, not to the designer type: its two values are host attributes of the document's root (DESL section 5.2), and a designer type **MUST NOT** declare an attribute of its document that a binding stores under `ded` or `designer`. Comments **MAY** come between or after the envelope's keys in YAML, as the format allows.
+The envelope belongs to DED, not to the designer type: its values are host attributes of the document's root (DESL section 5.2), and a designer type **MUST NOT** declare an attribute of its document that a binding stores under `ded`, `designer` or *(DED 0.3)* `id`. A designer type that holds links names the envelope's `id` as its binding's `document.id`. Comments **MAY** come between or after the envelope's keys in YAML, as the format allows.
 
 ---
 
@@ -106,7 +107,7 @@ A key, element or line that the designer type's bindings do not read is kept byt
 A host reads a DED definition in these steps.
 
 1. **Recognise.** A file is a DED definition of a designer type when its envelope names that type's origin. Each binding a designer type names for a shared extension (`.yaml`, `.json`, `.xml`, `.md`) **MUST** use the envelope as its marker (FBL section 12.2): `{rootKey: "designer", value: "<origin>"}` for YAML and JSON, a `pattern` matching the root element's start tag with that `designer` for XML, and a `pattern` with `lines: 1` matching line 1 with that `designer` for Markdown, so that an ordinary Markdown file is never taken for a definition. A registration (FBL section 8) **MAY** still name the designer type for a file that lacks the envelope; the binding's header then decides (FBL section 5.6): a header that is not `required` reads the file and reports the difference, a `required` one, as the Knowledge designer's are, makes the file unreadable.
-2. **Check the version.** A `ded` of `0.1` or `0.2` is read as this document says. A host **MUST** open a definition with a later version of DED read-only, with the reason, unless it implements that version.
+2. **Check the version.** A `ded` of `0.1`, `0.2` or `0.3` is read as this document says. A host **MUST** open a definition with a later version of DED read-only, with the reason, unless it implements that version.
 3. **Find the designer type.** A host **MUST** open a definition whose `designer` names no designer type it has installed read-only, if at all, with the reason naming the origin. It **MUST NOT** read such a definition through another designer type's bindings.
 4. **Read the content** through the bindings of the designer type's DESL specification (DESL section 10.1), which check the envelope as their header and report what they find.
 
@@ -126,7 +127,7 @@ The JSON form of a definition **MAY** have the extension `.ded`; a designer type
 
 ## 6. The schema
 
-`ded.schema.json` checks the envelope of a definition in its YAML or JSON form: `$defs/Definition` requires `ded` with the value `"0.1"` or `"0.2"` and `designer` matching the origin pattern, and allows every other key. The schema keeps the `$id` it had in 0.1, so a file schema that refines it needs no change. A designer type that publishes a schema of its documents' files **SHOULD** refine `$defs/Definition` with an `allOf`, as `definitions/designers/knowledge.schema.json` does. The XML form is checked after reading it into the YAML and JSON form, its root element's `version` becoming `ded`. The Markdown form is checked the same way, the two values of line 1 becoming `ded` and `designer`.
+`ded.schema.json` checks the envelope of a definition in its YAML or JSON form: `$defs/Definition` requires `ded` with the value `"0.1"`, `"0.2"` or `"0.3"` and `designer` matching the origin pattern, checks `id` *(DED 0.3)* against the characters section 2 allows and refuses it under a `ded` before `"0.3"`, and allows every other key. The schema keeps the `$id` it had in 0.1, so a file schema that refines it needs no change. A designer type that publishes a schema of its documents' files **SHOULD** refine `$defs/Definition` with an `allOf`, as `definitions/designers/knowledge.schema.json` does. The XML form is checked after reading it into the YAML and JSON form, its root element's `version` becoming `ded`. The Markdown form is checked the same way, the two values of line 1 becoming `ded` and `designer`.
 
 A definition the schema refuses may still open: the host reads what it can and reports the rest as findings (section 4).
 

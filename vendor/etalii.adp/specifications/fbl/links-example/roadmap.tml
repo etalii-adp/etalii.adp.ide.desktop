@@ -1,0 +1,32 @@
+timeline: 1
+id: r6d3w8ne
+elements:
+  - id: f-signin
+    link: $k7q2m9xa@features.yaml#signin.Name=Sign-in
+    begin: 2027-01-04
+    end: 2027-02-12
+    row: 1
+  - id: f-checkout
+    link: $k7q2m9xa@features.yaml#checkout.Name=Checkout
+    begin: 2027-02-15
+    end: 2027-04-02
+    row: 2
+  - id: beta
+    label: Beta
+    begin: 2027-04-05
+    row: 3
+  - id: support
+    link: $p4r8t1zc@ideas.mm#ID_5.text=Ask the support team
+    begin: 2027-03-01
+    row: 4
+  - id: gateway
+    link: $s2v5b9hu@services.dgr#pay.label=Payment gateway
+    begin: 2027-03-15
+    row: 5
+connections:
+  - id: c1
+    from: f-signin
+    to: f-checkout
+  - id: c2
+    from: f-checkout
+    to: beta

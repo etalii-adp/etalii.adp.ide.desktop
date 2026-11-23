@@ -151,7 +151,7 @@ pub fn type_of_ref(type_ref: &Json, symbols: &Symbols) -> Ty {
     let name = type_ref["name"]["text"].as_str().unwrap_or("");
     match name {
         "string" | "text" | "uri" | "url" | "color" | "path" | "date" | "datetime" | "time" | "timestamp"
-        | "duration" | "expression" | "timezone" => Ty::String,
+        | "duration" | "expression" | "timezone" | "link" => Ty::String,
         "int" | "integer" | "yearMonth" => Ty::Int,
         "uint" => Ty::Uint,
         "number" | "double" | "float" => Ty::Double,
@@ -310,6 +310,21 @@ const ELEMENT_MEMBERS: &[&str] = &["derived", "sources"];
 /// The selects of an expression on an element of a known type that names a field the type does not have, each with
 /// the field and the type (ATD §14.2, `ATD2001`). An operand whose type cannot be known is never one.
 pub fn unknown_members(node: &Json, scope: &Scope, symbols: &Symbols, out: &mut Vec<(Json, String, String)>) {
+    // `has(x.f)` asks whether `x` has `f`, so it may name a field a subtype of `x`'s type declares, or `linked`, the
+    // member of a type that stands for a linked element (DISL 0.12, §4.12): `self` may be that subtype.
+    if node.get("call").and_then(Json::as_str) == Some("has")
+        && let Some(select) = node["args"].get(0)
+        && let Some(field) = select.get("select").and_then(Json::as_str)
+        && let Ty::Element(name) = infer(&select["operand"], scope, symbols)
+        && (field == "linked"
+            || symbols
+                .types
+                .keys()
+                .any(|t| t != &name && symbols.is_a(t, &name) && symbols.attributes_of(t).contains_key(field)))
+    {
+        unknown_members(&select["operand"], scope, symbols, out);
+        return;
+    }
     if let Some(field) = node.get("select").and_then(Json::as_str)
         && node.get("optional").is_none()
         && let Ty::Element(name) = infer(&node["operand"], scope, symbols)

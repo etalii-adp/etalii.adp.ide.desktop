@@ -12,7 +12,9 @@ part of freeplane/mindmap
 ///
 /// `mindmap.dis` reads the body with the persistence plugin `net.etalii.adp.freeplane.mm`, because no FBL 0.1 rule read
 /// nested `<node>` elements whose text may be HTML; this binding states what that plugin reads and writes, rule by
-/// rule.
+/// rule. The map's document id (the central topic's `<attribute NAME="adp-id">`) and a linked node's link (a node's
+/// `<attribute NAME="adp-link">`) are the plugin's from 0.2.0, as FBL §17.2 lets a plugin reader say where its
+/// document id is kept; mindmap.md §3.8 is that contract (spec 089).
 binding freeplane family xml {
   label "Freeplane mind map"
   claims { extensions: [".mm"], origins: ["freeplane/mindmap"], marker: { pattern: r"^<map[\s>]", lines: 5 } }

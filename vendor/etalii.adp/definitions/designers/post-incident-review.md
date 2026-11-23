@@ -176,7 +176,7 @@ The parts are those of the specification's `sections` surface, in order: Summary
 
 - **The title** is a `#` heading, which the bullets family does not bind (FBL section 4.8), so it is kept as text and is not in the model. A host shows the file name.
 - **A many attribute in an emit.** FBL 6.2 does not say how the placeholder of a `many` attribute is written. The action's emit writes `addresses:[{addresses}]` for the one factor the designer's add gives; a second factor is added by a set, which writes a word for each item (FBL 6.3).
-- **The tool description** (`post-incident-review.atd`) is written by the ADP tool language's own work, since ATD has no `sections` surface yet; the definition merges without it (Peter's choice of 2026-11-23).
+- **The tool description** (`post-incident-review.atd` with `post-incident-review.markdown.atd`) states the page through ATD's `sections` surface (ATD §9.4), added for it by the ADP tool language's own work (Peter's choice of 2026-11-23); its trace is `post-incident-review.trace.json`.
 
 ## What stays with the host
 

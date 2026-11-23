@@ -1,0 +1,33 @@
+ded: "0.3"
+designer: etalii/knowledge
+id: k7q2m9xa
+name: Features
+properties:
+  - id: p1
+    name: Name
+    type: text
+    title: true
+  - id: p2
+    name: Needs
+    type: relation
+    target: $k7q2m9xa@features.yaml
+    backlinkName: Needed by
+views:
+  - id: v1
+    name: All features
+rows:
+  - id: signin
+    cells:
+      - property: p1
+        text: Sign-in
+  - id: search
+    cells:
+      - property: p1
+        text: Search
+  - id: checkout
+    cells:
+      - property: p1
+        text: Checkout
+      - property: p2
+        rows:
+          - row: $k7q2m9xa@features.yaml#signin.Name=Sign-in

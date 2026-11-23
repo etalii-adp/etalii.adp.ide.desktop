@@ -1,0 +1,24 @@
+ded: "0.3"
+designer: etalii/knowledge
+id: k3f9x2ma
+name: Provinces
+properties:
+  - id: p1
+    name: Name
+    type: text
+    title: true
+  - id: p9
+    name: Cities
+    type: relation
+    target: cities.yaml
+    counterpart: p2
+    computed: true
+rows:
+  - id: nh
+    cells:
+      - property: p1
+        text: Noord-Holland
+  - id: ut
+    cells:
+      - property: p1
+        text: Utrecht

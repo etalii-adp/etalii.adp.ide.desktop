@@ -206,6 +206,11 @@ impl Walk<'_> {
             if key == "refusals" && last == "layout" {
                 return Some(frame.as_mode(Mode::Literal));
             }
+            // A lookup action (DISL 0.12, section 9.4) names the type it creates, where it puts it and the tool types
+            // it searches; none of them is CEL.
+            if last == "lookup" && matches!(key, "create" | "as" | "origins") {
+                return None;
+            }
             return if ACTION_NAMES.contains(&key) || (key == "label" && last == "editLabel") {
                 None
             } else {

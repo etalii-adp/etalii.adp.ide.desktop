@@ -1,0 +1,59 @@
+ded: "0.3"
+designer: etalii/knowledge
+id: c1t9e5sx
+name: Cities
+properties:
+  - id: p1
+    name: Name
+    type: text
+    title: true
+  - id: p2
+    name: Province
+    type: relation
+    target: $k3f9x2ma@provinces.yaml
+    limit: one
+    backlinkName: Cities
+  - id: p3
+    name: Twinned with
+    type: relation
+    target: $c1t9e5sx@cities.yaml
+  - id: p4
+    name: Region
+    type: relation
+    target: ../teams/nowhere.yaml
+views:
+  - id: v1
+    name: Table
+rows:
+  - id: ams
+    cells:
+      - property: p1
+        text: Amsterdam
+      - property: p2
+        rows:
+          - row: $k3f9x2ma@provinces.yaml#nh.Name=Noord-Holland
+      - property: p3
+        rows:
+          - row: $c1t9e5sx@cities.yaml#utr.Name=Utrecht
+          - row: $c1t9e5sx@cities.yaml#haa.Name=Haarlem
+      - property: p4
+        rows:
+          - row: x1
+  - id: utr
+    cells:
+      - property: p1
+        text: Utrecht
+      - property: p2
+        rows:
+          - row: $k3f9x2ma@provinces.yaml#ut.Name=Utrecht
+  - id: haa
+    cells:
+      - property: p1
+        text: Haarlem
+      - property: p2
+        rows:
+          - row: $k3f9x2ma@provinces.yaml#nh.Name=Noord-Holland
+      - property: p3
+        rows:
+          - row: $c1t9e5sx@cities.yaml#ams.Name=Amsterdam
+          - row: $c1t9e5sx@cities.yaml#gone

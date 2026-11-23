@@ -1,10 +1,10 @@
 {
   "$schema": "https://etalii.net/adp/desl/schema/0.1/desl.schema.json#/$defs/Specification",
-  "desl": "0.1",
+  "desl": "0.5",
   "doc": "The Knowledge designer: ADP's first designer, specified by the standalone specification `knowledge-designer` and by etalii.adp's spec 013.",
   "language": {
     "id": "net.etalii.adp.etalii.knowledge",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "origin": "etalii/knowledge",
     "label": "Knowledge",
     "doc": {
@@ -26,7 +26,8 @@
     "document": {
       "attributes": {
         "name": { "type": "string", "required": true, "doc": "The table's name, shown on its tab." },
-        "activeView": { "type": "View", "doc": "The view the table was last left in; absent, the first view (Requirement 6.10)." }
+        "activeView": { "type": "View", "doc": "The view the table was last left in; absent, the first view (Requirement 6.10)." },
+        "documentId": { "type": "string", "readOnly": true, "doc": "The file's document id (FBL section 17.2), stored under the envelope's key `id` (DED 0.3); made by `persistence.documentId` and never changed (spec 089)." }
       },
       "doc": "The table: the root of a knowledge file. Its DED envelope (`ded` and `designer`; `version` and `designer` in XML, DED section 2) is the binding's header and host attributes, not attributes of the model."
     },
@@ -95,18 +96,26 @@
           "valueType": { "type": "ValueType", "required": true, "doc": "Stored under the key `type`, which DESL reserves." },
           "title": { "type": "bool", "default": false, "doc": "Marks the one text property whose value names a row (Requirement 3.7)." },
           "targetFile": {
-            "type": "string",
-            "doc": "A relation's target knowledge file, relative to this file; `.` is this file. Stored under the key `target`; the model calls it targetFile so that it never reads as the `target` of an action."
+            "type": "link",
+            "document": true,
+            "origins": ["etalii/knowledge"],
+            "doc": "A relation's target knowledge file, as a link without an element, `$<document-id>@<file name>` (FBL section 17.1, spec 089); a link to the file's own id is this file. Stored under the key `target`; the model calls it targetFile so that it never reads as the `target` of an action. A file made before links holds a path here, relative to the file, `.` for itself, which the conversion on load replaces (knowledge.md, section 5)."
           },
           "limit": { "type": "Limit", "default": "none", "doc": "How many rows a relation cell may hold." },
+          "backlinkName": {
+            "type": "string",
+            "doc": "The name of the column that shows this relation's backlinks in the target file, computed and never stored there (DESL 0.5, section 7.5.1; spec 089). It replaces the counterpart of a two-way relation."
+          },
           "counterpart": {
             "type": "string",
-            "doc": "A two-way relation's property in the target file, by its id there. The side that was created holds the values; the counterpart is `computed` (Requirement 5.4, Q5)."
+            "readOnly": true,
+            "doc": "Read only from a file made before links: a two-way relation's property in the target file, by its id there. The conversion on load removes it (knowledge.md, section 5)."
           },
           "computed": {
             "type": "bool",
             "default": false,
-            "doc": "The counterpart side of a two-way relation: it shows the rows that point at this table's rows and holds no cells."
+            "readOnly": true,
+            "doc": "Read only from a file made before links: the counterpart side of a two-way relation, which holds no cells. The conversion on load removes such a property and names its relation's `backlinkName` after it (knowledge.md, section 5)."
           },
           "isParent": {
             "type": "bool",
@@ -197,8 +206,9 @@
       "Row": {
         "label": "Row",
         "icon": "mdi-table-row",
+        "linkable": true,
         "children": { "allowed": ["Cell"], "ordered": true, "slots": { "cells": { "allowed": ["Cell"] } } },
-        "doc": "One entry of the table. Document order is the order of rows where no sort applies."
+        "doc": "One entry of the table. Document order is the order of rows where no sort applies. Other documents link to a row by its id, and name it by the value of its title property, under that property's name (knowledge.md, section 5)."
       },
       "Cell": {
         "attributes": {
@@ -218,8 +228,8 @@
         "attributes": {
           "option": { "type": "Option", "doc": "An option of a multiple selection." },
           "row": {
-            "type": "string",
-            "doc": "A row of the relation's target file, by its id there. Not a reference: the target is another file, which the designer resolves."
+            "type": "link",
+            "doc": "A row of the relation's target file, as a link, `$<document-id>@<file name>#<row id>.<title property's name>=<title>` (FBL section 17.1, spec 089). Not a reference: the target is another file, which the host resolves. A file made before links holds the row's id here, which the conversion on load replaces (knowledge.md, section 5)."
           }
         },
         "doc": "One of several values: an option or a related row."
@@ -229,9 +239,11 @@
   "persistence": {
     "format": "fbl",
     "bindings": ["knowledge.fbl#yaml", "knowledge.fbl#json", "knowledge.fbl#xml"],
+    "documentId": { "strategy": "nanoid", "alphabet": "base36", "length": 8, "doc": "The file's own id, written in the envelope (spec 089, FR-001)." },
     "ids": {
-      "strategy": "uuid-v4",
-      "encoding": "base36",
+      "strategy": "nanoid",
+      "alphabet": "base36",
+      "length": 8,
       "stable": true,
       "missing": "assign",
       "types": {
@@ -252,7 +264,7 @@
         "Cell": { "strategy": "derived", "expression": "self.parent.id + '/' + self.property.id", "doc": "A cell is its row and its property (Q3)." },
         "CellItem": { "strategy": "derived", "expression": "self.parent.id + '/' + (self.option != null ? self.option.id : self.row)" }
       },
-      "doc": "Properties, options, views and rows get a ShortGuid: a version 4 GUID written as 25 characters of base 36, never reused and never changed (Requirement 2.6). Ids written by hand are kept as written. An entry read without an id is given one by the first edit made in ADP (Requirement 8.5)."
+      "doc": "Properties, options, views and rows get 8 characters of base 36 (spec 089, FR-001 and FR-003), never reused and never changed; the ShortGuids of 25 characters that earlier versions wrote, and ids written by hand, are kept as written (Requirement 2.6). An entry read without an id is given one by the first edit made in ADP (Requirement 8.5)."
     },
     "typeMap": {
       "Table": {
@@ -491,7 +503,8 @@
         "editor": "rows",
         "comparisons": ["contains", "does-not-contain"],
         "sort": "title",
-        "converts": { "text": "written-form" }
+        "converts": { "text": "written-form" },
+        "link": { "target": "targetFile", "limit": "limit", "backlinkName": "backlinkName", "doc": "Notion's relation picker and the backlink column (DESL 0.5, section 7.5.1; knowledge.md, section 5)." }
       }
     },
     "doc": "Laid out as Notion's table view; `knowledge.md` section 6 says how."
@@ -551,7 +564,8 @@
               "name": "uniqueName(self.name, document.elementsOfType('Property').map(x, x.name))",
               "valueType": "self.valueType",
               "targetFile": "self.targetFile",
-              "limit": "self.limit"
+              "limit": "self.limit",
+              "backlinkName": "self.backlinkName"
             },
             "after": "self"
           },
@@ -610,9 +624,9 @@
       "for": "document",
       "params": {
         "name": { "type": "string", "required": true },
-        "targetFile": { "type": "string", "required": true },
+        "targetFile": { "type": "link", "document": true, "required": true },
         "limit": { "type": "Limit", "default": "none" },
-        "counterpartName": { "type": "string" }
+        "backlinkName": { "type": "string" }
       },
       "actions": [
         {
@@ -622,17 +636,18 @@
               "name": "uniqueName(p.name, document.elementsOfType('Property').map(x, x.name))",
               "valueType": "'relation'",
               "targetFile": "p.targetFile",
-              "limit": "p.limit"
+              "limit": "p.limit",
+              "backlinkName": "p.backlinkName"
             }
           }
         }
       ],
-      "doc": "Notion's steps: the target file, one row or no limit, and optionally the other side's name (Requirement 7.6). With `counterpartName`, the host adds the computed counterpart to the target file and sets `counterpart` here in the same step (`knowledge.md`, two-file steps)."
+      "doc": "Notion's steps: the target file, chosen in the host's lookup as a link without an element, one row or no limit, and optionally the name under which the target shows this relation's backlinks (Requirement 7.6). Nothing is written to the target file: its backlink column is computed (spec 089, FR-026; knowledge.md, section 5)."
     },
     "setParentRelation": {
       "label": "Use as parent",
       "for": ["Property"],
-      "unavailable": [{ "when": "self.valueType != 'relation' || self.targetFile != '.'", "message": "Only a relation to this file can be the parent." }],
+      "unavailable": [{ "when": "self.valueType != 'relation' || !(self.targetFile == '.' || self.targetFile.startsWith('$' + document.documentId + '@'))", "message": "Only a relation to this file can be the parent." }],
       "actions": [
         { "forEach": "document.elementsOfType('Property').filter(x, x.isParent)", "as": "x", "do": [{ "unset": ["isParent"], "target": "x" }] },
         { "set": { "isParent": "true", "limit": "'one'" } }

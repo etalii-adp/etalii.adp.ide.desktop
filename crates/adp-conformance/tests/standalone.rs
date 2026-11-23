@@ -204,7 +204,7 @@ const MEMBER_FIXTURES: [&str; 4] = [
 /// the standalone host does not vendor either. They are out of scope here, not failing: etalii.adp's splice replay
 /// (`fixtures.rs`) still runs every one of them. The hierarchical-requirement tool type's fixtures are run by
 /// [`hierarchical_requirement`], through the stand-in for its DESL interpreter.
-const NOT_SUPPORTED: [&str; 13] = [
+const NOT_SUPPORTED: [&str; 40] = [
     // The standalone host does not vendor this one at a7fdf03 either: its Retry's attempts is read as the text "1",
     // as every value of a lines or bullets group is, and the fixture reads the number 1, which the specification's
     // type gives it above FBL (agent-behavior-modelling.dis, `Retry.attempts: int`).
@@ -222,6 +222,35 @@ const NOT_SUPPORTED: [&str; 13] = [
     "causal-loop-flow-set",
     "causal-loop-flow-set/lf",
     "causal-loop-flow-unknown",
+    // The tool types of etalii.adp specs 084 to 086 (the value stream map, the OpenSLO SLO map, the post-incident
+    // review designer) and FBL 0.22's YAML streams, which the desktop host takes up with their own work.
+    "openslo-slo-edits",
+    "openslo-slo-folder",
+    "openslo-slo-read/findings-clean",
+    "openslo-slo-read/findings-conflicting-windows",
+    "openslo-slo-read/findings-indicator-twice",
+    "openslo-slo-read/findings-missing-reference",
+    "openslo-slo-read/findings-name",
+    "openslo-slo-read/findings-no-alerting",
+    "openslo-slo-read/findings-target-range",
+    "openslo-slo-read/findings-target-twice",
+    "openslo-slo-read/findings-timeslice-fields",
+    "openslo-slo-read/findings-unknown-kind",
+    "openslo-slo-read/findings-version",
+    "openslo-slo-read/findings-window-count",
+    "openslo-slo-read/low-traffic",
+    "openslo-slo-read/occurrences",
+    "openslo-slo-read/ratio-timeslices",
+    "openslo-slo-read/specification-samples",
+    "openslo-slo-read/timeslices",
+    "post-incident-review-edits",
+    "post-incident-review-read",
+    "post-incident-review-read/checkout-latency",
+    "value-stream-map-edits",
+    "value-stream-map-future",
+    "value-stream-map-read",
+    "yaml-stream-edits",
+    "yaml-stream-read",
 ];
 
 fn vendor() -> PathBuf {

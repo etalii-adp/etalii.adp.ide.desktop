@@ -1,7 +1,7 @@
 {
   "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
   "fbl": "0.1",
-  "doc": "A Freeplane mind map (definitions/diagrams/mindmap.dis, mindmap.md section 3): the xml family. Nodes nest; every construct ADP does not model (styles, icons, clouds, bookmarks, attributes) is kept byte for byte, and fold state and positions are never written.",
+  "doc": "A Freeplane mind map (definitions/diagrams/mindmap.dis, mindmap.md section 3): the xml family. Nodes nest; every construct ADP does not model (styles, icons, clouds, bookmarks, attributes) is kept byte for byte, and fold state and positions are never written. A map's document id and its linked nodes (FBL 17, spec 089) are not bound here: they are Freeplane attributes of the central topic (`adp-id`) and of a node (`adp-link`), which the persistence plugin `net.etalii.adp.freeplane.mm` reads and writes from 0.2.0, as section 17.2 lets a plugin reader say where its document id is kept; definitions/diagrams/mindmap.md, section 3.8, is its contract.",
   "bindings": {
     "freeplane": {
       "title": "Freeplane mind map",

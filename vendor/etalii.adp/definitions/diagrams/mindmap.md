@@ -1,6 +1,6 @@
 # Mind map (`freeplane/mindmap`)
 
-This is the companion to [`mindmap.dis`](mindmap.dis), the DISL 0.3 specification of the Mind map diagram type. The `.dis` holds everything DISL can say: the one node type and its attributes, the derived branches, the notation, the toolbox and the context menu, the property form, the three rules, the deletion confirmation, the per-viewer folding and the operations. This file holds everything it cannot: the Freeplane `.mm` file format the persistence plugin reads, the two-sided layout algorithm, sibling naming, links, the drag-to-re-parent gesture, and the places where the `.dis` could only approximate what the standalone implementation does.
+This is the companion to [`mindmap.dis`](mindmap.dis), the DISL 0.12 specification of the Mind map diagram type. The `.dis` holds everything DISL can say: the node type and the linked node that stands for an element of another document (spec 089), their attributes, the derived branches, the notation, the toolbox and the context menu, the property form, the three rules, the deletion confirmation, the per-viewer folding and the operations. This file holds everything it cannot: the Freeplane `.mm` file format the persistence plugin reads, the two-sided layout algorithm, sibling naming, links, the drag-to-re-parent gesture, and the places where the `.dis` could only approximate what the standalone implementation does.
 
 The standalone host runs this type from the `.dis`: its toolbox, context menus, property rows and findings are derived from it, and its canvas is compiled from the notation. Where the `.dis` and the standalone code disagreed, the code won and the `.dis` was rewritten to say what the code does (Peter's ruling for the DISL switch-over, 2026-10).
 
@@ -39,7 +39,7 @@ DISL's `persistence.files` describes the files of one diagram, but not the stand
 
 ## 3. The `.mm` format
 
-`mindmap.dis` stores the map through FBL (`persistence.format: "fbl"`): its binding `mindmap.fbl#mindmap`, which lives beside the standalone module (`mindmap/backend/EtAlii.Adp.Diagram.Mindmap/mindmap.fbl`), names the persistence plugin `net.etalii.adp.freeplane.mm` as its reader, because no declared FBL rule reads nested `<node>` elements whose text may be HTML. The plugin reads every `<node>` as a `Node` with `text`, `notes`, `link` (only when `LINK` is present, empty or not), `folded` and `position`, its parent and its place, and keeps the `ID` the file writes as `storedId`. A later holder of an `ID` the file gives twice, and a node without one, is read under an ephemeral id; findings name it by what the file writes. A file the plugin cannot read is unreadable, with the reason as `std.unparseable`'s `detail.reason`. Edits are not planned by the plugin in the standalone host: they are made in place on the XML by the module's commands, which carry their own undo. The rest of this section is the plugin's contract.
+`mindmap.dis` stores the map through FBL (`persistence.format: "fbl"`): its binding `mindmap.fbl#mindmap`, which lives beside the standalone module (`mindmap/backend/EtAlii.Adp.Diagram.Mindmap/mindmap.fbl`), names the persistence plugin `net.etalii.adp.freeplane.mm` as its reader, because no declared FBL rule reads nested `<node>` elements whose text may be HTML. The plugin reads every `<node>` as a `Node` with `text`, `notes`, `link` (only when `LINK` is present, empty or not), `folded` and `position`, its parent and its place, and keeps the `ID` the file writes as `storedId`. A later holder of an `ID` the file gives twice, and a node without one, is read under an ephemeral id; findings name it by what the file writes. A file the plugin cannot read is unreadable, with the reason as `std.unparseable`'s `detail.reason`. Edits are not planned by the plugin in the standalone host: they are made in place on the XML by the module's commands, which carry their own undo. From version 0.2.0 the plugin also reads and writes the map's document id and the links of linked nodes (3.8), and reads a `<node>` with an `adp-link` attribute as a `LinkedNode`. The rest of this section is the plugin's contract.
 
 ### 3.1 The principle: the XML is the model
 
@@ -62,16 +62,19 @@ The XML a map was parsed from is the single source of truth. Reading a node read
 | `FOLDED="true"` (case-insensitive) | Seeds the collapsed state when a viewer opens the map (section 5). | `MindmapNode.Folded` |
 | `LINK` | The link, exactly as stored (section 8). | `MindmapNode.Link` |
 | `POSITION` on a first-level node | The side of the central topic: `left`/`right` (Freeplane 1.11) or `top_or_left`/`bottom_or_right` (1.12). | `MindmapNode.Position`, `MindmapLayout` |
+| `<attribute NAME="adp-id" VALUE="…"/>` on the central topic | The map's document id (3.8). | plugin 0.2.0 |
+| `<attribute NAME="adp-link" VALUE="…"/>` | The node is a linked node; the value is its link (3.8). | plugin 0.2.0 |
 
 `richcontent` is read with or without `CONTENT-TYPE="xml/"`, which 1.12 stopped writing (Fixtures readme, item 5).
 
-Everything else is preserved and neither shown nor edited: `hook`, `MapStyle`, `map_styles`, `stylenode`, `tags`, `properties`, `font`, `edge`, `icon`, `cloud`, `arrowlink`, `attribute`, `bookmarks`, comments (Fixtures readme; `mindmap/examples/readme.md`).
+Everything else is preserved and neither shown nor edited: `hook`, `MapStyle`, `map_styles`, `stylenode`, `tags`, `properties`, `font`, `edge`, `icon`, `cloud`, `arrowlink`, every `attribute` but `adp-id` and `adp-link`, `bookmarks`, comments (Fixtures readme; `mindmap/examples/readme.md`).
 
 ### 3.4 What is written
 
 - **Text:** the `TEXT` attribute. Setting text removes any `richcontent TYPE="NODE"`, so formatted text becomes plain text on rename, without a warning (`MindmapNode.SetText`).
 - **Notes:** `<richcontent TYPE="NOTE"><html><head/><body><p>line</p>…</body></html></richcontent>`, one `<p>` per line, placed before the first child node on its own line. Emptying the notes removes the element and the newline after it, and a node left with only whitespace becomes self-closing again (`MindmapNode.SetNotes`).
 - **Link:** the `LINK` attribute; unlinking removes it.
+- **Document id and linked nodes:** the `adp-id` and `adp-link` attributes, as 3.8 says.
 - **New nodes:** `<node TEXT="…" ID="ID_<short id>"/>`, attributes in that order.
 - **Never written:** `FOLDED` (fold is view state, Req 9.4), `POSITION`, and any layout position (Req 5.8).
 
@@ -79,7 +82,8 @@ Everything else is preserved and neither shown nor edited: `hook`, `MapStyle`, `
 
 - Every node has an `ID` once loaded. A node without one is given `ID_` followed by a ShortGuid in memory, and the id is written on the next save - never on open, and never by the read-only validator (`MindmapDocument.AssignMissingIds`, `NewId`; Req 3.4).
 - Freeplane's own ids are `ID_` plus digits; a genuine Freeplane save never contains an id-less node (Fixtures readme, item 3).
-- `mindmap.dis` declares `uuid-v4` with prefix `ID_` and `base36` encoding, the ShortGuid above.
+- `mindmap.dis` declares `nanoid` with prefix `ID_`, `alphabet: base36` and `length: 8` (spec 089, FR-003): a new node's id is `ID_` and 8 characters of `0-9a-z`. The standalone tool writes the ShortGuid above until it builds spec 089, and ids written before are kept.
+- The map's document id, by which other documents link to it, is 8 characters of `0-9a-z` (`persistence.documentId`, FBL 17.2); see 3.8.
 
 ### 3.6 Byte-exact round trip
 
@@ -98,6 +102,22 @@ Other 1.11-to-1.12 differences the writer tolerates by not rewriting anything: `
 - Saves are atomic, via a temporary file moved into place (Req 3.7; `WritableDocumentLifecycle`). A failed write returns an error and leaves the edit in memory to be retried (backend-centralization R3.2, R3.4).
 - One loaded document is shared by every viewer of a map (Req 2.4).
 - An external edit of the `.mm` is reloaded and pushed to every viewer; it is not undoable (Req 11.8, the shared `DiagramDocumentReloader<IMindmapDocumentStore>`). A reload that cannot parse keeps the last good map; deleting the body clears the map to the empty state (backend-centralization R2.4, R2.5).
+
+### 3.8 Document id and linked nodes (spec 089)
+
+A map takes part in links between tools (FBL section 17) through two Freeplane attributes, which Freeplane shows in a node's attribute table and keeps on save, so a map stays an ordinary Freeplane map (research R7, R8 of etalii.adp `specs/089-cross-tool-links`).
+
+- **The document id** is the `VALUE` of `<attribute NAME="adp-id" VALUE="…"/>`, a child of the central topic. The plugin reads it as the root's attribute `documentId` (FBL 17.2, for a binding with a plugin reader). A map without one is given one by the load-time step (FBL 17.4, step 1), in one edit that is one step of the history: the plugin inserts the element as the central topic's first child element, on its own line with the file's structural newline, after the topic's `richcontent` elements when it has any. A map whose central topic holds two `adp-id` attributes is read with the first.
+- **A linked node** is a `<node>` with `<attribute NAME="adp-link" VALUE="…"/>`, whose value is a link as FBL 17.1 writes it. Its `TEXT` is the name the link caches, so Freeplane shows the name ADP shows. It is read as a `LinkedNode` whose `linkedElement` is the value; its `TEXT`, notes, children and everything else are read as for any node. A `LINK` on it is a Freeplane link as in section 8, independent of the ADP link.
+- **Load-time validation** (FBL 17.4) rewrites a link's text when its target resolves under another id or name, or its cached name is stale; the plugin writes the new value into `VALUE` and the new cached name into `TEXT`, removing a `richcontent TYPE="NODE"` as a rename does (3.4). A link that does not resolve is left as written and reported (FBL 17.6).
+- **Adding a linked node** (Add from another document…, section 7.1) inserts `<node TEXT="<cached name>" ID="ID_<short id>"><attribute NAME="adp-link" VALUE="<link>"/></node>` as the last child, with the file's structural newline between the elements.
+- **Deleting a linked node** removes its element as any node's; the target is untouched.
+- **A broken linked node** (its link does not resolve, FBL 17.6) shows the name the link caches, its `TEXT`, with the broken mark ↪⚠ among the corner glyphs; the finding stands at the node. Activating a resolving link mark opens the target with it selected (FBL 17.5).
+- **Linked from.** The links that resolve to a node, from any document of the workspace (a mind map node, a timeline element, a dependency graph node or a knowledge file's relation cell), are its backlinks (FBL 17.5), computed and never stored. The node's context menu lists them as **Linked from (N)**, each with the consuming document's name and the name of the element that holds it; activating one opens that document with that element selected. Deleting a node, or a branch, that has backlinks first says how many links the delete breaks, in the confirmation of 7.4; they are then reported where they are held (`link.broken-element`) and are not removed.
+- An attribute value is escaped as 3.6 says, so a `"`, `&` or `<` in a cached name is written `&quot;`, `&amp;` or `&lt;`.
+- A node can be linked to as any node: by its `ID` and its text (`linkable: { nameProperty: "text" }`). A link to a node is written `$<map id>@<file>.mm#<ID>.text=<text>`.
+
+The fixture `specifications/fbl/fixtures/links-workspace/ideas/ideas.mm` holds a map with a document id, linked nodes to a timeline, a dependency graph, a knowledge row and a node of its own, and the cases of a link that is ambiguous, broken, resolved by name and stale; its rows are in that folder's `conformance.json`, and `validate-examples.py` also checks that each linked node's `TEXT` is its link's cached name.
 
 ## 4. Layout
 
@@ -162,7 +182,8 @@ DISL 0.2 made this expressible, and the `.dis` now says it: `persistence.view.vi
 |---|---|---|---|
 | Add child | Insert, Tab | always | Tab is the XMind convention; it invokes the same action and reaches the backend as Insert. |
 | Add sibling | Enter | not on the central topic | Inserted right after the node. |
-| Rename… | F2 | always | Inline editor over the node. |
+| Add from another document… | none | always | Opens the host's lookup over the linkable elements of the workspace and adds a linked node for the picked one as the last child (3.8; DISL 9.4, `lookup` with `as: child`). |
+| Rename… | F2 | not on a linked node | Inline editor over the node. A linked node is named by its target. |
 | Delete | Delete | not on the central topic | See 7.4. |
 | Add notes… / Edit notes… | none | always | Label depends on whether notes exist. |
 | Link to… / Change link… | none | always | See section 8. |
@@ -211,6 +232,7 @@ The property grid shows Text, Notes (multi-line) and Link as editable, each edit
 - A URL (any absolute non-file URI) is shown but never resolved to a file (`MindmapLinks.IsExternal`).
 - A file link never resolves outside the project, however it got into the file (Req 12.9 in code, 12.11 in requirements; `MindmapLinks.ResolveWithinProject`).
 - Requirements not met yet, see section 11: the wire carries the raw link only, and following, broken-link display and rewriting links on move are not wired.
+- `LINK` is a URI and is not an ADP link. A link to an element of another ADP document is a linked node (3.8), whose link is resolved by document id and name within the workspace (FBL 17.3), so it survives the target's move or rename.
 
 ## 9. Rules
 
@@ -239,7 +261,8 @@ All three rules are in the `.dis` (DISL 0.3), in the order `constraints.order` g
 4. **Formatted text is lost on rename without a warning.** IntelliJ warns first (its FR-020).
 5. **Not shown or edited, only preserved:** icons, clouds, arrow links, per-node styling (colours, fonts), attribute tables, tags.
 6. **The shipped examples** contain no `FOLDED`, no notes and no `POSITION`, and a link only on the central topic (`mindmap/examples/readme.md`).
-7. **Catalogue state** is still ⚗️ Prototype in `docs/tools.md` and Notion although all 24 tasks are done; task 24 moved it to ✅ and that move has not happened.
+7. **Links between tools (spec 089)** are specified here and in the `.dis`, and not yet built: the standalone module reads neither `adp-id` nor `adp-link`, and offers no Add from another document.
+8. **Catalogue state** is still ⚗️ Prototype in `docs/tools.md` and Notion although all 24 tasks are done; task 24 moved it to ✅ and that move has not happened.
 
 ## 12. Other hosts
 
