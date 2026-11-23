@@ -525,6 +525,7 @@ impl DiagramDocument {
                 OpenRegistration::open_with(r.to_vec(), &self.tool.binding)
             };
             open.created_block_ending = self.tool.module.as_ref().and_then(|m| m.created_block_ending());
+            open.block_newline = self.tool.binding.registration.newline.clone();
             open
         });
         let mut steps = Vec::new();

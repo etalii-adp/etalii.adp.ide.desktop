@@ -691,6 +691,9 @@ pub struct RegistrationSettings {
     pub legacy_layout: Option<String>,
     /// *(FBL 0.12)* The legacy identities file, as `{base}.identities.json` (FBL section 8.7).
     pub legacy_identities: Option<String>,
+    /// *(FBL 0.21)* `newline`: the line ending every line of a block ends with once the host writes to that block
+    /// (`"\r\n"` or `"\n"`), in place of the registration's own (FBL section 8.4); none for the registration's own.
+    pub newline: Option<String>,
 }
 
 impl RegistrationSettings {
