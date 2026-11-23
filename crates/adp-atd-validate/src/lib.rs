@@ -764,7 +764,14 @@ impl Replay {
         if tool.drop_action_id.is_empty() {
             return self.session.drop_tool(&mut self.workspace, &tool.id, x, y, &self.ids);
         }
-        self.action(&ActionTarget::Canvas { x, y }, &tool.drop_action_id, args)
+        // A drop whose action is a module's, which the description has no entry for, creates what its tool creates.
+        let not_an_entry = format!("'{}' does not apply to this selection.", tool.drop_action_id);
+        match self.action(&ActionTarget::Canvas { x, y }, &tool.drop_action_id, args) {
+            Err(refusal) if refusal == not_an_entry => {
+                self.session.drop_tool(&mut self.workspace, &tool.id, x, y, &self.ids)
+            }
+            outcome => outcome,
+        }
     }
 
     /// The id of the toolbox's first tool that creates the element type `type_name`.
@@ -825,6 +832,34 @@ impl Replay {
             return self
                 .session
                 .connect(&mut self.workspace, &derived, source, end, &self.ids);
+        }
+        // A host's own connect gesture, which names no relation type, draws the one the pair allows, either way round;
+        // a pair that allows none is refused as the relation from the source would be.
+        if !offered && name == "connect" {
+            let documents = self.workspace.documents();
+            if let Some(relation) = self
+                .session
+                .relation_types_between(documents, source, Some(end))
+                .first()
+            {
+                return self
+                    .session
+                    .connect(&mut self.workspace, relation, source, end, &self.ids);
+            }
+            if let Some(relation) = self
+                .session
+                .relation_types_between(documents, end, Some(source))
+                .first()
+            {
+                return self
+                    .session
+                    .connect(&mut self.workspace, relation, end, source, &self.ids);
+            }
+            if let Some(relation) = relations.first() {
+                return self
+                    .session
+                    .connect(&mut self.workspace, relation, source, end, &self.ids);
+            }
         }
         self.action(&connection, name, args)
     }
