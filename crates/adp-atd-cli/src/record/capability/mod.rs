@@ -81,6 +81,7 @@ pub fn record(name: &str, cases: &Path) -> Result<Vec<PathBuf>, String> {
         "routing.forwardBezier" => forward_bezier::record(cases),
         "reader.markdown" => markdown(cases, "reader.markdown", reader_markdown),
         "reader.helmChart" => helm_chart(cases),
+        "layout.rankedColumns" => ranked_columns(cases),
         "reader.sparql" => sparql(cases),
         "render.markdown" => markdown(cases, "render.markdown", render_markdown),
         "reader.turtle" => super::w3c::turtle(cases),
@@ -381,6 +382,54 @@ fn helm_chart(cases: &Path) -> Result<Vec<PathBuf>, String> {
             "input": input,
             "args": {},
             "output": output,
+        });
+        let file = cases.join(format!("{short}.json"));
+        write_json(&file, &fixture)?;
+        written.push(file);
+    }
+    Ok(written)
+}
+
+/// `layout.rankedColumns` from the Helm chart module's anatomy (`modules/diagrams/helm-chart/src/layout.rs`), on the
+/// chart of every Helm chart parity script: each node with its size, its column as `rank` and its place in the column
+/// as `order`, and the top-left corner the anatomy gives it. One fixture per script, named after it.
+fn ranked_columns(cases: &Path) -> Result<Vec<PathBuf>, String> {
+    use adp_diagram_helm_chart::layout::{columns, compute, size_of};
+    use adp_diagram_helm_chart::store::HelmFolder;
+
+    fs::create_dir_all(cases).map_err(|e| format!("{}: {e}", cases.display()))?;
+    let fixtures = adp_parity::repository_root().join("parity/fixtures");
+    let mut written = Vec::new();
+    for name in adp_parity::script_names()
+        .into_iter()
+        .filter(|n| n.starts_with("helm/chart/"))
+    {
+        let case = adp_parity::Case::load(&name)?;
+        let chart = HelmFolder::open(&fixtures.join(&case.script.fixture));
+        let diagram = &chart.model.diagram;
+        let mut nodes = Vec::new();
+        for (rank, column) in columns(diagram).iter().enumerate() {
+            for (order, node) in column.iter().enumerate() {
+                let (width, height) = size_of(&node.type_name());
+                nodes.push(json!({
+                    "id": node.id(), "type": node.type_name(), "width": width, "height": height,
+                    "attributes": {"rank": rank, "order": order},
+                }));
+            }
+        }
+        let positions: Map<String, Json> = compute(diagram)
+            .into_iter()
+            .map(|(id, rect)| (id, json!({"x": round2(rect.x), "y": round2(rect.y)})))
+            .collect();
+        let short = name.rsplit('/').next().unwrap_or(&name);
+        let fixture = json!({
+            "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+            "doc": format!(
+                "Recorded by `atd record --capability layout.rankedColumns` from modules/diagrams/helm-chart/src/layout.rs of etalii.adp.ide.desktop, on the chart parity/scripts/{name}.json opens: each node's column as `rank` and its place in it as `order`; never edited by hand."
+            ),
+            "input": {"nodes": nodes, "edges": []},
+            "args": {"rank": "self.rank", "order": "self.order", "origin": [40, 40], "columnGap": 60, "rowGap": 24},
+            "output": {"positions": positions},
         });
         let file = cases.join(format!("{short}.json"));
         write_json(&file, &fixture)?;

@@ -12,6 +12,7 @@ pub mod layered_columns;
 pub mod layered_regions;
 pub mod markdown;
 pub mod ranked_boundaries;
+pub mod ranked_columns;
 pub mod ring;
 pub mod row_packed;
 pub mod row_packing;
@@ -345,6 +346,9 @@ impl Capabilities {
             .layouts
             .insert("layout.tidyTree", Rc::new(tidy_tree::TidyTreeLayout));
         capabilities.layouts.insert("layout.ring", Rc::new(ring::Ring));
+        capabilities
+            .layouts
+            .insert("layout.rankedColumns", Rc::new(ranked_columns::RankedColumns));
         capabilities
             .layouts
             .insert("layout.rowPacked", Rc::new(row_packed::RowPacked));

@@ -352,7 +352,9 @@
           "color.surface": "#1E293B",
           "color.text": "#F1F5F9",
           "color.text.muted": "#94A3B8",
-          "color.border": "#64748B"
+          "color.border": "#64748B",
+          "color.loop.reinforcing": "#4DAAFC",
+          "color.loop.balancing": "#FB923C"
         }
       },
       "followSystem": true
@@ -365,7 +367,7 @@
         "padding": [10, 14]
       },
       "link": {
-        "stroke": { "color": { "token": "color.text" }, "width": 1.5 }
+        "stroke": { "color": { "token": "color.text.muted" }, "width": 1.5 }
       },
       "loopBadge": {
         "font": { "family": { "token": "font.body" }, "size": 12, "weight": 600 }
@@ -379,6 +381,7 @@
         "doc": "A pill carrying the variable's label, as wide as the label needs and never narrower than 90.",
         "shape": "pill",
         "style": "variable",
+        "states": { "selected": { "stroke": { "color": { "token": "color.selected" } } } },
         "size": { "default": [90, 39.6], "min": [90, 39.6], "autoSize": "fitWidth", "resizable": false },
         "placement": { "anchor": "center", "doc": "A position is the centre of the pill, as the registration's `layout:` block stores it and as the ring and Arrange diagram place it." },
         "labels": [
@@ -407,6 +410,7 @@
         "doc": "A badge with no body: the circular loop marker and the caption, drawn at the centroid of the variables the loop runs through. It selects but never moves.",
         "shape": "none",
         "size": { "fixed": [80, 40] },
+        "states": { "selected": { "stroke": { "color": { "token": "color.selected" } } } },
         "placement": {
           "x": { "cel": "self.members.map(m, m.view.bounds.center()[0]).avg()" },
           "y": { "cel": "self.members.map(m, m.view.bounds.center()[1]).avg()" },
@@ -444,7 +448,7 @@
         "style": "link",
         "line": {
           "stroke": {
-            "color": { "token": "color.text" },
+            "color": { "token": "color.text.muted" },
             "width": { "cel": "!has(self.weight) ? 1.5 : (self.weight >= 2.0 ? 2.5 : (self.weight <= 0.5 ? 1.0 : 1.5))" }
           },
           "routing": "curved",
