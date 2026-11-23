@@ -461,10 +461,9 @@ fn validate_command(args: &[String]) -> ExitCode {
         }
     }
     let checked = check(&FsFiles, root);
-    // With the modules built in, the capabilities they contribute too, as the shell assembles them.
-    #[cfg(feature = "record")]
-    let host = adp_shell::runtime_host();
-    #[cfg(not(feature = "record"))]
+    // The registry's own capabilities, the ones the WebAssembly module's `atd/validate` has too, so that the Build can
+    // require both to give the same result (T162); the capabilities the modules contribute are the shell's, whose
+    // validation view and debugger run with them.
     let host = adp_atd_runtime::RuntimeHost::default();
     let results = match adp_atd_validate::validate_description(&checked, &host, &cases) {
         Ok(results) => results,
