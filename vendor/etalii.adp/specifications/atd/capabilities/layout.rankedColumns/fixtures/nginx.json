@@ -1,0 +1,387 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.rankedColumns` from modules/diagrams/helm-chart/src/layout.rs of etalii.adp.ide.desktop, on the chart parity/scripts/helm/chart/nginx.json opens: each node's column as `rank` and its place in it as `order`; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "chart",
+        "type": "Chart",
+        "width": 220.0,
+        "height": 110.0,
+        "attributes": {
+          "rank": 0,
+          "order": 0
+        }
+      },
+      {
+        "id": "lock:Chart.lock",
+        "type": "Lock",
+        "width": 200.0,
+        "height": 56.0,
+        "attributes": {
+          "rank": 0,
+          "order": 1
+        }
+      },
+      {
+        "id": "schema:values.schema.json",
+        "type": "Schema",
+        "width": 200.0,
+        "height": 48.0,
+        "attributes": {
+          "rank": 0,
+          "order": 2
+        }
+      },
+      {
+        "id": "values:values.yaml",
+        "type": "Values",
+        "width": 200.0,
+        "height": 72.0,
+        "attributes": {
+          "rank": 1,
+          "order": 0
+        }
+      },
+      {
+        "id": "values:values-dev.yaml",
+        "type": "Values",
+        "width": 200.0,
+        "height": 72.0,
+        "attributes": {
+          "rank": 1,
+          "order": 1
+        }
+      },
+      {
+        "id": "values:values-prod.yaml",
+        "type": "Values",
+        "width": 200.0,
+        "height": 72.0,
+        "attributes": {
+          "rank": 1,
+          "order": 2
+        }
+      },
+      {
+        "id": "tpl:templates/context-includes-configmap.yaml",
+        "type": "Template",
+        "width": 240.0,
+        "height": 60.0,
+        "attributes": {
+          "rank": 2,
+          "order": 0
+        }
+      },
+      {
+        "id": "tpl:templates/deployment.yaml",
+        "type": "Template",
+        "width": 240.0,
+        "height": 60.0,
+        "attributes": {
+          "rank": 2,
+          "order": 1
+        }
+      },
+      {
+        "id": "tpl:templates/extra-list.yaml",
+        "type": "Template",
+        "width": 240.0,
+        "height": 60.0,
+        "attributes": {
+          "rank": 2,
+          "order": 2
+        }
+      },
+      {
+        "id": "tpl:templates/health-ingress.yaml",
+        "type": "Template",
+        "width": 240.0,
+        "height": 60.0,
+        "attributes": {
+          "rank": 2,
+          "order": 3
+        }
+      },
+      {
+        "id": "tpl:templates/hpa.yaml",
+        "type": "Template",
+        "width": 240.0,
+        "height": 60.0,
+        "attributes": {
+          "rank": 2,
+          "order": 4
+        }
+      },
+      {
+        "id": "tpl:templates/ingress-tls-secret.yaml",
+        "type": "Template",
+        "width": 240.0,
+        "height": 60.0,
+        "attributes": {
+          "rank": 2,
+          "order": 5
+        }
+      },
+      {
+        "id": "tpl:templates/ingress.yaml",
+        "type": "Template",
+        "width": 240.0,
+        "height": 60.0,
+        "attributes": {
+          "rank": 2,
+          "order": 6
+        }
+      },
+      {
+        "id": "tpl:templates/networkpolicy.yaml",
+        "type": "Template",
+        "width": 240.0,
+        "height": 60.0,
+        "attributes": {
+          "rank": 2,
+          "order": 7
+        }
+      },
+      {
+        "id": "tpl:templates/pdb.yaml",
+        "type": "Template",
+        "width": 240.0,
+        "height": 60.0,
+        "attributes": {
+          "rank": 2,
+          "order": 8
+        }
+      },
+      {
+        "id": "tpl:templates/prometheusrules.yaml",
+        "type": "Template",
+        "width": 240.0,
+        "height": 60.0,
+        "attributes": {
+          "rank": 2,
+          "order": 9
+        }
+      },
+      {
+        "id": "tpl:templates/server-block-configmap.yaml",
+        "type": "Template",
+        "width": 240.0,
+        "height": 60.0,
+        "attributes": {
+          "rank": 2,
+          "order": 10
+        }
+      },
+      {
+        "id": "tpl:templates/serviceaccount.yaml",
+        "type": "Template",
+        "width": 240.0,
+        "height": 60.0,
+        "attributes": {
+          "rank": 2,
+          "order": 11
+        }
+      },
+      {
+        "id": "tpl:templates/servicemonitor.yaml",
+        "type": "Template",
+        "width": 240.0,
+        "height": 60.0,
+        "attributes": {
+          "rank": 2,
+          "order": 12
+        }
+      },
+      {
+        "id": "tpl:templates/stream-server-block-configmap.yaml",
+        "type": "Template",
+        "width": 240.0,
+        "height": 60.0,
+        "attributes": {
+          "rank": 2,
+          "order": 13
+        }
+      },
+      {
+        "id": "tpl:templates/svc.yaml",
+        "type": "Template",
+        "width": 240.0,
+        "height": 60.0,
+        "attributes": {
+          "rank": 2,
+          "order": 14
+        }
+      },
+      {
+        "id": "tpl:templates/tls-secret.yaml",
+        "type": "Template",
+        "width": 240.0,
+        "height": 60.0,
+        "attributes": {
+          "rank": 2,
+          "order": 15
+        }
+      },
+      {
+        "id": "tpl:templates/_helpers.tpl",
+        "type": "Partial",
+        "width": 240.0,
+        "height": 60.0,
+        "attributes": {
+          "rank": 2,
+          "order": 16
+        }
+      },
+      {
+        "id": "tpl:templates/NOTES.txt",
+        "type": "Template",
+        "width": 240.0,
+        "height": 60.0,
+        "attributes": {
+          "rank": 2,
+          "order": 17
+        }
+      },
+      {
+        "id": "dep:common",
+        "type": "Dependency",
+        "width": 210.0,
+        "height": 96.0,
+        "attributes": {
+          "rank": 3,
+          "order": 0
+        }
+      },
+      {
+        "id": "sub:charts/common",
+        "type": "Subchart",
+        "width": 210.0,
+        "height": 84.0,
+        "attributes": {
+          "rank": 4,
+          "order": 0
+        }
+      }
+    ],
+    "edges": []
+  },
+  "args": {
+    "rank": "self.rank",
+    "order": "self.order",
+    "origin": [
+      40,
+      40
+    ],
+    "columnGap": 60,
+    "rowGap": 24
+  },
+  "output": {
+    "positions": {
+      "chart": {
+        "x": 40.0,
+        "y": 40.0
+      },
+      "lock:Chart.lock": {
+        "x": 40.0,
+        "y": 174.0
+      },
+      "schema:values.schema.json": {
+        "x": 40.0,
+        "y": 254.0
+      },
+      "values:values.yaml": {
+        "x": 320.0,
+        "y": 40.0
+      },
+      "values:values-dev.yaml": {
+        "x": 320.0,
+        "y": 136.0
+      },
+      "values:values-prod.yaml": {
+        "x": 320.0,
+        "y": 232.0
+      },
+      "tpl:templates/context-includes-configmap.yaml": {
+        "x": 580.0,
+        "y": 40.0
+      },
+      "tpl:templates/deployment.yaml": {
+        "x": 580.0,
+        "y": 124.0
+      },
+      "tpl:templates/extra-list.yaml": {
+        "x": 580.0,
+        "y": 208.0
+      },
+      "tpl:templates/health-ingress.yaml": {
+        "x": 580.0,
+        "y": 292.0
+      },
+      "tpl:templates/hpa.yaml": {
+        "x": 580.0,
+        "y": 376.0
+      },
+      "tpl:templates/ingress-tls-secret.yaml": {
+        "x": 580.0,
+        "y": 460.0
+      },
+      "tpl:templates/ingress.yaml": {
+        "x": 580.0,
+        "y": 544.0
+      },
+      "tpl:templates/networkpolicy.yaml": {
+        "x": 580.0,
+        "y": 628.0
+      },
+      "tpl:templates/pdb.yaml": {
+        "x": 580.0,
+        "y": 712.0
+      },
+      "tpl:templates/prometheusrules.yaml": {
+        "x": 580.0,
+        "y": 796.0
+      },
+      "tpl:templates/server-block-configmap.yaml": {
+        "x": 580.0,
+        "y": 880.0
+      },
+      "tpl:templates/serviceaccount.yaml": {
+        "x": 580.0,
+        "y": 964.0
+      },
+      "tpl:templates/servicemonitor.yaml": {
+        "x": 580.0,
+        "y": 1048.0
+      },
+      "tpl:templates/stream-server-block-configmap.yaml": {
+        "x": 580.0,
+        "y": 1132.0
+      },
+      "tpl:templates/svc.yaml": {
+        "x": 580.0,
+        "y": 1216.0
+      },
+      "tpl:templates/tls-secret.yaml": {
+        "x": 580.0,
+        "y": 1300.0
+      },
+      "tpl:templates/_helpers.tpl": {
+        "x": 580.0,
+        "y": 1384.0
+      },
+      "tpl:templates/NOTES.txt": {
+        "x": 580.0,
+        "y": 1468.0
+      },
+      "dep:common": {
+        "x": 880.0,
+        "y": 40.0
+      },
+      "sub:charts/common": {
+        "x": 1150.0,
+        "y": 40.0
+      }
+    }
+  }
+}
