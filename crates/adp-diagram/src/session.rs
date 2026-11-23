@@ -307,6 +307,7 @@ impl DiagramSession {
             reader_findings,
             ..DislConstraintOptions::default()
         };
+        let options = written_ids(document, options);
         if let Some(module) = &document.tool().module
             && module.problems(document, options.clone()).is_some()
         {
@@ -366,6 +367,7 @@ impl DiagramSession {
             reader_findings,
             ..DislConstraintOptions::default()
         };
+        let options = written_ids(document, options);
         let mut problems = missing;
         if let Some(found) = document
             .tool()
@@ -2241,5 +2243,28 @@ fn bounds(x: f64, y: f64) -> Map {
 impl From<&DislElement> for ActionTarget {
     fn from(element: &DislElement) -> Self {
         ActionTarget::Element(element.id())
+    }
+}
+
+/// `options` with the written ids the specification names (DISL 0.10, section 11.5.4): with `persistence.writtenId`, a
+/// finding names an element, and `self.id` reads it, by the host attribute that holds the id it is written with, the
+/// empty text where it has none, and a finding about an ephemeral element is at its line.
+fn written_ids(document: &DiagramDocument, options: DislConstraintOptions) -> DislConstraintOptions {
+    let Some(attribute) = document.tool().definition.specification().root()["persistence"]["writtenId"]
+        .as_str()
+        .map(str::to_owned)
+    else {
+        return options;
+    };
+    DislConstraintOptions {
+        written_id: Some(Rc::new(move |element: &DislElement| {
+            match element.host_attributes().get(&attribute) {
+                Some(Value::String(written)) => written.clone(),
+                Some(Value::Null) | None => String::new(),
+                Some(other) => other.to_string(),
+            }
+        })),
+        ephemeral_at_line: true,
+        ..options
     }
 }

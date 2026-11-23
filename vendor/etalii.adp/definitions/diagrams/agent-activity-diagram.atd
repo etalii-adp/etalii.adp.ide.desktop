@@ -30,9 +30,9 @@ diagram etalii/agent-activity-diagram version "0.1.0" {
       label "Project"
       icon: "mdi-folder-outline"
       labelAttribute: name
-      attribute name: string required { group: "Identity", order: 1 }
+      attribute name: string required { label: "Name", group: "Identity", order: 1 }
       /// Where the project is: a web address or a path.
-      attribute link: uri { schemes: [http, https], paths: true, group: "Link", order: 9 }
+      attribute link: uri { label: "Link", schemes: [http, https], paths: true, group: "Link", order: 9 }
     }
 
     /// One piece of specified work in a project, with a status and its tasks.
@@ -40,12 +40,12 @@ diagram etalii/agent-activity-diagram version "0.1.0" {
       label "Specification"
       icon: "mdi-file-document-outline"
       labelAttribute: name
-      attribute name: string required { group: "Identity", order: 1 }
-      attribute status: SpecificationStatus required default pending { group: "Identity", order: 2 }
+      attribute name: string required { label: "Name", group: "Identity", order: 1 }
+      attribute status: SpecificationStatus required default pending { label: "Status", group: "Identity", order: 2 }
       /// The project the specification belongs to: at most one (R1). Drawn as the relation `ProjectSpecification`.
-      attribute project: Project { group: "Relations", order: 1 }
+      attribute project: Project { label: "Project", group: "Relations", order: 1 }
       /// Where the specification is written: a web address or a path, typically its requirements document.
-      attribute link: uri { schemes: [http, https], paths: true, group: "Link", order: 9 }
+      attribute link: uri { label: "Link", schemes: [http, https], paths: true, group: "Link", order: 9 }
       contains Task
       contains Task as tasks
     }
@@ -56,11 +56,12 @@ diagram etalii/agent-activity-diagram version "0.1.0" {
       label "Task"
       icon: "mdi-checkbox-blank-outline"
       labelAttribute: title
-      attribute title: string required { group: "Identity", order: 1 }
-      attribute status: TaskStatus required default pending { group: "Identity", order: 2 }
+      attribute title: string required { label: "Title", group: "Identity", order: 1 }
+      attribute status: TaskStatus required default pending { label: "Status", group: "Identity", order: 2 }
       /// When the task was last changed, with its offset. Tasks are listed most recent first within their group; one
       /// without it comes after those that have one, in file order.
       attribute updated: datetime default (env.now) {
+        label: "Updated"
         timezone: preserve
         writtenPrecision: preserve
         newPrecision: second
@@ -68,7 +69,7 @@ diagram etalii/agent-activity-diagram version "0.1.0" {
         order: 3
       }
       /// Where the task's work can be seen: a web address or a path.
-      attribute link: uri { schemes: [http, https], paths: true, group: "Link", order: 9 }
+      attribute link: uri { label: "Link", schemes: [http, https], paths: true, group: "Link", order: 9 }
     }
 
     /// One worker on a specification. A thread of a project chat is an agent.
@@ -76,11 +77,11 @@ diagram etalii/agent-activity-diagram version "0.1.0" {
       label "Agent"
       icon: "mdi-robot-outline"
       labelAttribute: name
-      attribute name: string required { group: "Identity", order: 1 }
+      attribute name: string required { label: "Name", group: "Identity", order: 1 }
       /// The specification the agent works on: at most one. Drawn as the relation `SpecificationAgent`.
-      attribute specification: Specification { group: "Relations", order: 1 }
+      attribute specification: Specification { label: "Specification", group: "Relations", order: 1 }
       /// Where the agent can be reached: a web address or a path.
-      attribute link: uri { schemes: [http, https], paths: true, group: "Link", order: 9 }
+      attribute link: uri { label: "Link", schemes: [http, https], paths: true, group: "Link", order: 9 }
     }
 
     /// Where an agent's work is: a branch, and a folder, the worktree's or `Default` for the repository's main
@@ -89,18 +90,18 @@ diagram etalii/agent-activity-diagram version "0.1.0" {
       label "Location"
       icon: "mdi-source-branch"
       labelAttribute: branch
-      attribute branch: string required { group: "Identity", order: 1 }
+      attribute branch: string required { label: "Branch", group: "Identity", order: 1 }
       /// The worktree's folder; `Default` when the work is in the main checkout, which is also what an absent key reads
       /// as.
-      attribute folder: string default Default { group: "Identity", order: 2 }
+      attribute folder: string default Default { label: "Folder", group: "Identity", order: 2 }
       /// The agent whose work this is: at most one. Drawn as the relation `AgentLocation`.
-      attribute agent: Agent { group: "Relations", order: 1 }
+      attribute agent: Agent { label: "Agent", group: "Relations", order: 1 }
       /// The system the location is on: at most one. Drawn as the relation `LocationEnvironment`.
-      attribute environment: Environment { group: "Relations", order: 2 }
+      attribute environment: Environment { label: "Environment", group: "Relations", order: 2 }
       /// Where the branch can be seen, such as its page on a forge.
-      attribute branchLink: uri { schemes: [http, https], paths: true, group: "Link", order: 10 }
+      attribute branchLink: uri { label: "Branch link", schemes: [http, https], paths: true, group: "Link", order: 10 }
       /// Where the folder is: a path, absolute or relative to the activity file.
-      attribute folderLink: uri { schemes: [http, https], paths: true, group: "Link", order: 11 }
+      attribute folderLink: uri { label: "Folder link", schemes: [http, https], paths: true, group: "Link", order: 11 }
       contains PullRequest
       contains PullRequest as pullRequests
     }
@@ -110,9 +111,10 @@ diagram etalii/agent-activity-diagram version "0.1.0" {
       label "Pull request"
       icon: "mdi-source-pull"
       labelAttribute: title
-      attribute title: string required { group: "Identity", order: 1 }
+      attribute title: string required { label: "Title", group: "Identity", order: 1 }
       /// When the pull request was last changed, with its offset. Pull requests are listed most recent first.
       attribute updated: datetime default (env.now) {
+        label: "Updated"
         timezone: preserve
         writtenPrecision: preserve
         newPrecision: second
@@ -120,7 +122,7 @@ diagram etalii/agent-activity-diagram version "0.1.0" {
         order: 2
       }
       /// The pull request's page.
-      attribute link: uri { schemes: [http, https], paths: true, group: "Link", order: 9 }
+      attribute link: uri { label: "Link", schemes: [http, https], paths: true, group: "Link", order: 9 }
     }
 
     /// A system the work happens on: a local machine, a cloud environment, a container, a WSL system or another kind.
@@ -128,12 +130,12 @@ diagram etalii/agent-activity-diagram version "0.1.0" {
       label "Environment"
       icon: "mdi-server-outline"
       labelAttribute: name
-      attribute name: string required { group: "Identity", order: 1 }
+      attribute name: string required { label: "Name", group: "Identity", order: 1 }
       /// What kind of system the environment is. Stored as the entry's `kind` key; the attribute is named otherwise
       /// because `kind` is reserved (DISL 2.2).
-      attribute environmentKind: EnvironmentKind required default other { group: "Identity", order: 2 }
+      attribute environmentKind: EnvironmentKind required default other { label: "Environment kind", group: "Identity", order: 2 }
       /// Where the environment can be reached or read about.
-      attribute link: uri { schemes: [http, https], paths: true, group: "Link", order: 9 }
+      attribute link: uri { label: "Link", schemes: [http, https], paths: true, group: "Link", order: 9 }
     }
 
     /// Drawn from Specification's `project` key: one line per specification whose `project` names a project. Drawing a
@@ -347,7 +349,7 @@ diagram etalii/agent-activity-diagram version "0.1.0" {
   /// A change to a task or a pull request - its title, its status, its link - sets its updated moment, unless the
   /// change is to that moment itself (standalone Requirement 9.3; agent-activity-diagram.md, "`updated` on every edit").
   hook touchUpdated on change for Task, PullRequest {
-    when attribute != 'updated'
+    when event.attribute != 'updated'
     phase: after
     set updated = env.now
   }

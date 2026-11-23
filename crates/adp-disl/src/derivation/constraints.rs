@@ -276,7 +276,11 @@ impl Run<'_> {
             constraint_id: built_in.to_owned(),
             severity: setting.severity(),
             message: setting.message_of(&variables, fallback),
-            element_ids: vec![self.written_id(element)],
+            element_ids: if self.options.ephemeral_at_line && self.written_id(element) != element.id() {
+                Vec::new()
+            } else {
+                vec![self.written_id(element)]
+            },
             line: element.line(),
             file: element.location().0,
             subject: None,
@@ -671,7 +675,11 @@ impl Run<'_> {
             .or(item)
             .and_then(|e| e.line())
             .or_else(|| at.as_ref().and_then(DislElement::line));
-        let element_ids = targets.iter().map(|t| self.written_id(t)).collect();
+        let element_ids = targets
+            .iter()
+            .filter(|t| !self.options.ephemeral_at_line || self.written_id(t) == t.id())
+            .map(|t| self.written_id(t))
+            .collect();
         self.found.push((
             DislFinding {
                 code,

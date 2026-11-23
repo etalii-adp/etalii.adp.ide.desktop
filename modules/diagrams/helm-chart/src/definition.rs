@@ -111,6 +111,7 @@ impl HelmDefinition {
             env: Some(HelmDefinition::env()),
             reader_findings: reading.iter().map(reader_finding).collect(),
             written_id: None,
+            ephemeral_at_line: false,
         };
         constraints::evaluate(&self.specification, &model.diagram, &options)
     }
