@@ -44,6 +44,37 @@ pub struct Description {
     /// Whether the first file is a root (a tool construct), rather than a part found without its root.
     pub rooted: bool,
     pub findings: Vec<Finding>,
+    /// The names a case recorded from a module gives the description's attributes (ATD §2.3), as the root's trace
+    /// (`<root>.trace.json`) maps them: by type, each attribute to the name the module recorded it under.
+    pub recorded_names: RecordedNames,
+}
+
+/// By type, each attribute to the name a module recorded it under (ATD §2.3, the trace's `recordedNames`).
+pub type RecordedNames = std::collections::BTreeMap<String, std::collections::BTreeMap<String, String>>;
+
+/// The `recordedNames` of the trace beside the root at `root`, none when it has no trace or the trace maps none.
+fn recorded_names(files: &dyn Files, root: &Path) -> RecordedNames {
+    let trace = root.with_extension("trace.json");
+    let Some(text) = files.read(&trace) else {
+        return RecordedNames::new();
+    };
+    let Ok(json) = serde_json::from_str::<Json>(&text) else {
+        return RecordedNames::new();
+    };
+    json["recordedNames"]
+        .as_object()
+        .into_iter()
+        .flatten()
+        .map(|(type_name, names)| {
+            let names = names
+                .as_object()
+                .into_iter()
+                .flatten()
+                .filter_map(|(attribute, recorded)| Some((attribute.clone(), recorded.as_str()?.to_owned())))
+                .collect();
+            (type_name.clone(), names)
+        })
+        .collect()
 }
 
 impl Description {
@@ -204,6 +235,7 @@ pub fn describe(files: &dyn Files, path: &Path) -> Description {
             files: Vec::new(),
             rooted: false,
             findings,
+            recorded_names: RecordedNames::new(),
         };
     };
     let is_root = first.construct().is_some_and(|c| c["kind"] == "tool");
@@ -268,10 +300,16 @@ fn assemble(files: &dyn Files, root: FileUnit, findings: &mut Vec<Finding>) -> D
         }
     }
     findings.append(&mut found);
+    let recorded_names = if rooted {
+        recorded_names(files, &units[0].path)
+    } else {
+        RecordedNames::new()
+    };
     Description {
         files: units,
         rooted,
         findings: std::mem::take(findings),
+        recorded_names,
     }
 }
 

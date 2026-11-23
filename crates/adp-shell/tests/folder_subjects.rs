@@ -33,3 +33,19 @@ fn a_folder_subject_is_read_from_the_cases_files_and_a_drag_on_it_is_made() {
         "{differences:#?}"
     );
 }
+
+/// The Helm chart's module records its attributes under payload names (`chart.version`), which the description's trace
+/// maps with `recordedNames` (ATD §2.3): the reading is compared through the map and differs nowhere.
+#[test]
+fn a_reading_recorded_under_a_modules_own_names_is_compared_through_the_traces_map() {
+    let checked = check(&FsFiles, &diagrams().join("helm-chart.atd"));
+    assert!(checked.description.recorded_names.contains_key("Chart"));
+    let case = read_case(&diagrams().join("conformance/helm-chart/nginx")).unwrap();
+    let results = validate_description(&checked, &adp_shell::runtime_host(), std::slice::from_ref(&case)).unwrap();
+    let reading: Vec<_> = results[0]
+        .differences
+        .iter()
+        .filter(|d| d.step.is_none() && d.part == "reading")
+        .collect();
+    assert!(reading.is_empty(), "{reading:#?}");
+}

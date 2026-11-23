@@ -49,10 +49,6 @@ impl RowPacking {
 }
 
 impl LayoutCapability for RowPacking {
-    fn query_arguments(&self) -> &'static [&'static str] {
-        &["left", "right", "apart"]
-    }
-
     /// The layout keeps no pin: across is the data, and only the row is the layout's.
     fn consults_pins(&self) -> bool {
         false

@@ -42,6 +42,7 @@ fn unlike(expected: Json, actual: Json, drawn: &[&str], shown: &[&str]) -> Vec<(
         case_draws: Some(&case_draws),
         description_draws: Some(&description_draws),
         stated: &stated,
+        recorded: &Default::default(),
     };
     reading_differences(tool.tool.definition.specification(), &reading)
         .into_iter()
@@ -190,6 +191,7 @@ fn a_painted_value_the_description_declares_is_still_compared() {
             case_draws: None,
             description_draws: None,
             stated: &stated,
+            recorded: &Default::default(),
         },
     );
     assert_eq!(differences.len(), 1, "{differences:?}");
@@ -352,4 +354,38 @@ fn findings_are_compared_exactly_in_a_case_from_a_module() {
     with_step.fixture["steps"] = json!([{"undo": true, "expect": "not the bytes", "refused": {"reason": "No."}}]);
     let found = validate(&tool, &description, &with_step);
     assert!(parts(&found).contains("bytes"), "{found:#?}");
+}
+
+/// A case recorded under the module's own name for an attribute, which the trace maps (ATD §2.3, `recordedNames`):
+/// compared with the value under that name, and nothing in common without the map.
+#[test]
+fn an_attribute_the_trace_maps_is_compared_under_the_recorded_name() {
+    let (tool, _) = mind_map();
+    let read = json!({"elements": [{"id": "a", "type": "m", "parent": null, "attributes": {"map.text": "A"}}]});
+    let stated = stated_by(&read);
+    let recorded: adp_atd_check::RecordedNames =
+        [("Node".to_owned(), [("text".to_owned(), "map.text".to_owned())].into())].into();
+    let compare = |text: &str, recorded: &adp_atd_check::RecordedNames| {
+        let actual = json!([{"id": "a", "type": "Node", "parent": null, "attributes": {"text": text}}]);
+        reading_differences(
+            tool.tool.definition.specification(),
+            &Reading {
+                expected: &read["elements"],
+                actual: &actual,
+                case_draws: None,
+                description_draws: None,
+                stated: &stated,
+                recorded,
+            },
+        )
+    };
+    assert!(compare("A", &recorded).is_empty());
+    assert_eq!(compare("B", &recorded).len(), 1);
+    let unmapped = compare("A", &Default::default());
+    assert!(
+        unmapped
+            .iter()
+            .any(|(want, _, _)| want.starts_with("attributes in common")),
+        "{unmapped:?}"
+    );
 }

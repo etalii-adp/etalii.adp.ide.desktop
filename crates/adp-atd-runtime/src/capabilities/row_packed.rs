@@ -93,10 +93,6 @@ impl RowPacked {
 }
 
 impl LayoutCapability for RowPacked {
-    fn query_arguments(&self) -> &'static [&'static str] {
-        &["packedWidth", "leading"]
-    }
-
     fn draws_its_sizes(&self) -> bool {
         true
     }

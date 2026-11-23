@@ -110,10 +110,6 @@ fn place(
 pub struct RankedColumns;
 
 impl LayoutCapability for RankedColumns {
-    fn query_arguments(&self) -> &'static [&'static str] {
-        &["rank", "order", "band"]
-    }
-
     fn draws_its_sizes(&self) -> bool {
         true
     }
