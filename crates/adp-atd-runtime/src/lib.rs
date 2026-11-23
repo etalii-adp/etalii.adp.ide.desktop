@@ -4,6 +4,7 @@
 pub mod capabilities;
 pub mod lowering;
 pub mod tool;
+pub mod view_bind;
 
 pub use capabilities::{Capabilities, LayoutCapability, RoutingCapability, Version};
 pub use lowering::{LoadedDiagram, load_diagram, lower_diagram};

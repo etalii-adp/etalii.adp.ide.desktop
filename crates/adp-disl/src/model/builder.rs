@@ -92,7 +92,16 @@ pub fn from(reading: &FblModel, specification: &DislSpecification) -> DislModel 
     let metamodel = specification.metamodel();
     let mut pending: Vec<(usize, TypeMapping, std::rc::Rc<DislType>)> = Vec::new();
 
+    // The entries of a type `persistence.view.bind` binds are view data, not elements (section 11.6); a type mapped to
+    // the diagram, for `filters`, still gives the diagram its attributes.
+    let bound: Vec<&str> = json::members(&specification.root()["persistence"]["view"], "bind")
+        .filter_map(|(_, bind)| bind["type"].as_str())
+        .filter(|type_name| map.mapping(type_name).as_type != "diagram")
+        .collect();
     for (index, element) in reading.elements.iter().enumerate() {
+        if bound.contains(&element.type_name.as_str()) {
+            continue;
+        }
         let mapping = map.mapping(&element.type_name);
         match mapping.as_type.as_str() {
             "header" => {

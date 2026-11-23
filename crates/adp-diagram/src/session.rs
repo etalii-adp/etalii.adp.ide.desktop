@@ -1462,6 +1462,43 @@ impl DiagramSession {
                     Err(refusal) => ActionOutcome::Refused(refusal),
                 }
             }
+            // Pinning keeps the node where it is drawn; unpinning, and unpinning all, forget the stored positions
+            // (DISL sections 7.3 and 11.6), where the body keeps them.
+            ("pin", ActionTarget::Element(id)) => {
+                let Some(&(x, y)) = document.positions().get(id.as_str()) else {
+                    return ActionOutcome::Refused(GONE.to_owned());
+                };
+                let changes = [DiagramChange::Place { id: id.clone(), x, y }];
+                match document
+                    .plan(&entry.label, &changes)
+                    .and_then(|edit| workspace.execute(edit))
+                {
+                    Ok(()) => ActionOutcome::Done,
+                    Err(refusal) => ActionOutcome::Refused(refusal),
+                }
+            }
+            (kind @ ("unpin" | "unpinAll"), target) => {
+                let elements = match target {
+                    ActionTarget::Element(id) if kind == "unpin" => Some(vec![id.clone()]),
+                    _ => None,
+                };
+                let Some(changes) = document
+                    .tool()
+                    .module
+                    .as_ref()
+                    .and_then(|module| module.kept_unpin(document, elements.as_deref()))
+                else {
+                    return ActionOutcome::Refused(format!("'{}' cannot be run here yet.", entry.label));
+                };
+                let changes: Vec<DiagramChange> = changes.into_iter().map(DiagramChange::Body).collect();
+                match document
+                    .plan(&entry.label, &changes)
+                    .and_then(|edit| workspace.execute(edit))
+                {
+                    Ok(()) => ActionOutcome::Done,
+                    Err(refusal) => ActionOutcome::Refused(refusal),
+                }
+            }
             _ => ActionOutcome::Refused(format!("'{}' cannot be run here yet.", entry.label)),
         }
     }
