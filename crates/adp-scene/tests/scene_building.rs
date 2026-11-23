@@ -524,6 +524,26 @@ fn labels_are_placed_above_below_beside_and_before_the_shape() {
     );
     let beside = one("outside-right");
     assert!(beside.anchor == TextAnchor::Start && beside.position.x > BOX.right());
+    // Centred over and under it (DISL section 6.9's outside slots).
+    let above = one("outside-top");
+    assert!(
+        above.anchor == TextAnchor::Middle && above.position.y < BOX.y,
+        "{above:?}"
+    );
+    let below = one("outside-bottom");
+    assert!(
+        below.anchor == TextAnchor::Middle && below.position.y > BOX.bottom(),
+        "{below:?}"
+    );
+}
+
+#[test]
+fn a_literal_label_is_shown_as_it_is_written() {
+    let out = lines(json!([{ "id": "n", "text": "subquery" }]));
+    assert_eq!(
+        vec!["subquery"],
+        out.iter().map(|l| l.text.as_str()).collect::<Vec<_>>()
+    );
 }
 
 #[test]

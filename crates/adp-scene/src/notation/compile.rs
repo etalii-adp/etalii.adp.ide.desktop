@@ -381,7 +381,12 @@ impl Compiler<'_> {
         let id = str_of(label, "id").unwrap_or("");
         let location = format!("node \"{type_name}\" label \"{id}\"");
         let text = label.get("text").unwrap_or(&Json::Null);
-        let mut declaration = LabelDeclaration::new(id, self.binding(text, &location)?);
+        // A label's text is a Bindable: a literal string is shown as it is written (DISL section 2.5b).
+        let text = match text {
+            Json::String(literal) => Binding::Literal(literal.clone()),
+            other => self.binding(other, &location)?,
+        };
+        let mut declaration = LabelDeclaration::new(id, text);
         let position = label.get("position");
         let distance = num_of(label, "distance");
         match position {
@@ -403,6 +408,20 @@ impl Compiler<'_> {
                     ));
                 }
                 declaration.placement = LabelPlacement::Beside;
+            }
+            Some(Json::String(p)) if p == "outside-top" || p == "outside-bottom" => {
+                // Centred over or under the node, at the library's own gap from its edge.
+                let (side, placement) = if p == "outside-top" {
+                    ("above", LabelPlacement::Above)
+                } else {
+                    ("below", LabelPlacement::Below)
+                };
+                if let Some(d) = distance {
+                    return fail(format!(
+                        "{location} sits {d} {side} its node; the library's {side} label sits at its own gap."
+                    ));
+                }
+                declaration.placement = placement;
             }
             Some(Json::Object(p)) => {
                 let (ax, ay) = pair_of(p.get("anchor"));
