@@ -37,12 +37,17 @@ pub mod theme;
 
 /// The capabilities of the desktop host as the shell assembles them (etalii.adp spec 035, T125, research R14): the
 /// registry's own, and those the modules contribute from code that stays with them: the RDF module's, and the Helm
-/// chart module's folder reader as `reader.helmChart` (T132).
+/// chart module's folder reader as `reader.helmChart` and the SPARQL module's query reader as `reader.sparql` (T132).
 pub fn capabilities() -> adp_atd_runtime::Capabilities {
-    adp_diagram_rdf::capabilities::contribute(adp_atd_runtime::Capabilities::desktop()).with_reader(
-        "reader.helmChart",
-        std::rc::Rc::new(adp_diagram_helm_chart::plugin::HelmChartFolderPlugin),
-    )
+    adp_diagram_rdf::capabilities::contribute(adp_atd_runtime::Capabilities::desktop())
+        .with_reader(
+            "reader.helmChart",
+            std::rc::Rc::new(adp_diagram_helm_chart::plugin::HelmChartFolderPlugin),
+        )
+        .with_reader(
+            "reader.sparql",
+            std::rc::Rc::new(adp_diagram_sparql::plugin::SparqlQueryPlugin),
+        )
 }
 
 /// A runtime host with every capability of the desktop host.

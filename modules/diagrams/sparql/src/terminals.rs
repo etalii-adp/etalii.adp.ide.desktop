@@ -198,6 +198,11 @@ impl LineIndex {
     pub fn line_of(&self, offset: usize) -> usize {
         self.starts.partition_point(|&start| start <= offset).saturating_sub(1)
     }
+
+    /// The one-based column of `offset` on its line.
+    pub fn column_of(&self, offset: usize) -> usize {
+        offset - self.starts[self.line_of(offset)] + 1
+    }
 }
 
 const SINGLE_LETTER_ESCAPES: &str = "tbnrf\"'\\";

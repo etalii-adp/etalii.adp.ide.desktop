@@ -178,6 +178,7 @@ dependencies = [
  "adp-diagram-hype-cycle",
  "adp-diagram-mindmap",
  "adp-diagram-rdf",
+ "adp-diagram-sparql",
  "adp-diagram-timeline",
  "adp-disl",
  "adp-documents",
@@ -670,11 +671,13 @@ dependencies = [
 name = "adp-diagram-sparql"
 version = "1.0.0"
 dependencies = [
+ "adp-cel",
  "adp-context",
  "adp-core",
  "adp-diagram",
  "adp-disl",
  "adp-documents",
+ "adp-fbl",
  "adp-history",
  "adp-layout",
  "adp-theme",
