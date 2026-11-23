@@ -43,6 +43,9 @@ pub struct Reading<'a> {
     pub description_draws: Option<&'a BTreeSet<String>>,
     /// The attributes the case states anywhere in its reading.
     pub stated: &'a BTreeSet<&'a str>,
+    /// By type, the name the case recorded each attribute under, where it is not the attribute's own (the trace's
+    /// `recordedNames`, ATD §2.3).
+    pub recorded: &'a adp_atd_check::RecordedNames,
 }
 
 /// The attributes a case states anywhere in its reading: of its elements and its relations.
@@ -64,18 +67,34 @@ fn asks_for_something_in_common(name: &str) -> bool {
     !is_reserved(name) && !PAINTED.contains(&name)
 }
 
-/// The attributes both sides can state: those the case states anywhere in its reading that the description's model
-/// declares on `type_name`, not derived.
-fn comparable(specification: &DislSpecification, type_name: &str, stated: &BTreeSet<&str>) -> BTreeSet<String> {
+/// The attributes both sides can state, each with the name the case states it under: those the case states anywhere
+/// in its reading that the description's model declares on `type_name`, not derived; an attribute the trace maps for
+/// the type or a type it extends is stated under the recorded name (ATD §2.3).
+fn comparable(
+    specification: &DislSpecification,
+    type_name: &str,
+    stated: &BTreeSet<&str>,
+    recorded: &adp_atd_check::RecordedNames,
+) -> Vec<(String, String)> {
     let Some(declared) = specification.metamodel().type_of(type_name) else {
-        return BTreeSet::new();
+        return Vec::new();
     };
-    declared
+    let recorded_as = |attribute: &str| {
+        recorded
+            .iter()
+            .filter(|(mapped, _)| specification.metamodel().is_a(type_name, mapped))
+            .find_map(|(_, names)| names.get(attribute).cloned())
+            .unwrap_or_else(|| attribute.to_owned())
+    };
+    let mut names: Vec<(String, String)> = declared
         .attributes
         .values()
-        .filter(|attribute| !attribute.is_derived() && stated.contains(attribute.name.as_str()))
-        .map(|attribute| attribute.name.clone())
-        .collect()
+        .filter(|attribute| !attribute.is_derived())
+        .map(|attribute| (attribute.name.clone(), recorded_as(&attribute.name)))
+        .filter(|(_, recorded)| stated.contains(recorded.as_str()))
+        .collect();
+    names.sort();
+    names
 }
 
 /// One attribute as a reading states it: the text, an absent one the empty text.
@@ -106,10 +125,18 @@ pub fn reading_differences(specification: &DislSpecification, reading: &Reading)
                 ));
             }
         }
-        let names = comparable(specification, got["type"].as_str().unwrap_or_default(), reading.stated);
+        let names = comparable(
+            specification,
+            got["type"].as_str().unwrap_or_default(),
+            reading.stated,
+            reading.recorded,
+        );
         compared_any |= !names.is_empty();
-        for name in names {
-            let (w, g) = (text_of(&want["attributes"], &name), text_of(&got["attributes"], &name));
+        for (name, recorded) in names {
+            let (w, g) = (
+                text_of(&want["attributes"], &recorded),
+                text_of(&got["attributes"], &name),
+            );
             if w != g {
                 differences.push((
                     format!("{id} {name}: {w:?}"),

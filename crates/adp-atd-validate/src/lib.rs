@@ -214,6 +214,7 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
                 case_draws: case_draws.as_ref(),
                 description_draws: description_draws.as_ref(),
                 stated: &stated,
+                recorded: &description.recorded_names,
             };
             let specification = runtime.tool.definition.specification();
             for (want, got, id) in meaning::reading_differences(specification, &reading) {

@@ -19,7 +19,7 @@ use std::path::{Path, PathBuf};
 
 use serde_json::{Value as Json, json};
 
-pub use description::{Description, FileUnit, describe};
+pub use description::{Description, FileUnit, RecordedNames, describe};
 pub use symbols::Symbols;
 
 /// How bad a finding is (ATD §15.2).

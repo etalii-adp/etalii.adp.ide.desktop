@@ -3096,6 +3096,16 @@
               }
             ]
           }
+        },
+        "recordedNames": {
+          "description": "(ATD §2.3) Where a case recorded from a module states an attribute under a name of its own: by type of the description, each attribute to the name the module recorded it under. An attribute so mapped for its element's type, or a type it extends, is compared with the case's value under the mapped name.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
         }
       },
       "additionalProperties": false,
