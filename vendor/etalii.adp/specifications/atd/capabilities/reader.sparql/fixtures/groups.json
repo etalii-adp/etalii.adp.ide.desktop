@@ -1,0 +1,415 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.sparql` from modules/diagrams/sparql/src/plugin.rs of etalii.adp.ide.desktop, on the query parity/scripts/w3c/sparql/groups.json opens; never edited by hand.",
+  "input": {
+    "body": "PREFIX ex: <http://example.org/>\n\nSELECT ?s ?x\nWHERE {\n  ?s ex:p ?x .\n  OPTIONAL { ?s ex:q ?x . FILTER(?x > 3) }\n  OPTIONAL { ?s ex:r ?y }\n  { ?s ex:t1 ?x } UNION { ?s ex:t2 ?x } UNION { ?s ex:t3 ?x }\n  MINUS { ?s ex:banned true }\n  GRAPH ?g { ?s ex:in ?g2 }\n  SERVICE SILENT <http://example.org/sparql> { ?s ex:remote ?r }\n  FILTER NOT EXISTS { ?s ex:hidden true }\n  BIND(?x * 2 AS ?doubled)\n  VALUES ?x { 1 2 3 }\n  {\n    SELECT ?s (MAX(?v) AS ?best) WHERE { ?s ex:v ?v } GROUP BY ?s\n  }\n}\n",
+    "files": {
+      "groups.adp": "w3c/sparql\r\nbody: groups.rq\r\n"
+    }
+  },
+  "args": {},
+  "output": {
+    "elements": [
+      {
+        "id": "query",
+        "type": "Query",
+        "parent": null,
+        "attributes": {
+          "form": "select",
+          "distinct": false,
+          "reduced": false,
+          "projectsAll": false,
+          "projection": [
+            "s",
+            "x"
+          ],
+          "projectionExpressions": [
+            "",
+            ""
+          ],
+          "describeTargets": [],
+          "describeTerms": [],
+          "datasetClauses": [],
+          "modifierRows": [],
+          "templateRepeatsWhere": false,
+          "baseIri": ""
+        }
+      },
+      {
+        "id": "prefix-0",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "prefix": "ex",
+          "iri": "http://example.org/",
+          "used": true
+        }
+      },
+      {
+        "id": "pattern-0",
+        "type": "Pattern",
+        "parent": null,
+        "attributes": {
+          "scope": "where",
+          "predicate": "ex:p",
+          "isPath": false,
+          "predicateVariable": "",
+          "repeat": 0,
+          "sKind": "var",
+          "sKey": "var:s",
+          "sDisplay": "?s",
+          "sFull": "",
+          "sAnnotation": "",
+          "oKind": "var",
+          "oKey": "var:x",
+          "oDisplay": "?x",
+          "oFull": "",
+          "oAnnotation": ""
+        }
+      },
+      {
+        "id": "where/optional.0",
+        "type": "Scope",
+        "parent": null,
+        "attributes": {
+          "path": "where/optional.0",
+          "scopeKind": "optional",
+          "term": ""
+        }
+      },
+      {
+        "id": "pattern-1",
+        "type": "Pattern",
+        "parent": null,
+        "attributes": {
+          "scope": "where/optional.0",
+          "predicate": "ex:q",
+          "isPath": false,
+          "predicateVariable": "",
+          "repeat": 0,
+          "sKind": "var",
+          "sKey": "var:s",
+          "sDisplay": "?s",
+          "sFull": "",
+          "sAnnotation": "",
+          "oKind": "var",
+          "oKey": "var:x",
+          "oDisplay": "?x",
+          "oFull": "",
+          "oAnnotation": ""
+        }
+      },
+      {
+        "id": "where/optional.0/constraint.0",
+        "type": "Constraint",
+        "parent": null,
+        "attributes": {
+          "constraintKind": "filter",
+          "text": "FILTER(?x > 3)",
+          "scope": "where/optional.0",
+          "ordinal": 0,
+          "definedVariable": "",
+          "referencedVariables": [
+            "x"
+          ]
+        }
+      },
+      {
+        "id": "where/optional.1",
+        "type": "Scope",
+        "parent": null,
+        "attributes": {
+          "path": "where/optional.1",
+          "scopeKind": "optional",
+          "term": ""
+        }
+      },
+      {
+        "id": "pattern-2",
+        "type": "Pattern",
+        "parent": null,
+        "attributes": {
+          "scope": "where/optional.1",
+          "predicate": "ex:r",
+          "isPath": false,
+          "predicateVariable": "",
+          "repeat": 0,
+          "sKind": "var",
+          "sKey": "var:s",
+          "sDisplay": "?s",
+          "sFull": "",
+          "sAnnotation": "",
+          "oKind": "var",
+          "oKey": "var:y",
+          "oDisplay": "?y",
+          "oFull": "",
+          "oAnnotation": ""
+        }
+      },
+      {
+        "id": "where/union.0",
+        "type": "Scope",
+        "parent": null,
+        "attributes": {
+          "path": "where/union.0",
+          "scopeKind": "union",
+          "term": ""
+        }
+      },
+      {
+        "id": "where/union.0/branch.0",
+        "type": "Scope",
+        "parent": "where/union.0",
+        "attributes": {
+          "path": "where/union.0/branch.0",
+          "scopeKind": "branch",
+          "term": ""
+        }
+      },
+      {
+        "id": "pattern-3",
+        "type": "Pattern",
+        "parent": null,
+        "attributes": {
+          "scope": "where/union.0/branch.0",
+          "predicate": "ex:t1",
+          "isPath": false,
+          "predicateVariable": "",
+          "repeat": 0,
+          "sKind": "var",
+          "sKey": "var:s",
+          "sDisplay": "?s",
+          "sFull": "",
+          "sAnnotation": "",
+          "oKind": "var",
+          "oKey": "var:x",
+          "oDisplay": "?x",
+          "oFull": "",
+          "oAnnotation": ""
+        }
+      },
+      {
+        "id": "where/union.0/branch.1",
+        "type": "Scope",
+        "parent": "where/union.0",
+        "attributes": {
+          "path": "where/union.0/branch.1",
+          "scopeKind": "branch",
+          "term": ""
+        }
+      },
+      {
+        "id": "pattern-4",
+        "type": "Pattern",
+        "parent": null,
+        "attributes": {
+          "scope": "where/union.0/branch.1",
+          "predicate": "ex:t2",
+          "isPath": false,
+          "predicateVariable": "",
+          "repeat": 0,
+          "sKind": "var",
+          "sKey": "var:s",
+          "sDisplay": "?s",
+          "sFull": "",
+          "sAnnotation": "",
+          "oKind": "var",
+          "oKey": "var:x",
+          "oDisplay": "?x",
+          "oFull": "",
+          "oAnnotation": ""
+        }
+      },
+      {
+        "id": "where/union.0/branch.2",
+        "type": "Scope",
+        "parent": "where/union.0",
+        "attributes": {
+          "path": "where/union.0/branch.2",
+          "scopeKind": "branch",
+          "term": ""
+        }
+      },
+      {
+        "id": "pattern-5",
+        "type": "Pattern",
+        "parent": null,
+        "attributes": {
+          "scope": "where/union.0/branch.2",
+          "predicate": "ex:t3",
+          "isPath": false,
+          "predicateVariable": "",
+          "repeat": 0,
+          "sKind": "var",
+          "sKey": "var:s",
+          "sDisplay": "?s",
+          "sFull": "",
+          "sAnnotation": "",
+          "oKind": "var",
+          "oKey": "var:x",
+          "oDisplay": "?x",
+          "oFull": "",
+          "oAnnotation": ""
+        }
+      },
+      {
+        "id": "where/minus.0",
+        "type": "Scope",
+        "parent": null,
+        "attributes": {
+          "path": "where/minus.0",
+          "scopeKind": "minus",
+          "term": ""
+        }
+      },
+      {
+        "id": "pattern-6",
+        "type": "Pattern",
+        "parent": null,
+        "attributes": {
+          "scope": "where/minus.0",
+          "predicate": "ex:banned",
+          "isPath": false,
+          "predicateVariable": "",
+          "repeat": 0,
+          "sKind": "var",
+          "sKey": "var:s",
+          "sDisplay": "?s",
+          "sFull": "",
+          "sAnnotation": "",
+          "oKind": "lit",
+          "oKey": "lit:true^boolean",
+          "oDisplay": "true",
+          "oFull": "true",
+          "oAnnotation": "boolean"
+        }
+      },
+      {
+        "id": "where/graph.0",
+        "type": "Scope",
+        "parent": null,
+        "attributes": {
+          "path": "where/graph.0",
+          "scopeKind": "graph",
+          "term": "?g"
+        }
+      },
+      {
+        "id": "pattern-7",
+        "type": "Pattern",
+        "parent": null,
+        "attributes": {
+          "scope": "where/graph.0",
+          "predicate": "ex:in",
+          "isPath": false,
+          "predicateVariable": "",
+          "repeat": 0,
+          "sKind": "var",
+          "sKey": "var:s",
+          "sDisplay": "?s",
+          "sFull": "",
+          "sAnnotation": "",
+          "oKind": "var",
+          "oKey": "var:g2",
+          "oDisplay": "?g2",
+          "oFull": "",
+          "oAnnotation": ""
+        }
+      },
+      {
+        "id": "where/service.0",
+        "type": "Scope",
+        "parent": null,
+        "attributes": {
+          "path": "where/service.0",
+          "scopeKind": "service",
+          "term": "SILENT <http://example.org/sparql>"
+        }
+      },
+      {
+        "id": "pattern-8",
+        "type": "Pattern",
+        "parent": null,
+        "attributes": {
+          "scope": "where/service.0",
+          "predicate": "ex:remote",
+          "isPath": false,
+          "predicateVariable": "",
+          "repeat": 0,
+          "sKind": "var",
+          "sKey": "var:s",
+          "sDisplay": "?s",
+          "sFull": "",
+          "sAnnotation": "",
+          "oKind": "var",
+          "oKey": "var:r",
+          "oDisplay": "?r",
+          "oFull": "",
+          "oAnnotation": ""
+        }
+      },
+      {
+        "id": "where/constraint.0",
+        "type": "Constraint",
+        "parent": null,
+        "attributes": {
+          "constraintKind": "filter",
+          "text": "FILTER NOT EXISTS { ?s ex:hidden true }",
+          "scope": "where",
+          "ordinal": 0,
+          "definedVariable": "",
+          "referencedVariables": [
+            "s"
+          ]
+        }
+      },
+      {
+        "id": "where/constraint.1",
+        "type": "Constraint",
+        "parent": null,
+        "attributes": {
+          "constraintKind": "bind",
+          "text": "BIND(?x * 2 AS ?doubled)",
+          "scope": "where",
+          "ordinal": 0,
+          "definedVariable": "doubled",
+          "referencedVariables": [
+            "x"
+          ]
+        }
+      },
+      {
+        "id": "where/constraint.2",
+        "type": "Constraint",
+        "parent": null,
+        "attributes": {
+          "constraintKind": "values",
+          "text": "VALUES ?x { 1 2 3 }",
+          "scope": "where",
+          "ordinal": 0,
+          "definedVariable": "",
+          "referencedVariables": [
+            "x"
+          ]
+        }
+      },
+      {
+        "id": "where/subquery.0",
+        "type": "SubQuery",
+        "parent": null,
+        "attributes": {
+          "scope": "where",
+          "ordinal": 0,
+          "display": "SELECT ?s (MAX(?v) AS ?best)",
+          "text": "{\n    SELECT ?s (MAX(?v) AS ?best) WHERE { ?s ex:v ?v } GROUP BY ?s\n  }",
+          "projectedNames": [
+            "s",
+            "best"
+          ]
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

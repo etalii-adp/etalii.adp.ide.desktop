@@ -64,12 +64,27 @@ impl SparqlTerm {
     }
 }
 
+/// Where an entry of a query was read from: the characters it was written as and the line it starts on (FBL 11.2; the
+/// standalone host's `SparqlSpan`, sparql-disl-fbl task 3). What a persistence plugin delivers for every element it
+/// reads, so the parser keeps it on every group, pattern, constraint, subquery and prefix declaration.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct SparqlSpan {
+    /// The offset of its first character, in characters.
+    pub start: usize,
+    /// The offset just past its last character.
+    pub end: usize,
+    /// The one-based line it starts on; 0 for an entry with no text of its own.
+    pub line: usize,
+}
+
 /// One triple pattern of the where clause or of a `CONSTRUCT` template.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TriplePattern {
     pub subject: SparqlTerm,
     pub predicate: SparqlTerm,
     pub object: SparqlTerm,
+    /// From its subject to its object, in `;` and `,` lists, blank-node property lists and collection cells too.
+    pub span: SparqlSpan,
 }
 
 /// The kinds of group a where clause is built of.
@@ -133,6 +148,8 @@ pub struct SparqlConstraint {
     pub defined_variable: String,
     /// The variable names referenced inside, without sigils, in order of first mention.
     pub referenced_variables: Vec<String>,
+    /// Exactly the characters of `text`.
+    pub span: SparqlSpan,
 }
 
 /// A subquery, collapsed to one node stating its projection.
@@ -147,6 +164,8 @@ pub struct SparqlSubSelect {
     pub projects_all: bool,
     /// Its position among the parent scope's subqueries.
     pub ordinal: usize,
+    /// From its opening brace to its closing one.
+    pub span: SparqlSpan,
 }
 
 /// One node of the scope tree: a group of triple patterns, the groups nested inside it, and its constraints.
@@ -163,6 +182,10 @@ pub struct GroupScope {
     pub sub_selects: Vec<SparqlSubSelect>,
     /// The path naming this scope from the root: `where`, `where/optional.0`, `template`.
     pub path: String,
+    /// From its keyword (`OPTIONAL`, `MINUS`, `GRAPH`, `SERVICE`) or its opening brace to its closing brace; a `UNION`
+    /// from its first branch's brace to its last's. A `CONSTRUCT WHERE` template shares its where clause's; a
+    /// `DESCRIBE` with no where clause has none.
+    pub span: SparqlSpan,
 }
 
 impl GroupScope {
@@ -177,6 +200,7 @@ impl GroupScope {
             constraints: Vec::new(),
             sub_selects: Vec::new(),
             path: String::new(),
+            span: SparqlSpan::default(),
         }
     }
 
@@ -213,6 +237,8 @@ pub struct SparqlPrefixDeclaration {
     pub prefix: String,
     pub iri: String,
     pub line: usize,
+    /// From `PREFIX` to the end of its IRI.
+    pub span: SparqlSpan,
 }
 
 /// How one variable name is used across the whole query.

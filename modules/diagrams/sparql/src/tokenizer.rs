@@ -84,6 +84,11 @@ impl<'a> Tokenizer<'a> {
         self.lines.line_of(offset)
     }
 
+    /// The one-based column of `offset` on its line.
+    pub fn column_of(&self, offset: usize) -> usize {
+        self.lines.column_of(offset)
+    }
+
     /// Every token in the document, in order, ending with [`TokenKind::EndOfFile`].
     pub fn tokenize(&mut self) -> Result<Vec<Token>, ParseError> {
         let mut tokens = Vec::new();
@@ -289,6 +294,7 @@ impl<'a> Tokenizer<'a> {
         ParseError {
             message: message.to_owned(),
             line: self.line_of(offset) + 1,
+            column: self.column_of(offset),
         }
     }
 }

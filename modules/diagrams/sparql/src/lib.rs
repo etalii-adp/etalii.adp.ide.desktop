@@ -20,6 +20,7 @@ pub mod layout;
 pub mod mapper;
 pub mod model;
 pub mod parser;
+pub mod plugin;
 pub mod projection;
 pub mod registration_layout;
 pub mod rows;

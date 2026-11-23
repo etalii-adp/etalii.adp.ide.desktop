@@ -11,7 +11,7 @@ use std::collections::HashMap;
 
 use crate::model::{
     GroupScope, GroupScopeKind, SparqlConstraint, SparqlConstraintKind, SparqlPrefixDeclaration, SparqlProjectionItem,
-    SparqlQueryForm, SparqlQueryModel, SparqlSubSelect, SparqlTerm, SparqlVariableUsage, TriplePattern,
+    SparqlQueryForm, SparqlQueryModel, SparqlSpan, SparqlSubSelect, SparqlTerm, SparqlVariableUsage, TriplePattern,
 };
 use crate::terminals;
 use crate::tokenizer::{Token, TokenKind, Tokenizer};
@@ -36,6 +36,8 @@ const UPDATE_VERBS: [&str; 10] = [
 pub struct ParseError {
     pub message: String,
     pub line: usize,
+    /// The one-based column the reading stopped at on `line`.
+    pub column: usize,
 }
 
 /// What `text` asks, or why it could not be read.
@@ -156,6 +158,7 @@ impl Parser<'_> {
     fn parse_prologue(&mut self) -> Parsed<()> {
         loop {
             if self.current().is_keyword("PREFIX") {
+                let declaration = self.index;
                 let line = self.line_of(self.current());
                 self.advance();
                 let name = self.expect(TokenKind::PrefixedName, "a prefix name ending in ':'")?;
@@ -173,10 +176,12 @@ impl Parser<'_> {
                 let prefix = name.value[..colon].to_owned();
                 let expanded = unbracket(&iri.value);
                 self.prefix_map.insert(prefix.clone(), expanded.clone());
+                let span = self.span_of(declaration, self.index - 1);
                 self.prefixes.push(SparqlPrefixDeclaration {
                     prefix,
                     iri: expanded,
                     line,
+                    span,
                 });
             } else if self.current().is_keyword("BASE") {
                 self.advance();
@@ -232,6 +237,7 @@ impl Parser<'_> {
         let template = template.unwrap_or_else(|| {
             // The short form, CONSTRUCT WHERE { ... }: the template is the pattern itself.
             let mut template = GroupScope::new(GroupScopeKind::Template, 0, "");
+            template.span = where_clause.span;
             template.patterns.extend(where_clause.patterns.iter().cloned());
             template
         });
@@ -403,6 +409,7 @@ impl Parser<'_> {
     // -- The group-pattern tree --------------------------------------------------------------------------------
 
     fn parse_group_graph_pattern(&mut self, kind: GroupScopeKind, ordinal: usize, label: &str) -> Parsed<GroupScope> {
+        let open = self.index;
         self.expect_punct("{")?;
         let mut scope = GroupScope::new(kind, ordinal, label);
         loop {
@@ -411,6 +418,7 @@ impl Parser<'_> {
                 return Err(self.error("The group that starts here is never closed with '}'.", &token));
             }
             if token.is_punct("}") {
+                scope.span = self.span_of(open, self.index);
                 self.advance();
                 return Ok(scope);
             }
@@ -427,20 +435,25 @@ impl Parser<'_> {
                 continue;
             }
             if token.is_keyword("OPTIONAL") {
+                let keyword = self.index;
                 self.advance();
                 let ordinal = next_ordinal(&scope, GroupScopeKind::Optional);
-                let child = self.parse_group_graph_pattern(GroupScopeKind::Optional, ordinal, "")?;
+                let mut child = self.parse_group_graph_pattern(GroupScopeKind::Optional, ordinal, "")?;
+                child.span = self.span_of(keyword, self.index - 1);
                 scope.children.push(child);
                 continue;
             }
             if token.is_keyword("MINUS") {
+                let keyword = self.index;
                 self.advance();
                 let ordinal = next_ordinal(&scope, GroupScopeKind::Minus);
-                let child = self.parse_group_graph_pattern(GroupScopeKind::Minus, ordinal, "")?;
+                let mut child = self.parse_group_graph_pattern(GroupScopeKind::Minus, ordinal, "")?;
+                child.span = self.span_of(keyword, self.index - 1);
                 scope.children.push(child);
                 continue;
             }
             if token.is_keyword("GRAPH") {
+                let keyword = self.index;
                 self.advance();
                 let term = self.current().clone();
                 if !matches!(
@@ -451,11 +464,13 @@ impl Parser<'_> {
                 }
                 self.advance();
                 let ordinal = next_ordinal(&scope, GroupScopeKind::Graph);
-                let child = self.parse_group_graph_pattern(GroupScopeKind::Graph, ordinal, &term.value)?;
+                let mut child = self.parse_group_graph_pattern(GroupScopeKind::Graph, ordinal, &term.value)?;
+                child.span = self.span_of(keyword, self.index - 1);
                 scope.children.push(child);
                 continue;
             }
             if token.is_keyword("SERVICE") {
+                let keyword = self.index;
                 self.advance();
                 let silent = self.current().is_keyword("SILENT");
                 if silent {
@@ -475,7 +490,8 @@ impl Parser<'_> {
                     term.value.clone()
                 };
                 let ordinal = next_ordinal(&scope, GroupScopeKind::Service);
-                let child = self.parse_group_graph_pattern(GroupScopeKind::Service, ordinal, &label)?;
+                let mut child = self.parse_group_graph_pattern(GroupScopeKind::Service, ordinal, &label)?;
+                child.span = self.span_of(keyword, self.index - 1);
                 scope.children.push(child);
                 continue;
             }
@@ -499,6 +515,7 @@ impl Parser<'_> {
     }
 
     fn parse_group_or_union(&mut self, parent: &mut GroupScope) -> Parsed<()> {
+        let open = self.index;
         let first_ordinal = next_ordinal(parent, GroupScopeKind::Group);
         let first = self.parse_group_graph_pattern(GroupScopeKind::Group, first_ordinal, "")?;
         if !self.current().is_keyword("UNION") {
@@ -508,6 +525,7 @@ impl Parser<'_> {
         // The branches join under one union scope; the first group parsed becomes branch 0.
         let mut union = GroupScope::new(GroupScopeKind::Union, next_ordinal(parent, GroupScopeKind::Union), "");
         let mut rebranded = GroupScope::new(GroupScopeKind::Branch, 0, &first.label);
+        rebranded.span = first.span;
         rebranded.patterns = first.patterns;
         rebranded.children = first.children;
         rebranded.constraints = first.constraints;
@@ -519,6 +537,7 @@ impl Parser<'_> {
             let branch = self.parse_group_graph_pattern(GroupScopeKind::Branch, ordinal, "")?;
             union.children.push(branch);
         }
+        union.span = self.span_of(open, self.index - 1);
         parent.children.push(union);
         Ok(())
     }
@@ -566,6 +585,7 @@ impl Parser<'_> {
             projected_names,
             projects_all,
             ordinal,
+            span: self.span_of(open, close),
         });
         self.index = close + 1;
         Ok(())
@@ -609,6 +629,7 @@ impl Parser<'_> {
             text: self.slice_tokens(start, end),
             defined_variable: String::new(),
             referenced_variables: self.variables_between(start, end),
+            span: self.span_of(start, end),
         })
     }
 
@@ -635,6 +656,7 @@ impl Parser<'_> {
             text: self.slice_tokens(start, close),
             defined_variable: defined,
             referenced_variables: self.variables_between(open + 1, as_index - 1),
+            span: self.span_of(start, close),
         })
     }
 
@@ -663,24 +685,32 @@ impl Parser<'_> {
             text: self.slice_tokens(start, self.index - 1),
             defined_variable: String::new(),
             referenced_variables: referenced,
+            span: self.span_of(start, self.index - 1),
         })
     }
 
     // -- Triple patterns ---------------------------------------------------------------------------------------
 
     fn parse_triples_block(&mut self, scope: &mut GroupScope) -> Parsed<()> {
+        let subject_start = self.index;
         let subject = self.parse_term_or_blank(scope, true)?;
-        self.parse_property_list(scope, &subject)?;
+        self.parse_property_list(scope, &subject, subject_start)?;
         if self.current().is_punct(".") {
             self.advance();
         }
         Ok(())
     }
 
-    fn parse_property_list(&mut self, scope: &mut GroupScope, subject: &SparqlTerm) -> Parsed<()> {
+    /// The property list of `subject`, whose first token is at `subject_start`, where each pattern's span starts.
+    fn parse_property_list(
+        &mut self,
+        scope: &mut GroupScope,
+        subject: &SparqlTerm,
+        subject_start: usize,
+    ) -> Parsed<()> {
         loop {
             let predicate = self.parse_verb()?;
-            self.parse_object_list(scope, subject, &predicate)?;
+            self.parse_object_list(scope, subject, subject_start, &predicate)?;
             if self.current().is_punct(";") {
                 self.advance();
                 // A trailing ';' before the block ends is legal and empty.
@@ -703,14 +733,17 @@ impl Parser<'_> {
         &mut self,
         scope: &mut GroupScope,
         subject: &SparqlTerm,
+        subject_start: usize,
         predicate: &SparqlTerm,
     ) -> Parsed<()> {
         loop {
             let object = self.parse_term_or_blank(scope, false)?;
+            let span = self.span_of(subject_start, self.index - 1);
             scope.patterns.push(TriplePattern {
                 subject: subject.clone(),
                 predicate: predicate.clone(),
                 object,
+                span,
             });
             if self.current().is_punct(",") {
                 self.advance();
@@ -869,12 +902,13 @@ impl Parser<'_> {
                 ordinal: self.next_anonymous(),
                 label: String::new(),
             };
+            let open = self.index;
             self.advance();
             if self.current().is_punct("]") {
                 self.advance();
                 return Ok(anonymous);
             }
-            self.parse_property_list(scope, &anonymous)?;
+            self.parse_property_list(scope, &anonymous, open)?;
             self.expect_punct("]")?;
             return Ok(anonymous);
         }
@@ -892,6 +926,8 @@ impl Parser<'_> {
     }
 
     fn parse_collection(&mut self, scope: &mut GroupScope) -> Parsed<SparqlTerm> {
+        // A cell's patterns start where the cell does: the '(' for the first, its item for the rest.
+        let mut cell_start = self.index;
         self.advance();
         if self.current().is_punct(")") {
             self.advance();
@@ -907,17 +943,21 @@ impl Parser<'_> {
         let rest = SparqlTerm::iri(RDF_REST, "rdf:rest");
         loop {
             let item = self.parse_term_or_blank(scope, false)?;
+            let span = self.span_of(cell_start, self.index - 1);
             scope.patterns.push(TriplePattern {
                 subject: current.clone(),
                 predicate: first.clone(),
                 object: item,
+                span,
             });
             if self.current().is_punct(")") {
                 self.advance();
+                let span = self.span_of(cell_start, self.index - 1);
                 scope.patterns.push(TriplePattern {
                     subject: current,
                     predicate: rest,
                     object: SparqlTerm::iri(RDF_NIL, "rdf:nil"),
+                    span,
                 });
                 return Ok(head);
             }
@@ -925,11 +965,14 @@ impl Parser<'_> {
                 ordinal: self.next_anonymous(),
                 label: String::new(),
             };
+            let span = self.span_of(cell_start, self.index - 1);
             scope.patterns.push(TriplePattern {
                 subject: current,
                 predicate: rest.clone(),
                 object: next.clone(),
+                span,
             });
+            cell_start = self.index;
             current = next;
         }
     }
@@ -1161,6 +1204,7 @@ impl Parser<'_> {
             return Err(ParseError {
                 message,
                 line: self.tokenizer.line_of(token.start + offset) + 1,
+                column: self.tokenizer.column_of(token.start + offset),
             });
         }
         Ok(terminals::decode_string(raw))
@@ -1280,6 +1324,17 @@ impl Parser<'_> {
         self.text[first.start..last.end()].iter().collect()
     }
 
+    /// Where the tokens from `first_index` to `last_index` are written, as [`Self::slice_tokens`] slices them.
+    fn span_of(&self, first_index: usize, last_index: usize) -> SparqlSpan {
+        let first = &self.tokens[first_index];
+        let last = &self.tokens[first_index.max(last_index)];
+        SparqlSpan {
+            start: first.start,
+            end: last.end(),
+            line: self.line_of(first),
+        }
+    }
+
     fn line_of(&self, token: &Token) -> usize {
         self.tokenizer.line_of(token.start) + 1
     }
@@ -1288,6 +1343,7 @@ impl Parser<'_> {
         ParseError {
             message: message.to_owned(),
             line: self.line_of(at),
+            column: self.tokenizer.column_of(at.start),
         }
     }
 }
