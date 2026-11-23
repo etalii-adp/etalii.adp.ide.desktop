@@ -755,8 +755,7 @@ impl Server {
             cases.push(adp_atd_validate::case_of(name, files)?);
         }
         let checked = self.check(&root);
-        let results =
-            adp_atd_validate::validate_description(&checked, &adp_atd_runtime::RuntimeHost::default(), &cases)?;
+        let results = adp_atd_validate::validate_description(&checked, &validation_host(), &cases)?;
         let at = |at: &adp_atd_validate::At| {
             let path = checked
                 .description
@@ -793,4 +792,13 @@ pub(crate) fn file_name(checked: &Checked, path: &Path) -> String {
         .find(|f| f.path == path)
         .map(|f| f.name.clone())
         .unwrap_or_else(|| path.to_string_lossy().replace('\\', "/"))
+}
+
+/// The host `atd/validate` validates on: the runtime's own capabilities and the editors' checks this build has, as
+/// `atd validate` has them (etalii.adp spec 083, FR-008).
+fn validation_host() -> adp_atd_runtime::RuntimeHost {
+    adp_atd_runtime::RuntimeHost {
+        capabilities: adp_editor_checks::contribute(adp_atd_runtime::Capabilities::desktop()),
+        ..adp_atd_runtime::RuntimeHost::default()
+    }
 }

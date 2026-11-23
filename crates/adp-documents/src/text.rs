@@ -41,8 +41,23 @@ impl TextFile {
             ));
         }
         let bytes = fs::read(path).map_err(|e| format!("'{name}' could not be read: {e}"))?;
+        Self::from_bytes(path, &bytes)
+    }
+
+    /// A file's `bytes` held as the file at `path` is, refused as [`TextFile::open`] refuses it, without reading or
+    /// writing anything: what validating an editor's case opens (etalii.adp spec 083, FR-007).
+    pub fn from_bytes(path: impl AsRef<Path>, bytes: &[u8]) -> Result<Self, String> {
+        let path = path.as_ref();
+        let name = file_name(path);
+        if bytes.len() as u64 > SIZE_LIMIT {
+            return Err(format!(
+                "'{name}' is {} MB, over the {} MB limit for text editing.",
+                bytes.len() as u64 / (1024 * 1024),
+                SIZE_LIMIT / (1024 * 1024)
+            ));
+        }
         let has_bom = bytes.starts_with(&BOM);
-        let body = if has_bom { &bytes[3..] } else { &bytes[..] };
+        let body = if has_bom { &bytes[3..] } else { bytes };
         if looks_binary(body) {
             return Err(format!(
                 "'{name}' looks like a binary file, which no text editor here can open. If it is a diagram body, open it through its diagram instead."

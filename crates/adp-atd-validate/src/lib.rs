@@ -11,6 +11,7 @@
 
 pub mod attribution;
 pub mod cases;
+pub mod editor;
 pub mod meaning;
 pub mod parts;
 

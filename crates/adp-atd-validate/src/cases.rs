@@ -57,7 +57,22 @@ pub fn validate_description(checked: &Checked, host: &RuntimeHost, cases: &[Case
     let symbols = checked.symbols.as_ref().ok_or("The description was not checked.")?;
     match checked.description.kind() {
         Some("diagram" | "designer") => {}
-        Some(kind) => return Err(format!("A {kind}'s description has no runtime yet; diagrams' have.")),
+        // An editor's case is its document read as the description says (etalii.adp spec 083).
+        Some("editor") => {
+            return Ok(cases
+                .iter()
+                .map(|case| CaseResult {
+                    name: case.name.clone(),
+                    differences: crate::editor::validate(&checked.description, host, case),
+                })
+                .collect());
+        }
+        Some(kind) => {
+            return Err(format!(
+                "{} description has no runtime yet; diagrams' have.",
+                possessive(kind)
+            ));
+        }
         None => return Err("The file is not part of a tool description.".to_owned()),
     }
     // A designer of several formats has a binding per format family (ATD §11.1): a case's body is read with the binding
@@ -161,4 +176,14 @@ pub fn case_of(name: String, files: BTreeMap<String, Vec<u8>>) -> Result<Case, S
         .ok_or_else(|| format!("The case '{name}' has no conformance.json."))?;
     let fixture = serde_json::from_slice(fixture).map_err(|e| format!("The case '{name}': conformance.json: {e}"))?;
     Ok(Case { name, fixture, files })
+}
+
+/// A kind's possessive with the article its word takes: "An editor's", "A diagram's" (etalii.adp spec 083, FR-009).
+fn possessive(kind: &str) -> String {
+    let article = if kind.starts_with(['a', 'e', 'i', 'o', 'u']) {
+        "An"
+    } else {
+        "A"
+    };
+    format!("{article} {kind}'s")
 }

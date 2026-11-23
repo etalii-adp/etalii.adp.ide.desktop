@@ -294,6 +294,30 @@ pub trait RenderCapability {
     fn render(&self, input: &Json, args: &Json) -> Result<Json, String>;
 }
 
+/// One finding a check source gives (ATD §10.2): where in the text it starts, in bytes, its severity (`error`,
+/// `warning` or `information`) and its message.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CheckFinding {
+    pub start: usize,
+    pub severity: &'static str,
+    pub message: String,
+}
+
+/// The files a check source may read beside the document, by their path in the project, `/`-separated; none outside
+/// it (etalii.adp spec 083, FR-006).
+pub type ProjectFiles<'a> = &'a BTreeMap<String, String>;
+
+/// A host's checks of an editor (`check with "<source>"`, ATD §10.2): the named sources it covers, and the findings of
+/// all of them for a document, in the order the host's editor reports them. Each source applies the settings its
+/// description gives as the host's editor does.
+pub trait CheckSource {
+    /// The source names this covers, such as `json` and `schema`.
+    fn names(&self) -> &'static [&'static str];
+
+    /// The findings for `text`, the document `document` of the project, whose encoding the host names `encoding`.
+    fn check(&self, text: &str, document: &str, encoding: &str, files: ProjectFiles<'_>) -> Vec<CheckFinding>;
+}
+
 /// `arrange.selfOrganising`.
 struct SelfOrganising;
 
@@ -316,6 +340,8 @@ pub struct Capabilities {
     readers: BTreeMap<&'static str, Rc<dyn PersistencePlugin>>,
     arrangers: BTreeMap<&'static str, Rc<dyn ArrangeCapability>>,
     renderers: BTreeMap<&'static str, Rc<dyn RenderCapability>>,
+    /// The editors' check sources, each covering the names it lists (ATD §10.2).
+    check_sources: Vec<Rc<dyn CheckSource>>,
 }
 
 impl Capabilities {
@@ -387,6 +413,20 @@ impl Capabilities {
     pub fn with_renderer(mut self, name: &'static str, renderer: Rc<dyn RenderCapability>) -> Self {
         self.renderers.insert(name, renderer);
         self
+    }
+
+    /// These capabilities with `source` among the check sources.
+    pub fn with_check_source(mut self, source: Rc<dyn CheckSource>) -> Self {
+        self.check_sources.push(source);
+        self
+    }
+
+    /// The first check source that covers every one of `names`, as an editor's checks name them.
+    pub fn check_source(&self, names: &[&str]) -> Option<Rc<dyn CheckSource>> {
+        self.check_sources
+            .iter()
+            .find(|source| names.iter().all(|name| source.names().contains(name)))
+            .cloned()
     }
 
     pub fn layout(&self, name: &str) -> Option<Rc<dyn LayoutCapability>> {

@@ -464,7 +464,11 @@ fn validate_command(args: &[String]) -> ExitCode {
     // The registry's own capabilities, the ones the WebAssembly module's `atd/validate` has too, so that the Build can
     // require both to give the same result (T162); the capabilities the modules contribute are the shell's, whose
     // validation view and debugger run with them.
-    let host = adp_atd_runtime::RuntimeHost::default();
+    // The host's own capabilities and its editors' checks, as the WebAssembly `atd/validate` has them.
+    let host = adp_atd_runtime::RuntimeHost {
+        capabilities: adp_editor_checks::contribute(adp_atd_runtime::Capabilities::desktop()),
+        ..adp_atd_runtime::RuntimeHost::default()
+    };
     let results = match adp_atd_validate::validate_description(&checked, &host, &cases) {
         Ok(results) => results,
         Err(problem) => {
