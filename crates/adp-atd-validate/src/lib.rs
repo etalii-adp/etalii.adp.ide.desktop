@@ -202,12 +202,14 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
     let read_by = |item: &Json| constructs.rule(item["type"].as_str());
     let found_by = |item: &Json| constructs.code(item["rule"].as_str().or_else(|| item["code"].as_str()));
     let from_module = case.fixture["recordedFrom"] == "module";
+    let chrome = chrome_ids(runtime.tool.definition.specification().root());
     let (nodes, relations) = (Json::Array(nodes), Json::Array(relations));
     if from_module {
         let case_draws = drawing_of(case, &case.fixture["drawing"]).map(|drawing| meaning::drawn_ids(&drawing));
         let description_draws = replay.drawing().ok().map(|drawing| meaning::drawn_ids(&drawing));
         let stated = meaning::stated_by(read);
-        for (expected, actual) in [(&read["elements"], &nodes), (&read["relations"], &relations)] {
+        let elements = without_chrome(&read["elements"], &chrome);
+        for (expected, actual) in [(&elements, &nodes), (&read["relations"], &relations)] {
             let reading = meaning::Reading {
                 expected,
                 actual,
@@ -273,6 +275,8 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
             .find_map(|gesture| step[gesture]["element"].as_str().map(str::to_owned))
             .or_else(|| step["delete"][0].as_str().map(str::to_owned))
             .or(element);
+        // A gesture on chrome a module sends as an element (ATD §2.3) is refused, whatever the sentence.
+        let on_chrome = from_module && element.as_ref().is_some_and(|id| chrome.contains(id));
         let element_type = element.and_then(|id| replay.types().remove(&id));
         let element_type = element_type.as_deref();
         let _ = replay.workspace.take_executed();
@@ -285,7 +289,7 @@ pub fn validate(runtime: &RuntimeTool, description: &Description, case: &Case) -
         };
         match (&outcome, expected_refusal) {
             (Ok(()), None) => {}
-            (Err(actual), Some(expected)) if same_refusal(expected, actual) => {}
+            (Err(actual), Some(expected)) if same_refusal(expected, actual) || on_chrome => {}
             (Err(actual), expected) => differences.push(Difference {
                 step: number,
                 part: "refused",
@@ -384,6 +388,42 @@ fn at_lines(replay: &Replay, expected: &Json, findings: Vec<Json>, from_module: 
             if expected.contains(&at_line) { at_line } else { finding }
         })
         .collect()
+}
+
+/// The ids the description's wire-id blocks (`x-<prefix>.elements`) give pieces of chrome a module sends as elements
+/// (ATD §2.3): the SPARQL header band's `header:query`.
+fn chrome_ids(specification: &Json) -> BTreeSet<String> {
+    specification
+        .as_object()
+        .into_iter()
+        .flatten()
+        .filter(|(key, _)| key.starts_with("x-"))
+        .filter_map(|(_, block)| block.get("elements")?.as_object())
+        .flat_map(|elements| elements.values().filter_map(Json::as_str).map(str::to_owned))
+        .collect()
+}
+
+/// A case's list of elements without those that stand for chrome.
+fn without_chrome(elements: &Json, chrome: &BTreeSet<String>) -> Json {
+    match elements.as_array() {
+        Some(items) => Json::Array(
+            items
+                .iter()
+                .filter(|item| !item["id"].as_str().is_some_and(|id| chrome.contains(id)))
+                .cloned()
+                .collect(),
+        ),
+        None => elements.clone(),
+    }
+}
+
+/// A case's drawing without the elements that stand for chrome.
+fn drawn_without_chrome(drawing: &Json, chrome: &BTreeSet<String>) -> Json {
+    let mut drawing = drawing.clone();
+    if drawing.get("elements").is_some() {
+        drawing["elements"] = without_chrome(&drawing["elements"], chrome);
+    }
+    drawing
 }
 
 /// Whether two reasons a gesture was refused with are the same refusal (ATD §2.3, spec 067, FR-011): both tools refuse
@@ -544,7 +584,11 @@ impl Replay {
         from_module: bool,
     ) {
         let difference = match self.drawing() {
-            Ok(actual) if from_module => meaning::drawing_difference(expected, &actual).map(|(want, got, id)| {
+            Ok(actual) if from_module => meaning::drawing_difference(
+                &drawn_without_chrome(expected, &chrome_ids(self.tool.definition.specification().root())),
+                &actual,
+            )
+            .map(|(want, got, id)| {
                 let type_of =
                     |item: &Json| (item["id"] == id.as_str()).then(|| item["type"].as_str().map(str::to_owned));
                 let drawn = ["elements", "edges"]
