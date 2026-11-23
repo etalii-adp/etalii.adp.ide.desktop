@@ -543,11 +543,18 @@ impl Replay {
             .collect()
     }
 
+    /// The body's bytes; a folder subject's body is its registration (FBL section 10), whose bytes a step writes.
     fn bytes(&self) -> Vec<u8> {
         self.workspace
             .documents()
             .get(&self.body_path)
-            .map(|d| d.body_bytes().to_vec())
+            .map(|d| {
+                if d.tool().binding.body.is_folder {
+                    d.registration_bytes().unwrap_or_else(|| d.body_bytes()).to_vec()
+                } else {
+                    d.body_bytes().to_vec()
+                }
+            })
             .unwrap_or_default()
     }
 
@@ -998,13 +1005,21 @@ impl Replay {
                 .find(|drawn| drawn["id"] == id)
                 .map(|drawn| drawn["bounds"].clone())
                 .unwrap_or_default();
-            let corner = |key: &str, place: f64| match bounds[key].as_f64() {
-                Some(drawn) if (drawn - place).abs() >= 0.01 => drawn,
-                _ => place,
+            // The drawing rounds; the element's own place is exact, its corner or, for a tool that places by the
+            // centre, its centre less half its size.
+            let corner = |key: &str, size: &str, place: f64| match bounds[key].as_f64() {
+                Some(drawn) => {
+                    let half = bounds[size].as_f64().unwrap_or(0.0) / 2.0;
+                    [place, place - half]
+                        .into_iter()
+                        .find(|exact| (drawn - exact).abs() < 0.01)
+                        .unwrap_or(drawn)
+                }
+                None => place,
             };
             let (x, y) = (
-                corner("x", element.x) + distance("dx"),
-                corner("y", element.y) + distance("dy"),
+                corner("x", "w", element.x) + distance("dx"),
+                corner("y", "h", element.y) + distance("dy"),
             );
             return self.session.move_element_to(&mut self.workspace, id, x, y);
         }

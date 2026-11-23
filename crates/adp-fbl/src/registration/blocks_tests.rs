@@ -281,3 +281,70 @@ fn a_binding_that_does_not_create_on_first_placement_is_refused_with_a_reason() 
 
     assert!(!created.unwrap_err().trim().is_empty());
 }
+
+// ---- FBL 0.21: registration.newline --------------------------------------------------------------------------------
+
+/// A registration opened with `registration.newline` set to `ending`.
+fn with_newline(text: &str, ending: &str) -> OpenRegistration {
+    let mut open = OpenRegistration::open(text.as_bytes().to_vec());
+    open.block_newline = Some(ending.to_owned());
+    open
+}
+
+fn place(id: &str, x: f64, y: f64) -> ModelChange {
+    ModelChange::Place { id: id.into(), x, y }
+}
+
+#[test]
+fn with_a_newline_a_placement_ends_every_line_of_the_layout_block_so_and_no_other_line() {
+    let mut open = with_newline("helm/chart\nlayout:\n  b: 1 2\n  d: 3 4\nnotes\n", "\r\n");
+
+    assert!(matches!(open.change(&place("c", 5.0, 6.0)), PlanResult::Planned(_)));
+
+    assert_eq!(
+        String::from_utf8_lossy(open.bytes()),
+        "helm/chart\nlayout:\r\n  b: 1 2\r\n  c: 5 6\r\n  d: 3 4\r\nnotes\n"
+    );
+    assert!(matches!(open.undo(), UndoResult::Done(_)));
+    assert_eq!(
+        String::from_utf8_lossy(open.bytes()),
+        "helm/chart\nlayout:\n  b: 1 2\n  d: 3 4\nnotes\n"
+    );
+}
+
+#[test]
+fn with_a_newline_a_moved_entry_and_a_created_block_end_so() {
+    let mut moved = with_newline("a/b\nlayout:\n  b: 1 2\n", "\r\n");
+    assert!(matches!(moved.change(&place("b", 7.0, 2.0)), PlanResult::Planned(_)));
+    assert_eq!(String::from_utf8_lossy(moved.bytes()), "a/b\nlayout:\r\n  b: 7 2\r\n");
+
+    let mut created = with_newline("a/b\n", "\r\n");
+    assert!(matches!(created.change(&place("b", 1.0, 2.0)), PlanResult::Planned(_)));
+    assert_eq!(String::from_utf8_lossy(created.bytes()), "a/b\nlayout:\r\n  b: 1 2\r\n");
+}
+
+#[test]
+fn without_a_newline_a_placement_takes_the_registrations_own_ending() {
+    let mut open = OpenRegistration::open(b"a/b\nlayout:\n  b: 1 2\n".to_vec());
+    assert!(matches!(open.change(&place("c", 5.0, 6.0)), PlanResult::Planned(_)));
+    assert_eq!(
+        String::from_utf8_lossy(open.bytes()),
+        "a/b\nlayout:\n  b: 1 2\n  c: 5 6\n"
+    );
+}
+
+#[test]
+fn with_a_newline_a_setting_ends_every_line_of_its_declared_block_so() {
+    let mut open = open("task/list\ntags:\n  a: x\nnotes\n");
+    open.block_newline = Some("\r\n".to_owned());
+
+    assert!(matches!(
+        open.change(&with_value("tags", "b", "y")),
+        PlanResult::Planned(_)
+    ));
+
+    assert_eq!(
+        String::from_utf8_lossy(open.bytes()),
+        "task/list\ntags:\r\n  a: x\r\n  b: y\r\nnotes\n"
+    );
+}

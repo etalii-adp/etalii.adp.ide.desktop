@@ -408,6 +408,9 @@ pub struct OpenRegistration {
     /// the standalone host's `RegistrationLayout` wrote a new `layout:` block with `AdpFileWriter.NewLine`, CRLF on
     /// every platform, and a tool type whose parity is that host's bytes asks for it. None for the registration's own.
     pub created_block_ending: Option<String>,
+    /// *(FBL 0.21)* The binding's `registration.newline`: every line of a block the host writes to ends with it, the
+    /// lines it writes and the block's other lines alike, the latter rewritten in the same edit (FBL section 8.4).
+    pub block_newline: Option<String>,
 }
 
 impl std::fmt::Debug for OpenRegistration {
@@ -427,11 +430,13 @@ impl OpenRegistration {
 
     /// Opens a registration through its binding, which declares its headers and blocks (FBL 0.7 section 8.1).
     pub fn open_with(bytes: Vec<u8>, binding: &FblBinding) -> OpenRegistration {
-        Self::open_declared(
+        let mut open = Self::open_declared(
             bytes,
             binding.registration.blocks.clone(),
             binding.registration.headers.clone(),
-        )
+        );
+        open.block_newline = binding.registration.newline.clone();
+        open
     }
 
     fn open_declared(
@@ -450,6 +455,7 @@ impl OpenRegistration {
             ephemeral: None,
             known_keys: None,
             created_block_ending: None,
+            block_newline: None,
         }
     }
 
@@ -524,11 +530,27 @@ impl OpenRegistration {
                     setting,
                     self.known_ids.as_ref(),
                     members,
+                    self.block_newline.as_deref(),
                 ) {
-                    Ok(splices) => PlanResult::Planned(PlannedEdit {
-                        splices,
-                        snapshot: false,
-                    }),
+                    Ok(mut splices) => {
+                        if let Some(block) = self.document.block(&setting.block) {
+                            let removed: Vec<&RegistrationEntry> = block
+                                .entries
+                                .iter()
+                                .filter(|e| {
+                                    splices
+                                        .iter()
+                                        .any(|s| s.operation == Operation::RemoveEntry && s.start == e.line.start)
+                                })
+                                .collect();
+                            splices.extend(self.endings_of(block, &removed));
+                            splices = ordered(splices);
+                        }
+                        PlanResult::Planned(PlannedEdit {
+                            splices,
+                            snapshot: false,
+                        })
+                    }
                     Err(refused) => PlanResult::Refused(refused.reason),
                 }
             }
@@ -731,12 +753,15 @@ impl OpenRegistration {
         }
         if let Some(existing) = block.and_then(|b| b.entries.iter().find(|e| e.key == key)) {
             splices.extend(replace(existing));
+            if let Some(block) = block {
+                splices.extend(self.endings_of(block, &stale));
+            }
             return ordered(splices);
         }
         let ends_without_newline = text.lines().last().is_some_and(|l| l.ending.is_empty());
         let Some(block) = block else {
             let offset = create_at;
-            let newline = match &self.created_block_ending {
+            let newline = match self.block_newline.as_ref().or(self.created_block_ending.as_ref()) {
                 Some(ending) => ending.clone(),
                 None => text.newline_at(offset.saturating_sub(1), "\n"),
             };
@@ -777,14 +802,41 @@ impl OpenRegistration {
             Some(next) => next.line.start,
             None => kept.last().map(|e| e.line.end).unwrap_or(block.name_line.end),
         };
-        let ending = text.newline_at(at.saturating_sub(1), "\n");
+        let ending = match &self.block_newline {
+            Some(ending) => ending.clone(),
+            None => text.newline_at(at.saturating_sub(1), "\n"),
+        };
         let entry_text = if at == text.len() && ends_without_newline {
             format!("{ending}{indent}{key}: {value}")
         } else {
             format!("{indent}{key}: {value}{ending}")
         };
         splices.push(splice(Operation::InsertEntry, at, at, entry_text));
+        splices.extend(self.endings_of(block, &stale));
         ordered(splices)
+    }
+
+    /// *(FBL 0.21)* With `registration.newline`, a `replace-value` of the ending of every line of `block` that ends
+    /// otherwise, its name line and the entries `removed` does not take out; nothing without it.
+    fn endings_of(&self, block: &RegistrationBlock, removed: &[&RegistrationEntry]) -> Vec<Splice> {
+        let Some(newline) = &self.block_newline else {
+            return Vec::new();
+        };
+        let text = self.document.text();
+        let starts: Vec<usize> = std::iter::once(block.name_line.start)
+            .chain(
+                block
+                    .entries
+                    .iter()
+                    .filter(|e| !removed.contains(e))
+                    .map(|e| e.line.start),
+            )
+            .collect();
+        text.lines()
+            .iter()
+            .filter(|line| starts.contains(&line.start) && !line.ending.is_empty() && line.ending != newline)
+            .map(|line| splice(Operation::ReplaceValue, line.content_end, line.end, newline.clone()))
+            .collect()
     }
 }
 

@@ -20,11 +20,12 @@ pub(super) fn plan(
     setting: &Setting,
     known_ids: Option<&HashSet<String>>,
     members: Option<Vec<(String, String)>>,
+    newline: Option<&str>,
 ) -> Planning<Vec<Splice>> {
     let name = &declaration.name;
     let block = document.block(name);
     if let (None, Some(members)) = (block, members) {
-        return whole(document, declarations, declaration, setting, members);
+        return whole(document, declarations, declaration, setting, members, newline);
     }
     let stale: Vec<&RegistrationEntry> = match (block, known_ids) {
         (Some(block), Some(known)) if declaration.keyed_by_ids => block
@@ -131,7 +132,7 @@ pub(super) fn plan(
     let key = &setting.key;
     let Some(block) = block else {
         let offset = create_at(document, declarations, name);
-        let newline = text.newline_at(offset.saturating_sub(1), "\n");
+        let newline = newline.map_or_else(|| text.newline_at(offset.saturating_sub(1), "\n"), str::to_owned);
         if endless(text, offset) {
             splices.push(splice(
                 Operation::EnsureContainer,
@@ -170,7 +171,7 @@ pub(super) fn plan(
             .or_else(|| kept.last().map(|e| e.line.end))
             .unwrap_or(block.name_line.end)
     };
-    let ending = text.newline_at(at.saturating_sub(1), "\n");
+    let ending = newline.map_or_else(|| text.newline_at(at.saturating_sub(1), "\n"), str::to_owned);
     let entry = if endless(text, at) {
         format!("{ending}{indent}{key}: {added}")
     } else {
@@ -190,6 +191,7 @@ fn whole(
     declaration: &RegistrationBlockDeclaration,
     setting: &Setting,
     members: Vec<(String, String)>,
+    newline: Option<&str>,
 ) -> Planning<Vec<Splice>> {
     let name = &declaration.name;
     let mut list = members;
@@ -249,7 +251,7 @@ fn whole(
     }
     let text = document.text();
     let offset = create_at(document, declarations, name);
-    let newline = text.newline_at(offset.saturating_sub(1), "\n");
+    let newline = newline.map_or_else(|| text.newline_at(offset.saturating_sub(1), "\n"), str::to_owned);
     let endless = endless(text, offset);
     splices.push(splice(
         Operation::EnsureContainer,

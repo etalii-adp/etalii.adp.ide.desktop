@@ -34,5 +34,8 @@ binding chart family capability reader.helmChart {
     ignore: [".git/**"]
     settle: 400
   }
+  /// Every line of the layout block ends with CRLF once a drag writes it, as the standalone tool wrote it on every
+  /// platform (FBL 0.21).
+  registration { newline: crlf }
   readOnly: "A helm chart diagram shows the folder as it is and changes nothing in it. Edit the file this value comes from in a text editor."
 }

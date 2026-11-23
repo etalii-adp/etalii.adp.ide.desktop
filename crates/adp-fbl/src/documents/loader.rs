@@ -1037,6 +1037,11 @@ fn read_registration(json: &Json, pointer: &str, problems: &mut Vec<LoadProblem>
             .unwrap_or_default(),
         legacy_layout: s(r, "legacyLayout"),
         legacy_identities: s(r, "legacyIdentities"),
+        newline: match r.get("newline").and_then(Json::as_str) {
+            Some("crlf") => Some("\r\n".to_owned()),
+            Some("lf") => Some("\n".to_owned()),
+            _ => None,
+        },
     }
 }
 

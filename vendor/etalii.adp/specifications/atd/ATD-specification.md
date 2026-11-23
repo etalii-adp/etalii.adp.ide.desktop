@@ -665,7 +665,7 @@ A **slot** is `<kind> [<argument>]`: `key "<key>"`, `attribute "<name>"`, `text`
 
 ### 11.6 Registration and template
 
-`registration { … }` is FBL's `RegistrationSettings` (FBL §8: `blocks`, `createOnFirstPlacement`, `headers`, `resource`, its settings map holding `capture` or *(FBL 0.10)* `byOrigin`, a capture per reading's origin, `legacyLayout`, `legacyIdentities`, *(FBL 0.12)* read as the JSON array of `{id, kind, key}` the Wardley map's tool writes, FBL §8.7), with the blocks `layout`, `identities` and those a binding declares. *(FBL 0.12)* A rule's `id { sidecar: { key: "<cel>", kind: <name>, ordinal: "<text>" } }` keeps its ids in the identities by kind and natural key, `ordinal`, holding `{n}` once, keying each later holder of one key (FBL §5.3, §8.6). `template <value>` is the bytes of a new body (FBL §13): a string, or a settings map of FBL's `Template` (`byOrigin`).
+`registration { … }` is FBL's `RegistrationSettings` (FBL §8: `blocks`, `createOnFirstPlacement`, `headers`, *(FBL 0.21)* `newline`, `resource`, its settings map holding `capture` or *(FBL 0.10)* `byOrigin`, a capture per reading's origin, `legacyLayout`, `legacyIdentities`, *(FBL 0.12)* read as the JSON array of `{id, kind, key}` the Wardley map's tool writes, FBL §8.7), with the blocks `layout`, `identities` and those a binding declares. *(FBL 0.12)* A rule's `id { sidecar: { key: "<cel>", kind: <name>, ordinal: "<text>" } }` keeps its ids in the identities by kind and natural key, `ordinal`, holding `{n}` once, keying each later holder of one key (FBL §5.3, §8.6). `template <value>` is the bytes of a new body (FBL §13): a string, or a settings map of FBL's `Template` (`byOrigin`).
 
 ### 11.7 A capability as the family
 
@@ -3625,6 +3625,7 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `fbl.schema.json#/$defs/RegistrationSettings/properties/headers` | the setting `headers` of `registration` | §11.6 |
 | `fbl.schema.json#/$defs/RegistrationSettings/properties/blocks` | the setting `blocks` of `registration` | §11.6 |
 | `fbl.schema.json#/$defs/RegistrationSettings/properties/createOnFirstPlacement` | the setting `createOnFirstPlacement` of `registration` | §11.6 |
+| `fbl.schema.json#/$defs/RegistrationSettings/properties/newline` | *(FBL 0.21)* the setting `newline` of `registration` | §11.6 |
 | `fbl.schema.json#/$defs/RegistrationSettings/properties/resource` | the setting `resource` of `registration` | §11.6 |
 | `fbl.schema.json#/$defs/RegistrationSettings/properties/resource/properties/byOrigin` | *(FBL 0.10)* the key `byOrigin` in the value of `resource` (a settings map, §6.4) | §11.6 |
 | `fbl.schema.json#/$defs/RegistrationSettings/properties/legacyLayout` | the setting `legacyLayout` of `registration` | §11.6 |

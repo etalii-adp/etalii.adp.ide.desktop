@@ -53,7 +53,8 @@
             "0.17",
             "0.18",
             "0.19",
-            "0.20"
+            "0.20",
+            "0.21"
           ]
         },
         "doc": {
@@ -2682,6 +2683,13 @@
               "^x-": true
             }
           }
+        },
+        "newline": {
+          "enum": [
+            "crlf",
+            "lf"
+          ],
+          "description": "(FBL 0.21) The line ending every line of a block ends with once a host writes to that block: the lines it writes and the block's other lines, rewritten in the same edit (section 8.4). Absent, a new line takes the registration's own ending."
         },
         "layoutPoint": {
           "enum": [
