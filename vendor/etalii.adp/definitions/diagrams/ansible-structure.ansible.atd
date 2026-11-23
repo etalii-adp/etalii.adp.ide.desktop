@@ -33,6 +33,8 @@ binding ansible family capability reader.ansibleProject {
     ignore: [".git/**"]
     settle: 400
   }
-  registration { createOnFirstPlacement: false }
+  /// Every line of the layout block ends with CRLF once a drag writes it, as the standalone tool wrote it on every
+  /// platform (FBL 0.21).
+  registration { createOnFirstPlacement: false, newline: crlf }
   readOnly: "An Ansible structure diagram shows the folder as it is and changes nothing in it. Edit the file this value comes from in a text editor."
 }
