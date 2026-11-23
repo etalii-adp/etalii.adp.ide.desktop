@@ -623,6 +623,32 @@ impl DiagramDocument {
                     PlanResult::Refused(reason) | PlanResult::Invalid(reason) => return Err(reason),
                 }
             }
+            if let Some((id, x, y)) = place.clone()
+                && let Some(kept) = self.tool.module.as_ref().and_then(|m| {
+                    let id = made.get(&id).cloned().unwrap_or(id.clone());
+                    m.kept_place(self, &id, x, y, !explicit)
+                })
+            {
+                // View data the body keeps (DISL section 11.6): planned as a change of the body, in the same edit.
+                if let Some(kept) = kept {
+                    let kept = if steps.is_empty() {
+                        kept
+                    } else {
+                        placed_now(&self.reading.fbl, &body.model(), kept)
+                    };
+                    let before = Fingerprint::of(body.bytes());
+                    match body.change(&kept) {
+                        PlanResult::Planned(edit) if !edit.splices.is_empty() => steps.push(EditStep {
+                            file: EditedFile::Body,
+                            splices: edit.splices,
+                            before,
+                        }),
+                        PlanResult::Planned(_) => {}
+                        PlanResult::Refused(reason) | PlanResult::Invalid(reason) => return Err(reason),
+                    }
+                }
+                continue;
+            }
             if let Some((id, x, y)) = place {
                 let Some(registration) = registration.as_mut() else {
                     if explicit {

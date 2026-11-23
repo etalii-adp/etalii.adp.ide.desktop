@@ -440,6 +440,16 @@ pub struct RuntimeModule {
     initial_view: serde_json::Map<String, Json>,
     /// The view state `view` actions set, by document and element, over the initial one.
     views: RefCell<HashMap<(PathBuf, String), Map>>,
+    /// Where pinned positions are kept in the body (DISL section 11.6, `view.bind.pinned`).
+    pinned: Option<crate::view_bind::PinnedBind>,
+    /// DISL's `force` layout with `tiers` (DISL section 10.4): the rings from the centre outwards.
+    force: Option<Vec<Vec<String>>>,
+    /// The force layout's last placements, by document, with the reading they were made for: a live change starts
+    /// from them (DISL section 10.4, "little movement").
+    forced: RefCell<HashMap<PathBuf, (u64, adp_layout::Placements)>>,
+    /// Whether a drop from the toolbox pins the new node (DISL section 10.4, "a drag pins"): `respect: pinned` with a
+    /// `trigger` other than `manual`.
+    drop_pins: bool,
 }
 
 impl std::fmt::Debug for RuntimeModule {
@@ -498,6 +508,24 @@ impl RuntimeModule {
                 .filter(|(x, y)| x.time.is_some() || y.time.is_some() || x.scale != 1.0 || y.scale != 1.0),
             initial_view,
             views: RefCell::default(),
+            pinned: crate::view_bind::PinnedBind::of(specification),
+            force: specification.pointer("/layout").and_then(|layout| {
+                let algorithm = &layout["algorithms"][layout["default"].as_str()?];
+                (algorithm["algorithm"] == "force").then(|| {
+                    algorithm["force"]["tiers"]
+                        .as_array()
+                        .into_iter()
+                        .flatten()
+                        .map(|tier| match tier {
+                            Json::Array(types) => types.iter().filter_map(Json::as_str).map(str::to_owned).collect(),
+                            other => other.as_str().map(|t| vec![t.to_owned()]).unwrap_or_default(),
+                        })
+                        .collect()
+                })
+            }),
+            forced: RefCell::default(),
+            drop_pins: specification.pointer("/layout/respect").and_then(Json::as_str) == Some("pinned")
+                && specification.pointer("/layout/trigger").and_then(Json::as_str) != Some("manual"),
         }
     }
 
@@ -632,6 +660,83 @@ impl RuntimeModule {
 }
 
 impl RuntimeModule {
+    /// DISL's `force` layout with `tiers` (DISL section 10.4), by the core's tiered force layout: the centre of every
+    /// node the view shows, a pinned one at its stored position and a fixed point for the others; a change of the
+    /// reading starts from the last placements.
+    fn force_positions(&self, tiers: &[Vec<String>], document: &DiagramDocument) -> HashMap<String, (f64, f64)> {
+        use adp_layout::{LayoutAlgorithm, LayoutConnection, LayoutDefinition, LayoutElement, LayoutInput, LayoutMode};
+        use std::hash::{Hash, Hasher};
+        let specification = document.tool().definition.specification();
+        let diagram = &document.model().diagram;
+        let pinned = self
+            .pinned
+            .as_ref()
+            .map(|bind| bind.positions(document))
+            .unwrap_or_else(|| document.authored_positions());
+        let shown: Vec<DislElement> = diagram
+            .shown_in(&specification.default_viewpoint())
+            .into_iter()
+            .filter(|element| !element.is_relation() && element.parent().is_none())
+            .collect();
+        let ids: std::collections::HashSet<String> = shown.iter().map(DislElement::id).collect();
+        let input = LayoutInput {
+            elements: shown
+                .iter()
+                .map(|element| {
+                    let (width, height) = Self::size(specification, element);
+                    let at = pinned.get(&element.id());
+                    LayoutElement {
+                        element_type: Some(element.type_name()),
+                        pinned: at.is_some(),
+                        ..LayoutElement::new(
+                            element.id(),
+                            at.map_or(0.0, |p| p.0),
+                            at.map_or(0.0, |p| p.1),
+                            width,
+                            height,
+                        )
+                    }
+                })
+                .collect(),
+            connections: diagram
+                .relations()
+                .into_iter()
+                .filter_map(|relation| Some((relation.source()?.id(), relation.target()?.id())))
+                .filter(|(from, to)| ids.contains(from) && ids.contains(to))
+                .map(|(from, to)| LayoutConnection::new(from, to))
+                .collect(),
+        };
+        // Each reading of the body is a live change the layout starts again from, whatever it changed.
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        document.body_bytes().hash(&mut hasher);
+        let reading = hasher.finish();
+        let key = document.body_path().to_path_buf();
+        let mut forced = self.forced.borrow_mut();
+        let placements = match forced.get(&key) {
+            Some((made_for, placements)) if *made_for == reading => placements.clone(),
+            previous => {
+                let definition = LayoutDefinition {
+                    tiers: tiers.to_vec(),
+                    ..LayoutDefinition::with_modes(&[LayoutMode::TieredForce])
+                };
+                let previous = previous.map(|(_, placements)| placements.clone());
+                let placements = adp_layout::TieredForceLayout
+                    .place(&input, &definition, previous.as_ref())
+                    .unwrap_or_default();
+                forced.insert(key, (reading, placements.clone()));
+                placements
+            }
+        };
+        let mut positions: HashMap<String, (f64, f64)> =
+            placements.into_iter().map(|(id, p)| (id, (p.x, p.y))).collect();
+        for (id, at) in pinned {
+            if ids.contains(&id) {
+                positions.insert(id, at);
+            }
+        }
+        positions
+    }
+
     /// DISL's standard `rows` (DISL §10.2), run by the shared row packing the hype cycle graph's module arranged with
     /// (`adp-layout`'s `row_packing`, etalii.adp spec 076, T045): each element of a type `extent` names, across from its
     /// `from` to its `to` and as many rows tall as `rows` says, evaluated with `x`, `x2`, `width` and `height` of where
@@ -788,6 +893,10 @@ impl DiagramModule for RuntimeModule {
             ));
         }
         let specification = document.tool().definition.specification();
+        // A node the force layout places is placed by its centre, at the size its notation gives it.
+        if self.force.is_some() && !element.is_relation() {
+            return Some(Self::size(specification, element));
+        }
         // A size bound to the element's values, or fixed (DISL section 6.6).
         let bound = &specification.root()["notation"]["nodes"][element.type_name()]["size"];
         let sized = self
@@ -1000,6 +1109,28 @@ impl DiagramModule for RuntimeModule {
         (self.plugins)(plugin_id).or_else(|| self.capabilities.reader(plugin_id))
     }
 
+    /// A place kept in the body (DISL section 11.6): a move pins where it is dropped, and a node created at a point
+    /// is pinned there when a drop pins (DISL section 10.4).
+    fn kept_place(
+        &self,
+        document: &DiagramDocument,
+        id: &str,
+        x: f64,
+        y: f64,
+        created: bool,
+    ) -> Option<Option<adp_fbl::planning::ModelChange>> {
+        let pinned = self.pinned.as_ref()?;
+        Some((!created || self.drop_pins).then(|| pinned.pin(document, id, x, y)))
+    }
+
+    fn kept_unpin(
+        &self,
+        document: &DiagramDocument,
+        elements: Option<&[String]>,
+    ) -> Option<Vec<adp_fbl::planning::ModelChange>> {
+        Some(self.pinned.as_ref()?.unpin(document, elements))
+    }
+
     /// Keeps this viewer's view of `element`, as a `view` action sets it.
     fn set_view(&self, document: &DiagramDocument, element: &DislElement, values: &Map) -> bool {
         let key = (document.body_path().to_path_buf(), element.id());
@@ -1051,7 +1182,8 @@ impl DiagramModule for RuntimeModule {
             .cloned();
         let authored = document.authored_positions();
         let placed = self.tidy.is_some();
-        if self.initial_view.is_empty() && set.is_none() && !placed {
+        let bound = self.pinned.as_ref().map(|pinned| pinned.positions(document));
+        if self.initial_view.is_empty() && set.is_none() && !placed && bound.is_none() {
             return None;
         }
         let specification = document.tool().definition.specification();
@@ -1063,6 +1195,11 @@ impl DiagramModule for RuntimeModule {
         }
         for (key, value) in set.iter().flat_map(Map::iter) {
             view.insert(key.clone(), value.clone());
+        }
+        if let Some(bound) = &bound
+            && !element.is_relation()
+        {
+            view.insert("pinned".to_owned(), Value::Bool(bound.contains_key(&element.id())));
         }
         if placed && !element.is_relation() {
             let (width, height) = Self::stated_size(element);
@@ -1091,6 +1228,9 @@ impl DiagramModule for RuntimeModule {
     fn positions(&self, document: &DiagramDocument) -> Option<HashMap<String, (f64, f64)>> {
         if let Some(tidy) = &self.tidy {
             return Some(Self::tidy_positions(tidy, document));
+        }
+        if let Some(tiers) = &self.force {
+            return Some(self.force_positions(tiers, document));
         }
         let layout = self.layout.as_ref()?;
         let capability = self.capabilities.layout(&layout.capability)?;

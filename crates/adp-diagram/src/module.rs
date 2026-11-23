@@ -289,6 +289,32 @@ pub trait DiagramModule {
         None
     }
 
+    /// Where the place `(x, y)` of element `id` is kept, when the module keeps it in the body rather than in the
+    /// registration (DISL section 11.6, `view.bind`): none to leave it to the registration, `Some(None)` to keep it
+    /// nowhere, else the body's change. `created` says the element is created in the same edit, as a drop does.
+    fn kept_place(
+        &self,
+        document: &DiagramDocument,
+        id: &str,
+        x: f64,
+        y: f64,
+        created: bool,
+    ) -> Option<Option<adp_fbl::planning::ModelChange>> {
+        let _ = (document, id, x, y, created);
+        None
+    }
+
+    /// The changes of the body that unpin `elements`, or every pinned element for none, when the module keeps pinned
+    /// positions in the body (DISL section 11.6); none when it does not.
+    fn kept_unpin(
+        &self,
+        document: &DiagramDocument,
+        elements: Option<&[String]>,
+    ) -> Option<Vec<adp_fbl::planning::ModelChange>> {
+        let _ = (document, elements);
+        None
+    }
+
     /// The line ending a block the registration does not have yet is created with (its `layout:` on a first
     /// placement), in place of the registration's own (FBL section 8.3): none for the registration's own. The
     /// standalone host wrote a new `layout:` block with CRLF on every platform (`AdpFileWriter.NewLine`).
