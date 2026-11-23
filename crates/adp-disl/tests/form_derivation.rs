@@ -294,3 +294,32 @@ fn options_given_as_value_and_label_maps_offer_their_labels_else_their_values() 
         rows[1].candidates
     );
 }
+
+/// A type no form is defined for gets the one a runtime generates (section 7.5): a field per attribute that is not
+/// derived, grouped by `group` in the order the groups first come, ordered by `order`, an enum's field offering its
+/// values by label.
+#[test]
+fn a_type_without_a_form_gets_a_generated_one() {
+    let specification = loaded(&with(
+        r#""metamodel": {
+          "enums": { "State": { "values": { "open": { "label": "Open" }, "shut": { "label": "Shut" } } } },
+          "types": { "Thing": { "attributes": {
+            "name": { "type": "string", "label": "Name", "group": "Identity", "order": 1 },
+            "state": { "type": "State", "label": "State", "group": "Identity", "order": 0 },
+            "link": { "type": "string", "group": "Link" },
+            "shown": { "type": "string", "derived": "self.name" }
+          } } }
+        }"#,
+    ));
+    let diagram = DislDiagram::new(&specification);
+    let thing = diagram
+        .add_node("Thing", "t1", attrs([("name", "A".into()), ("state", "open".into())]))
+        .unwrap();
+    let rows = forms::derive(&specification, &thing, &readable(), &WireIdMap::default(), "inspector");
+    let shown: Vec<(&str, &str)> = rows.iter().map(|r| (r.label.as_str(), r.group.as_str())).collect();
+    assert_eq!(
+        vec![("State", "Identity"), ("Name", "Identity"), ("link", "Link")],
+        shown
+    );
+    assert_eq!(Some(vec!["Open".to_owned(), "Shut".to_owned()]), rows[0].candidates);
+}

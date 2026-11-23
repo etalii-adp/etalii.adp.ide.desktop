@@ -48,7 +48,7 @@ impl ParamValue {
     }
 }
 
-const SHAPES: [Entry; 10] = [
+const SHAPES: [Entry; 11] = [
     Entry {
         name: "none",
         shape: BuiltInShape::None,
@@ -85,6 +85,21 @@ const SHAPES: [Entry; 10] = [
         shape: BuiltInShape::Diamond,
         draws: &[],
         defaults: &[],
+    },
+    // DISL's folder (Appendix B.2): a box with a tab at its top left, a fraction of its width wide and 12 high.
+    Entry {
+        name: "folder",
+        shape: BuiltInShape::Folder,
+        draws: &[
+            ("tabWidth", ParamValue::Number(0.4)),
+            ("tabHeight", ParamValue::Number(12.0)),
+            ("tabPosition", ParamValue::Text("left")),
+        ],
+        defaults: &[
+            ("tabWidth", ParamValue::Number(0.4)),
+            ("tabHeight", ParamValue::Number(12.0)),
+            ("tabPosition", ParamValue::Text("left")),
+        ],
     },
     Entry {
         name: "hexagon",
@@ -288,6 +303,16 @@ mod tests {
         assert!(refused(json!({ "type": "hexagon", "params": { "orientation": "pointy" } })).contains("orientation"));
         assert!(refused(json!({ "type": "rect", "params": { "radius": 4 } })).contains("no \"radius\" parameter"));
         assert!(refused(json!("trapezoid")).contains("inset 0.15"));
+    }
+
+    #[test]
+    fn disls_folder_is_drawn_with_its_default_tab() {
+        assert_eq!(
+            Ok(Some(BuiltInShape::Folder)),
+            library_shape_of(&serde_json::json!("folder"))
+        );
+        let other_tab = serde_json::json!({ "type": "folder", "params": { "tabPosition": "right" } });
+        assert!(library_shape_of(&other_tab).is_err());
     }
 
     #[test]

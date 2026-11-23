@@ -63,8 +63,71 @@ pub fn derive(
         cel: env.to_cel(),
         ids,
     };
-    walk.items(form, &json::pointer(&pointer, "items"), "", &mut rows);
+    walk.items(&form, &json::pointer(&pointer, "items"), "", &mut rows);
     rows
+}
+
+/// A field of a generated form: its attribute's `order`, its place among the attributes, and its name.
+type GeneratedField = (i64, usize, String);
+
+/// The form a runtime generates for a type no form is defined for (section 7.5): one field per attribute that is not
+/// derived, grouped by its `group` in the order the groups first come, each group's fields ordered by `order`, then by
+/// declaration.
+fn generated_form(specification: &DislSpecification, element: &DislElement) -> Json {
+    let Some(declared) = specification.metamodel().type_of(&element.type_name()) else {
+        return serde_json::json!({ "items": [] });
+    };
+    let enums = &specification.metamodel().enums;
+    let mut groups: Vec<(String, Vec<GeneratedField>)> = Vec::new();
+    for (index, attribute) in declared.attributes.values().enumerate() {
+        if attribute.is_derived() {
+            continue;
+        }
+        let group = json::string_of(&attribute.json, "group").unwrap_or_default().to_owned();
+        let order = attribute.json.get("order").and_then(Json::as_i64).unwrap_or(i64::MAX);
+        let field = (order, index, attribute.name.clone());
+        match groups.iter_mut().find(|(name, _)| *name == group) {
+            Some((_, fields)) => fields.push(field),
+            None => groups.push((group, vec![field])),
+        }
+    }
+    let items: Vec<Json> = groups
+        .into_iter()
+        .map(|(group, mut fields)| {
+            fields.sort();
+            let fields: Vec<Json> = fields
+                .into_iter()
+                .map(|(_, _, name)| {
+                    // An enum's field offers its values, each chosen by its label (Appendix B.7, `select`).
+                    let options = declared
+                        .attributes
+                        .get(&name)
+                        .and_then(|attribute| enums.get(&attribute.type_name))
+                        .map(|enumeration| {
+                            enumeration
+                                .values
+                                .iter()
+                                .map(|v| {
+                                    serde_json::json!({
+                                        "value": v.key, "label": v.label.clone().unwrap_or_else(|| v.key.clone()),
+                                    })
+                                })
+                                .collect::<Vec<_>>()
+                        });
+                    match options {
+                        Some(options) => serde_json::json!({ "attribute": name, "options": options }),
+                        None => serde_json::json!({ "attribute": name }),
+                    }
+                })
+                .collect();
+            if group.is_empty() {
+                serde_json::json!({ "kind": "row", "items": fields })
+            } else {
+                serde_json::json!({ "kind": "section", "label": group, "items": fields })
+            }
+        })
+        .collect();
+    serde_json::json!({ "items": items })
 }
 
 /// The rows of the form `for` the diagram itself whose `usage` includes `usage` (DISL section 7.5), read as an element's
@@ -109,6 +172,24 @@ pub(crate) fn diagram_form_of<'a>(specification: &'a DislSpecification, usage: &
 
 /// The form `for` the element's type whose `usage` includes `usage`, the default being `inspector`.
 pub(crate) fn form_of<'a>(
+    specification: &'a DislSpecification,
+    element: &DislElement,
+    usage: &str,
+) -> Option<(std::borrow::Cow<'a, Json>, String)> {
+    if let Some((form, pointer)) = declared_form_of(specification, element, usage) {
+        return Some((std::borrow::Cow::Borrowed(form), pointer));
+    }
+    // No form is defined for the type: the runtime generates the inspector's (section 7.5).
+    (usage == "inspector").then(|| {
+        (
+            std::borrow::Cow::Owned(generated_form(specification, element)),
+            "/forms".to_owned(),
+        )
+    })
+}
+
+/// The form a description defines for `element` whose `usage` includes `usage`.
+fn declared_form_of<'a>(
     specification: &'a DislSpecification,
     element: &DislElement,
     usage: &str,

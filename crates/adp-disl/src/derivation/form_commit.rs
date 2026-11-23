@@ -66,8 +66,10 @@ pub fn row(
     env: &DislEnv,
     usage: &str,
 ) -> DislTransaction {
-    let found = form_of(specification, element, usage)
-        .and_then(|(form, pointer)| find(form, &json::pointer(&pointer, "items"), row));
+    let form = form_of(specification, element, usage);
+    let found = form
+        .as_ref()
+        .and_then(|(form, pointer)| find(form, &json::pointer(pointer, "items"), row));
     let Some((item, pointer)) = found else {
         return DislTransaction::refused(format!("'{row}' is not a row of this element's form."));
     };
@@ -194,8 +196,10 @@ pub fn type_refusal(
     env: &DislEnv,
     usage: &str,
 ) -> Option<String> {
-    let (item, pointer) = form_of(specification, element, usage)
-        .and_then(|(form, pointer)| find(form, &json::pointer(&pointer, "items"), row))?;
+    let form = form_of(specification, element, usage);
+    let (item, pointer) = form
+        .as_ref()
+        .and_then(|(form, pointer)| find(form, &json::pointer(pointer, "items"), row))?;
     if json::string_of(item, "kind") != Some("type") {
         return None;
     }
@@ -322,8 +326,9 @@ fn with_self(mut variables: Vars, diagram: &DislDiagram) -> Vars {
 /// document writes it, which its `accepts` judges rather than its options (the causal loop link's polarity row takes
 /// `+`, `s`, `-` and `o`).
 pub fn parses(specification: &DislSpecification, element: &DislElement, row: &str, usage: &str) -> bool {
-    form_of(specification, element, usage)
-        .and_then(|(form, pointer)| find(form, &json::pointer(&pointer, "items"), row))
+    let form = form_of(specification, element, usage);
+    form.as_ref()
+        .and_then(|(form, pointer)| find(form, &json::pointer(pointer, "items"), row))
         .is_some_and(|(item, _)| json::get(item, "parse").is_some())
 }
 
