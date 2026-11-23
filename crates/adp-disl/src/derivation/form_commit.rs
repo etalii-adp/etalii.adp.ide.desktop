@@ -363,6 +363,16 @@ fn set(
         }
         other => other.clone(),
     };
+    // A value not among an enum's (section 7.5): a stored form the file may hold is read, but not written from a row;
+    // the empty text clears it.
+    if !declared.many
+        && let Some(enumeration) = specification.metamodel().enums.get(declared.type_name.as_str())
+        && let Value::String(key) = &written
+        && !key.is_empty()
+        && !enumeration.values.iter().any(|v| &v.key == key)
+    {
+        return DislTransaction::refused(format!("'{typed}' is not a value of {}.", declared.name));
+    }
     let element_type = element.element_type();
     let mut attributes = Map::default();
     attributes.insert(

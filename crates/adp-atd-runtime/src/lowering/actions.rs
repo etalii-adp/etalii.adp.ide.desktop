@@ -90,10 +90,11 @@ pub fn action(statement: &Json, parameters: &Parameters, arguments: &mut dyn Arg
         }
         "set" | "unset" => {
             let path: Vec<String> = statement["path"].as_array()?.iter().map(text).collect();
-            let (target, attribute) = match &path[..] {
-                [attribute] => (None, attribute.clone()),
-                [target, attribute] => (Some(target.clone()), attribute.clone()),
-                _ => return None,
+            // The attribute is the path's last name, on the element the names before it reach (`self.target`).
+            let (attribute, reached) = path.split_last()?;
+            let (target, attribute) = match reached {
+                [] => (None, attribute.clone()),
+                names => (Some(names.join(".")), attribute.clone()),
             };
             let mut action = if kind == "set" {
                 json!({ "set": { attribute: arg(statement, arguments, "value")? } })
