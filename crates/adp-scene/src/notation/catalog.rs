@@ -48,9 +48,16 @@ impl ParamValue {
     }
 }
 
-const SHAPES: [Entry; 9] = [
+const SHAPES: [Entry; 10] = [
     Entry {
         name: "none",
+        shape: BuiltInShape::None,
+        draws: &[],
+        defaults: &[],
+    },
+    // DISL's `text` (Appendix B.2): a label with no outline, which is the body-less node.
+    Entry {
+        name: "text",
         shape: BuiltInShape::None,
         draws: &[],
         defaults: &[],
@@ -281,6 +288,14 @@ mod tests {
         assert!(refused(json!({ "type": "hexagon", "params": { "orientation": "pointy" } })).contains("orientation"));
         assert!(refused(json!({ "type": "rect", "params": { "radius": 4 } })).contains("no \"radius\" parameter"));
         assert!(refused(json!("trapezoid")).contains("inset 0.15"));
+    }
+
+    #[test]
+    fn disls_text_shape_is_the_body_less_node() {
+        assert_eq!(
+            Ok(Some(BuiltInShape::None)),
+            library_shape_of(&serde_json::json!("text"))
+        );
     }
 
     #[test]

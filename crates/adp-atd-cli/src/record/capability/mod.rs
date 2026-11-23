@@ -82,6 +82,7 @@ pub fn record(name: &str, cases: &Path) -> Result<Vec<PathBuf>, String> {
         "reader.markdown" => markdown(cases, "reader.markdown", reader_markdown),
         "reader.helmChart" => helm_chart(cases),
         "layout.rankedColumns" => ranked_columns(cases),
+        "reader.sparql" => sparql(cases),
         "render.markdown" => markdown(cases, "render.markdown", render_markdown),
         "reader.turtle" => super::w3c::turtle(cases),
         "render.descriptionLogic" => super::w3c::description_logic(cases),
@@ -429,6 +430,38 @@ fn ranked_columns(cases: &Path) -> Result<Vec<PathBuf>, String> {
             "input": {"nodes": nodes, "edges": []},
             "args": {"rank": "self.rank", "order": "self.order", "origin": [40, 40], "columnGap": 60, "rowGap": 24},
             "output": {"positions": positions},
+        });
+        let file = cases.join(format!("{short}.json"));
+        write_json(&file, &fixture)?;
+        written.push(file);
+    }
+    Ok(written)
+}
+
+/// `reader.sparql` from the SPARQL module's query reader (`modules/diagrams/sparql/src/plugin.rs`), on the query of
+/// every SPARQL query parity script: the query as the body, the registration by its name, and the records it reads.
+/// One fixture per script, named after it.
+fn sparql(cases: &Path) -> Result<Vec<PathBuf>, String> {
+    use adp_diagram_sparql::plugin::SparqlQueryPlugin;
+
+    fs::create_dir_all(cases).map_err(|e| format!("{}: {e}", cases.display()))?;
+    let mut written = Vec::new();
+    for name in adp_parity::script_names()
+        .into_iter()
+        .filter(|n| n.starts_with("w3c/sparql/"))
+    {
+        let case = adp_parity::Case::load(&name)?;
+        let input = reader_input(&case)?;
+        let output = adp_atd_runtime::capabilities::reader_result(&SparqlQueryPlugin, &input)?;
+        let short = name.rsplit('/').next().unwrap_or(&name);
+        let fixture = json!({
+            "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+            "doc": format!(
+                "Recorded by `atd record --capability reader.sparql` from modules/diagrams/sparql/src/plugin.rs of etalii.adp.ide.desktop, on the query parity/scripts/{name}.json opens; never edited by hand."
+            ),
+            "input": input,
+            "args": {},
+            "output": output,
         });
         let file = cases.join(format!("{short}.json"));
         write_json(&file, &fixture)?;

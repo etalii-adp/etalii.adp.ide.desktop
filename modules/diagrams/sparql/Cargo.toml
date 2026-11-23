@@ -8,9 +8,12 @@ repository.workspace = true
 publish = false
 
 [dependencies]
+# The stored records the plugin delivers (FBL 11.2; spec 035, T132).
+adp-cel = { path = "../../../crates/adp-cel" }
 adp-context = { path = "../../../crates/adp-context" }
 adp-diagram = { path = "../../../crates/adp-diagram" }
 adp-documents = { path = "../../../crates/adp-documents" }
+adp-fbl = { path = "../../../crates/adp-fbl" }
 adp-history = { path = "../../../crates/adp-history" }
 adp-layout = { path = "../../../crates/adp-layout" }
 # The active theme a tool's colours are chosen for (spec 030, FR-045).

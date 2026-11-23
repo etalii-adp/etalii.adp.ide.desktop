@@ -25,7 +25,7 @@ notation {
       font.body: "system-ui, sans-serif"
     }
     modes: {
-      dark: { color.surface: "#1E293B", color.text: "#F1F5F9", color.text.muted: "#94A3B8", color.border: "#64748B", color.loop.reinforcing: "#4daafc", color.loop.balancing: "#fb923c" }
+      dark: { color.surface: "#1E293B", color.text: "#F1F5F9", color.text.muted: "#94A3B8", color.border: "#64748B", color.loop.reinforcing: "#4DAAFC", color.loop.balancing: "#FB923C" }
     }
     followSystem: true
   }
@@ -37,7 +37,7 @@ notation {
     font: { family: $font.body, size: 14, color: $color.text }
     padding: [10, 14]
   }
-  style link { stroke: { color: $color.text, width: 1.5 } }
+  style link { stroke: { color: $color.text.muted, width: 1.5 } }
   style loopBadge { font: { family: $font.body, size: 12, weight: 600 } }
   style emptyHint { font: { family: $font.body, size: 14, color: $color.text.muted } }
   canvas {
@@ -66,6 +66,7 @@ notation {
       }
     }
     style: variable
+    state selected { stroke: { color: $color.selected } }
     size: { default: [90, 39.6], min: [90, 39.6], autoSize: fitWidth, resizable: false }
     placement: {
       anchor: center
@@ -120,6 +121,7 @@ notation {
         doc: "A loop whose label disagrees with its arrows is marked, never corrected. The standalone tool draws the underline wavy, which DISL cannot say (companion, gap 4)."
       }
     ]
+    state selected { stroke: { color: $color.selected } }
     connectable: false
     doubleClick: none
     refusals: { move: ["Only a variable can be moved; a link is drawn between its ends and a loop label among its members."] }
@@ -133,7 +135,7 @@ notation {
   edge CausalLink {
     line {
       stroke: {
-        color: $color.text
+        color: $color.text.muted
         width: (!has(self.weight) ? 1.5 : (self.weight >= 2.0 ? 2.5 : (self.weight <= 0.5 ? 1.0 : 1.5)))
       }
       routing: curved

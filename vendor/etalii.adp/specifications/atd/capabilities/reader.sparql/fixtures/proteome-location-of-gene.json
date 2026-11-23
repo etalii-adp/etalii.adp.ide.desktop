@@ -1,0 +1,160 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.sparql` from modules/diagrams/sparql/src/plugin.rs of etalii.adp.ide.desktop, on the query parity/scripts/w3c/sparql/proteome-location-of-gene.json opens; never edited by hand.",
+  "input": {
+    "body": "PREFIX taxon: <http://purl.uniprot.org/taxonomy/>\r\nPREFIX up: <http://purl.uniprot.org/core/>\r\n\r\nSELECT\r\n  DISTINCT\r\n    ?proteomeData\r\n    ?replicon\r\n    ?proteome  \r\nWHERE {\r\n  # reviewed entries (UniProtKB/Swiss-Prot)\r\n  ?protein up:reviewed true . \r\n  # restricted to Human taxid\r\n  ?protein up:organism taxon:9606 .\r\n  ?protein up:proteome ?proteomeData .\r\n  BIND( strbefore( str(?proteomeData), \"#\" ) as ?proteome )\r\n  BIND( strafter( str(?proteomeData), \"#\" ) as ?replicon )\r\n}\r\n",
+    "files": {
+      "proteome-location-of-gene.adp": "w3c/sparql\nbody: proteome-location-of-gene.rq\n"
+    }
+  },
+  "args": {},
+  "output": {
+    "elements": [
+      {
+        "id": "query",
+        "type": "Query",
+        "parent": null,
+        "attributes": {
+          "form": "select",
+          "distinct": true,
+          "reduced": false,
+          "projectsAll": false,
+          "projection": [
+            "proteomeData",
+            "replicon",
+            "proteome"
+          ],
+          "projectionExpressions": [
+            "",
+            "",
+            ""
+          ],
+          "describeTargets": [],
+          "describeTerms": [],
+          "datasetClauses": [],
+          "modifierRows": [],
+          "templateRepeatsWhere": false,
+          "baseIri": ""
+        }
+      },
+      {
+        "id": "prefix-0",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "prefix": "taxon",
+          "iri": "http://purl.uniprot.org/taxonomy/",
+          "used": true
+        }
+      },
+      {
+        "id": "prefix-1",
+        "type": "Prefix",
+        "parent": null,
+        "attributes": {
+          "prefix": "up",
+          "iri": "http://purl.uniprot.org/core/",
+          "used": true
+        }
+      },
+      {
+        "id": "pattern-0",
+        "type": "Pattern",
+        "parent": null,
+        "attributes": {
+          "scope": "where",
+          "predicate": "up:reviewed",
+          "isPath": false,
+          "predicateVariable": "",
+          "repeat": 0,
+          "sKind": "var",
+          "sKey": "var:protein",
+          "sDisplay": "?protein",
+          "sFull": "",
+          "sAnnotation": "",
+          "oKind": "lit",
+          "oKey": "lit:true^boolean",
+          "oDisplay": "true",
+          "oFull": "true",
+          "oAnnotation": "boolean"
+        }
+      },
+      {
+        "id": "pattern-1",
+        "type": "Pattern",
+        "parent": null,
+        "attributes": {
+          "scope": "where",
+          "predicate": "up:organism",
+          "isPath": false,
+          "predicateVariable": "",
+          "repeat": 0,
+          "sKind": "var",
+          "sKey": "var:protein",
+          "sDisplay": "?protein",
+          "sFull": "",
+          "sAnnotation": "",
+          "oKind": "iri",
+          "oKey": "iri:http://purl.uniprot.org/taxonomy/9606",
+          "oDisplay": "taxon:9606",
+          "oFull": "http://purl.uniprot.org/taxonomy/9606",
+          "oAnnotation": ""
+        }
+      },
+      {
+        "id": "pattern-2",
+        "type": "Pattern",
+        "parent": null,
+        "attributes": {
+          "scope": "where",
+          "predicate": "up:proteome",
+          "isPath": false,
+          "predicateVariable": "",
+          "repeat": 0,
+          "sKind": "var",
+          "sKey": "var:protein",
+          "sDisplay": "?protein",
+          "sFull": "",
+          "sAnnotation": "",
+          "oKind": "var",
+          "oKey": "var:proteomeData",
+          "oDisplay": "?proteomeData",
+          "oFull": "",
+          "oAnnotation": ""
+        }
+      },
+      {
+        "id": "where/constraint.0",
+        "type": "Constraint",
+        "parent": null,
+        "attributes": {
+          "constraintKind": "bind",
+          "text": "BIND( strbefore( str(?proteomeData), \"#\" ) as ?proteome )",
+          "scope": "where",
+          "ordinal": 0,
+          "definedVariable": "proteome",
+          "referencedVariables": [
+            "proteomeData"
+          ]
+        }
+      },
+      {
+        "id": "where/constraint.1",
+        "type": "Constraint",
+        "parent": null,
+        "attributes": {
+          "constraintKind": "bind",
+          "text": "BIND( strafter( str(?proteomeData), \"#\" ) as ?replicon )",
+          "scope": "where",
+          "ordinal": 1,
+          "definedVariable": "replicon",
+          "referencedVariables": [
+            "proteomeData"
+          ]
+        }
+      }
+    ],
+    "relations": [],
+    "findings": []
+  }
+}

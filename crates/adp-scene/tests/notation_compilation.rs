@@ -145,7 +145,10 @@ fn with_label(label: Value) -> String {
 
 #[test]
 fn a_label_position_without_a_placement_is_refused_and_one_outside_on_the_right_sits_beside() {
-    assert!(refusal(&with_label(json!({ "position": "outside-top" }))).contains("\"outside-top\""));
+    assert!(refusal(&with_label(json!({ "position": "outside-top-left" }))).contains("\"outside-top-left\""));
+    let above = &compiled(&with_label(json!({ "position": "outside-top" }))).element_types[0].labels[0];
+    assert_eq!(LabelPlacement::Above, above.placement);
+    assert!(refusal(&with_label(json!({ "position": "outside-bottom", "distance": 4 }))).contains("sits 4 below"));
     let beside = &compiled(&with_label(json!({ "position": "outside-right" }))).element_types[0].labels[0];
     assert_eq!(LabelPlacement::Beside, beside.placement);
     assert_eq!(Binding::Attribute("name".to_owned()), beside.text);
