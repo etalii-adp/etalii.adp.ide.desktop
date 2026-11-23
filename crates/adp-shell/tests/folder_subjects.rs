@@ -49,3 +49,20 @@ fn a_reading_recorded_under_a_modules_own_names_is_compared_through_the_traces_m
         .collect();
     assert!(reading.is_empty(), "{reading:#?}");
 }
+
+/// The SPARQL query's module records a variable's display under `name` and its bare name not at all, which its trace
+/// maps (ATD §2.3, the empty name standing for an attribute the module records no value for): no variable's names
+/// differ.
+#[test]
+fn an_attribute_mapped_to_the_empty_name_is_not_compared() {
+    let checked = check(&FsFiles, &diagrams().join("sparql-query.atd"));
+    let case = read_case(&diagrams().join("conformance/sparql-query/groups")).unwrap();
+    let results = validate_description(&checked, &adp_shell::runtime_host(), std::slice::from_ref(&case)).unwrap();
+    let names: Vec<_> = results[0]
+        .differences
+        .iter()
+        .filter(|d| d.step.is_none() && (d.expected.contains(" name: ") || d.expected.contains(" display: ")))
+        .filter(|d| d.expected.starts_with("var:"))
+        .collect();
+    assert!(names.is_empty(), "{names:#?}");
+}
