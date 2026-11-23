@@ -381,6 +381,14 @@ fn an_attribute_the_trace_maps_is_compared_under_the_recorded_name() {
     };
     assert!(compare("A", &recorded).is_empty());
     assert_eq!(compare("B", &recorded).len(), 1);
+    // Mapped to the empty name, the module records no value for it: nothing is compared.
+    let unrecorded: adp_atd_check::RecordedNames =
+        [("Node".to_owned(), [("text".to_owned(), String::new())].into())].into();
+    assert!(
+        compare("B", &unrecorded)
+            .iter()
+            .all(|(want, _, _)| want.starts_with("attributes in common"))
+    );
     let unmapped = compare("A", &Default::default());
     assert!(
         unmapped
