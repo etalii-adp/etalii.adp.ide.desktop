@@ -147,7 +147,14 @@ notation {
     refusals: { reparent: ["An element of this diagram has no parent to move it under; it is locked where it is dropped."] }
     shape { type: roundedRect, params: { radius: 8 } }
     style: specification
-    size: { default: [240, 64], min: [180, 64], max: [320, 640], autoSize: fitHeight }
+    /// As tall as its module draws it: 64, then each task status that has tasks, in TaskStatus's order, a heading of 22
+    /// and, unless the group is folded, a row of 18 per task (DISL 6.9, `self.view.groups`).
+    size: {
+      default: [240, 64]
+      min: [180, 64]
+      max: [320, 640]
+      height: (64 + groupHeight(tasksIn(self, 'progressing'), self.view.groups['progressing']) + groupHeight(tasksIn(self, 'pending'), self.view.groups['pending']) + groupHeight(tasksIn(self, 'inputRequired'), self.view.groups['inputRequired']) + groupHeight(tasksIn(self, 'finished'), self.view.groups['finished']))
+    }
     conditions: [
       { when: (self.status == 'progressing'), style: statusProgressing },
       { when: (self.status == 'inputRequired'), style: statusInputRequired },
@@ -229,7 +236,14 @@ notation {
     refusals: { reparent: ["An element of this diagram has no parent to move it under; it is locked where it is dropped."] }
     shape rect
     style: location
-    size: { default: [240, 64], min: [180, 64], max: [360, 480], autoSize: fitHeight }
+    /// As tall as its module draws it: 64, the folder's row of 18, then the pull requests, if any, a heading of 22 and,
+    /// unless folded, a row of 18 each.
+    size: {
+      default: [240, 64]
+      min: [180, 64]
+      max: [360, 480]
+      height: (82 + groupHeight(size(self.children.filter(p, p.isA('PullRequest'))), self.view.groups['pullRequests']))
+    }
     /// The branch, above the line.
     label @branch as branch {
       position: top

@@ -1,0 +1,53 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "An SLO of openslo.com/v2alpha, the version OpenSLO is drafting, stands in a v1 stream: it is not drawn, listed as Unbound with openslo.version, a warning, and kept exactly as written (research R7). Its indicatorRef names an SLI no document is, and no missing-reference is reported for it, since a document that is not drawn makes no reference. The findings are the definition's (openslo-slo.dis, constraints), stated with their element and severity for a host to replay; FBL itself reports nothing on this stream, and the validator's reading check compares the elements.",
+  "binding": "../../../../../definitions/diagrams/openslo-slo.fbl#openslo",
+  "input": "stream.yaml",
+  "read": {
+    "elements": [
+      {
+        "id": "Service:checkout",
+        "type": "Service"
+      },
+      {
+        "id": "SLO:checkout-availability",
+        "type": "SLO"
+      },
+      {
+        "id": "SLO:checkout-availability/SLI:checkout-errors",
+        "type": "SLI",
+        "parent": "SLO:checkout-availability"
+      },
+      {
+        "id": "SLO:checkout-availability/objective:1",
+        "type": "Objective",
+        "parent": "SLO:checkout-availability"
+      },
+      {
+        "id": "AlertPolicy:page-on-call",
+        "type": "AlertPolicy"
+      },
+      {
+        "id": "AlertCondition:fast-burn",
+        "type": "AlertCondition"
+      },
+      {
+        "id": "AlertNotificationTarget:on-call",
+        "type": "AlertNotificationTarget"
+      },
+      {
+        "id": "document@68",
+        "type": "Unbound"
+      }
+    ],
+    "findings": [
+      {
+        "rule": "openslo.version",
+        "line": 68,
+        "x-severity": "warning",
+        "x-element": "document@68"
+      }
+    ]
+  },
+  "steps": []
+}

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The service is named Checkout_Service, which is not an RFC 1123 label (upper-case letters and an underscore): openslo.name, an error, at the Service. The SLO names it exactly, so the reference resolves. The findings are the definition's (openslo-slo.dis, constraints), stated with their element and severity for a host to replay; FBL itself reports nothing on this stream, and the validator's reading check compares the elements.",
+  "binding": "../../../../../definitions/diagrams/openslo-slo.fbl#openslo",
+  "input": "stream.yaml",
+  "read": {
+    "elements": [
+      {
+        "id": "Service:Checkout_Service",
+        "type": "Service"
+      },
+      {
+        "id": "SLO:checkout-availability",
+        "type": "SLO"
+      },
+      {
+        "id": "SLO:checkout-availability/SLI:checkout-errors",
+        "type": "SLI",
+        "parent": "SLO:checkout-availability"
+      },
+      {
+        "id": "SLO:checkout-availability/objective:1",
+        "type": "Objective",
+        "parent": "SLO:checkout-availability"
+      },
+      {
+        "id": "AlertPolicy:page-on-call",
+        "type": "AlertPolicy"
+      },
+      {
+        "id": "AlertCondition:fast-burn",
+        "type": "AlertCondition"
+      },
+      {
+        "id": "AlertNotificationTarget:on-call",
+        "type": "AlertNotificationTarget"
+      }
+    ],
+    "findings": [
+      {
+        "rule": "openslo.name",
+        "line": 1,
+        "x-severity": "error",
+        "x-element": "Service:Checkout_Service"
+      }
+    ]
+  },
+  "steps": []
+}

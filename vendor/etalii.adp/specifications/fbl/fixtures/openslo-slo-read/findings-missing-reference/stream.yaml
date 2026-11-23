@@ -1,0 +1,67 @@
+apiVersion: openslo/v1
+kind: Service
+metadata:
+  name: checkout
+  displayName: Checkout
+---
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: checkout-availability
+spec:
+  service: payments
+  indicator:
+    metadata:
+      name: checkout-errors
+    spec:
+      ratioMetric:
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: sum(rate(http_requests_total{code!~"5.."}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: sum(rate(http_requests_total[5m]))
+  timeWindow:
+    - duration: 28d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - displayName: Available
+      target: 0.999
+  alertPolicies:
+    - alertPolicyRef: page-on-call
+---
+apiVersion: openslo/v1
+kind: AlertPolicy
+metadata:
+  name: page-on-call
+spec:
+  alertWhenBreaching: true
+  conditions:
+    - conditionRef: fast-burn
+  notificationTargets:
+    - targetRef: on-call
+---
+apiVersion: openslo/v1
+kind: AlertCondition
+metadata:
+  name: fast-burn
+spec:
+  severity: page
+  condition:
+    kind: burnrate
+    op: gt
+    threshold: 14.4
+    lookbackWindow: 1h
+    alertAfter: 5m
+---
+apiVersion: openslo/v1
+kind: AlertNotificationTarget
+metadata:
+  name: on-call
+spec:
+  target: pager

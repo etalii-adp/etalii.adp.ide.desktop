@@ -647,10 +647,11 @@ impl Lowerer<'_> {
                 o.insert("members".into(), self.generic_members(node));
                 self.with_doc(node, o, None)
             }
-            "table_surface" | "hierarchy_surface" | "text_surface" => {
+            "table_surface" | "hierarchy_surface" | "sections_surface" | "text_surface" => {
                 let kind = match node.kind() {
                     "table_surface" => "tableSurface",
                     "hierarchy_surface" => "hierarchySurface",
+                    "sections_surface" => "sectionsSurface",
                     _ => "textSurface",
                 };
                 let mut o = self.object(kind, node);
@@ -1369,6 +1370,8 @@ impl Lowerer<'_> {
             "context_tool" => "tool",
             "form_item" => "item",
             "value_type" => "valueType",
+            "record_part" => "record",
+            "list_part" => "list",
             "token_class" => "token",
             "doc_member" => "doc",
             other => other,

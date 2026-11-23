@@ -1,0 +1,49 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The SLO names no alert policy and holds none inline: openslo.no-alerting, info, at the SLO. The alert policy is still drawn, joined to nothing. The findings are the definition's (openslo-slo.dis, constraints), stated with their element and severity for a host to replay; FBL itself reports nothing on this stream, and the validator's reading check compares the elements.",
+  "binding": "../../../../../definitions/diagrams/openslo-slo.fbl#openslo",
+  "input": "stream.yaml",
+  "read": {
+    "elements": [
+      {
+        "id": "Service:checkout",
+        "type": "Service"
+      },
+      {
+        "id": "SLO:checkout-availability",
+        "type": "SLO"
+      },
+      {
+        "id": "SLO:checkout-availability/SLI:checkout-errors",
+        "type": "SLI",
+        "parent": "SLO:checkout-availability"
+      },
+      {
+        "id": "SLO:checkout-availability/objective:1",
+        "type": "Objective",
+        "parent": "SLO:checkout-availability"
+      },
+      {
+        "id": "AlertPolicy:page-on-call",
+        "type": "AlertPolicy"
+      },
+      {
+        "id": "AlertCondition:fast-burn",
+        "type": "AlertCondition"
+      },
+      {
+        "id": "AlertNotificationTarget:on-call",
+        "type": "AlertNotificationTarget"
+      }
+    ],
+    "findings": [
+      {
+        "rule": "openslo.no-alerting",
+        "line": 6,
+        "x-severity": "info",
+        "x-element": "SLO:checkout-availability"
+      }
+    ]
+  },
+  "steps": []
+}

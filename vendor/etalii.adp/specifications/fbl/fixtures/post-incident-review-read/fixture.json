@@ -1,0 +1,307 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The complete worked review, definitions/designers/examples/certificate-expiry.md, read through post-incident-review.fbl#markdown (FBL 0.7, sections 4.8, 5.2, 5.3 and 15.3), LF endings. Line 1 is the envelope, the binding's required header. Line 2 is the mark line, a statement the rule marks (no within) matches; the specification maps Marks as the document (DESL 5.2), so it gives the document's lastEntry, lastFactor and lastAction. The items under Summary and Impact are matched by rules whose types Summary and Impact the specification maps as the document too: they give timeZone, summary, affected, effect and duration and no element. The title, the paragraph under it and the legend under How to read this file, whose fenced block holds three items in the line forms and no element (4.8 rule 8), are unbound and kept. Every entry, factor, action and category is listed in the order of the file: E-0009 stands last although its time, 00:12, is the third earliest, since a reading keeps the file's order and the order of the Timeline part is the designer's (spec User Story 1, scenario 2; DESL 7.8.2). Times are as written, with their offsets (DESL 4.2, timezone preserve); a milestone is stated by its enumeration key, so `mitigation start` reads mitigationStart (DESL 4.4); an ordinary entry has no kind. Word slots with many are stated as JSON arrays in order, and a single word slot without a word is not named (FBL 4.6). An action's checkbox reads through the map to a bool; F-0005, rejected, is read and kept, with its reason as its detail. A category's id is derived, 'category/' and its name in lower case.",
+  "binding": "../../../../definitions/designers/post-incident-review.fbl#markdown",
+  "input": "../../../../definitions/designers/examples/certificate-expiry.md",
+  "read": {
+    "document": {
+      "attributes": {
+        "lastEntry": "E-0009",
+        "lastFactor": "F-0005",
+        "lastAction": "A-0004",
+        "timeZone": "UTC",
+        "summary": "The TLS certificate of the public API expired at midnight, and the mobile app could not reach the API until a renewed certificate was deployed.",
+        "affected": "users of the mobile app",
+        "effect": "no sign-in and no data in the app",
+        "duration": "1 hour 38 minutes, from start to mitigated"
+      }
+    },
+    "elements": [
+      {
+        "id": "E-0001",
+        "type": "Entry",
+        "attributes": {
+          "time": "2026-10-14T00:00Z",
+          "kind": "trigger",
+          "text": "The TLS certificate of api.example.org expired.",
+          "author": "agent",
+          "evidence": [
+            "https://example.org/certificates/api"
+          ],
+          "detail": ""
+        }
+      },
+      {
+        "id": "E-0002",
+        "type": "Entry",
+        "attributes": {
+          "time": "2026-10-14T00:00Z",
+          "kind": "start",
+          "text": "Requests from the mobile app fail the TLS handshake.",
+          "author": "agent",
+          "evidence": [
+            "https://example.org/dashboards/api"
+          ],
+          "detail": ""
+        }
+      },
+      {
+        "id": "E-0003",
+        "type": "Entry",
+        "attributes": {
+          "time": "2026-10-14T00:47Z",
+          "kind": "detection",
+          "text": "Customer support reports that the app cannot sign in.",
+          "author": "person",
+          "evidence": [],
+          "detail": ""
+        }
+      },
+      {
+        "id": "E-0004",
+        "type": "Entry",
+        "attributes": {
+          "time": "2026-10-14T00:55Z",
+          "kind": "engagement",
+          "text": "On-call engineer joins the incident channel.",
+          "author": "person",
+          "evidence": [],
+          "detail": ""
+        }
+      },
+      {
+        "id": "E-0005",
+        "type": "Entry",
+        "attributes": {
+          "time": "2026-10-14T01:20Z",
+          "text": "The expired certificate is found to be the cause.",
+          "author": "person",
+          "evidence": [
+            "https://example.org/checks/tls/1"
+          ],
+          "detail": ""
+        }
+      },
+      {
+        "id": "E-0006",
+        "type": "Entry",
+        "attributes": {
+          "time": "2026-10-14T01:31Z",
+          "kind": "mitigationStart",
+          "text": "Renewed certificate deployed to the load balancers.",
+          "author": "person",
+          "evidence": [],
+          "detail": ""
+        }
+      },
+      {
+        "id": "E-0007",
+        "type": "Entry",
+        "attributes": {
+          "time": "2026-10-14T01:38Z",
+          "kind": "mitigated",
+          "text": "Handshakes succeed again.",
+          "author": "agent",
+          "evidence": [
+            "https://example.org/dashboards/api"
+          ],
+          "detail": ""
+        }
+      },
+      {
+        "id": "E-0008",
+        "type": "Entry",
+        "attributes": {
+          "time": "2026-10-14T03:00Z",
+          "kind": "resolved",
+          "text": "Incident closed after a last check.",
+          "author": "person",
+          "evidence": [],
+          "detail": ""
+        }
+      },
+      {
+        "id": "E-0009",
+        "type": "Entry",
+        "attributes": {
+          "time": "2026-10-14T00:12Z",
+          "text": "The synthetic check of the API reports errors, and nobody is alerted.",
+          "author": "agent",
+          "evidence": [
+            "https://example.org/checks/synthetic/api"
+          ],
+          "detail": ""
+        }
+      },
+      {
+        "id": "F-0001",
+        "type": "Factor",
+        "attributes": {
+          "category": "change",
+          "state": "accepted",
+          "author": "agent",
+          "tags": [],
+          "text": "Certificate renewal is a manual step that no schedule triggers.",
+          "entries": [
+            "E-0001"
+          ],
+          "evidence": [],
+          "detail": ""
+        }
+      },
+      {
+        "id": "F-0002",
+        "type": "Factor",
+        "attributes": {
+          "category": "detection",
+          "state": "accepted",
+          "author": "agent",
+          "tags": [],
+          "text": "No alert watches the expiry dates of certificates.",
+          "entries": [
+            "E-0001",
+            "E-0003"
+          ],
+          "evidence": [],
+          "detail": ""
+        }
+      },
+      {
+        "id": "F-0003",
+        "type": "Factor",
+        "attributes": {
+          "category": "detection",
+          "state": "accepted",
+          "author": "person",
+          "tags": [],
+          "text": "The synthetic check reports errors without alerting anyone.",
+          "entries": [
+            "E-0009"
+          ],
+          "evidence": [],
+          "detail": ""
+        }
+      },
+      {
+        "id": "F-0004",
+        "type": "Factor",
+        "attributes": {
+          "category": "people",
+          "state": "accepted",
+          "author": "person",
+          "tags": [],
+          "text": "Renewal reminders go to a shared mailbox that nobody has read since the team changed.",
+          "entries": [
+            "E-0001"
+          ],
+          "evidence": [],
+          "detail": "No action is agreed yet: the mailbox's owner is being found."
+        }
+      },
+      {
+        "id": "F-0005",
+        "type": "Factor",
+        "attributes": {
+          "category": "people",
+          "state": "rejected",
+          "author": "agent",
+          "tags": [],
+          "text": "The on-call engineer joined late.",
+          "entries": [
+            "E-0004"
+          ],
+          "evidence": [],
+          "detail": "Rejected: the review records conditions, not people. Engagement took 8 minutes, within the target of 15."
+        }
+      },
+      {
+        "id": "A-0001",
+        "type": "Action",
+        "attributes": {
+          "done": true,
+          "text": "Move certificate renewal to the automated issuer.",
+          "owner": "@platform",
+          "due": "2026-10-31",
+          "addresses": [
+            "F-0001"
+          ]
+        }
+      },
+      {
+        "id": "A-0002",
+        "type": "Action",
+        "attributes": {
+          "done": false,
+          "text": "Alert 30 days and 7 days before a certificate expires.",
+          "owner": "@observability",
+          "due": "2026-11-15",
+          "addresses": [
+            "F-0002"
+          ]
+        }
+      },
+      {
+        "id": "A-0003",
+        "type": "Action",
+        "attributes": {
+          "done": false,
+          "text": "Page the on-call engineer when the synthetic API check fails.",
+          "owner": "@observability",
+          "due": "2026-11-15",
+          "addresses": [
+            "F-0003"
+          ]
+        }
+      },
+      {
+        "id": "A-0004",
+        "type": "Action",
+        "attributes": {
+          "done": false,
+          "text": "List the other checks that report without alerting.",
+          "owner": "@observability",
+          "due": "2026-11-30",
+          "addresses": [
+            "F-0003"
+          ]
+        }
+      },
+      {
+        "id": "category/change",
+        "type": "Category",
+        "attributes": {
+          "name": "change"
+        }
+      },
+      {
+        "id": "category/detection",
+        "type": "Category",
+        "attributes": {
+          "name": "detection"
+        }
+      },
+      {
+        "id": "category/capacity",
+        "type": "Category",
+        "attributes": {
+          "name": "capacity"
+        }
+      },
+      {
+        "id": "category/dependency",
+        "type": "Category",
+        "attributes": {
+          "name": "dependency"
+        }
+      },
+      {
+        "id": "category/people",
+        "type": "Category",
+        "attributes": {
+          "name": "people"
+        }
+      }
+    ]
+  },
+  "steps": []
+}

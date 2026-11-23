@@ -1,0 +1,699 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.21",
+  "doc": "The file of the value stream map (value-stream-map.dis, value-stream-map.md): ADP's own YAML, written by people, agents and ADP. The stream's name, unit and vocabularies at the root; under current and an optional future, each state's trigger, steps, outcome and flows. Every element of a state is read by a rule of its own state, which writes the attribute state (research R2). A flow with share is an alternative and one with rework is rework; one with both is read by no rule and kept as written, and the file schema refuses it. The user's part is view.state, the shown state.",
+  "bindings": {
+    "vsm": {
+      "title": "Value stream map",
+      "claims": {
+        "extensions": [
+          ".vsm"
+        ],
+        "origins": [
+          "generic/value-stream-map"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "yaml"
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "lf",
+        "indent": 2,
+        "sequenceIndent": "indented",
+        "finalNewline": true,
+        "quote": "double"
+      },
+      "elements": [
+        {
+          "name": "diagram",
+          "type": "Diagram",
+          "doc": "The root mapping: the stream's name and unit, and the shown state under view. Setting the shown state in a file without view creates view at the end of the file with state as its only key (FBL 0.4, section 5.2).",
+          "at": "/",
+          "attributes": {
+            "name": {
+              "key": "name",
+              "empty": "refuse"
+            },
+            "unit": {
+              "key": "unit",
+              "default": "hours",
+              "empty": "remove"
+            },
+            "shownState": {
+              "key": "state",
+              "child": "view",
+              "default": "current",
+              "create": {
+                "at": "end"
+              }
+            },
+            "unknownKeys": {
+              "value": "entry.filter(k, !(k in ['name', 'unit', 'activities', 'practices', 'current', 'future', 'view'])) + (has(entry.view) && type(entry.view) == map ? entry.view.filter(k, k != 'state').map(k, 'view.' + k) : [])"
+            }
+          }
+        },
+        {
+          "name": "activity",
+          "type": "Activity",
+          "doc": "An entry of the activity vocabulary: a name and an optional colour.",
+          "at": "/activities/*",
+          "when": "type(entry) == map",
+          "attributes": {
+            "name": {
+              "key": "name",
+              "empty": "refuse"
+            },
+            "color": {
+              "key": "color",
+              "empty": "remove"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/activities",
+            "create": {
+              "at": {
+                "before": "current"
+              }
+            },
+            "keys": [
+              "name",
+              "color"
+            ]
+          },
+          "remove": {
+            "container": "keep"
+          }
+        },
+        {
+          "name": "practice",
+          "type": "Practice",
+          "doc": "An entry of the practice list: a name.",
+          "at": "/practices/*",
+          "when": "type(entry) == map",
+          "attributes": {
+            "name": {
+              "key": "name",
+              "empty": "refuse"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/practices",
+            "create": {
+              "at": {
+                "before": "current"
+              }
+            },
+            "keys": [
+              "name"
+            ]
+          },
+          "remove": {
+            "container": "keep"
+          }
+        },
+        {
+          "name": "currentTrigger",
+          "type": "Trigger",
+          "doc": "The trigger of the current state: the mapping under current.trigger.",
+          "at": "/current/{role}",
+          "when": "path.role == 'trigger' && type(entry) == map",
+          "id": {
+            "from": {
+              "key": "id"
+            }
+          },
+          "attributes": {
+            "role": {
+              "capture": "role",
+              "readOnly": "A trigger is always written under the key trigger."
+            },
+            "name": {
+              "key": "name",
+              "empty": "refuse"
+            },
+            "state": {
+              "value": "'current'"
+            },
+            "unknownKeys": {
+              "value": "entry.filter(k, !(k in ['id', 'name', 'basedOn']))"
+            }
+          },
+          "insert": {
+            "place": "start",
+            "container": "/current",
+            "create": {
+              "at": "end"
+            },
+            "keys": [
+              "id",
+              "name"
+            ],
+            "refusals": {
+              "duplicate": "The current state already has a trigger; a stream starts once."
+            },
+            "when": "!has(attributes.state) || attributes.state == 'current'"
+          },
+          "remove": {
+            "cascade": [
+              "currentFlow",
+              "currentAlternative",
+              "currentRework"
+            ],
+            "container": "keep"
+          }
+        },
+        {
+          "name": "currentOutcome",
+          "type": "Outcome",
+          "doc": "The outcome of the current state: the mapping under current.outcome.",
+          "at": "/current/{role}",
+          "when": "path.role == 'outcome' && type(entry) == map",
+          "id": {
+            "from": {
+              "key": "id"
+            }
+          },
+          "attributes": {
+            "role": {
+              "capture": "role",
+              "readOnly": "An outcome is always written under the key outcome."
+            },
+            "name": {
+              "key": "name",
+              "empty": "refuse"
+            },
+            "state": {
+              "value": "'current'"
+            },
+            "unknownKeys": {
+              "value": "entry.filter(k, !(k in ['id', 'name', 'basedOn']))"
+            }
+          },
+          "insert": {
+            "place": "end",
+            "container": "/current",
+            "create": {
+              "at": "end"
+            },
+            "keys": [
+              "id",
+              "name"
+            ],
+            "refusals": {
+              "duplicate": "The current state already has a outcome; a stream ends once."
+            },
+            "when": "!has(attributes.state) || attributes.state == 'current'"
+          },
+          "remove": {
+            "cascade": [
+              "currentFlow",
+              "currentAlternative",
+              "currentRework"
+            ],
+            "container": "keep"
+          }
+        },
+        {
+          "name": "currentStep",
+          "type": "Step",
+          "doc": "A step of the current state: an entry of current.steps.",
+          "at": "/current/steps/*",
+          "when": "type(entry) == map",
+          "id": {
+            "from": {
+              "key": "id"
+            }
+          },
+          "attributes": {
+            "name": {
+              "key": "name",
+              "empty": "refuse"
+            },
+            "activity": {
+              "key": "activity",
+              "empty": "remove"
+            },
+            "practices": {
+              "key": "practices",
+              "empty": "remove",
+              "style": "flow"
+            },
+            "performer": {
+              "key": "performer",
+              "empty": "remove"
+            },
+            "processTime": {
+              "key": "processTime",
+              "read": "text",
+              "empty": "remove"
+            },
+            "waitTime": {
+              "key": "waitTime",
+              "read": "text",
+              "empty": "remove"
+            },
+            "note": {
+              "key": "note",
+              "empty": "remove"
+            },
+            "state": {
+              "value": "'current'"
+            },
+            "unknownKeys": {
+              "value": "entry.filter(k, !(k in ['id', 'name', 'activity', 'practices', 'performer', 'processTime', 'waitTime', 'note', 'basedOn']))"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/current/steps",
+            "create": {
+              "at": "end"
+            },
+            "keys": [
+              "id",
+              "name",
+              "activity",
+              "practices",
+              "performer",
+              "processTime",
+              "waitTime",
+              "note"
+            ],
+            "when": "!has(attributes.state) || attributes.state == 'current'"
+          },
+          "remove": {
+            "cascade": [
+              "currentFlow",
+              "currentAlternative",
+              "currentRework"
+            ],
+            "container": "keep"
+          }
+        },
+        {
+          "name": "futureTrigger",
+          "type": "Trigger",
+          "doc": "The trigger of the future state: the mapping under future.trigger.",
+          "at": "/future/{role}",
+          "when": "path.role == 'trigger' && type(entry) == map",
+          "id": {
+            "from": {
+              "key": "id"
+            }
+          },
+          "attributes": {
+            "role": {
+              "capture": "role",
+              "readOnly": "A trigger is always written under the key trigger."
+            },
+            "name": {
+              "key": "name",
+              "empty": "refuse"
+            },
+            "basedOn": {
+              "key": "basedOn",
+              "empty": "remove",
+              "readOnly": "basedOn is written by Create future state and names the current element a future one was copied from."
+            },
+            "state": {
+              "value": "'future'"
+            },
+            "unknownKeys": {
+              "value": "entry.filter(k, !(k in ['id', 'name', 'basedOn']))"
+            }
+          },
+          "insert": {
+            "place": "start",
+            "container": "/future",
+            "create": {
+              "at": "end"
+            },
+            "keys": [
+              "id",
+              "name",
+              "basedOn"
+            ],
+            "refusals": {
+              "duplicate": "The future state already has a trigger; a stream starts once."
+            },
+            "when": "!has(attributes.state) || attributes.state == 'future'"
+          },
+          "remove": {
+            "cascade": [
+              "futureFlow",
+              "futureAlternative",
+              "futureRework"
+            ],
+            "container": "keep"
+          }
+        },
+        {
+          "name": "futureOutcome",
+          "type": "Outcome",
+          "doc": "The outcome of the future state: the mapping under future.outcome.",
+          "at": "/future/{role}",
+          "when": "path.role == 'outcome' && type(entry) == map",
+          "id": {
+            "from": {
+              "key": "id"
+            }
+          },
+          "attributes": {
+            "role": {
+              "capture": "role",
+              "readOnly": "An outcome is always written under the key outcome."
+            },
+            "name": {
+              "key": "name",
+              "empty": "refuse"
+            },
+            "basedOn": {
+              "key": "basedOn",
+              "empty": "remove",
+              "readOnly": "basedOn is written by Create future state and names the current element a future one was copied from."
+            },
+            "state": {
+              "value": "'future'"
+            },
+            "unknownKeys": {
+              "value": "entry.filter(k, !(k in ['id', 'name', 'basedOn']))"
+            }
+          },
+          "insert": {
+            "place": "end",
+            "container": "/future",
+            "create": {
+              "at": "end"
+            },
+            "keys": [
+              "id",
+              "name",
+              "basedOn"
+            ],
+            "refusals": {
+              "duplicate": "The future state already has a outcome; a stream ends once."
+            },
+            "when": "!has(attributes.state) || attributes.state == 'future'"
+          },
+          "remove": {
+            "cascade": [
+              "futureFlow",
+              "futureAlternative",
+              "futureRework"
+            ],
+            "container": "keep"
+          }
+        },
+        {
+          "name": "futureStep",
+          "type": "Step",
+          "doc": "A step of the future state: an entry of future.steps.",
+          "at": "/future/steps/*",
+          "when": "type(entry) == map",
+          "id": {
+            "from": {
+              "key": "id"
+            }
+          },
+          "attributes": {
+            "name": {
+              "key": "name",
+              "empty": "refuse"
+            },
+            "activity": {
+              "key": "activity",
+              "empty": "remove"
+            },
+            "practices": {
+              "key": "practices",
+              "empty": "remove",
+              "style": "flow"
+            },
+            "performer": {
+              "key": "performer",
+              "empty": "remove"
+            },
+            "processTime": {
+              "key": "processTime",
+              "read": "text",
+              "empty": "remove"
+            },
+            "waitTime": {
+              "key": "waitTime",
+              "read": "text",
+              "empty": "remove"
+            },
+            "note": {
+              "key": "note",
+              "empty": "remove"
+            },
+            "basedOn": {
+              "key": "basedOn",
+              "empty": "remove",
+              "readOnly": "basedOn is written by Create future state and names the current element a future one was copied from."
+            },
+            "state": {
+              "value": "'future'"
+            },
+            "unknownKeys": {
+              "value": "entry.filter(k, !(k in ['id', 'name', 'activity', 'practices', 'performer', 'processTime', 'waitTime', 'note', 'basedOn']))"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/future/steps",
+            "create": {
+              "at": "end"
+            },
+            "keys": [
+              "id",
+              "name",
+              "activity",
+              "practices",
+              "performer",
+              "processTime",
+              "waitTime",
+              "basedOn",
+              "note"
+            ],
+            "when": "!has(attributes.state) || attributes.state == 'future'"
+          },
+          "remove": {
+            "cascade": [
+              "futureFlow",
+              "futureAlternative",
+              "futureRework"
+            ],
+            "container": "keep"
+          }
+        }
+      ],
+      "relations": [
+        {
+          "name": "currentFlow",
+          "type": "Flow",
+          "doc": "A forward flow of the current state: an entry of current.flows with neither share nor rework.",
+          "at": "/current/flows/*",
+          "when": "type(entry) == map && !has(entry.share) && !has(entry.rework)",
+          "source": {
+            "key": "from"
+          },
+          "target": {
+            "key": "to"
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/current/flows",
+            "create": {
+              "at": "end"
+            },
+            "keys": [
+              "from",
+              "to"
+            ]
+          },
+          "remove": {
+            "container": "keep"
+          }
+        },
+        {
+          "name": "currentAlternative",
+          "type": "Alternative",
+          "doc": "An alternative of the current state: a flow with share and without rework.",
+          "at": "/current/flows/*",
+          "when": "type(entry) == map && has(entry.share) && !has(entry.rework)",
+          "source": {
+            "key": "from"
+          },
+          "target": {
+            "key": "to"
+          },
+          "attributes": {
+            "share": {
+              "key": "share",
+              "empty": "refuse",
+              "number": "shortest"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/current/flows",
+            "create": {
+              "at": "end"
+            },
+            "keys": [
+              "from",
+              "to",
+              "share"
+            ]
+          },
+          "remove": {
+            "container": "keep"
+          }
+        },
+        {
+          "name": "currentRework",
+          "type": "Rework",
+          "doc": "Rework of the current state: a flow with rework and without share. Its rate is the key rework.",
+          "at": "/current/flows/*",
+          "when": "type(entry) == map && has(entry.rework) && !has(entry.share)",
+          "source": {
+            "key": "from"
+          },
+          "target": {
+            "key": "to"
+          },
+          "attributes": {
+            "rate": {
+              "key": "rework",
+              "empty": "refuse",
+              "number": "shortest"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/current/flows",
+            "create": {
+              "at": "end"
+            },
+            "keys": [
+              "from",
+              "to",
+              "rework"
+            ]
+          },
+          "remove": {
+            "container": "keep"
+          }
+        },
+        {
+          "name": "futureFlow",
+          "type": "Flow",
+          "doc": "A forward flow of the future state: an entry of future.flows with neither share nor rework.",
+          "at": "/future/flows/*",
+          "when": "type(entry) == map && !has(entry.share) && !has(entry.rework)",
+          "source": {
+            "key": "from"
+          },
+          "target": {
+            "key": "to"
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/future/flows",
+            "create": {
+              "at": "end"
+            },
+            "keys": [
+              "from",
+              "to"
+            ]
+          },
+          "remove": {
+            "container": "keep"
+          }
+        },
+        {
+          "name": "futureAlternative",
+          "type": "Alternative",
+          "doc": "An alternative of the future state: a flow with share and without rework.",
+          "at": "/future/flows/*",
+          "when": "type(entry) == map && has(entry.share) && !has(entry.rework)",
+          "source": {
+            "key": "from"
+          },
+          "target": {
+            "key": "to"
+          },
+          "attributes": {
+            "share": {
+              "key": "share",
+              "empty": "refuse",
+              "number": "shortest"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/future/flows",
+            "create": {
+              "at": "end"
+            },
+            "keys": [
+              "from",
+              "to",
+              "share"
+            ]
+          },
+          "remove": {
+            "container": "keep"
+          }
+        },
+        {
+          "name": "futureRework",
+          "type": "Rework",
+          "doc": "Rework of the future state: a flow with rework and without share. Its rate is the key rework.",
+          "at": "/future/flows/*",
+          "when": "type(entry) == map && has(entry.rework) && !has(entry.share)",
+          "source": {
+            "key": "from"
+          },
+          "target": {
+            "key": "to"
+          },
+          "attributes": {
+            "rate": {
+              "key": "rework",
+              "empty": "refuse",
+              "number": "shortest"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/future/flows",
+            "create": {
+              "at": "end"
+            },
+            "keys": [
+              "from",
+              "to",
+              "rework"
+            ]
+          },
+          "remove": {
+            "container": "keep"
+          }
+        }
+      ],
+      "registration": {
+        "createOnFirstPlacement": false
+      },
+      "template": {
+        "text": "name: {base}\nunit: hours\nactivities: []\npractices: []\ncurrent:\n  trigger:\n    id: t1\n    name: Demand arrives\n  steps: []\n  outcome:\n    id: o1\n    name: Value delivered\n  flows: []\n"
+      }
+    }
+  }
+}

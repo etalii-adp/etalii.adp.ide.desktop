@@ -1,0 +1,79 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.22",
+  "doc": "The binding of this fixture alone (FBL 0.22, section 4.3): a YAML stream whose documents are a service and its checks, read with body.stream documents, so that the root of the reading is a sequence of the documents and a rule at /* reads one entry per document; when tells a service from a check by its key kind. A new check is inserted at the root as a document of its own, after the last one (section 6.2). ../yaml-stream-edits/ uses the same binding.",
+  "bindings": {
+    "stream": {
+      "title": "Service and checks, a YAML stream",
+      "claims": {
+        "registrationOnly": true
+      },
+      "body": {
+        "kind": "file",
+        "family": "yaml",
+        "stream": "documents"
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "lf",
+        "indent": 2,
+        "sequenceIndent": "indented",
+        "finalNewline": true,
+        "quote": "double"
+      },
+      "elements": [
+        {
+          "name": "service",
+          "type": "Service",
+          "at": "/*",
+          "when": "has(entry.kind) && entry.kind == 'Service'",
+          "id": {
+            "from": {
+              "key": "name"
+            }
+          },
+          "attributes": {
+            "owner": {
+              "key": "owner",
+              "empty": "keep"
+            }
+          },
+          "remove": {}
+        },
+        {
+          "name": "check",
+          "type": "Check",
+          "at": "/*",
+          "when": "has(entry.kind) && entry.kind == 'Check'",
+          "id": {
+            "from": {
+              "key": "name"
+            }
+          },
+          "attributes": {
+            "service": {
+              "key": "service"
+            },
+            "target": {
+              "key": "target"
+            }
+          },
+          "insert": {
+            "place": "end",
+            "container": "/",
+            "keys": [
+              "kind",
+              "name",
+              "service",
+              "target"
+            ],
+            "constant": {
+              "kind": "Check"
+            }
+          },
+          "remove": {}
+        }
+      ]
+    }
+  }
+}

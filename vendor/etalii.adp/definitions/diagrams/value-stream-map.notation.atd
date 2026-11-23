@@ -1,0 +1,268 @@
+atd 0.1
+part of generic/value-stream-map
+
+// The value stream map's notation, toolbox and forms, in a part of their own (ATD 5.2).
+
+/// Steps in flow order from left to right with the trigger first, the main path on top and each alternative path
+/// below it; a step's wait is a band under its box. The summary and the comparison stand after the outcome
+/// (research R8).
+notation {
+  theme {
+    tokens: {
+      color.surface: { light: "#FFFFFF", dark: "#161B22" }
+      color.border: { light: "#8A8880", dark: "#8B949E" }
+      color.muted: { light: "#868E96", dark: "#6E7681" }
+      vsm.step: { light: "#FFFFFF", dark: "#1F2328" }
+      vsm.wait: { light: "#F2A93B", dark: "#C98A2B" }
+      vsm.longWait: { light: "#D9480F", dark: "#FF8A4C" }
+      vsm.handoff: { light: "#7048E8", dark: "#B197FC" }
+      vsm.rework: { light: "#C92A2A", dark: "#FF8787" }
+      vsm.summary: { light: "#EDF2FF", dark: "#1B2340" }
+    }
+  }
+  style step {
+    fill: $vsm.step
+    stroke: { color: $color.border, width: 1 }
+    cornerRadius: 4
+    font: { size: 12 }
+  }
+  style end { fill: $color.surface, stroke: { color: $color.border, width: 1.5 }, font: { size: 12 } }
+  style figures {
+    fill: $vsm.summary
+    stroke: { color: $color.border, width: 1 }
+    cornerRadius: 6
+    font: { size: 12 }
+  }
+  style activity {
+    fill: (diagram.nodesOfType('Activity').exists(a, a.name == self.activity && has(a.color)) ? diagram.nodesOfType('Activity').filter(a, a.name == self.activity)[0].color : token('color.muted'))
+    font: { size: 10 }
+  }
+  style longWait { fill: $vsm.longWait }
+  style wait { fill: $vsm.wait, font: { size: 10 } }
+  style flow { stroke: { color: $color.border, width: 1.5 } }
+  style handoff { stroke: { color: $vsm.handoff, width: 2, dash: [6, 3] } }
+  style rework { stroke: { color: $vsm.rework, width: 1.5, dash: [2, 3] } }
+  canvas {
+    filters: {
+      state: {
+        label: "State"
+        control: "select"
+        persist: true
+        default: "current"
+        options: (diagram.nodesOfType('Trigger').exists(t, t.state == 'future') ? ['current', 'future'] : ['current'])
+        appliesTo: ["Trigger", "Step", "Outcome", "Summary"]
+        keep: (self.state == value)
+        doc: "Shows one state at a time (User Story 3). Kept in the file as view.state (persistence.view.bind); the comparison is shown whichever state is chosen."
+      }
+    }
+    empty: {
+      text: "An empty stream. Add a trigger, steps and an outcome from the toolbox, or start from a template that brings an activity list."
+    }
+  }
+
+  node Trigger {
+    shape chevron
+    label @name as name { position: "center", editable: "inline", wrap: "word", maxLines: 2 }
+    style: "end"
+    size: { fixed: [140, 60] }
+    placement: {
+      x: (depth(self, []) * 230)
+      y: (stateRow(self.state) * 520 + lane(self, []) * 150)
+      movable: false
+    }
+    doubleClick: "editLabel"
+  }
+
+  node Outcome {
+    shape roundedRect { radius: 30 }
+    label @name as name { position: "center", editable: "inline", wrap: "word", maxLines: 2 }
+    style: "end"
+    size: { fixed: [140, 60] }
+    placement: {
+      x: (depth(self, []) * 230)
+      y: (stateRow(self.state) * 520 + lane(self, []) * 150)
+      movable: false
+    }
+    doubleClick: "editLabel"
+  }
+
+  node Step {
+    shape roundedRect
+    label @name as name { position: "top", editable: "inline", wrap: "word", maxLines: 2 }
+    label (has(self.performer) ? self.performer : '') as performer { position: "center", style: { font: { size: 10 } } }
+    label ('PT ' + (has(self.processTime) ? formatDuration(self.processTime, 'short') : '–') + ' · WT ' + (has(self.waitTime) ? formatDuration(self.waitTime, 'short') : '–')) as times { position: "bottom", style: { font: { size: 10 } } }
+    badge activity {
+      text: (has(self.activity) ? self.activity : '')
+      visible: (has(self.activity) && self.activity != '')
+      position: "top-left"
+      style: "activity"
+    }
+    badge practices {
+      text: (self.practices.join(', '))
+      visible: (self.practices.size() > 0)
+      position: "bottom-right"
+    }
+    badge longWait {
+      icon: "mdi-timer-alert-outline"
+      visible: (longWait(self))
+      position: "top-right"
+      style: "longWait"
+      tooltip: ('One of the three longest waits: ' + formatDuration(self.waitTime, 'short'))
+    }
+    badge wait {
+      text: (has(self.waitTime) ? 'waits ' + formatDuration(self.waitTime, 'short') : 'waits ?')
+      position: "bottom"
+      offset: [0, 14]
+      style: "wait"
+      tooltip: "The wait before this step starts, drawn as a band under its box (research R8)."
+    }
+    style: "step"
+    size: { fixed: [180, 96] }
+    placement: {
+      x: (depth(self, []) * 230)
+      y: (stateRow(self.state) * 520 + lane(self, []) * 150)
+      movable: false
+      doc: "A step stands where its flows put it: one column after what flows into it, on the row of its path. Change the flows to move it."
+    }
+    tooltip: (has(self.note) ? self.note : self.name)
+    doubleClick: "editLabel"
+  }
+
+  node Summary {
+    shape roundedRect
+    label (self.computed ? 'Lead time ' + self.leadTime + '\nProcess time ' + self.processTime + '\nFlow efficiency ' + self.efficiency + '\nHand-offs ' + self.handoffs : 'Totals not computed: see the findings.') as figures { position: "center", wrap: "word" }
+    style: "figures"
+    size: { fixed: [200, 120] }
+    placement: { x: ((longestColumn(self.state) + 1) * 230), y: (stateRow(self.state) * 520), movable: false }
+  }
+
+  node Comparison {
+    shape roundedRect
+    label ('Current → future (difference)\nLead time ' + self.leadTime + '\nProcess time ' + self.processTime + '\nFlow efficiency ' + self.efficiency + '\nHand-offs ' + self.handoffs) as figures { position: "center", wrap: "word" }
+    style: "figures"
+    size: { fixed: [280, 120] }
+    placement: {
+      x: ((max(longestColumn('current'), longestColumn('future')) + 2) * 230)
+      y: (260)
+      movable: false
+    }
+  }
+
+  edge Flow {
+    line { routing: "orthogonal" }
+    marker target arrowFilled
+    label (isHandoff(self) ? 'hand-off' : '') as handoff { at: "middle", side: "above", distance: 4 }
+    style: "flow"
+    conditions: [{ when: (isHandoff(self)), style: "handoff" }]
+  }
+
+  edge Alternative {
+    line { routing: "orthogonal" }
+    marker target arrowFilled
+    label (formatNumber(self.share * 100.0, '0.#') + ' %') as share { at: "middle", side: "above", distance: 4, editable: "form" }
+    style: "flow"
+    conditions: [{ when: (isHandoff(self)), style: "handoff" }]
+  }
+
+  edge Rework {
+    line { routing: "orthogonal" }
+    marker target arrowOpen
+    label ('rework ' + formatNumber(self.rate * 100.0, '0.#') + ' %') as rate { at: "middle", side: "below", distance: 4 }
+    style: "rework"
+    layer: "belowNodes"
+  }
+}
+
+/// One tool per kind of element and of flow. A trigger, a step or an outcome is created in the state the canvas
+/// shows.
+toolbox {
+  group stream "Stream" {
+    tool trigger "Trigger" {
+      kind: "create-node"
+      creates: "Trigger"
+      initial: { name: "New trigger", state: (diagram.shownState) }
+    }
+    tool step "Step" {
+      kind: "create-node"
+      creates: "Step"
+      initial: { name: "New step", state: (diagram.shownState) }
+    }
+    tool outcome "Outcome" {
+      kind: "create-node"
+      creates: "Outcome"
+      initial: { name: "New outcome", state: (diagram.shownState) }
+    }
+    tool flow "Flow" { kind: "create-edge", creates: "Flow" }
+    tool alternative "Alternative" { kind: "create-edge", creates: "Alternative", initial: { share: 0.5 } }
+    tool rework "Rework" { kind: "create-edge", creates: "Rework", initial: { rate: 0.1 } }
+  }
+  context for diagram {
+    tool { kind: "operation", operation: "createFutureState" }
+    tool { kind: "operation", operation: "showCurrent" }
+    tool { kind: "operation", operation: "showFuture" }
+    tool { kind: "operation", operation: "removeFutureState" }
+  }
+  templates: {
+    sixActivities: {
+      label: "Six-activity value chain"
+      doc: "A starting activity list of six activities and a short practice list, every name editable (research R7, FR-003)."
+      fragment: {
+        nodes: [
+          { ref: "a1", type: "Activity", attributes: { name: ('plan') } },
+          { ref: "a2", type: "Activity", attributes: { name: ('improve') } },
+          { ref: "a3", type: "Activity", attributes: { name: ('engage') } },
+          { ref: "a4", type: "Activity", attributes: { name: ('design and transition') } },
+          { ref: "a5", type: "Activity", attributes: { name: ('obtain/build') } },
+          { ref: "a6", type: "Activity", attributes: { name: ('deliver and support') } },
+          { ref: "p1", type: "Practice", attributes: { name: ('incident management') } },
+          { ref: "p2", type: "Practice", attributes: { name: ('change enablement') } },
+          { ref: "p3", type: "Practice", attributes: { name: ('service request management') } },
+          { ref: "p4", type: "Practice", attributes: { name: ('monitoring and event management') } },
+          { ref: "p5", type: "Practice", attributes: { name: ('problem management') } }
+        ]
+      }
+    }
+    eightActivities: {
+      label: "Eight-activity lifecycle"
+      doc: "A starting activity list of eight lifecycle activities and the same short practice list, every name editable (research R7, FR-003)."
+      fragment: {
+        nodes: [
+          { ref: "a1", type: "Activity", attributes: { name: ('discover') } },
+          { ref: "a2", type: "Activity", attributes: { name: ('design') } },
+          { ref: "a3", type: "Activity", attributes: { name: ('acquire') } },
+          { ref: "a4", type: "Activity", attributes: { name: ('build') } },
+          { ref: "a5", type: "Activity", attributes: { name: ('transition') } },
+          { ref: "a6", type: "Activity", attributes: { name: ('operate') } },
+          { ref: "a7", type: "Activity", attributes: { name: ('deliver') } },
+          { ref: "a8", type: "Activity", attributes: { name: ('support') } },
+          { ref: "p1", type: "Practice", attributes: { name: ('incident management') } },
+          { ref: "p2", type: "Practice", attributes: { name: ('change enablement') } },
+          { ref: "p3", type: "Practice", attributes: { name: ('service request management') } },
+          { ref: "p4", type: "Practice", attributes: { name: ('monitoring and event management') } },
+          { ref: "p5", type: "Practice", attributes: { name: ('problem management') } }
+        ]
+      }
+    }
+  }
+  starters: ["sixActivities", "eightActivities"]
+}
+
+/// FR-002: every attribute of a step in one form, the activity and the practices offered from the stream's own
+/// lists.
+form step for Step {
+  field name
+  field activity { options: (diagram.nodesOfType('Activity').map(a, a.name)) }
+  field practices { options: (diagram.nodesOfType('Practice').map(p, p.name)) }
+  field performer
+  field processTime
+  field waitTime
+  field note
+  item { kind: "findings" }
+}
+
+/// The stream's name and the unit of its totals. The activity and practice lists are edited as their own entries.
+form diagram for diagram {
+  field name
+  field unit
+  item { kind: "findings" }
+}

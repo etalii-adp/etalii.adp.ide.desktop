@@ -1,0 +1,51 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.7",
+  "doc": "The Markdown binding of minimal-sections.des, in the bullets family (FBL section 4.8): the envelope on line 1, the trip as the one item under the heading Trip, its traveller a word, and the stops under the heading Stops, each with its time, its kind before a colon and its place, and its note on the lines that continue it.",
+  "bindings": {
+    "markdown": {
+      "title": "Trip log",
+      "claims": {
+        "extensions": [".md"],
+        "shared": true,
+        "marker": { "pattern": "^<!--[ \\t]+ded:[ \\t]+[^ \\t]+[ \\t]+designer:[ \\t]+example/trip-log[ \\t]+-->", "lines": 1 },
+        "origins": ["example/trip-log"]
+      },
+      "body": { "kind": "file", "family": "bullets" },
+      "reader": "declared",
+      "text": { "newline": "lf" },
+      "header": { "line": "^<!--[ \\t]+ded:[ \\t]+[^ \\t]+[ \\t]+designer:[ \\t]+[^ \\t]+[ \\t]+-->[ \\t]*$", "required": true },
+      "sections": [
+        { "name": "trip", "heading": "^Trip$", "caseInsensitive": true },
+        { "name": "stops", "heading": "^Stops$", "caseInsensitive": true }
+      ],
+      "elements": [
+        {
+          "name": "trip",
+          "type": "Trip",
+          "within": ["trip"],
+          "line": "^(?<title>.*?)(?<words>(?:[ \\t]+traveller:[^\\s]+)*)[ \\t]*$",
+          "attributes": {
+            "title": { "group": "title", "empty": "refuse" },
+            "traveller": { "group": "words", "word": "^traveller:(?<value>[^\\s]+)$" }
+          },
+          "insert": { "place": "end", "container": "trip", "create": { "at": "end-of-document", "text": "## Trip" }, "emit": "{title}[ traveller:{traveller}]" }
+        },
+        {
+          "name": "stop",
+          "type": "Stop",
+          "within": ["stops"],
+          "line": "^(?:(?<at>\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(?::\\d{2})?(?:Z|[+-]\\d{2}:\\d{2}))[ \\t]+)?(?:(?<kind>departure|arrival):[ \\t]*)?(?<place>.*?)[ \\t]*$",
+          "attributes": {
+            "at": { "group": "at" },
+            "kind": { "group": "kind" },
+            "place": { "group": "place", "empty": "refuse" },
+            "note": { "continuation": true, "empty": "remove" }
+          },
+          "insert": { "place": "end", "container": "stops", "create": { "at": "end-of-document", "text": "## Stops" }, "emit": "[{at} ][{kind}: ]{place}" },
+          "remove": {}
+        }
+      ]
+    }
+  }
+}

@@ -30,12 +30,12 @@ word: NAME
     | "designer" | "diagram" | "doc" | "document" | "edge" | "editLabel" | "editor" | "element"
     | "enabled" | "entries" | "enum" | "extends" | "fail" | "family" | "field" | "files" | "filters" | "fix" | "fn"
     | "fold" | "form" | "from" | "grammar" | "group" | "header" | "hierarchy" | "highlight" | "hook" | "icon" | "id"
-    | "insert" | "into" | "item" | "label" | "labels" | "layout" | "levels" | "limit" | "line" | "many" | "marker"
+    | "insert" | "into" | "item" | "label" | "labels" | "layout" | "levels" | "limit" | "line" | "list" | "many" | "marker"
     | "message" | "mid" | "model" | "move" | "node" | "notation" | "notes" | "notify" | "of" | "on" | "open"
     | "openForm" | "operation" | "ordered" | "outline" | "param" | "parent" | "part" | "persistence" | "place"
-    | "plugin" | "port" | "preview" | "readonly" | "reason" | "recursion" | "references" | "registration"
+    | "plugin" | "port" | "preview" | "readonly" | "reason" | "record" | "recursion" | "references" | "registration"
     | "relation" | "remove" | "reorder" | "reparent" | "required" | "requires" | "resize" | "retype" | "reveal"
-    | "rows" | "rule" | "section" | "select" | "set" | "severity" | "shape" | "size" | "slot" | "snapping"
+    | "rows" | "rule" | "section" | "sections" | "select" | "set" | "severity" | "shape" | "size" | "slot" | "snapping"
     | "source" | "state" | "style" | "surface" | "system" | "table" | "target" | "template" | "text" | "theme" | "to"
     | "token" | "tokens" | "tool" | "toolbox" | "unavailable" | "unset" | "valueType" | "variant" | "version"
     | "view" | "viewpoint" | "views" | "when" | "widths" | "with" | "within"
@@ -373,6 +373,7 @@ canvas__viewpoint: "viewpoint" name [STRING] [settings_block]
 // ---- form.lark
 form_surface: "surface" "table" "{" form__table_member* "}" -> form__table_surface
             | "surface" "hierarchy" "{" form__hierarchy_member* "}" -> form__hierarchy_surface
+            | "surface" "sections" "{" form__sections_member* "}" -> form__sections_surface
 ?form__table_member: "rows" type_ref [settings_block] -> form__rows
              | "columns" type_ref [settings_block] -> form__columns
              | "cells" type_ref [settings_block] -> form__cells
@@ -393,6 +394,10 @@ form__value_type: "valueType" name [STRING] "{" form__value_type_member* "}"
                  | "labels" name [settings_block] -> form__labels
                  | setting
                  | doc_member
+?form__sections_member: "record" name [STRING] type_ref [settings_block] -> form__record_part
+                | "list" name [STRING] type_ref [settings_block] -> form__list_part
+                | setting
+                | doc_member
 
 // ---- text.lark
 text_surface: "surface" "text" "{" text__text_member* "}"

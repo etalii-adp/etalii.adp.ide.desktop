@@ -1,0 +1,41 @@
+# Every key the value stream map reads (value-stream-map.md), and one it does not.
+name: Restore service
+unit: minutes
+owner: service owner   # not read by the diagram, kept
+activities:
+  - name: deliver and support
+    color: "#12B886"
+practices:
+  - name: incident management
+current:
+  trigger: { id: t1, name: Alert raised }
+  steps:
+    - id: s1
+      name: Diagnose
+      activity: deliver and support
+      practices: [incident management]
+      performer: service desk
+      processTime: PT20M
+      waitTime: PT1H
+      note: The desk reproduces the alert first.
+    - { id: s2, name: Fix, performer: platform team, processTime: PT30M, waitTime: PT2H }
+    - { id: s3, name: Review, performer: platform team, processTime: PT10M, waitTime: PT15M }
+  outcome: { id: o1, name: Service restored }
+  flows:
+    - { from: t1, to: s1 }
+    - { from: s1, to: s2, share: 0.75 }
+    - { from: s1, to: s3, share: 0.25 }
+    - { from: s3, to: s1, rework: 0.2 }
+    - { from: s2, to: o1 }
+    - { from: s3, to: o1 }
+    - { from: s2, to: s3, share: 0.5, rework: 0.5 }
+future:
+  trigger: { id: t2, name: Alert raised, basedOn: t1 }
+  steps:
+    - { id: s4, name: Diagnose, performer: service desk, processTime: PT20M, waitTime: PT20M, basedOn: s1 }
+  outcome: { id: o2, name: Service restored, basedOn: o1 }
+  flows:
+    - { from: t2, to: s4 }
+    - { from: s4, to: o2 }
+view:
+  state: future

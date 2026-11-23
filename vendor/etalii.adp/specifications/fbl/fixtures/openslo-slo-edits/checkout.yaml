@@ -1,0 +1,40 @@
+# Checkout's service level objectives, kept beside its code.
+apiVersion: openslo/v1
+kind: Service
+metadata:
+  name: checkout
+  displayName: Checkout
+---
+# Errors seen at the load balancer.
+apiVersion: openslo/v1
+kind: SLI
+metadata:
+  name: checkout-errors
+spec:
+  ratioMetric:
+    good:
+      metricSource:
+        type: Prometheus
+        spec:
+          query: sum(rate(lb_requests_total{code!~"5.."}[5m]))
+    total:
+      metricSource:
+        type: Prometheus
+        spec:
+          query: sum(rate(lb_requests_total[5m]))
+---
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: checkout-availability
+  displayName: Checkout availability
+spec:
+  service: checkout
+  indicatorRef: checkout-errors
+  timeWindow:
+    - duration: 28d # four weeks, rolling
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - displayName: Available
+      target: 0.99 # agreed with the product owner

@@ -1,0 +1,923 @@
+{
+  "$schema": "https://etalii.net/adp/desl/schema/0.1/desl.schema.json#/$defs/Specification",
+  "desl": "0.4",
+  "doc": "The post-incident review designer: one incident's review as a page of parts, with the timeline in time order, the intervals between its milestones, the contributing factors an agent proposes and a person judges, and the actions agreed on them.",
+  "language": {
+    "id": "net.etalii.adp.etalii.post-incident-review",
+    "version": "0.1.0",
+    "origin": "etalii/post-incident-review",
+    "label": "Post-incident review designer",
+    "doc": {
+      "summary": "A blameless post-incident review as a page of parts, in a Markdown file you and an agent both keep.",
+      "description": "A review is one Markdown file: a summary and its impact, a timeline of entries each with its time, its milestone and its author, contributing factors with a category and a state, and actions with an owner and a due date. The designer shows it as one page of sections: the timeline in time order on a time strip, the time to detect, engage, mitigate and resolve computed from its milestones, the factors grouped by category, and the actions with what is missing. What DESL cannot say (the file format in full, the blameless intent, the looks) is in `post-incident-review.md` beside this file.",
+      "rationale": "A review is a form, a timeline and lists on one page, and nothing in it is drawn connected: a factor names the entries it rests on and an action the factors it addresses, as values. That is why it is a designer.",
+      "tags": [
+        "incidents",
+        "post-incident review",
+        "service management",
+        "markdown",
+        "agents",
+        "blameless"
+      ],
+      "seeAlso": [
+        {
+          "title": "What DESL cannot express for this tool",
+          "href": "post-incident-review.md"
+        },
+        {
+          "title": "The Markdown binding",
+          "href": "post-incident-review.fbl"
+        }
+      ]
+    },
+    "authors": [
+      {
+        "name": "Peter Vrenken",
+        "url": "https://github.com/vrenken"
+      }
+    ],
+    "license": "Apache-2.0",
+    "homepage": "https://etalii.net/adp",
+    "icon": "mdi-clipboard-pulse-outline"
+  },
+  "metamodel": {
+    "document": {
+      "children": {
+        "allowed": [
+          "Entry",
+          "Factor",
+          "Action",
+          "Category"
+        ]
+      },
+      "attributes": {
+        "lastEntry": {
+          "type": "string",
+          "pattern": "^E-[0-9]+$",
+          "doc": "The last entry number the counter gave: the mark of Entry's counter (DESL section 5.3.5), on line 2."
+        },
+        "lastFactor": {
+          "type": "string",
+          "pattern": "^F-[0-9]+$",
+          "doc": "The last factor number the counter gave."
+        },
+        "lastAction": {
+          "type": "string",
+          "pattern": "^A-[0-9]+$",
+          "doc": "The last action number the counter gave."
+        },
+        "timeZone": {
+          "type": "string",
+          "label": "Time zone",
+          "pattern": "^\\S+$",
+          "doc": "The IANA name of the zone the review's times are shown in, from `- Time zone:` under Summary. A time keeps the offset it was written with; this only says how it is shown."
+        },
+        "summary": {
+          "type": "text",
+          "label": "Summary",
+          "doc": "What happened, in a few sentences: the other item under Summary."
+        },
+        "affected": {
+          "type": "string",
+          "label": "Affected",
+          "doc": "Who or what was affected."
+        },
+        "effect": {
+          "type": "string",
+          "label": "Effect",
+          "doc": "What they could not do, and how much."
+        },
+        "duration": {
+          "type": "string",
+          "label": "Duration",
+          "doc": "How long it lasted, as the author writes it. The intervals the designer computes come from the timeline."
+        }
+      },
+      "doc": "The review. Its DED envelope (line 1) is the binding's header, not an attribute; its title, the `#` heading, is unbound text, kept as written and not part of the model."
+    },
+    "enums": {
+      "EntryKind": {
+        "ordered": true,
+        "values": {
+          "trigger": {
+            "label": "Trigger",
+            "doc": "What set the incident off, such as a change."
+          },
+          "start": {
+            "label": "Start",
+            "doc": "When customers or users were first affected."
+          },
+          "detection": {
+            "label": "Detection",
+            "doc": "When the incident was first noticed, by an alert or a person."
+          },
+          "engagement": {
+            "label": "Engagement",
+            "doc": "When someone started working on it."
+          },
+          "mitigationStart": {
+            "value": "mitigation start",
+            "label": "Mitigation start",
+            "doc": "When the step that ended the impact began."
+          },
+          "mitigated": {
+            "label": "Mitigated",
+            "doc": "When the impact ended."
+          },
+          "resolved": {
+            "label": "Resolved",
+            "doc": "When the incident was closed."
+          }
+        },
+        "doc": "The milestones of an incident, in their usual order. An entry without one is an ordinary entry. The file writes the stored form before a colon and reads it in any case."
+      },
+      "Author": {
+        "values": {
+          "agent": {
+            "label": "Agent",
+            "icon": "mdi-robot-outline"
+          },
+          "person": {
+            "label": "Person",
+            "icon": "mdi-account-outline"
+          }
+        },
+        "doc": "Who wrote an entry or a factor: an agent assembling the review, or a person."
+      },
+      "FactorState": {
+        "values": {
+          "proposed": {
+            "label": "Proposed"
+          },
+          "accepted": {
+            "label": "Accepted"
+          },
+          "rejected": {
+            "label": "Rejected"
+          }
+        },
+        "doc": "Where a factor stands: proposed (by an agent or a person), accepted or rejected by a person. A rejected factor is kept, with its reason in its detail."
+      }
+    },
+    "types": {
+      "Entry": {
+        "label": "Timeline entry",
+        "icon": "mdi-clock-outline",
+        "labelAttribute": "text",
+        "attributes": {
+          "time": {
+            "type": "datetime",
+            "label": "Time",
+            "timezone": "preserve",
+            "doc": "When it happened: RFC 3339 with its offset, kept as written (FR-002). An entry without one is listed after the time strip and reported by pir.no-time."
+          },
+          "kind": {
+            "type": "EntryKind",
+            "label": "Milestone",
+            "doc": "The milestone the entry is, or none for an ordinary entry."
+          },
+          "text": {
+            "type": "string",
+            "label": "Text",
+            "required": true,
+            "doc": "What happened, in one line."
+          },
+          "author": {
+            "type": "Author",
+            "label": "By",
+            "doc": "Who wrote it; required by the file and reported by pir.no-author when missing."
+          },
+          "evidence": {
+            "type": "string",
+            "label": "Evidence",
+            "many": true,
+            "doc": "Links to what shows it: a log, a dashboard, a change."
+          },
+          "detail": {
+            "type": "text",
+            "label": "Detail",
+            "mentions": {
+              "pattern": "\\[(?:E|F|A)-\\d+\\]\\([^)]*\\)|\\[(?<id>(?:E|F|A)-\\d+)\\]",
+              "types": [
+                "Entry",
+                "Factor",
+                "Action"
+              ]
+            },
+            "doc": "The lines indented under it; `[E-0003]` there names an entry."
+          }
+        },
+        "doc": "One line of the timeline (FR-002)."
+      },
+      "Factor": {
+        "label": "Contributing factor",
+        "icon": "mdi-puzzle-outline",
+        "labelAttribute": "text",
+        "attributes": {
+          "category": {
+            "type": "string",
+            "label": "Category",
+            "pattern": "^\\S+$",
+            "doc": "A name of the category list, ignoring case; one outside it is kept and reported by pir.unknown-category."
+          },
+          "state": {
+            "type": "FactorState",
+            "label": "State",
+            "default": "proposed",
+            "doc": "Proposed, accepted or rejected."
+          },
+          "author": {
+            "type": "Author",
+            "label": "By",
+            "doc": "Who proposed it."
+          },
+          "text": {
+            "type": "string",
+            "label": "Text",
+            "required": true,
+            "doc": "The condition that contributed, stated as a condition and not as a person's act."
+          },
+          "tags": {
+            "type": "string",
+            "label": "Tags",
+            "many": true,
+            "pattern": "^[^\\s#]+$",
+            "doc": "Free tags."
+          },
+          "entries": {
+            "type": "string",
+            "label": "Entries",
+            "many": true,
+            "mentions": {
+              "pattern": "^(?<id>E-\\d+)$",
+              "types": [
+                "Entry"
+              ]
+            },
+            "doc": "The entries it rests on, by number; one that names no entry is reported by std.mentions (the data model's pir.unknown-entry)."
+          },
+          "evidence": {
+            "type": "string",
+            "label": "Evidence",
+            "many": true,
+            "doc": "Links to what shows it."
+          },
+          "detail": {
+            "type": "text",
+            "label": "Detail",
+            "mentions": {
+              "pattern": "\\[(?:E|F|A)-\\d+\\]\\([^)]*\\)|\\[(?<id>(?:E|F|A)-\\d+)\\]",
+              "types": [
+                "Entry",
+                "Factor",
+                "Action"
+              ]
+            },
+            "doc": "The lines indented under it: more on the condition, or the reason it was rejected."
+          }
+        },
+        "doc": "A condition that let the incident happen or made it worse (FR-004). No attribute names a person's fault (FR-009)."
+      },
+      "Action": {
+        "label": "Action",
+        "icon": "mdi-checkbox-marked-circle-outline",
+        "labelAttribute": "text",
+        "attributes": {
+          "done": {
+            "type": "bool",
+            "label": "Done",
+            "default": false,
+            "doc": "Whether it is done; open otherwise."
+          },
+          "text": {
+            "type": "string",
+            "label": "Text",
+            "required": true,
+            "doc": "What is changed."
+          },
+          "owner": {
+            "type": "string",
+            "label": "Owner",
+            "pattern": "^\\S+$",
+            "doc": "Who carries the action, such as a team; not who caused anything."
+          },
+          "due": {
+            "type": "date",
+            "label": "Due",
+            "doc": "When it is due."
+          },
+          "addresses": {
+            "type": "string",
+            "label": "Addresses",
+            "many": true,
+            "mentions": {
+              "pattern": "^(?<id>F-\\d+)$",
+              "types": [
+                "Factor"
+              ]
+            },
+            "doc": "The factors it addresses, by number; one that names no factor is reported by std.mentions (the data model's pir.unknown-factor)."
+          }
+        },
+        "doc": "A change agreed on, to one or more factors (FR-005)."
+      },
+      "Category": {
+        "label": "Category",
+        "icon": "mdi-shape-outline",
+        "labelAttribute": "name",
+        "attributes": {
+          "name": {
+            "type": "string",
+            "label": "Name",
+            "required": true,
+            "pattern": "^\\S+$",
+            "doc": "The category's name, one word."
+          }
+        },
+        "doc": "A category of factor; the list is the user's (FR-008)."
+      }
+    }
+  },
+  "persistence": {
+    "format": "fbl",
+    "bindings": [
+      "post-incident-review.fbl#markdown"
+    ],
+    "typeMap": {
+      "Marks": {
+        "as": "document",
+        "doc": "Line 2 holds the last numbers the counters gave."
+      },
+      "Summary": {
+        "as": "document",
+        "doc": "The time zone and the summary are the document's: the Summary part is a record of the document (DESL section 7.8.2)."
+      },
+      "Impact": {
+        "as": "document",
+        "doc": "The three impact items are the document's, shown by the Impact part."
+      },
+      "Unreadable": {
+        "as": "unreadable",
+        "doc": "An item in no known form: reported by std.unreadableEntry, the data model's pir.unread, and kept as written (FR-007)."
+      }
+    },
+    "ids": {
+      "missing": "assign",
+      "types": {
+        "Entry": {
+          "strategy": "counter",
+          "prefix": "E-",
+          "digits": 4,
+          "mark": "lastEntry",
+          "placeholder": "NEW",
+          "doc": "E-0001 onwards; E-NEW is numbered with the next write (R2)."
+        },
+        "Factor": {
+          "strategy": "counter",
+          "prefix": "F-",
+          "digits": 4,
+          "mark": "lastFactor",
+          "placeholder": "NEW",
+          "doc": "F-0001 onwards, counted apart from the entries."
+        },
+        "Action": {
+          "strategy": "counter",
+          "prefix": "A-",
+          "digits": 4,
+          "mark": "lastAction",
+          "placeholder": "NEW",
+          "doc": "A-0001 onwards."
+        },
+        "Category": {
+          "strategy": "derived",
+          "expression": "'category/' + self.name.lowerAscii()"
+        }
+      }
+    }
+  },
+  "functions": {
+    "milestones": {
+      "params": [
+        {
+          "name": "k",
+          "type": "string",
+          "doc": "A key of EntryKind."
+        }
+      ],
+      "returns": "list(Entry)",
+      "uses": [
+        "document"
+      ],
+      "cel": "document.elementsOfType('Entry').filter(e, has(e.kind) && e.kind == k && has(e.time))",
+      "doc": "The entries of milestone k that have a time, in document order. The first is the milestone; a second is reported by pir.second-milestone and not used."
+    },
+    "between": {
+      "params": [
+        {
+          "name": "from",
+          "type": "string"
+        },
+        {
+          "name": "to",
+          "type": "string"
+        }
+      ],
+      "returns": "duration",
+      "uses": [
+        "document"
+      ],
+      "cel": "milestones(to)[0].time - milestones(from)[0].time",
+      "doc": "The interval from the first entry of one milestone to the first of another. It has no value when either is absent, and the figure shows its absentText (R4)."
+    }
+  },
+  "constraints": {
+    "defaults": {
+      "timing": [
+        "live"
+      ]
+    },
+    "blockSaveOn": "never",
+    "rules": [
+      {
+        "id": "noTime",
+        "code": "pir.no-time",
+        "scope": [
+          "Entry"
+        ],
+        "severity": "warning",
+        "rule": "has(self.time)",
+        "message": "This entry has no time; it is listed after the time strip and counts in no interval."
+      },
+      {
+        "id": "missingStart",
+        "code": "pir.missing-milestone",
+        "scope": "document",
+        "severity": "info",
+        "rule": "milestones('start').size() > 0",
+        "message": "The timeline has no start entry, so the time to detect and to resolve cannot be computed.",
+        "doc": "The milestone start is absent; the intervals that need it are absent too (R4)."
+      },
+      {
+        "id": "missingDetection",
+        "code": "pir.missing-milestone",
+        "scope": "document",
+        "severity": "info",
+        "rule": "milestones('detection').size() > 0",
+        "message": "The timeline has no detection entry, so the time to detect, to engage and to mitigate cannot be computed.",
+        "doc": "The milestone detection is absent; the intervals that need it are absent too (R4)."
+      },
+      {
+        "id": "missingEngagement",
+        "code": "pir.missing-milestone",
+        "scope": "document",
+        "severity": "info",
+        "rule": "milestones('engagement').size() > 0",
+        "message": "The timeline has no engagement entry, so the time to engage cannot be computed.",
+        "doc": "The milestone engagement is absent; the intervals that need it are absent too (R4)."
+      },
+      {
+        "id": "missingMitigated",
+        "code": "pir.missing-milestone",
+        "scope": "document",
+        "severity": "info",
+        "rule": "milestones('mitigated').size() > 0",
+        "message": "The timeline has no mitigated entry, so the time to mitigate cannot be computed.",
+        "doc": "The milestone mitigated is absent; the intervals that need it are absent too (R4)."
+      },
+      {
+        "id": "missingResolved",
+        "code": "pir.missing-milestone",
+        "scope": "document",
+        "severity": "info",
+        "rule": "milestones('resolved').size() > 0",
+        "message": "The timeline has no resolved entry, so the time to resolve cannot be computed.",
+        "doc": "The milestone resolved is absent; the intervals that need it are absent too (R4)."
+      },
+      {
+        "id": "secondMilestone",
+        "code": "pir.second-milestone",
+        "scope": [
+          "Entry"
+        ],
+        "when": "has(self.kind)",
+        "severity": "warning",
+        "rule": "self.positionIn(document.elementsOfType('Entry').filter(e, has(e.kind) && e.kind == self.kind)) == 0",
+        "message": {
+          "cel": "'A second ' + {'trigger': 'Trigger', 'start': 'Start', 'detection': 'Detection', 'engagement': 'Engagement', 'mitigationStart': 'Mitigation start', 'mitigated': 'Mitigated', 'resolved': 'Resolved'}[self.kind].lowerAscii() + ' entry; the intervals use the first.'"
+        }
+      },
+      {
+        "id": "noAuthor",
+        "code": "pir.no-author",
+        "scope": [
+          "Entry",
+          "Factor"
+        ],
+        "severity": "info",
+        "rule": "has(self.author)",
+        "message": "Who wrote this is not said; add by:agent or by:person."
+      },
+      {
+        "id": "unknownCategory",
+        "code": "pir.unknown-category",
+        "scope": [
+          "Factor"
+        ],
+        "when": "has(self.category)",
+        "severity": "info",
+        "rule": "document.elementsOfType('Category').exists(c, c.name.lowerAscii() == self.category.lowerAscii())",
+        "message": {
+          "cel": "'The category ' + self.category + ' is not in the category list; it is kept.'"
+        }
+      },
+      {
+        "id": "actionIncomplete",
+        "code": "pir.action-incomplete",
+        "scope": [
+          "Action"
+        ],
+        "severity": "warning",
+        "rule": "has(self.owner) && has(self.due)",
+        "message": "This action has no owner or no due date."
+      },
+      {
+        "id": "unaddressed",
+        "code": "pir.unaddressed",
+        "scope": [
+          "Factor"
+        ],
+        "when": "self.state == 'accepted'",
+        "severity": "info",
+        "rule": "document.elementsOfType('Action').exists(x, self.id in x.addresses)",
+        "message": "No action addresses this accepted factor."
+      }
+    ]
+  },
+  "surface": {
+    "kind": "sections",
+    "parts": [
+      {
+        "id": "summary",
+        "title": "Summary",
+        "kind": "record",
+        "type": "Summary",
+        "fields": [
+          {
+            "attribute": "summary",
+            "label": "Summary",
+            "widget": "text"
+          },
+          {
+            "attribute": "timeZone",
+            "label": "Time zone"
+          }
+        ],
+        "figures": {
+          "timeToDetect": {
+            "label": "Time to detect",
+            "value": "between('start', 'detection')",
+            "absentText": "No start or detection entry yet",
+            "doc": "From start to detection."
+          },
+          "timeToEngage": {
+            "label": "Time to engage",
+            "value": "between('detection', 'engagement')",
+            "absentText": "No detection or engagement entry yet",
+            "doc": "From detection to engagement."
+          },
+          "timeToMitigate": {
+            "label": "Time to mitigate",
+            "value": "between('detection', 'mitigated')",
+            "absentText": "No detection or mitigated entry yet",
+            "doc": "From detection to mitigated."
+          },
+          "timeToResolve": {
+            "label": "Time to resolve",
+            "value": "between('start', 'resolved')",
+            "absentText": "No start or resolved entry yet",
+            "doc": "From start to resolved."
+          }
+        }
+      },
+      {
+        "id": "impact",
+        "title": "Impact",
+        "kind": "record",
+        "type": "Impact",
+        "fields": [
+          {
+            "attribute": "affected",
+            "label": "Affected"
+          },
+          {
+            "attribute": "effect",
+            "label": "Effect"
+          },
+          {
+            "attribute": "duration",
+            "label": "Duration"
+          }
+        ]
+      },
+      {
+        "id": "timeline",
+        "title": "Timeline",
+        "kind": "list",
+        "type": "Entry",
+        "fields": [
+          {
+            "attribute": "time",
+            "label": "Time"
+          },
+          {
+            "attribute": "kind",
+            "label": "Milestone"
+          },
+          {
+            "attribute": "text",
+            "label": "Text"
+          },
+          {
+            "attribute": "author",
+            "label": "By"
+          },
+          {
+            "attribute": "evidence",
+            "label": "Evidence"
+          },
+          {
+            "attribute": "detail",
+            "label": "Detail",
+            "widget": "text"
+          }
+        ],
+        "order": "has(self.time) ? int(self.time) : 9223372036854775807",
+        "add": "addEntry",
+        "timeStrip": {
+          "at": "time",
+          "highlight": "has(self.kind)",
+          "label": "{'trigger': 'Trigger', 'start': 'Start', 'detection': 'Detection', 'engagement': 'Engagement', 'mitigationStart': 'Mitigation start', 'mitigated': 'Mitigated', 'resolved': 'Resolved'}[self.kind]"
+        },
+        "marks": {
+          "secondMilestone": {
+            "when": "has(self.kind) && self.positionIn(document.elementsOfType('Entry').filter(e, has(e.kind) && e.kind == self.kind)) > 0",
+            "label": "Second milestone",
+            "style": "warning"
+          },
+          "noAuthor": {
+            "when": "!has(self.author)",
+            "label": "No author",
+            "style": "info"
+          }
+        }
+      },
+      {
+        "id": "factors",
+        "title": "Contributing factors",
+        "kind": "list",
+        "type": "Factor",
+        "fields": [
+          {
+            "attribute": "state",
+            "label": "State"
+          },
+          {
+            "attribute": "author",
+            "label": "By"
+          },
+          {
+            "attribute": "text",
+            "label": "Text"
+          },
+          {
+            "attribute": "entries",
+            "label": "Entries"
+          },
+          {
+            "attribute": "tags",
+            "label": "Tags"
+          },
+          {
+            "attribute": "evidence",
+            "label": "Evidence"
+          },
+          {
+            "attribute": "detail",
+            "label": "Detail",
+            "widget": "text"
+          }
+        ],
+        "group": "has(self.category) ? self.category.lowerAscii() : 'uncategorised'",
+        "add": "addFactor",
+        "marks": {
+          "unaddressed": {
+            "when": "self.state == 'accepted' && !document.elementsOfType('Action').exists(x, self.id in x.addresses)",
+            "label": "Unaddressed",
+            "style": "warning"
+          },
+          "rejected": {
+            "when": "self.state == 'rejected'",
+            "label": "Rejected",
+            "style": "info"
+          }
+        }
+      },
+      {
+        "id": "actions",
+        "title": "Actions",
+        "kind": "list",
+        "type": "Action",
+        "fields": [
+          {
+            "attribute": "done",
+            "label": "Done"
+          },
+          {
+            "attribute": "text",
+            "label": "Text"
+          },
+          {
+            "attribute": "owner",
+            "label": "Owner"
+          },
+          {
+            "attribute": "due",
+            "label": "Due"
+          },
+          {
+            "attribute": "addresses",
+            "label": "Addresses"
+          }
+        ],
+        "add": "addAction",
+        "marks": {
+          "incomplete": {
+            "when": "!has(self.owner) || !has(self.due)",
+            "label": "No owner or due date",
+            "style": "warning"
+          }
+        }
+      },
+      {
+        "id": "categories",
+        "title": "Categories",
+        "kind": "list",
+        "type": "Category",
+        "fields": [
+          {
+            "attribute": "name",
+            "label": "Name"
+          }
+        ],
+        "add": "addCategory"
+      }
+    ],
+    "doc": "One page of six parts (R7). Selecting a factor highlights the entries it names, and an action the factors it addresses (DESL section 7.8.2)."
+  },
+  "operations": {
+    "addEntry": {
+      "label": "New entry",
+      "for": "document",
+      "actions": [
+        {
+          "create": {
+            "type": "'Entry'",
+            "attributes": {
+              "text": "'New entry'",
+              "author": "'person'"
+            }
+          }
+        }
+      ],
+      "doc": "An entry at the end of Timeline, numbered with the write (R2); its time is given in its row."
+    },
+    "addFactor": {
+      "label": "New factor",
+      "for": "document",
+      "actions": [
+        {
+          "create": {
+            "type": "'Factor'",
+            "attributes": {
+              "text": "'New factor'",
+              "state": "'proposed'",
+              "author": "'person'"
+            }
+          }
+        }
+      ],
+      "doc": "A proposed factor at the end of Contributing factors."
+    },
+    "acceptFactor": {
+      "label": "Accept",
+      "for": [
+        "Factor"
+      ],
+      "unavailable": [
+        {
+          "when": "self.state == 'accepted'",
+          "message": "This factor is accepted."
+        }
+      ],
+      "actions": [
+        {
+          "set": {
+            "state": "'accepted'"
+          }
+        }
+      ],
+      "doc": "A person accepts a factor: one replace-value of its state word (User Story 2)."
+    },
+    "rejectFactor": {
+      "label": "Reject",
+      "for": [
+        "Factor"
+      ],
+      "unavailable": [
+        {
+          "when": "self.state == 'rejected'",
+          "message": "This factor is rejected."
+        }
+      ],
+      "actions": [
+        {
+          "set": {
+            "state": "'rejected'"
+          }
+        }
+      ],
+      "doc": "A person rejects a factor. It is kept, so the review shows what was considered; the reason goes in its detail (User Story 2, scenario 3)."
+    },
+    "addAction": {
+      "label": "New action",
+      "for": "document",
+      "actions": [
+        {
+          "create": {
+            "type": "'Action'",
+            "attributes": {
+              "text": "'New action'"
+            }
+          }
+        }
+      ],
+      "doc": "An open action at the end of Actions."
+    },
+    "addActionFor": {
+      "label": "New action for this factor",
+      "for": [
+        "Factor"
+      ],
+      "actions": [
+        {
+          "create": {
+            "type": "'Action'",
+            "attributes": {
+              "text": "'New action'",
+              "addresses": "[self.id]"
+            }
+          }
+        }
+      ],
+      "doc": "From a factor: an open action that addresses it."
+    },
+    "completeAction": {
+      "label": {
+        "cel": "self.done ? 'Reopen' : 'Done'"
+      },
+      "for": [
+        "Action"
+      ],
+      "actions": [
+        {
+          "set": {
+            "done": "!self.done"
+          }
+        }
+      ],
+      "doc": "A switch between `[ ]` and `[x]`: one replace-value of one character."
+    },
+    "addCategory": {
+      "label": "New category",
+      "for": "document",
+      "params": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "pattern": "^\\S+$"
+        }
+      },
+      "actions": [
+        {
+          "create": {
+            "type": "'Category'",
+            "attributes": {
+              "name": "p.name"
+            }
+          }
+        }
+      ],
+      "doc": "A category at the end of Categories (FR-008)."
+    }
+  }
+}

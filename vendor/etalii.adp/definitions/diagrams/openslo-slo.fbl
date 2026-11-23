@@ -1,0 +1,1541 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.22",
+  "doc": "OpenSLO's own documents, openslo/v1 (openslo-slo.dis, openslo-slo.md). A file is a YAML stream whose every document is bound (FBL 0.22): each document of a kind the diagram draws is one element, its objectives and its inline objects are elements contained in it, and every other document is listed and kept as written. The binding claims a .yaml or .yml file only when its first document's apiVersion is openslo/v1 (research R2). Nothing is ever added to OpenSLO's documents: a pinned position goes to a registration's layout block (FR-008).",
+  "bindings": {
+    "openslo": {
+      "title": "OpenSLO",
+      "claims": {
+        "extensions": [
+          ".yaml",
+          ".yml"
+        ],
+        "shared": true,
+        "marker": {
+          "rootKey": "apiVersion",
+          "value": "openslo/v1"
+        },
+        "origins": [
+          "openslo/slo"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "yaml",
+        "stream": "documents"
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "lf",
+        "indent": 2,
+        "sequenceIndent": "indented",
+        "finalNewline": true,
+        "quote": "double"
+      },
+      "elements": [
+        {
+          "name": "service",
+          "type": "Service",
+          "doc": "A document of kind Service: one element, named by metadata.name (research R3).",
+          "at": "/*",
+          "when": "type(entry) == map && has(entry.apiVersion) && entry.apiVersion == 'openslo/v1' && has(entry.kind) && entry.kind == 'Service'",
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/",
+            "keys": [
+              "apiVersion",
+              "kind",
+              "metadata",
+              "spec"
+            ],
+            "constant": {
+              "apiVersion": "openslo/v1",
+              "kind": "Service"
+            }
+          },
+          "remove": {}
+        },
+        {
+          "name": "slo",
+          "type": "SLO",
+          "doc": "A document of kind SLO: one element, named by metadata.name (research R3).",
+          "at": "/*",
+          "when": "type(entry) == map && has(entry.apiVersion) && entry.apiVersion == 'openslo/v1' && has(entry.kind) && entry.kind == 'SLO'",
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "service": {
+              "key": "service",
+              "child": "spec",
+              "empty": "keep"
+            },
+            "indicatorRef": {
+              "key": "indicatorRef",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "alertPolicyRefs": {
+              "value": "has(entry.spec) && type(entry.spec) == map && has(entry.spec.alertPolicies) && type(entry.spec.alertPolicies) == list ? entry.spec.alertPolicies.filter(r, type(r) == map && has(r.alertPolicyRef)).map(r, string(r.alertPolicyRef)) : []"
+            },
+            "duration": {
+              "key": "duration",
+              "child": "spec/timeWindow/0",
+              "read": "text",
+              "empty": "refuse"
+            },
+            "isRolling": {
+              "key": "isRolling",
+              "child": "spec/timeWindow/0",
+              "default": false
+            },
+            "calendarStart": {
+              "key": "startTime",
+              "child": "spec/timeWindow/0/calendar",
+              "read": "text",
+              "empty": "remove"
+            },
+            "timeZone": {
+              "key": "timeZone",
+              "child": "spec/timeWindow/0/calendar",
+              "empty": "remove"
+            },
+            "windowCount": {
+              "value": "has(entry.spec) && type(entry.spec) == map && has(entry.spec.timeWindow) && type(entry.spec.timeWindow) == list ? size(entry.spec.timeWindow) : 0"
+            },
+            "budgetingMethod": {
+              "key": "budgetingMethod",
+              "child": "spec",
+              "empty": "refuse"
+            },
+            "hasIndicator": {
+              "value": "has(entry.spec) && type(entry.spec) == map && has(entry.spec.indicator)"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/",
+            "keys": [
+              "apiVersion",
+              "kind",
+              "metadata",
+              "spec"
+            ],
+            "constant": {
+              "apiVersion": "openslo/v1",
+              "kind": "SLO"
+            },
+            "skeleton": "  timeWindow:\n    - duration: 28d\n      isRolling: true\n"
+          },
+          "remove": {}
+        },
+        {
+          "name": "objective",
+          "type": "Objective",
+          "doc": "An entry of an SLO's spec.objectives, contained in it.",
+          "at": "/*/spec/objectives/*",
+          "when": "type(entry) == map && parent != null && type(parent) == map && has(parent.apiVersion) && parent.apiVersion == 'openslo/v1' && has(parent.kind) && parent.kind == 'SLO'",
+          "parent": {
+            "rules": [
+              "slo"
+            ],
+            "slot": "objectives"
+          },
+          "attributes": {
+            "displayName": {
+              "key": "displayName",
+              "empty": "remove"
+            },
+            "op": {
+              "key": "op",
+              "empty": "remove"
+            },
+            "value": {
+              "key": "value",
+              "empty": "remove",
+              "number": "shortest"
+            },
+            "target": {
+              "key": "target",
+              "empty": "remove",
+              "number": "shortest"
+            },
+            "targetPercent": {
+              "key": "targetPercent",
+              "empty": "remove",
+              "number": "shortest"
+            },
+            "timeSliceTarget": {
+              "key": "timeSliceTarget",
+              "empty": "remove",
+              "number": "shortest"
+            },
+            "timeSliceWindow": {
+              "key": "timeSliceWindow",
+              "read": "text",
+              "empty": "remove"
+            },
+            "indicatorRef": {
+              "key": "indicatorRef",
+              "empty": "remove"
+            },
+            "compositeWeight": {
+              "key": "compositeWeight",
+              "empty": "remove",
+              "number": "shortest"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "spec/objectives",
+            "create": {
+              "at": "end"
+            },
+            "keys": [
+              "displayName",
+              "op",
+              "value",
+              "target",
+              "targetPercent",
+              "timeSliceTarget",
+              "timeSliceWindow",
+              "indicatorRef",
+              "compositeWeight"
+            ]
+          },
+          "remove": {
+            "container": "keep"
+          }
+        },
+        {
+          "name": "sli",
+          "type": "SLI",
+          "doc": "A document of kind SLI: one element, named by metadata.name (research R3).",
+          "at": "/*",
+          "when": "type(entry) == map && has(entry.apiVersion) && entry.apiVersion == 'openslo/v1' && has(entry.kind) && entry.kind == 'SLI'",
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "metric": {
+              "value": "has(entry.spec.thresholdMetric) ? 'threshold' : has(entry.spec.ratioMetric) ? 'ratio' : ''"
+            },
+            "sourceRefs": {
+              "value": "((has(entry.spec) && has(entry.spec.thresholdMetric) && has(entry.spec.thresholdMetric.metricSource) && has(entry.spec.thresholdMetric.metricSource.metricSourceRef) ? [string(entry.spec.thresholdMetric.metricSource.metricSourceRef)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.good) && has(entry.spec.ratioMetric.good.metricSource) && has(entry.spec.ratioMetric.good.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.good.metricSource.metricSourceRef)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.bad) && has(entry.spec.ratioMetric.bad.metricSource) && has(entry.spec.ratioMetric.bad.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.bad.metricSource.metricSourceRef)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.total) && has(entry.spec.ratioMetric.total.metricSource) && has(entry.spec.ratioMetric.total.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.total.metricSource.metricSourceRef)] : [])).distinct()"
+            },
+            "sourceTypes": {
+              "value": "((has(entry.spec) && has(entry.spec.thresholdMetric) && has(entry.spec.thresholdMetric.metricSource) && has(entry.spec.thresholdMetric.metricSource.type) && !has(entry.spec.thresholdMetric.metricSource.metricSourceRef) ? [string(entry.spec.thresholdMetric.metricSource.type)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.good) && has(entry.spec.ratioMetric.good.metricSource) && has(entry.spec.ratioMetric.good.metricSource.type) && !has(entry.spec.ratioMetric.good.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.good.metricSource.type)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.bad) && has(entry.spec.ratioMetric.bad.metricSource) && has(entry.spec.ratioMetric.bad.metricSource.type) && !has(entry.spec.ratioMetric.bad.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.bad.metricSource.type)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.total) && has(entry.spec.ratioMetric.total.metricSource) && has(entry.spec.ratioMetric.total.metricSource.type) && !has(entry.spec.ratioMetric.total.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.total.metricSource.type)] : [])).distinct()"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/",
+            "keys": [
+              "apiVersion",
+              "kind",
+              "metadata",
+              "spec"
+            ],
+            "constant": {
+              "apiVersion": "openslo/v1",
+              "kind": "SLI"
+            }
+          },
+          "remove": {}
+        },
+        {
+          "name": "inlineSli",
+          "type": "SLI",
+          "doc": "An SLI written inline in its SLO, under spec.indicator: an element of its own contained in the SLO, marked inline (research R3; User Story 1, scenario 3).",
+          "at": "/*/spec/indicator",
+          "when": "type(entry) == map && parent != null && type(parent) == map && has(parent.apiVersion) && parent.apiVersion == 'openslo/v1' && has(parent.kind) && parent.kind == 'SLO'",
+          "parent": {
+            "rules": [
+              "slo"
+            ],
+            "slot": "indicator"
+          },
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "metric": {
+              "value": "has(entry.spec.thresholdMetric) ? 'threshold' : has(entry.spec.ratioMetric) ? 'ratio' : ''"
+            },
+            "sourceRefs": {
+              "value": "((has(entry.spec) && has(entry.spec.thresholdMetric) && has(entry.spec.thresholdMetric.metricSource) && has(entry.spec.thresholdMetric.metricSource.metricSourceRef) ? [string(entry.spec.thresholdMetric.metricSource.metricSourceRef)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.good) && has(entry.spec.ratioMetric.good.metricSource) && has(entry.spec.ratioMetric.good.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.good.metricSource.metricSourceRef)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.bad) && has(entry.spec.ratioMetric.bad.metricSource) && has(entry.spec.ratioMetric.bad.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.bad.metricSource.metricSourceRef)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.total) && has(entry.spec.ratioMetric.total.metricSource) && has(entry.spec.ratioMetric.total.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.total.metricSource.metricSourceRef)] : [])).distinct()"
+            },
+            "sourceTypes": {
+              "value": "((has(entry.spec) && has(entry.spec.thresholdMetric) && has(entry.spec.thresholdMetric.metricSource) && has(entry.spec.thresholdMetric.metricSource.type) && !has(entry.spec.thresholdMetric.metricSource.metricSourceRef) ? [string(entry.spec.thresholdMetric.metricSource.type)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.good) && has(entry.spec.ratioMetric.good.metricSource) && has(entry.spec.ratioMetric.good.metricSource.type) && !has(entry.spec.ratioMetric.good.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.good.metricSource.type)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.bad) && has(entry.spec.ratioMetric.bad.metricSource) && has(entry.spec.ratioMetric.bad.metricSource.type) && !has(entry.spec.ratioMetric.bad.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.bad.metricSource.type)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.total) && has(entry.spec.ratioMetric.total.metricSource) && has(entry.spec.ratioMetric.total.metricSource.type) && !has(entry.spec.ratioMetric.total.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.total.metricSource.type)] : [])).distinct()"
+            },
+            "inline": {
+              "value": "true"
+            }
+          }
+        },
+        {
+          "name": "dataSource",
+          "type": "DataSource",
+          "doc": "A document of kind DataSource: one element, named by metadata.name (research R3).",
+          "at": "/*",
+          "when": "type(entry) == map && has(entry.apiVersion) && entry.apiVersion == 'openslo/v1' && has(entry.kind) && entry.kind == 'DataSource'",
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "sourceType": {
+              "key": "type",
+              "child": "spec",
+              "empty": "refuse"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/",
+            "keys": [
+              "apiVersion",
+              "kind",
+              "metadata",
+              "spec"
+            ],
+            "constant": {
+              "apiVersion": "openslo/v1",
+              "kind": "DataSource"
+            }
+          },
+          "remove": {}
+        },
+        {
+          "name": "alertPolicy",
+          "type": "AlertPolicy",
+          "doc": "A document of kind AlertPolicy: one element, named by metadata.name (research R3).",
+          "at": "/*",
+          "when": "type(entry) == map && has(entry.apiVersion) && entry.apiVersion == 'openslo/v1' && has(entry.kind) && entry.kind == 'AlertPolicy'",
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "alertWhenNoData": {
+              "key": "alertWhenNoData",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "alertWhenResolved": {
+              "key": "alertWhenResolved",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "alertWhenBreaching": {
+              "key": "alertWhenBreaching",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "conditionRefs": {
+              "value": "has(entry.spec) && type(entry.spec) == map && has(entry.spec.conditions) && type(entry.spec.conditions) == list ? entry.spec.conditions.filter(r, type(r) == map && has(r.conditionRef)).map(r, string(r.conditionRef)) : []"
+            },
+            "targetRefs": {
+              "value": "has(entry.spec) && type(entry.spec) == map && has(entry.spec.notificationTargets) && type(entry.spec.notificationTargets) == list ? entry.spec.notificationTargets.filter(r, type(r) == map && has(r.targetRef)).map(r, string(r.targetRef)) : []"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/",
+            "keys": [
+              "apiVersion",
+              "kind",
+              "metadata",
+              "spec"
+            ],
+            "constant": {
+              "apiVersion": "openslo/v1",
+              "kind": "AlertPolicy"
+            }
+          },
+          "remove": {}
+        },
+        {
+          "name": "inlineAlertPolicy",
+          "type": "AlertPolicy",
+          "doc": "An alert policy written inline in an SLO's spec.alertPolicies, with kind AlertPolicy: contained in the SLO and marked inline.",
+          "at": "/*/spec/alertPolicies/*",
+          "when": "type(entry) == map && has(entry.kind) && entry.kind == 'AlertPolicy' && parent != null && type(parent) == map && has(parent.apiVersion) && parent.apiVersion == 'openslo/v1' && has(parent.kind) && parent.kind == 'SLO'",
+          "parent": {
+            "rules": [
+              "slo"
+            ],
+            "slot": "alertPolicies"
+          },
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "inline": {
+              "value": "true"
+            },
+            "conditionRefs": {
+              "value": "has(entry.spec) && type(entry.spec) == map && has(entry.spec.conditions) && type(entry.spec.conditions) == list ? entry.spec.conditions.filter(r, type(r) == map && has(r.conditionRef)).map(r, string(r.conditionRef)) : []"
+            },
+            "targetRefs": {
+              "value": "has(entry.spec) && type(entry.spec) == map && has(entry.spec.notificationTargets) && type(entry.spec.notificationTargets) == list ? entry.spec.notificationTargets.filter(r, type(r) == map && has(r.targetRef)).map(r, string(r.targetRef)) : []"
+            }
+          }
+        },
+        {
+          "name": "alertCondition",
+          "type": "AlertCondition",
+          "doc": "A document of kind AlertCondition: one element, named by metadata.name (research R3).",
+          "at": "/*",
+          "when": "type(entry) == map && has(entry.apiVersion) && entry.apiVersion == 'openslo/v1' && has(entry.kind) && entry.kind == 'AlertCondition'",
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "severity": {
+              "key": "severity",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "conditionKind": {
+              "key": "kind",
+              "child": "spec/condition",
+              "empty": "remove"
+            },
+            "op": {
+              "key": "op",
+              "child": "spec/condition",
+              "empty": "remove"
+            },
+            "threshold": {
+              "key": "threshold",
+              "child": "spec/condition",
+              "empty": "remove",
+              "number": "shortest"
+            },
+            "lookbackWindow": {
+              "key": "lookbackWindow",
+              "child": "spec/condition",
+              "read": "text",
+              "empty": "remove"
+            },
+            "alertAfter": {
+              "key": "alertAfter",
+              "child": "spec/condition",
+              "read": "text",
+              "empty": "remove"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/",
+            "keys": [
+              "apiVersion",
+              "kind",
+              "metadata",
+              "spec"
+            ],
+            "constant": {
+              "apiVersion": "openslo/v1",
+              "kind": "AlertCondition"
+            }
+          },
+          "remove": {}
+        },
+        {
+          "name": "inlineAlertCondition",
+          "type": "AlertCondition",
+          "doc": "An alert condition written inline in an alert policy's spec.conditions, with kind AlertCondition.",
+          "at": "/*/**/spec/conditions/*",
+          "when": "type(entry) == map && has(entry.kind) && entry.kind == 'AlertCondition' && parent != null && type(parent) == map && has(parent.kind) && parent.kind == 'AlertPolicy' && (!has(parent.apiVersion) || parent.apiVersion == 'openslo/v1')",
+          "parent": {
+            "rules": [
+              "alertPolicy",
+              "inlineAlertPolicy"
+            ],
+            "slot": "conditions"
+          },
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "severity": {
+              "key": "severity",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "conditionKind": {
+              "key": "kind",
+              "child": "spec/condition",
+              "empty": "remove"
+            },
+            "op": {
+              "key": "op",
+              "child": "spec/condition",
+              "empty": "remove"
+            },
+            "threshold": {
+              "key": "threshold",
+              "child": "spec/condition",
+              "empty": "remove",
+              "number": "shortest"
+            },
+            "lookbackWindow": {
+              "key": "lookbackWindow",
+              "child": "spec/condition",
+              "read": "text",
+              "empty": "remove"
+            },
+            "alertAfter": {
+              "key": "alertAfter",
+              "child": "spec/condition",
+              "read": "text",
+              "empty": "remove"
+            },
+            "inline": {
+              "value": "true"
+            }
+          }
+        },
+        {
+          "name": "alertNotificationTarget",
+          "type": "AlertNotificationTarget",
+          "doc": "A document of kind AlertNotificationTarget: one element, named by metadata.name (research R3).",
+          "at": "/*",
+          "when": "type(entry) == map && has(entry.apiVersion) && entry.apiVersion == 'openslo/v1' && has(entry.kind) && entry.kind == 'AlertNotificationTarget'",
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "target": {
+              "key": "target",
+              "child": "spec",
+              "empty": "refuse"
+            }
+          },
+          "insert": {
+            "place": "after-last",
+            "container": "/",
+            "keys": [
+              "apiVersion",
+              "kind",
+              "metadata",
+              "spec"
+            ],
+            "constant": {
+              "apiVersion": "openslo/v1",
+              "kind": "AlertNotificationTarget"
+            }
+          },
+          "remove": {}
+        },
+        {
+          "name": "inlineAlertNotificationTarget",
+          "type": "AlertNotificationTarget",
+          "doc": "A notification target written inline in an alert policy's spec.notificationTargets, with kind AlertNotificationTarget.",
+          "at": "/*/**/spec/notificationTargets/*",
+          "when": "type(entry) == map && has(entry.kind) && entry.kind == 'AlertNotificationTarget' && parent != null && type(parent) == map && has(parent.kind) && parent.kind == 'AlertPolicy' && (!has(parent.apiVersion) || parent.apiVersion == 'openslo/v1')",
+          "parent": {
+            "rules": [
+              "alertPolicy",
+              "inlineAlertPolicy"
+            ],
+            "slot": "notificationTargets"
+          },
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "target": {
+              "key": "target",
+              "child": "spec",
+              "empty": "refuse"
+            },
+            "inline": {
+              "value": "true"
+            }
+          }
+        },
+        {
+          "name": "other",
+          "type": "Unbound",
+          "doc": "Any other document of the stream: a kind the diagram does not draw, another OpenSLO version or not OpenSLO at all. Listed, never written (research R7; User Story 3, scenario 3).",
+          "at": "/*",
+          "when": "!(type(entry) == map && has(entry.apiVersion) && entry.apiVersion == 'openslo/v1' && has(entry.kind) && entry.kind in ['Service', 'SLO', 'SLI', 'DataSource', 'AlertPolicy', 'AlertCondition', 'AlertNotificationTarget'])",
+          "readOnly": "This document is not drawn by the SLO map, and is kept exactly as written.",
+          "attributes": {
+            "kindName": {
+              "value": "type(entry) == map && has(entry.kind) ? string(entry.kind) : ''"
+            },
+            "apiVersion": {
+              "value": "type(entry) == map && has(entry.apiVersion) ? string(entry.apiVersion) : ''"
+            },
+            "line": {
+              "value": "line"
+            }
+          }
+        }
+      ],
+      "registration": {
+        "createOnFirstPlacement": true
+      }
+    },
+    "folder": {
+      "title": "OpenSLO folder",
+      "doc": "A folder of OpenSLO files, read through a registration whose body is the folder (research R4), so that references between files are drawn in full. Each file is read as one document: FBL 0.22's stream reading and a claim's marker are a body's, not a file rule's, so a file of several documents contributes its first one and a file that is not OpenSLO is listed as another document (openslo-slo.md, Gaps). Read-only: edits are made in a file opened on its own.",
+      "claims": {
+        "registrationOnly": true,
+        "origins": [
+          "openslo/slo"
+        ]
+      },
+      "body": {
+        "kind": "folder",
+        "recognise": {
+          "any": [
+            "**/*.yaml",
+            "**/*.yml"
+          ]
+        },
+        "files": [
+          {
+            "name": "yaml",
+            "glob": "**/*.yaml",
+            "family": "yaml"
+          },
+          {
+            "name": "yml",
+            "glob": "**/*.yml",
+            "family": "yaml"
+          }
+        ]
+      },
+      "reader": "declared",
+      "readOnly": "A folder of OpenSLO files is drawn, not edited; open a file on its own to change it.",
+      "text": {
+        "newline": "lf",
+        "indent": 2,
+        "sequenceIndent": "indented",
+        "finalNewline": true,
+        "quote": "double"
+      },
+      "elements": [
+        {
+          "name": "service",
+          "type": "Service",
+          "doc": "A document of kind Service: one element, named by metadata.name (research R3).",
+          "at": "/",
+          "when": "type(entry) == map && has(entry.apiVersion) && entry.apiVersion == 'openslo/v1' && has(entry.kind) && entry.kind == 'Service'",
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            }
+          },
+          "remove": {},
+          "files": [
+            "yaml",
+            "yml"
+          ]
+        },
+        {
+          "name": "slo",
+          "type": "SLO",
+          "doc": "A document of kind SLO: one element, named by metadata.name (research R3).",
+          "at": "/",
+          "when": "type(entry) == map && has(entry.apiVersion) && entry.apiVersion == 'openslo/v1' && has(entry.kind) && entry.kind == 'SLO'",
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "service": {
+              "key": "service",
+              "child": "spec",
+              "empty": "keep"
+            },
+            "indicatorRef": {
+              "key": "indicatorRef",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "alertPolicyRefs": {
+              "value": "has(entry.spec) && type(entry.spec) == map && has(entry.spec.alertPolicies) && type(entry.spec.alertPolicies) == list ? entry.spec.alertPolicies.filter(r, type(r) == map && has(r.alertPolicyRef)).map(r, string(r.alertPolicyRef)) : []"
+            },
+            "duration": {
+              "key": "duration",
+              "child": "spec/timeWindow/0",
+              "read": "text",
+              "empty": "refuse"
+            },
+            "isRolling": {
+              "key": "isRolling",
+              "child": "spec/timeWindow/0",
+              "default": false
+            },
+            "calendarStart": {
+              "key": "startTime",
+              "child": "spec/timeWindow/0/calendar",
+              "read": "text",
+              "empty": "remove"
+            },
+            "timeZone": {
+              "key": "timeZone",
+              "child": "spec/timeWindow/0/calendar",
+              "empty": "remove"
+            },
+            "windowCount": {
+              "value": "has(entry.spec) && type(entry.spec) == map && has(entry.spec.timeWindow) && type(entry.spec.timeWindow) == list ? size(entry.spec.timeWindow) : 0"
+            },
+            "budgetingMethod": {
+              "key": "budgetingMethod",
+              "child": "spec",
+              "empty": "refuse"
+            },
+            "hasIndicator": {
+              "value": "has(entry.spec) && type(entry.spec) == map && has(entry.spec.indicator)"
+            }
+          },
+          "remove": {},
+          "files": [
+            "yaml",
+            "yml"
+          ]
+        },
+        {
+          "name": "objective",
+          "type": "Objective",
+          "doc": "An entry of an SLO's spec.objectives, contained in it.",
+          "at": "/spec/objectives/*",
+          "when": "type(entry) == map && parent != null && type(parent) == map && has(parent.apiVersion) && parent.apiVersion == 'openslo/v1' && has(parent.kind) && parent.kind == 'SLO'",
+          "parent": {
+            "rules": [
+              "slo"
+            ],
+            "slot": "objectives"
+          },
+          "attributes": {
+            "displayName": {
+              "key": "displayName",
+              "empty": "remove"
+            },
+            "op": {
+              "key": "op",
+              "empty": "remove"
+            },
+            "value": {
+              "key": "value",
+              "empty": "remove",
+              "number": "shortest"
+            },
+            "target": {
+              "key": "target",
+              "empty": "remove",
+              "number": "shortest"
+            },
+            "targetPercent": {
+              "key": "targetPercent",
+              "empty": "remove",
+              "number": "shortest"
+            },
+            "timeSliceTarget": {
+              "key": "timeSliceTarget",
+              "empty": "remove",
+              "number": "shortest"
+            },
+            "timeSliceWindow": {
+              "key": "timeSliceWindow",
+              "read": "text",
+              "empty": "remove"
+            },
+            "indicatorRef": {
+              "key": "indicatorRef",
+              "empty": "remove"
+            },
+            "compositeWeight": {
+              "key": "compositeWeight",
+              "empty": "remove",
+              "number": "shortest"
+            }
+          },
+          "remove": {
+            "container": "keep"
+          },
+          "files": [
+            "yaml",
+            "yml"
+          ]
+        },
+        {
+          "name": "sli",
+          "type": "SLI",
+          "doc": "A document of kind SLI: one element, named by metadata.name (research R3).",
+          "at": "/",
+          "when": "type(entry) == map && has(entry.apiVersion) && entry.apiVersion == 'openslo/v1' && has(entry.kind) && entry.kind == 'SLI'",
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "metric": {
+              "value": "has(entry.spec.thresholdMetric) ? 'threshold' : has(entry.spec.ratioMetric) ? 'ratio' : ''"
+            },
+            "sourceRefs": {
+              "value": "((has(entry.spec) && has(entry.spec.thresholdMetric) && has(entry.spec.thresholdMetric.metricSource) && has(entry.spec.thresholdMetric.metricSource.metricSourceRef) ? [string(entry.spec.thresholdMetric.metricSource.metricSourceRef)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.good) && has(entry.spec.ratioMetric.good.metricSource) && has(entry.spec.ratioMetric.good.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.good.metricSource.metricSourceRef)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.bad) && has(entry.spec.ratioMetric.bad.metricSource) && has(entry.spec.ratioMetric.bad.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.bad.metricSource.metricSourceRef)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.total) && has(entry.spec.ratioMetric.total.metricSource) && has(entry.spec.ratioMetric.total.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.total.metricSource.metricSourceRef)] : [])).distinct()"
+            },
+            "sourceTypes": {
+              "value": "((has(entry.spec) && has(entry.spec.thresholdMetric) && has(entry.spec.thresholdMetric.metricSource) && has(entry.spec.thresholdMetric.metricSource.type) && !has(entry.spec.thresholdMetric.metricSource.metricSourceRef) ? [string(entry.spec.thresholdMetric.metricSource.type)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.good) && has(entry.spec.ratioMetric.good.metricSource) && has(entry.spec.ratioMetric.good.metricSource.type) && !has(entry.spec.ratioMetric.good.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.good.metricSource.type)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.bad) && has(entry.spec.ratioMetric.bad.metricSource) && has(entry.spec.ratioMetric.bad.metricSource.type) && !has(entry.spec.ratioMetric.bad.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.bad.metricSource.type)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.total) && has(entry.spec.ratioMetric.total.metricSource) && has(entry.spec.ratioMetric.total.metricSource.type) && !has(entry.spec.ratioMetric.total.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.total.metricSource.type)] : [])).distinct()"
+            }
+          },
+          "remove": {},
+          "files": [
+            "yaml",
+            "yml"
+          ]
+        },
+        {
+          "name": "inlineSli",
+          "type": "SLI",
+          "doc": "An SLI written inline in its SLO, under spec.indicator: an element of its own contained in the SLO, marked inline (research R3; User Story 1, scenario 3).",
+          "at": "/spec/indicator",
+          "when": "type(entry) == map && parent != null && type(parent) == map && has(parent.apiVersion) && parent.apiVersion == 'openslo/v1' && has(parent.kind) && parent.kind == 'SLO'",
+          "parent": {
+            "rules": [
+              "slo"
+            ],
+            "slot": "indicator"
+          },
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "metric": {
+              "value": "has(entry.spec.thresholdMetric) ? 'threshold' : has(entry.spec.ratioMetric) ? 'ratio' : ''"
+            },
+            "sourceRefs": {
+              "value": "((has(entry.spec) && has(entry.spec.thresholdMetric) && has(entry.spec.thresholdMetric.metricSource) && has(entry.spec.thresholdMetric.metricSource.metricSourceRef) ? [string(entry.spec.thresholdMetric.metricSource.metricSourceRef)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.good) && has(entry.spec.ratioMetric.good.metricSource) && has(entry.spec.ratioMetric.good.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.good.metricSource.metricSourceRef)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.bad) && has(entry.spec.ratioMetric.bad.metricSource) && has(entry.spec.ratioMetric.bad.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.bad.metricSource.metricSourceRef)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.total) && has(entry.spec.ratioMetric.total.metricSource) && has(entry.spec.ratioMetric.total.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.total.metricSource.metricSourceRef)] : [])).distinct()"
+            },
+            "sourceTypes": {
+              "value": "((has(entry.spec) && has(entry.spec.thresholdMetric) && has(entry.spec.thresholdMetric.metricSource) && has(entry.spec.thresholdMetric.metricSource.type) && !has(entry.spec.thresholdMetric.metricSource.metricSourceRef) ? [string(entry.spec.thresholdMetric.metricSource.type)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.good) && has(entry.spec.ratioMetric.good.metricSource) && has(entry.spec.ratioMetric.good.metricSource.type) && !has(entry.spec.ratioMetric.good.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.good.metricSource.type)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.bad) && has(entry.spec.ratioMetric.bad.metricSource) && has(entry.spec.ratioMetric.bad.metricSource.type) && !has(entry.spec.ratioMetric.bad.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.bad.metricSource.type)] : []) + (has(entry.spec) && has(entry.spec.ratioMetric) && has(entry.spec.ratioMetric.total) && has(entry.spec.ratioMetric.total.metricSource) && has(entry.spec.ratioMetric.total.metricSource.type) && !has(entry.spec.ratioMetric.total.metricSource.metricSourceRef) ? [string(entry.spec.ratioMetric.total.metricSource.type)] : [])).distinct()"
+            },
+            "inline": {
+              "value": "true"
+            }
+          },
+          "files": [
+            "yaml",
+            "yml"
+          ]
+        },
+        {
+          "name": "dataSource",
+          "type": "DataSource",
+          "doc": "A document of kind DataSource: one element, named by metadata.name (research R3).",
+          "at": "/",
+          "when": "type(entry) == map && has(entry.apiVersion) && entry.apiVersion == 'openslo/v1' && has(entry.kind) && entry.kind == 'DataSource'",
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "sourceType": {
+              "key": "type",
+              "child": "spec",
+              "empty": "refuse"
+            }
+          },
+          "remove": {},
+          "files": [
+            "yaml",
+            "yml"
+          ]
+        },
+        {
+          "name": "alertPolicy",
+          "type": "AlertPolicy",
+          "doc": "A document of kind AlertPolicy: one element, named by metadata.name (research R3).",
+          "at": "/",
+          "when": "type(entry) == map && has(entry.apiVersion) && entry.apiVersion == 'openslo/v1' && has(entry.kind) && entry.kind == 'AlertPolicy'",
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "alertWhenNoData": {
+              "key": "alertWhenNoData",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "alertWhenResolved": {
+              "key": "alertWhenResolved",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "alertWhenBreaching": {
+              "key": "alertWhenBreaching",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "conditionRefs": {
+              "value": "has(entry.spec) && type(entry.spec) == map && has(entry.spec.conditions) && type(entry.spec.conditions) == list ? entry.spec.conditions.filter(r, type(r) == map && has(r.conditionRef)).map(r, string(r.conditionRef)) : []"
+            },
+            "targetRefs": {
+              "value": "has(entry.spec) && type(entry.spec) == map && has(entry.spec.notificationTargets) && type(entry.spec.notificationTargets) == list ? entry.spec.notificationTargets.filter(r, type(r) == map && has(r.targetRef)).map(r, string(r.targetRef)) : []"
+            }
+          },
+          "remove": {},
+          "files": [
+            "yaml",
+            "yml"
+          ]
+        },
+        {
+          "name": "inlineAlertPolicy",
+          "type": "AlertPolicy",
+          "doc": "An alert policy written inline in an SLO's spec.alertPolicies, with kind AlertPolicy: contained in the SLO and marked inline.",
+          "at": "/spec/alertPolicies/*",
+          "when": "type(entry) == map && has(entry.kind) && entry.kind == 'AlertPolicy' && parent != null && type(parent) == map && has(parent.apiVersion) && parent.apiVersion == 'openslo/v1' && has(parent.kind) && parent.kind == 'SLO'",
+          "parent": {
+            "rules": [
+              "slo"
+            ],
+            "slot": "alertPolicies"
+          },
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "inline": {
+              "value": "true"
+            },
+            "conditionRefs": {
+              "value": "has(entry.spec) && type(entry.spec) == map && has(entry.spec.conditions) && type(entry.spec.conditions) == list ? entry.spec.conditions.filter(r, type(r) == map && has(r.conditionRef)).map(r, string(r.conditionRef)) : []"
+            },
+            "targetRefs": {
+              "value": "has(entry.spec) && type(entry.spec) == map && has(entry.spec.notificationTargets) && type(entry.spec.notificationTargets) == list ? entry.spec.notificationTargets.filter(r, type(r) == map && has(r.targetRef)).map(r, string(r.targetRef)) : []"
+            }
+          },
+          "files": [
+            "yaml",
+            "yml"
+          ]
+        },
+        {
+          "name": "alertCondition",
+          "type": "AlertCondition",
+          "doc": "A document of kind AlertCondition: one element, named by metadata.name (research R3).",
+          "at": "/",
+          "when": "type(entry) == map && has(entry.apiVersion) && entry.apiVersion == 'openslo/v1' && has(entry.kind) && entry.kind == 'AlertCondition'",
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "severity": {
+              "key": "severity",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "conditionKind": {
+              "key": "kind",
+              "child": "spec/condition",
+              "empty": "remove"
+            },
+            "op": {
+              "key": "op",
+              "child": "spec/condition",
+              "empty": "remove"
+            },
+            "threshold": {
+              "key": "threshold",
+              "child": "spec/condition",
+              "empty": "remove",
+              "number": "shortest"
+            },
+            "lookbackWindow": {
+              "key": "lookbackWindow",
+              "child": "spec/condition",
+              "read": "text",
+              "empty": "remove"
+            },
+            "alertAfter": {
+              "key": "alertAfter",
+              "child": "spec/condition",
+              "read": "text",
+              "empty": "remove"
+            }
+          },
+          "remove": {},
+          "files": [
+            "yaml",
+            "yml"
+          ]
+        },
+        {
+          "name": "inlineAlertCondition",
+          "type": "AlertCondition",
+          "doc": "An alert condition written inline in an alert policy's spec.conditions, with kind AlertCondition.",
+          "at": "/**/spec/conditions/*",
+          "when": "type(entry) == map && has(entry.kind) && entry.kind == 'AlertCondition' && parent != null && type(parent) == map && has(parent.kind) && parent.kind == 'AlertPolicy' && (!has(parent.apiVersion) || parent.apiVersion == 'openslo/v1')",
+          "parent": {
+            "rules": [
+              "alertPolicy",
+              "inlineAlertPolicy"
+            ],
+            "slot": "conditions"
+          },
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "severity": {
+              "key": "severity",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "conditionKind": {
+              "key": "kind",
+              "child": "spec/condition",
+              "empty": "remove"
+            },
+            "op": {
+              "key": "op",
+              "child": "spec/condition",
+              "empty": "remove"
+            },
+            "threshold": {
+              "key": "threshold",
+              "child": "spec/condition",
+              "empty": "remove",
+              "number": "shortest"
+            },
+            "lookbackWindow": {
+              "key": "lookbackWindow",
+              "child": "spec/condition",
+              "read": "text",
+              "empty": "remove"
+            },
+            "alertAfter": {
+              "key": "alertAfter",
+              "child": "spec/condition",
+              "read": "text",
+              "empty": "remove"
+            },
+            "inline": {
+              "value": "true"
+            }
+          },
+          "files": [
+            "yaml",
+            "yml"
+          ]
+        },
+        {
+          "name": "alertNotificationTarget",
+          "type": "AlertNotificationTarget",
+          "doc": "A document of kind AlertNotificationTarget: one element, named by metadata.name (research R3).",
+          "at": "/",
+          "when": "type(entry) == map && has(entry.apiVersion) && entry.apiVersion == 'openslo/v1' && has(entry.kind) && entry.kind == 'AlertNotificationTarget'",
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "target": {
+              "key": "target",
+              "child": "spec",
+              "empty": "refuse"
+            }
+          },
+          "remove": {},
+          "files": [
+            "yaml",
+            "yml"
+          ]
+        },
+        {
+          "name": "inlineAlertNotificationTarget",
+          "type": "AlertNotificationTarget",
+          "doc": "A notification target written inline in an alert policy's spec.notificationTargets, with kind AlertNotificationTarget.",
+          "at": "/**/spec/notificationTargets/*",
+          "when": "type(entry) == map && has(entry.kind) && entry.kind == 'AlertNotificationTarget' && parent != null && type(parent) == map && has(parent.kind) && parent.kind == 'AlertPolicy' && (!has(parent.apiVersion) || parent.apiVersion == 'openslo/v1')",
+          "parent": {
+            "rules": [
+              "alertPolicy",
+              "inlineAlertPolicy"
+            ],
+            "slot": "notificationTargets"
+          },
+          "attributes": {
+            "name": {
+              "key": "name",
+              "child": "metadata",
+              "empty": "refuse"
+            },
+            "displayName": {
+              "key": "displayName",
+              "child": "metadata",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "description": {
+              "key": "description",
+              "child": "spec",
+              "empty": "remove",
+              "create": {
+                "at": "end"
+              }
+            },
+            "target": {
+              "key": "target",
+              "child": "spec",
+              "empty": "refuse"
+            },
+            "inline": {
+              "value": "true"
+            }
+          },
+          "files": [
+            "yaml",
+            "yml"
+          ]
+        },
+        {
+          "name": "other",
+          "type": "Unbound",
+          "doc": "A file of the folder whose document the diagram does not draw.",
+          "at": "/",
+          "when": "!(type(entry) == map && has(entry.apiVersion) && entry.apiVersion == 'openslo/v1' && has(entry.kind) && entry.kind in ['Service', 'SLO', 'SLI', 'DataSource', 'AlertPolicy', 'AlertCondition', 'AlertNotificationTarget'])",
+          "readOnly": "This document is not drawn by the SLO map, and is kept exactly as written.",
+          "attributes": {
+            "kindName": {
+              "value": "type(entry) == map && has(entry.kind) ? string(entry.kind) : ''"
+            },
+            "apiVersion": {
+              "value": "type(entry) == map && has(entry.apiVersion) ? string(entry.apiVersion) : ''"
+            },
+            "line": {
+              "value": "line"
+            }
+          },
+          "files": [
+            "yaml",
+            "yml"
+          ]
+        }
+      ]
+    }
+  }
+}

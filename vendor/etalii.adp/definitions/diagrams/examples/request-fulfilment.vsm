@@ -1,0 +1,52 @@
+# An invented example of the value stream map (value-stream-map.md, "Worked examples"): fulfilling a request, where
+# 80 % of approved requests come from the catalogue and 20 % are built, and a tenth of the built ones fail their check
+# and are built again. The future state shortens the two longest waits.
+name: Request fulfilment
+unit: hours
+activities:
+  - name: engage
+  - name: obtain/build
+  - name: deliver and support
+practices:
+  - name: service request management
+  - name: change enablement
+current:
+  trigger: { id: t1, name: Request submitted }
+  steps:
+    - { id: s1, name: Log request, activity: engage, practices: [service request management], performer: service desk, processTime: PT5M, waitTime: PT10M }
+    - { id: s2, name: Approve, activity: engage, practices: [service request management], performer: approver, processTime: PT5M, waitTime: PT4H }
+    - { id: s3, name: Fulfil from catalogue, activity: deliver and support, practices: [service request management], performer: service desk, processTime: PT15M, waitTime: PT30M }
+    - { id: s4, name: Build custom, activity: obtain/build, practices: [change enablement], performer: platform team, processTime: PT2H, waitTime: P1D }
+    - { id: s5, name: Check result, activity: obtain/build, practices: [change enablement], performer: platform team, processTime: PT20M, waitTime: PT1H }
+    - { id: s6, name: Deliver, activity: deliver and support, practices: [service request management], performer: service desk, processTime: PT10M, waitTime: PT20M }
+  outcome: { id: o1, name: Request fulfilled }
+  flows:
+    - { from: t1, to: s1 }
+    - { from: s1, to: s2 }
+    - { from: s2, to: s3, share: 0.8 }
+    - { from: s2, to: s4, share: 0.2 }
+    - { from: s4, to: s5 }
+    - { from: s5, to: s4, rework: 0.1 }
+    - { from: s5, to: s6 }
+    - { from: s3, to: s6 }
+    - { from: s6, to: o1 }
+future:
+  trigger: { id: t2, name: Request submitted, basedOn: t1 }
+  steps:
+    - { id: s7, name: Log request, activity: engage, practices: [service request management], performer: service desk, processTime: PT5M, waitTime: PT10M, basedOn: s1 }
+    - { id: s8, name: Approve, activity: engage, practices: [service request management], performer: approver, processTime: PT5M, waitTime: PT30M, basedOn: s2 }
+    - { id: s9, name: Fulfil from catalogue, activity: deliver and support, practices: [service request management], performer: service desk, processTime: PT15M, waitTime: PT30M, basedOn: s3 }
+    - { id: s10, name: Build custom, activity: obtain/build, practices: [change enablement], performer: platform team, processTime: PT2H, waitTime: PT4H, basedOn: s4 }
+    - { id: s11, name: Check result, activity: obtain/build, practices: [change enablement], performer: platform team, processTime: PT20M, waitTime: PT1H, basedOn: s5 }
+    - { id: s12, name: Deliver, activity: deliver and support, practices: [service request management], performer: service desk, processTime: PT10M, waitTime: PT20M, basedOn: s6 }
+  outcome: { id: o2, name: Request fulfilled, basedOn: o1 }
+  flows:
+    - { from: t2, to: s7 }
+    - { from: s7, to: s8 }
+    - { from: s8, to: s9, share: 0.8 }
+    - { from: s8, to: s10, share: 0.2 }
+    - { from: s10, to: s11 }
+    - { from: s11, to: s10, rework: 0.1 }
+    - { from: s11, to: s12 }
+    - { from: s9, to: s12 }
+    - { from: s12, to: o2 }

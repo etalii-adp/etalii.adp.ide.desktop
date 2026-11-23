@@ -1,9 +1,9 @@
 {
   "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
-  "disl": "0.3",
+  "disl": "0.10",
   "language": {
     "id": "net.etalii.adp.generic.dependencies",
-    "version": "1.1.0",
+    "version": "1.1.6",
     "origin": "generic/dependencies",
     "label": "Dependency graph",
     "doc": {
@@ -20,7 +20,7 @@
     "homepage": "https://etalii.net/adp",
     "icon": "mdi-graph-outline",
     "fileExtension": "dgr",
-    "requires": { "conformance": "standard", "features": ["placement.bound", "edge.bezier", "label.parse", "persist.yaml"] }
+    "requires": { "conformance": "standard", "features": ["placement.bound", "edge.bezier", "label.parse"] }
   },
 
   "metamodel": {
@@ -143,9 +143,17 @@
     "theme": {
       "tokens": {
         "color.surface": "#FFFFFF",
-        "color.border": "#8892A6",
-        "color.text": "#1C2333",
-        "color.text.muted": "#5A6376"
+        "color.border": "#E2E8F0",
+        "color.text": "#0F172A",
+        "color.text.muted": "#64748B"
+      },
+      "modes": {
+        "dark": {
+          "color.surface": "#1E293B",
+          "color.border": "#334155",
+          "color.text": "#F1F5F9",
+          "color.text.muted": "#94A3B8"
+        }
       },
       "followSystem": true
     },
@@ -159,7 +167,8 @@
         "verticalAlign": "middle"
       },
       "dependency": {
-        "stroke": { "color": { "token": "color.text.muted" }, "width": 1.5 }
+        "stroke": { "color": { "token": "color.text.muted" }, "width": 1.5 },
+        "font": { "size": 11, "color": { "token": "color.text.muted" } }
       }
     },
     "nodes": {
@@ -343,16 +352,24 @@
         ] }
       ]
     },
+    "addNode": {
+      "label": "Add node",
+      "icon": "mdi-plus",
+      "usage": ["popover"],
+      "submitLabel": "Add",
+      "doc": "The label a node added with no point is asked for; left empty, the node is called \"New node\".",
+      "items": [ { "attribute": "label", "label": "Label", "widget": "text", "initial": "'New node'" } ]
+    },
     "dependency": {
       "for": "DependsOn",
       "usage": ["inspector"],
       "items": [
         { "kind": "section", "label": "Identity", "items": [
           { "attribute": "label", "label": "Label" },
-          { "kind": "computed", "id": "from", "label": "Depends on (from)", "value": { "cel": "self.source.id" },
+          { "kind": "computed", "id": "from", "label": "Depends on (from)", "value": { "cel": "writtenEnd(self, 'source')" },
             "readOnlyReasons": [ "Reconnecting is done on the canvas, by dragging the dependency's end to another node." ],
             "doc": "The dependent, by the id the file names, whether or not a node holds it." },
-          { "kind": "computed", "id": "to", "label": "Depended on (to)", "value": { "cel": "self.target.id" },
+          { "kind": "computed", "id": "to", "label": "Depended on (to)", "value": { "cel": "writtenEnd(self, 'target')" },
             "readOnlyReasons": [ "Reconnecting is done on the canvas, by dragging the dependency's end to another node." ],
             "doc": "The dependency, by the id the file names, whether or not a node holds it." }
         ] }
@@ -375,6 +392,10 @@
         "code": "dependencies.duplicate-id",
         "message": { "cel": "'The id \\'' + detail.id + '\\' is declared more than once, which makes every reference to it ambiguous.'" },
         "doc": "Nodes and dependencies share one id space. Each second and later declaration is reported, at its first line; nodes are read before dependencies."
+      },
+      "std.missingId": {
+        "enabled": false,
+        "doc": "Reported by missingId instead, which names a node by its label and reads `self.id` as the file writes it (persistence.writtenId)."
       },
       "std.references": {
         "enabled": false,
@@ -423,6 +444,15 @@
         "rule": "writtenEnd(self, 'source') != writtenEnd(self, 'target')",
         "message": { "cel": "'\\'' + writtenEnd(self, 'source') + '\\' is declared to depend on itself, which says nothing about what needs what.'" },
         "doc": "From `allowSelfLoops: false`: a dependency whose two ends name the same id, on the dependency, whether or not a node holds that id."
+      },
+      {
+        "id": "noSelfDependency",
+        "kind": "connect",
+        "enforcement": "prevent",
+        "when": "relationType == 'DependsOn'",
+        "rule": "source.id != target.id",
+        "message": "A node cannot depend on itself.",
+        "doc": "No gesture or operation writes a dependency from a node to itself; the edit is refused as a whole, as the standalone connect command refuses it."
       }
     ]
   },
@@ -450,6 +480,28 @@
         "actions": [
           { "create": { "type": "'Node'", "attributes": { "label": "'New node'", "x": "self.x", "row": "self.row + 1" } }, "as": "added" },
           { "connect": { "type": "'DependsOn'", "source": "self", "target": "added" } }
+        ]
+      },
+      "addNode": {
+        "label": "Add node",
+        "icon": "mdi-plus",
+        "for": "diagram",
+        "doc": "Adds a node with no point to place it at, as the Add node command does with nothing selected: the user is asked for its label, and it goes at 0 on row 0.",
+        "params": { "label": { "type": "string", "label": "Label" } },
+        "paramsForm": "addNode",
+        "actions": [
+          { "create": { "type": "'Node'", "attributes": { "label": "p.label.trim() != '' ? p.label : 'New node'", "x": "0.0", "row": "0" } } }
+        ]
+      },
+      "addNodeAfter": {
+        "label": "Add node",
+        "icon": "mdi-plus",
+        "for": ["Node"],
+        "doc": "Adds a node with no point to place it at, as the Add node command does with a node selected: the user is asked for its label, and it goes a fixed step to the right of that node on its row, with no dependency between them.",
+        "params": { "label": { "type": "string", "label": "Label" } },
+        "paramsForm": "addNode",
+        "actions": [
+          { "create": { "type": "'Node'", "attributes": { "label": "p.label.trim() != '' ? p.label : 'New node'", "x": "self.x + 240.0", "row": "self.row" } } }
         ]
       },
       "addNodeHere": {
@@ -494,6 +546,7 @@
       "stable": true,
       "doc": "New ids are ShortGuids: a version 4 GUID written as 25 characters of base 36. Hand-written ids such as `api-gateway` are kept as they are."
     },
+    "writtenId": "storedId",
     "view": { "store": [] },
     "collaboration": { "mode": "none" },
     "typeMap": {
@@ -541,6 +594,8 @@
       "DependsOn/delete": "dependencies.disconnect",
       "addRight": "dependencies.add-after",
       "addBelow": "dependencies.add-below",
+      "addNode": "dependencies.add-element",
+      "addNodeAfter": "dependencies.add-element",
       "addNodeHere": "dependencies.add-element",
       "connect": "dependencies.connect"
     },

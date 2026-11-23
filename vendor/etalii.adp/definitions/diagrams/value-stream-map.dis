@@ -1,0 +1,2082 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.10",
+  "language": {
+    "id": "net.etalii.adp.generic.value-stream-map",
+    "version": "0.1.0",
+    "origin": "generic/value-stream-map",
+    "label": "Value stream map",
+    "fileExtension": "vsm",
+    "license": "Apache-2.0",
+    "authors": [
+      {
+        "name": "Peter Vrenken"
+      }
+    ],
+    "icon": "mdi-transit-connection-variant",
+    "doc": {
+      "summary": "How a demand becomes value: the steps it passes through, who performs them, how long each works and waits, and where the stream loses time, in the current state and a future one.",
+      "description": "A value stream map is one plain YAML file, .vsm, that a person or an agent can write by hand. Its trigger, steps and outcome are joined by flows; an alternative carries a share of a step's work and rework sends a rate of it back. The diagram computes lead time, process time, flow efficiency and hand-offs by the expected visits of each step, marks the three longest waits, and compares a future state with the current one. The activity and practice lists belong to the document and start from a template. What the diagram does not do, and the file for agents, are in value-stream-map.md.",
+      "tags": [
+        "value stream",
+        "service management",
+        "lead time",
+        "flow efficiency",
+        "hand-offs"
+      ],
+      "seeAlso": [
+        {
+          "title": "The file, the totals and what this diagram does not do",
+          "href": "value-stream-map.md"
+        }
+      ]
+    },
+    "limits": {
+      "budgets": {
+        "steps": {
+          "measure": {
+            "cel": "max(stepsOf('current').size(), stepsOf('future').size())"
+          },
+          "max": 64,
+          "truncate": false,
+          "notice": false,
+          "withhold": {
+            "edits": "none"
+          },
+          "doc": "Steps per state. Beyond it nothing is cut and nothing withheld: the totals of that state are not computed, and vsm.too-many-steps says so (research R10)."
+        }
+      }
+    }
+  },
+  "functions": {
+    "minutesOf": {
+      "params": [
+        {
+          "name": "d",
+          "type": "duration"
+        }
+      ],
+      "returns": "double",
+      "cel": "double(d.getSeconds()) / 60.0",
+      "doc": "A duration in minutes, the unit every total is computed in."
+    },
+    "inUnit": {
+      "params": [
+        {
+          "name": "minutes",
+          "type": "double"
+        },
+        {
+          "name": "unit",
+          "type": "string"
+        }
+      ],
+      "returns": "double",
+      "cel": "unit == 'minutes' ? minutes : unit == 'days' ? minutes / 1440.0 : minutes / 60.0",
+      "doc": "Minutes in the diagram's unit: minutes, hours (the default) or days of 24 hours. Working-day calendars are out of scope (value-stream-map.md)."
+    },
+    "unitWord": {
+      "params": [
+        {
+          "name": "unit",
+          "type": "string"
+        }
+      ],
+      "returns": "string",
+      "cel": "unit == 'minutes' ? 'min' : unit == 'days' ? 'd' : 'h'",
+      "doc": "The abbreviation a total is shown with."
+    },
+    "shownTotal": {
+      "params": [
+        {
+          "name": "minutes",
+          "type": "double"
+        },
+        {
+          "name": "unit",
+          "type": "string"
+        }
+      ],
+      "returns": "string",
+      "cel": "formatNumber(inUnit(minutes, unit), '#,##0.##') + ' ' + unitWord(unit)",
+      "doc": "A total as the summary shows it, in the diagram's unit with at most two decimals."
+    },
+    "processMinutes": {
+      "params": [
+        {
+          "name": "s",
+          "type": "Step"
+        }
+      ],
+      "returns": "double",
+      "cel": "has(s.processTime) ? minutesOf(s.processTime) : 0.0",
+      "doc": "A step's process time in minutes; a missing one counts as zero and is reported (vsm.missing-process-time)."
+    },
+    "waitMinutes": {
+      "params": [
+        {
+          "name": "s",
+          "type": "Step"
+        }
+      ],
+      "returns": "double",
+      "cel": "has(s.waitTime) ? minutesOf(s.waitTime) : 0.0",
+      "doc": "A step's wait time in minutes; a missing one counts as zero and is reported (vsm.missing-wait)."
+    },
+    "share": {
+      "params": [
+        {
+          "name": "f",
+          "type": "Flow"
+        }
+      ],
+      "returns": "double",
+      "cel": "f.isA('Alternative') ? f.share : 1.0",
+      "doc": "The part of the visits of its source a forward flow carries: its share for an alternative, all of them otherwise."
+    },
+    "isHandoff": {
+      "params": [
+        {
+          "name": "f",
+          "type": "Flow"
+        }
+      ],
+      "returns": "bool",
+      "cel": "f.source.isA('Step') && f.target.isA('Step') && f.source.performer != f.target.performer",
+      "doc": "A hand-off is not stored: it is a forward flow between two steps whose performers differ (research R5, FR-001)."
+    },
+    "baseVisits": {
+      "params": [
+        {
+          "name": "n",
+          "type": "Element"
+        },
+        {
+          "name": "visited",
+          "type": "list(string)"
+        }
+      ],
+      "returns": "double",
+      "recursion": {
+        "maxDepth": 64,
+        "atMaxDepth": "0.0"
+      },
+      "cel": "n.isA('Trigger') ? 1.0 : n.id in visited ? 0.0 : n.incomingOf('Flow').map(f, baseVisits(f.source, visited + [n.id]) * share(f)).sum()",
+      "doc": "How often an element is reached by forward flows alone, counting the trigger once and weighting each flow by its share. A step no forward path reaches from the trigger gets zero. The visited ids stop a cycle of forward flows, which vsm.unmarked-cycle reports; 64 is the step budget (research R4, R10)."
+    },
+    "product": {
+      "params": [
+        {
+          "name": "l",
+          "type": "list(double)"
+        },
+        {
+          "name": "i",
+          "type": "int"
+        }
+      ],
+      "returns": "double",
+      "recursion": {
+        "maxDepth": 64,
+        "atMaxDepth": "1.0"
+      },
+      "cel": "i >= l.size() ? 1.0 : l[i] * product(l, i + 1)",
+      "doc": "The product of the numbers of a list from position i, since CEL has no product of its own."
+    },
+    "inLoop": {
+      "params": [
+        {
+          "name": "s",
+          "type": "Element"
+        },
+        {
+          "name": "r",
+          "type": "Rework"
+        }
+      ],
+      "returns": "bool",
+      "cel": "s == r.target || s == r.source || (s in r.target.reachable('Flow') && r.source in s.reachable('Flow'))",
+      "doc": "Whether a step lies on the forward path a rework flow repeats: from its target to its source, both included."
+    },
+    "loopFactor": {
+      "params": [
+        {
+          "name": "s",
+          "type": "Element"
+        }
+      ],
+      "returns": "double",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "product(diagram.relationsOfType('Rework').filter(r, r.rate > 0.0 && r.rate < 1.0 && inLoop(s, r)).map(r, 1.0 / (1.0 - r.rate)), 0)",
+      "doc": "How much more often rework makes a step run: 1 / (1 - rate) for each rework loop the step lies on (research R4)."
+    },
+    "visits": {
+      "params": [
+        {
+          "name": "s",
+          "type": "Element"
+        }
+      ],
+      "returns": "double",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "baseVisits(s, []) * loopFactor(s)",
+      "doc": "The expected number of times a step runs: its visits by forward flows, times the factor of each rework loop it lies on. With no branch and no rework every reached step runs once."
+    },
+    "flowTraversals": {
+      "params": [
+        {
+          "name": "f",
+          "type": "Flow"
+        }
+      ],
+      "returns": "double",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "baseVisits(f.source, []) * share(f) * product(diagram.relationsOfType('Rework').filter(r, r.rate > 0.0 && r.rate < 1.0 && inLoop(f.source, r) && inLoop(f.target, r)).map(r, 1.0 / (1.0 - r.rate)), 0)",
+      "doc": "How often a forward flow is taken: inside a rework loop as often as the loop runs, on the way out of it once."
+    },
+    "stepsOf": {
+      "params": [
+        {
+          "name": "state",
+          "type": "string"
+        }
+      ],
+      "returns": "list(Step)",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "diagram.nodesOfType('Step').filter(s, s.state == state)",
+      "doc": "The steps of one state."
+    },
+    "computable": {
+      "params": [
+        {
+          "name": "state",
+          "type": "string"
+        }
+      ],
+      "returns": "bool",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "stepsOf(state).size() > 0 && stepsOf(state).size() <= 64 && diagram.nodesOfType('Trigger').filter(t, t.state == state).size() == 1 && !stepsOf(state).exists(s, s.inCycle('Flow'))",
+      "doc": "Whether a state's totals are computed: it has steps, at most the budget of 64, one trigger and no cycle of forward flows (vsm.empty-stream, vsm.too-many-steps, vsm.missing-trigger, vsm.second-trigger, vsm.unmarked-cycle)."
+    },
+    "leadTime": {
+      "params": [
+        {
+          "name": "state",
+          "type": "string"
+        }
+      ],
+      "returns": "double",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "stepsOf(state).map(s, visits(s) * (processMinutes(s) + waitMinutes(s))).sum()",
+      "doc": "Lead time in minutes: the sum over the state's steps of visits × (process time + wait time)."
+    },
+    "processTotal": {
+      "params": [
+        {
+          "name": "state",
+          "type": "string"
+        }
+      ],
+      "returns": "double",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "stepsOf(state).map(s, visits(s) * processMinutes(s)).sum()",
+      "doc": "Total process time in minutes: the sum over the state's steps of visits × process time."
+    },
+    "flowEfficiency": {
+      "params": [
+        {
+          "name": "state",
+          "type": "string"
+        }
+      ],
+      "returns": "double",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "leadTime(state) > 0.0 ? processTotal(state) / leadTime(state) : -1.0",
+      "doc": "Process time over lead time, between 0 and 1; -1 stands for absent when the lead time is zero."
+    },
+    "handoffs": {
+      "params": [
+        {
+          "name": "state",
+          "type": "string"
+        }
+      ],
+      "returns": "double",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "diagram.relationsOfType('Flow').filter(f, f.source.state == state && isHandoff(f)).map(f, flowTraversals(f)).sum()",
+      "doc": "The expected number of hand-offs: the sum over the state's hand-off flows of how often each is taken."
+    },
+    "shownEfficiency": {
+      "params": [
+        {
+          "name": "state",
+          "type": "string"
+        }
+      ],
+      "returns": "string",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "flowEfficiency(state) < 0.0 ? '–' : formatNumber(flowEfficiency(state) * 100.0, '0.#') + ' %'",
+      "doc": "Flow efficiency as a percentage with one decimal, or a dash when it is absent."
+    },
+    "shownCount": {
+      "params": [
+        {
+          "name": "n",
+          "type": "double"
+        }
+      ],
+      "returns": "string",
+      "cel": "formatNumber(n, '0.##')",
+      "doc": "A count of hand-offs, which rework and alternatives make fractional."
+    },
+    "depth": {
+      "params": [
+        {
+          "name": "n",
+          "type": "Element"
+        },
+        {
+          "name": "visited",
+          "type": "list(string)"
+        }
+      ],
+      "returns": "int",
+      "recursion": {
+        "maxDepth": 64,
+        "atMaxDepth": "0"
+      },
+      "cel": "n.isA('Trigger') || n.incomingOf('Flow').size() == 0 || n.id in visited ? 0 : n.incomingOf('Flow').map(f, depth(f.source, visited + [n.id])).max() + 1",
+      "doc": "The column an element stands in: one more than the deepest element a forward flow reaches it from; the trigger and an unconnected step stand in column 0 (research R8)."
+    },
+    "lane": {
+      "params": [
+        {
+          "name": "n",
+          "type": "Element"
+        },
+        {
+          "name": "visited",
+          "type": "list(string)"
+        }
+      ],
+      "returns": "int",
+      "recursion": {
+        "maxDepth": 64,
+        "atMaxDepth": "0"
+      },
+      "cel": "n.isA('Trigger') || n.incomingOf('Flow').size() == 0 || n.id in visited ? 0 : cel.bind(f, n.incomingOf('Flow')[0], f.isA('Alternative') ? lane(f.source, visited + [n.id]) + f.source.outgoingOf('Alternative').filter(a, a.share > f.share || (a.share == f.share && a.id < f.id)).size() : lane(f.source, visited + [n.id]))",
+      "doc": "The row an element stands in within its state: the row of what its first forward flow comes from, moved down by the rank of that flow among its source's alternatives, largest share first, so the main path stays on top (research R8)."
+    },
+    "stateRow": {
+      "params": [
+        {
+          "name": "state",
+          "type": "string"
+        }
+      ],
+      "returns": "int",
+      "cel": "state == 'future' ? 1 : 0",
+      "doc": "The band a state is drawn in when both are shown in one picture, such as an exported image: the current state above, the future below."
+    },
+    "longestColumn": {
+      "params": [
+        {
+          "name": "state",
+          "type": "string"
+        }
+      ],
+      "returns": "int",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "diagram.nodes.filter(n, (n.isA('Step') || n.isA('Outcome')) && n.state == state).map(n, depth(n, [])).max()",
+      "doc": "The column of the element of a state furthest along its flow, after which the summary stands."
+    },
+    "longWait": {
+      "params": [
+        {
+          "name": "s",
+          "type": "Step"
+        }
+      ],
+      "returns": "bool",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "has(s.waitTime) && waitMinutes(s) > 0.0 && stepsOf(s.state).count(o, waitMinutes(o) > waitMinutes(s)) < 3",
+      "doc": "A step is marked when fewer than three steps of its state wait strictly longer, so ties are all marked (research R9, FR-005)."
+    },
+    "longestWait": {
+      "params": [
+        {
+          "name": "state",
+          "type": "string"
+        }
+      ],
+      "returns": "double",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "stepsOf(state).size() == 0 ? 0.0 : stepsOf(state).map(s, waitMinutes(s)).max()",
+      "doc": "The longest wait of a state, against which each step's wait band is drawn."
+    }
+  },
+  "metamodel": {
+    "doc": "A value stream: a trigger, steps and an outcome joined by flows, in a current state and an optional future state, with the stream's own vocabularies of activities and practices. A hand-off is not stored: it is a flow between two steps whose performers differ (FR-001). The figures of each state are derived nodes computed by the functions (FR-004).",
+    "diagram": {
+      "doc": "The stream's name, the unit its totals are shown in, and the state the kept filter shows.",
+      "attributes": {
+        "name": {
+          "type": "string",
+          "label": "Name",
+          "order": 1,
+          "doc": "What the stream is called.",
+          "required": true
+        },
+        "unit": {
+          "type": "Unit",
+          "label": "Totals in",
+          "order": 2,
+          "doc": "The unit the summary and comparison show totals in. Default hours.",
+          "default": "hours"
+        },
+        "shownState": {
+          "type": "State",
+          "label": "Shown state",
+          "order": 3,
+          "doc": "The state the canvas shows; kept in the file as view.state (persistence.view.bind). Written by the diagram only.",
+          "default": "current"
+        }
+      }
+    },
+    "enums": {
+      "State": {
+        "doc": "The two states one document holds (FR-006).",
+        "values": {
+          "current": {
+            "label": "Current",
+            "doc": "The stream as it runs today."
+          },
+          "future": {
+            "label": "Future",
+            "doc": "The stream as it should run."
+          }
+        }
+      },
+      "Unit": {
+        "values": {
+          "minutes": {
+            "label": "Minutes"
+          },
+          "hours": {
+            "label": "Hours"
+          },
+          "days": {
+            "label": "Days (24 hours)"
+          }
+        }
+      }
+    },
+    "types": {
+      "Activity": {
+        "label": "Activity",
+        "labelAttribute": "name",
+        "doc": "An entry of the stream's activity vocabulary (FR-003): the names a step's activity is chosen from, with a colour. Not drawn: it is edited in the diagram's form, and a template supplies a starting list.",
+        "attributes": {
+          "name": {
+            "type": "string",
+            "label": "Name",
+            "order": 1,
+            "doc": "The activity's name, as steps write it.",
+            "required": true
+          },
+          "color": {
+            "type": "color",
+            "label": "Colour",
+            "order": 2,
+            "doc": "The colour of the steps of this activity."
+          }
+        }
+      },
+      "Practice": {
+        "label": "Practice",
+        "labelAttribute": "name",
+        "doc": "An entry of the stream's practice list (FR-003): the names a step's practices are chosen from. Not drawn.",
+        "attributes": {
+          "name": {
+            "type": "string",
+            "label": "Name",
+            "order": 1,
+            "doc": "The practice's name, as steps write it.",
+            "required": true
+          }
+        }
+      },
+      "StreamNode": {
+        "abstract": true,
+        "labelAttribute": "name",
+        "doc": "An element of one state of the stream.",
+        "attributes": {
+          "name": {
+            "type": "string",
+            "label": "Name",
+            "order": 1,
+            "doc": "What it is called.",
+            "required": true,
+            "group": "Identity"
+          },
+          "state": {
+            "type": "State",
+            "label": "State",
+            "readOnly": true,
+            "readOnlyReasons": [
+              {
+                "message": "Which state an element belongs to is where it stands in the file, under current: or future:. Create the future state from the menu."
+              }
+            ],
+            "group": "Identity",
+            "doc": "current or future: read from the key the element stands under (research R2). Never written as a key."
+          },
+          "basedOn": {
+            "type": "string",
+            "label": "Based on",
+            "group": "Identity",
+            "readOnly": true,
+            "doc": "In the future state, the id of the current element this one was copied from by Create future state (research R3). Lets the comparison and an agent tell which future step replaced which current one."
+          }
+        }
+      },
+      "Trigger": {
+        "extends": "StreamNode",
+        "label": "Trigger",
+        "icon": "mdi-play-circle-outline",
+        "doc": "What starts the stream: a demand or an event. One per state (vsm.missing-trigger, vsm.second-trigger).",
+        "attributes": {
+          "role": {
+            "type": "string",
+            "default": "trigger",
+            "readOnly": true,
+            "doc": "The key the trigger is written under in its state, always trigger; a new trigger takes it from this default, and a state that already has one refuses a second (FBL 0.14, a new member named by its key)."
+          }
+        }
+      },
+      "Outcome": {
+        "extends": "StreamNode",
+        "label": "Outcome",
+        "icon": "mdi-flag-checkered",
+        "doc": "The value the stream delivers. One per state (vsm.missing-outcome, vsm.second-outcome).",
+        "attributes": {
+          "role": {
+            "type": "string",
+            "default": "outcome",
+            "readOnly": true,
+            "doc": "The key the outcome is written under in its state, always outcome."
+          }
+        }
+      },
+      "Step": {
+        "extends": "StreamNode",
+        "label": "Step",
+        "icon": "mdi-rectangle-outline",
+        "doc": "One piece of work in the stream, with who does it and how long it takes and waits (FR-002).",
+        "attributes": {
+          "activity": {
+            "type": "string",
+            "label": "Activity",
+            "order": 2,
+            "doc": "The activity the step belongs to, one of the stream's activities; a name not in the list is kept and reported (vsm.unknown-activity).",
+            "group": "Work"
+          },
+          "practices": {
+            "type": "string",
+            "label": "Practices",
+            "order": 3,
+            "doc": "The practices the step uses, from the stream's practice list; a name not in the list is kept and reported (vsm.unknown-practice).",
+            "many": true,
+            "group": "Work"
+          },
+          "performer": {
+            "type": "string",
+            "label": "Performer",
+            "order": 4,
+            "doc": "Who does the step: a team, a role or an agent. Two steps joined by a flow with different performers make a hand-off.",
+            "group": "Work"
+          },
+          "processTime": {
+            "type": "duration",
+            "label": "Process time",
+            "order": 5,
+            "doc": "How long the work itself takes, as an ISO 8601 duration without months or years (PT20M, PT3H, P2D); shown in the unit it is written in (research R6).",
+            "group": "Times"
+          },
+          "waitTime": {
+            "type": "duration",
+            "label": "Wait time",
+            "order": 6,
+            "doc": "How long the work waits before the step starts, in the same form.",
+            "group": "Times"
+          },
+          "note": {
+            "type": "text",
+            "label": "Note",
+            "order": 7,
+            "doc": "Anything else worth knowing about the step.",
+            "group": "Work"
+          }
+        }
+      },
+      "Summary": {
+        "label": "Summary",
+        "icon": "mdi-sigma",
+        "doc": "The figures of one state (FR-004): lead time, process time, flow efficiency and hand-offs, in the diagram's unit. Derived, one per state that has a trigger; a state whose totals cannot be computed shows why instead.",
+        "attributes": {
+          "state": {
+            "type": "State",
+            "label": "State"
+          },
+          "leadTime": {
+            "type": "string",
+            "label": "Lead time"
+          },
+          "processTime": {
+            "type": "string",
+            "label": "Process time"
+          },
+          "efficiency": {
+            "type": "string",
+            "label": "Flow efficiency"
+          },
+          "handoffs": {
+            "type": "string",
+            "label": "Hand-offs"
+          },
+          "computed": {
+            "type": "bool",
+            "label": "Computed"
+          }
+        },
+        "derived": {
+          "from": "diagram.nodesOfType('Trigger').map(t, t.state).distinct()",
+          "id": "'summary-' + item",
+          "attributes": {
+            "state": "item",
+            "computed": "computable(item)",
+            "leadTime": "computable(item) ? shownTotal(leadTime(item), diagram.unit) : '–'",
+            "processTime": "computable(item) ? shownTotal(processTotal(item), diagram.unit) : '–'",
+            "efficiency": "computable(item) ? shownEfficiency(item) : '–'",
+            "handoffs": "computable(item) ? shownCount(handoffs(item)) : '–'"
+          },
+          "sources": "stepsOf(item)",
+          "reason": "The summary is computed from the steps and flows of its state; change those to change it."
+        }
+      },
+      "Comparison": {
+        "label": "Comparison",
+        "icon": "mdi-compare-horizontal",
+        "doc": "Each figure of the current and the future state side by side, with the difference (FR-006). Derived, only while both states can be computed.",
+        "attributes": {
+          "leadTime": {
+            "type": "string",
+            "label": "Lead time"
+          },
+          "processTime": {
+            "type": "string",
+            "label": "Process time"
+          },
+          "efficiency": {
+            "type": "string",
+            "label": "Flow efficiency"
+          },
+          "handoffs": {
+            "type": "string",
+            "label": "Hand-offs"
+          }
+        },
+        "derived": {
+          "from": "computable('current') && computable('future') ? ['comparison'] : []",
+          "id": "item",
+          "attributes": {
+            "leadTime": "shownTotal(leadTime('current'), diagram.unit) + ' → ' + shownTotal(leadTime('future'), diagram.unit) + ' (' + shownTotal(leadTime('future') - leadTime('current'), diagram.unit) + ')'",
+            "processTime": "shownTotal(processTotal('current'), diagram.unit) + ' → ' + shownTotal(processTotal('future'), diagram.unit) + ' (' + shownTotal(processTotal('future') - processTotal('current'), diagram.unit) + ')'",
+            "efficiency": "shownEfficiency('current') + ' → ' + shownEfficiency('future')",
+            "handoffs": "shownCount(handoffs('current')) + ' → ' + shownCount(handoffs('future')) + ' (' + shownCount(handoffs('future') - handoffs('current')) + ')'"
+          },
+          "sources": "diagram.nodesOfType('Step')",
+          "reason": "The comparison is computed from both states; change their steps and flows to change it."
+        }
+      }
+    },
+    "relations": {
+      "Flow": {
+        "label": "Flow",
+        "icon": "mdi-arrow-right",
+        "doc": "The work moves on from its source to its target. Drawn as a hand-off when both ends are steps whose performers differ (research R5).",
+        "source": [
+          "Trigger",
+          "Step"
+        ],
+        "target": [
+          "Step",
+          "Outcome"
+        ],
+        "directed": true,
+        "allowSelfLoops": false,
+        "allowParallel": false
+      },
+      "Alternative": {
+        "extends": "Flow",
+        "label": "Alternative",
+        "icon": "mdi-call-split",
+        "doc": "One of several ways on from a step, taken by a share of its work. The shares leaving one step sum to 1 (vsm.shares).",
+        "source": [
+          "Step"
+        ],
+        "target": [
+          "Step",
+          "Outcome"
+        ],
+        "attributes": {
+          "share": {
+            "type": "number",
+            "label": "Share",
+            "exclusiveMin": 0,
+            "max": 1,
+            "required": true,
+            "doc": "The part of the source's work that goes this way, between 0 and 1 (0.8 is 80 %)."
+          }
+        }
+      },
+      "Rework": {
+        "label": "Rework",
+        "icon": "mdi-backup-restore",
+        "doc": "A share of a step's work goes back to an earlier step and runs again (vsm.rework-forward when the target does not precede the source).",
+        "source": [
+          "Step"
+        ],
+        "target": [
+          "Step"
+        ],
+        "directed": true,
+        "allowSelfLoops": true,
+        "allowParallel": false,
+        "attributes": {
+          "rate": {
+            "type": "number",
+            "label": "Rate",
+            "exclusiveMin": 0,
+            "exclusiveMax": 1,
+            "required": true,
+            "doc": "The part of the source's work that goes back, between 0 and 1 exclusive (0.1 is 10 %)."
+          }
+        }
+      }
+    }
+  },
+  "notation": {
+    "doc": "Steps in flow order from left to right with the trigger first, the main path on top and each alternative path below it; a step's wait is a band under its box. The summary and the comparison stand after the outcome (research R8).",
+    "theme": {
+      "tokens": {
+        "color.surface": {
+          "light": "#FFFFFF",
+          "dark": "#161B22"
+        },
+        "color.border": {
+          "light": "#8A8880",
+          "dark": "#8B949E"
+        },
+        "color.muted": {
+          "light": "#868E96",
+          "dark": "#6E7681"
+        },
+        "vsm.step": {
+          "light": "#FFFFFF",
+          "dark": "#1F2328"
+        },
+        "vsm.wait": {
+          "light": "#F2A93B",
+          "dark": "#C98A2B"
+        },
+        "vsm.longWait": {
+          "light": "#D9480F",
+          "dark": "#FF8A4C"
+        },
+        "vsm.handoff": {
+          "light": "#7048E8",
+          "dark": "#B197FC"
+        },
+        "vsm.rework": {
+          "light": "#C92A2A",
+          "dark": "#FF8787"
+        },
+        "vsm.summary": {
+          "light": "#EDF2FF",
+          "dark": "#1B2340"
+        }
+      }
+    },
+    "styles": {
+      "step": {
+        "fill": {
+          "token": "vsm.step"
+        },
+        "stroke": {
+          "color": {
+            "token": "color.border"
+          },
+          "width": 1
+        },
+        "cornerRadius": 4,
+        "font": {
+          "size": 12
+        }
+      },
+      "end": {
+        "fill": {
+          "token": "color.surface"
+        },
+        "stroke": {
+          "color": {
+            "token": "color.border"
+          },
+          "width": 1.5
+        },
+        "font": {
+          "size": 12
+        }
+      },
+      "figures": {
+        "fill": {
+          "token": "vsm.summary"
+        },
+        "stroke": {
+          "color": {
+            "token": "color.border"
+          },
+          "width": 1
+        },
+        "cornerRadius": 6,
+        "font": {
+          "size": 12
+        }
+      },
+      "activity": {
+        "fill": {
+          "cel": "diagram.nodesOfType('Activity').exists(a, a.name == self.activity && has(a.color)) ? diagram.nodesOfType('Activity').filter(a, a.name == self.activity)[0].color : token('color.muted')"
+        },
+        "font": {
+          "size": 10
+        }
+      },
+      "longWait": {
+        "fill": {
+          "token": "vsm.longWait"
+        }
+      },
+      "wait": {
+        "fill": {
+          "token": "vsm.wait"
+        },
+        "font": {
+          "size": 10
+        }
+      },
+      "flow": {
+        "stroke": {
+          "color": {
+            "token": "color.border"
+          },
+          "width": 1.5
+        }
+      },
+      "handoff": {
+        "stroke": {
+          "color": {
+            "token": "vsm.handoff"
+          },
+          "width": 2,
+          "dash": [
+            6,
+            3
+          ]
+        }
+      },
+      "rework": {
+        "stroke": {
+          "color": {
+            "token": "vsm.rework"
+          },
+          "width": 1.5,
+          "dash": [
+            2,
+            3
+          ]
+        }
+      }
+    },
+    "nodes": {
+      "Trigger": {
+        "shape": {
+          "type": "chevron"
+        },
+        "style": "end",
+        "size": {
+          "fixed": [
+            140,
+            60
+          ]
+        },
+        "placement": {
+          "x": {
+            "cel": "depth(self, []) * 230"
+          },
+          "y": {
+            "cel": "stateRow(self.state) * 520 + lane(self, []) * 150"
+          },
+          "movable": false
+        },
+        "labels": [
+          {
+            "id": "name",
+            "text": {
+              "attribute": "name"
+            },
+            "position": "center",
+            "editable": "inline",
+            "wrap": "word",
+            "maxLines": 2
+          }
+        ],
+        "doubleClick": "editLabel"
+      },
+      "Outcome": {
+        "shape": {
+          "type": "roundedRect",
+          "params": {
+            "radius": 30
+          }
+        },
+        "style": "end",
+        "size": {
+          "fixed": [
+            140,
+            60
+          ]
+        },
+        "placement": {
+          "x": {
+            "cel": "depth(self, []) * 230"
+          },
+          "y": {
+            "cel": "stateRow(self.state) * 520 + lane(self, []) * 150"
+          },
+          "movable": false
+        },
+        "labels": [
+          {
+            "id": "name",
+            "text": {
+              "attribute": "name"
+            },
+            "position": "center",
+            "editable": "inline",
+            "wrap": "word",
+            "maxLines": 2
+          }
+        ],
+        "doubleClick": "editLabel"
+      },
+      "Step": {
+        "shape": "roundedRect",
+        "style": "step",
+        "size": {
+          "fixed": [
+            180,
+            96
+          ]
+        },
+        "placement": {
+          "x": {
+            "cel": "depth(self, []) * 230"
+          },
+          "y": {
+            "cel": "stateRow(self.state) * 520 + lane(self, []) * 150"
+          },
+          "movable": false,
+          "doc": "A step stands where its flows put it: one column after what flows into it, on the row of its path. Change the flows to move it."
+        },
+        "labels": [
+          {
+            "id": "name",
+            "text": {
+              "attribute": "name"
+            },
+            "position": "top",
+            "editable": "inline",
+            "wrap": "word",
+            "maxLines": 2
+          },
+          {
+            "id": "performer",
+            "text": {
+              "cel": "has(self.performer) ? self.performer : ''"
+            },
+            "position": "center",
+            "style": {
+              "font": {
+                "size": 10
+              }
+            }
+          },
+          {
+            "id": "times",
+            "text": {
+              "cel": "'PT ' + (has(self.processTime) ? formatDuration(self.processTime, 'short') : '–') + ' · WT ' + (has(self.waitTime) ? formatDuration(self.waitTime, 'short') : '–')"
+            },
+            "position": "bottom",
+            "style": {
+              "font": {
+                "size": 10
+              }
+            }
+          }
+        ],
+        "badges": [
+          {
+            "id": "activity",
+            "text": {
+              "cel": "has(self.activity) ? self.activity : ''"
+            },
+            "visible": {
+              "cel": "has(self.activity) && self.activity != ''"
+            },
+            "position": "top-left",
+            "style": "activity"
+          },
+          {
+            "id": "practices",
+            "text": {
+              "cel": "self.practices.join(', ')"
+            },
+            "visible": {
+              "cel": "self.practices.size() > 0"
+            },
+            "position": "bottom-right"
+          },
+          {
+            "id": "longWait",
+            "icon": "mdi-timer-alert-outline",
+            "visible": {
+              "cel": "longWait(self)"
+            },
+            "position": "top-right",
+            "style": "longWait",
+            "tooltip": {
+              "cel": "'One of the three longest waits: ' + formatDuration(self.waitTime, 'short')"
+            }
+          },
+          {
+            "id": "wait",
+            "text": {
+              "cel": "has(self.waitTime) ? 'waits ' + formatDuration(self.waitTime, 'short') : 'waits ?'"
+            },
+            "position": "bottom",
+            "offset": [
+              0,
+              14
+            ],
+            "style": "wait",
+            "tooltip": "The wait before this step starts, drawn as a band under its box (research R8)."
+          }
+        ],
+        "tooltip": {
+          "cel": "has(self.note) ? self.note : self.name"
+        },
+        "doubleClick": "editLabel"
+      },
+      "Summary": {
+        "shape": "roundedRect",
+        "style": "figures",
+        "size": {
+          "fixed": [
+            200,
+            120
+          ]
+        },
+        "placement": {
+          "x": {
+            "cel": "(longestColumn(self.state) + 1) * 230"
+          },
+          "y": {
+            "cel": "stateRow(self.state) * 520"
+          },
+          "movable": false
+        },
+        "labels": [
+          {
+            "id": "figures",
+            "text": {
+              "cel": "self.computed ? 'Lead time ' + self.leadTime + '\\nProcess time ' + self.processTime + '\\nFlow efficiency ' + self.efficiency + '\\nHand-offs ' + self.handoffs : 'Totals not computed: see the findings.'"
+            },
+            "position": "center",
+            "wrap": "word"
+          }
+        ]
+      },
+      "Comparison": {
+        "shape": "roundedRect",
+        "style": "figures",
+        "size": {
+          "fixed": [
+            280,
+            120
+          ]
+        },
+        "placement": {
+          "x": {
+            "cel": "(max(longestColumn('current'), longestColumn('future')) + 2) * 230"
+          },
+          "y": {
+            "cel": "260"
+          },
+          "movable": false
+        },
+        "labels": [
+          {
+            "id": "figures",
+            "text": {
+              "cel": "'Current → future (difference)\\nLead time ' + self.leadTime + '\\nProcess time ' + self.processTime + '\\nFlow efficiency ' + self.efficiency + '\\nHand-offs ' + self.handoffs"
+            },
+            "position": "center",
+            "wrap": "word"
+          }
+        ]
+      }
+    },
+    "edges": {
+      "Flow": {
+        "style": "flow",
+        "line": {
+          "routing": "orthogonal"
+        },
+        "targetMarker": "arrowFilled",
+        "conditions": [
+          {
+            "when": "isHandoff(self)",
+            "style": "handoff"
+          }
+        ],
+        "labels": [
+          {
+            "id": "handoff",
+            "text": {
+              "cel": "isHandoff(self) ? 'hand-off' : ''"
+            },
+            "at": "middle",
+            "side": "above",
+            "distance": 4
+          }
+        ]
+      },
+      "Alternative": {
+        "style": "flow",
+        "line": {
+          "routing": "orthogonal"
+        },
+        "targetMarker": "arrowFilled",
+        "conditions": [
+          {
+            "when": "isHandoff(self)",
+            "style": "handoff"
+          }
+        ],
+        "labels": [
+          {
+            "id": "share",
+            "text": {
+              "cel": "formatNumber(self.share * 100.0, '0.#') + ' %'"
+            },
+            "at": "middle",
+            "side": "above",
+            "distance": 4,
+            "editable": "form"
+          }
+        ]
+      },
+      "Rework": {
+        "style": "rework",
+        "line": {
+          "routing": "orthogonal"
+        },
+        "targetMarker": "arrowOpen",
+        "labels": [
+          {
+            "id": "rate",
+            "text": {
+              "cel": "'rework ' + formatNumber(self.rate * 100.0, '0.#') + ' %'"
+            },
+            "at": "middle",
+            "side": "below",
+            "distance": 4
+          }
+        ],
+        "layer": "belowNodes"
+      }
+    },
+    "canvas": {
+      "filters": {
+        "state": {
+          "label": "State",
+          "control": "select",
+          "persist": true,
+          "default": "current",
+          "options": {
+            "cel": "diagram.nodesOfType('Trigger').exists(t, t.state == 'future') ? ['current', 'future'] : ['current']"
+          },
+          "appliesTo": [
+            "Trigger",
+            "Step",
+            "Outcome",
+            "Summary"
+          ],
+          "keep": "self.state == value",
+          "doc": "Shows one state at a time (User Story 3). Kept in the file as view.state (persistence.view.bind); the comparison is shown whichever state is chosen."
+        }
+      },
+      "empty": {
+        "text": "An empty stream. Add a trigger, steps and an outcome from the toolbox, or start from a template that brings an activity list."
+      }
+    }
+  },
+  "toolbox": {
+    "doc": "One tool per kind of element and of flow. A trigger, a step or an outcome is created in the state the canvas shows.",
+    "groups": [
+      {
+        "id": "stream",
+        "label": "Stream",
+        "tools": [
+          {
+            "id": "trigger",
+            "kind": "create-node",
+            "creates": "Trigger",
+            "label": "Trigger",
+            "initial": {
+              "name": "New trigger",
+              "state": {
+                "cel": "diagram.shownState"
+              }
+            }
+          },
+          {
+            "id": "step",
+            "kind": "create-node",
+            "creates": "Step",
+            "label": "Step",
+            "initial": {
+              "name": "New step",
+              "state": {
+                "cel": "diagram.shownState"
+              }
+            }
+          },
+          {
+            "id": "outcome",
+            "kind": "create-node",
+            "creates": "Outcome",
+            "label": "Outcome",
+            "initial": {
+              "name": "New outcome",
+              "state": {
+                "cel": "diagram.shownState"
+              }
+            }
+          },
+          {
+            "id": "flow",
+            "kind": "create-edge",
+            "creates": "Flow",
+            "label": "Flow"
+          },
+          {
+            "id": "alternative",
+            "kind": "create-edge",
+            "creates": "Alternative",
+            "label": "Alternative",
+            "initial": {
+              "share": 0.5
+            }
+          },
+          {
+            "id": "rework",
+            "kind": "create-edge",
+            "creates": "Rework",
+            "label": "Rework",
+            "initial": {
+              "rate": 0.1
+            }
+          }
+        ]
+      }
+    ],
+    "contextMenus": [
+      {
+        "for": [
+          "diagram"
+        ],
+        "tools": [
+          {
+            "kind": "operation",
+            "operation": "createFutureState"
+          },
+          {
+            "kind": "operation",
+            "operation": "showCurrent"
+          },
+          {
+            "kind": "operation",
+            "operation": "showFuture"
+          },
+          {
+            "kind": "operation",
+            "operation": "removeFutureState"
+          }
+        ]
+      }
+    ],
+    "templates": {
+      "sixActivities": {
+        "label": "Six-activity value chain",
+        "doc": "A starting activity list of six activities and a short practice list, every name editable (research R7, FR-003).",
+        "fragment": {
+          "nodes": [
+            {
+              "ref": "a1",
+              "type": "Activity",
+              "attributes": {
+                "name": "'plan'"
+              }
+            },
+            {
+              "ref": "a2",
+              "type": "Activity",
+              "attributes": {
+                "name": "'improve'"
+              }
+            },
+            {
+              "ref": "a3",
+              "type": "Activity",
+              "attributes": {
+                "name": "'engage'"
+              }
+            },
+            {
+              "ref": "a4",
+              "type": "Activity",
+              "attributes": {
+                "name": "'design and transition'"
+              }
+            },
+            {
+              "ref": "a5",
+              "type": "Activity",
+              "attributes": {
+                "name": "'obtain/build'"
+              }
+            },
+            {
+              "ref": "a6",
+              "type": "Activity",
+              "attributes": {
+                "name": "'deliver and support'"
+              }
+            },
+            {
+              "ref": "p1",
+              "type": "Practice",
+              "attributes": {
+                "name": "'incident management'"
+              }
+            },
+            {
+              "ref": "p2",
+              "type": "Practice",
+              "attributes": {
+                "name": "'change enablement'"
+              }
+            },
+            {
+              "ref": "p3",
+              "type": "Practice",
+              "attributes": {
+                "name": "'service request management'"
+              }
+            },
+            {
+              "ref": "p4",
+              "type": "Practice",
+              "attributes": {
+                "name": "'monitoring and event management'"
+              }
+            },
+            {
+              "ref": "p5",
+              "type": "Practice",
+              "attributes": {
+                "name": "'problem management'"
+              }
+            }
+          ]
+        }
+      },
+      "eightActivities": {
+        "label": "Eight-activity lifecycle",
+        "doc": "A starting activity list of eight lifecycle activities and the same short practice list, every name editable (research R7, FR-003).",
+        "fragment": {
+          "nodes": [
+            {
+              "ref": "a1",
+              "type": "Activity",
+              "attributes": {
+                "name": "'discover'"
+              }
+            },
+            {
+              "ref": "a2",
+              "type": "Activity",
+              "attributes": {
+                "name": "'design'"
+              }
+            },
+            {
+              "ref": "a3",
+              "type": "Activity",
+              "attributes": {
+                "name": "'acquire'"
+              }
+            },
+            {
+              "ref": "a4",
+              "type": "Activity",
+              "attributes": {
+                "name": "'build'"
+              }
+            },
+            {
+              "ref": "a5",
+              "type": "Activity",
+              "attributes": {
+                "name": "'transition'"
+              }
+            },
+            {
+              "ref": "a6",
+              "type": "Activity",
+              "attributes": {
+                "name": "'operate'"
+              }
+            },
+            {
+              "ref": "a7",
+              "type": "Activity",
+              "attributes": {
+                "name": "'deliver'"
+              }
+            },
+            {
+              "ref": "a8",
+              "type": "Activity",
+              "attributes": {
+                "name": "'support'"
+              }
+            },
+            {
+              "ref": "p1",
+              "type": "Practice",
+              "attributes": {
+                "name": "'incident management'"
+              }
+            },
+            {
+              "ref": "p2",
+              "type": "Practice",
+              "attributes": {
+                "name": "'change enablement'"
+              }
+            },
+            {
+              "ref": "p3",
+              "type": "Practice",
+              "attributes": {
+                "name": "'service request management'"
+              }
+            },
+            {
+              "ref": "p4",
+              "type": "Practice",
+              "attributes": {
+                "name": "'monitoring and event management'"
+              }
+            },
+            {
+              "ref": "p5",
+              "type": "Practice",
+              "attributes": {
+                "name": "'problem management'"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "starters": [
+      "sixActivities",
+      "eightActivities"
+    ]
+  },
+  "forms": {
+    "step": {
+      "for": [
+        "Step"
+      ],
+      "items": [
+        {
+          "kind": "field",
+          "attribute": "name"
+        },
+        {
+          "kind": "field",
+          "attribute": "activity",
+          "options": {
+            "cel": "diagram.nodesOfType('Activity').map(a, a.name)"
+          }
+        },
+        {
+          "kind": "field",
+          "attribute": "practices",
+          "options": {
+            "cel": "diagram.nodesOfType('Practice').map(p, p.name)"
+          }
+        },
+        {
+          "kind": "field",
+          "attribute": "performer"
+        },
+        {
+          "kind": "field",
+          "attribute": "processTime"
+        },
+        {
+          "kind": "field",
+          "attribute": "waitTime"
+        },
+        {
+          "kind": "field",
+          "attribute": "note"
+        },
+        {
+          "kind": "findings"
+        }
+      ],
+      "doc": "FR-002: every attribute of a step in one form, the activity and the practices offered from the stream's own lists."
+    },
+    "diagram": {
+      "for": "diagram",
+      "items": [
+        {
+          "kind": "field",
+          "attribute": "name"
+        },
+        {
+          "kind": "field",
+          "attribute": "unit"
+        },
+        {
+          "kind": "findings"
+        }
+      ],
+      "doc": "The stream's name and the unit of its totals. The activity and practice lists are edited as their own entries."
+    }
+  },
+  "constraints": {
+    "doc": "A map an agent or a person wrote that breaks a rule still opens and draws; each breach is a finding, never a refusal, so nothing anyone wrote is lost (FR-007). Two gestures are refused: a flow that crosses states, and a flow that is both an alternative and rework, which the file cannot hold.",
+    "blockSaveOn": "never",
+    "rules": [
+      {
+        "id": "emptyStream",
+        "code": "vsm.empty-stream",
+        "label": "State without steps",
+        "severity": "info",
+        "rule": "diagram.nodesOfType('Trigger').all(t, stepsOf(t.state).size() > 0)",
+        "message": {
+          "cel": "'The ' + diagram.nodesOfType('Trigger').filter(t, stepsOf(t.state).size() == 0)[0].state + ' state has no step yet.'"
+        },
+        "scope": [
+          "diagram"
+        ]
+      },
+      {
+        "id": "missingTrigger",
+        "code": "vsm.missing-trigger",
+        "label": "No trigger",
+        "severity": "warning",
+        "rule": "diagram.nodesOfType('Step').all(s, diagram.nodesOfType('Trigger').exists(t, t.state == s.state))",
+        "message": {
+          "cel": "'The ' + diagram.nodesOfType('Step').filter(s, !diagram.nodesOfType('Trigger').exists(t, t.state == s.state))[0].state + ' state has no trigger; its totals are not computed.'"
+        },
+        "scope": [
+          "diagram"
+        ]
+      },
+      {
+        "id": "missingOutcome",
+        "code": "vsm.missing-outcome",
+        "label": "No outcome",
+        "severity": "warning",
+        "rule": "diagram.nodesOfType('Trigger').all(t, diagram.nodesOfType('Outcome').exists(o, o.state == t.state))",
+        "message": {
+          "cel": "'The ' + diagram.nodesOfType('Trigger').filter(t, !diagram.nodesOfType('Outcome').exists(o, o.state == t.state))[0].state + ' state has no outcome.'"
+        },
+        "scope": [
+          "diagram"
+        ]
+      },
+      {
+        "id": "secondTrigger",
+        "code": "vsm.second-trigger",
+        "label": "Second trigger",
+        "severity": "warning",
+        "rule": "diagram.nodesOfType('Trigger').filter(t, t.state == self.state).size() == 1",
+        "message": {
+          "cel": "'\"' + self.name + '\" is a second trigger of the ' + self.state + ' state; a stream starts once.'"
+        },
+        "scope": [
+          "Trigger"
+        ]
+      },
+      {
+        "id": "secondOutcome",
+        "code": "vsm.second-outcome",
+        "label": "Second outcome",
+        "severity": "warning",
+        "rule": "diagram.nodesOfType('Outcome').filter(o, o.state == self.state).size() == 1",
+        "message": {
+          "cel": "'\"' + self.name + '\" is a second outcome of the ' + self.state + ' state; a stream ends once.'"
+        },
+        "scope": [
+          "Outcome"
+        ]
+      },
+      {
+        "id": "unconnectedStep",
+        "code": "vsm.unconnected-step",
+        "label": "Unconnected step",
+        "severity": "warning",
+        "rule": "diagram.nodesOfType('Trigger').exists(t, t.state == self.state && self in t.reachable('Flow'))",
+        "message": {
+          "cel": "'No flow reaches \"' + self.name + '\" from the trigger; it is left out of the totals.'"
+        },
+        "scope": [
+          "Step"
+        ]
+      },
+      {
+        "id": "missingWait",
+        "code": "vsm.missing-wait",
+        "label": "No wait time",
+        "severity": "info",
+        "rule": "has(self.waitTime)",
+        "message": {
+          "cel": "'\"' + self.name + '\" has no wait time; it counts as zero.'"
+        },
+        "scope": [
+          "Step"
+        ],
+        "attribute": "waitTime"
+      },
+      {
+        "id": "missingProcessTime",
+        "code": "vsm.missing-process-time",
+        "label": "No process time",
+        "severity": "info",
+        "rule": "has(self.processTime)",
+        "message": {
+          "cel": "'\"' + self.name + '\" has no process time; it counts as zero.'"
+        },
+        "scope": [
+          "Step"
+        ],
+        "attribute": "processTime"
+      },
+      {
+        "id": "shares",
+        "code": "vsm.shares",
+        "label": "Shares do not add up",
+        "severity": "warning",
+        "rule": "self.outgoingOf('Alternative').size() == 0 || math.abs(self.outgoingOf('Alternative').map(a, a.share).sum() - 1.0) < 0.0001",
+        "message": {
+          "cel": "'The alternatives leaving \"' + self.name + '\" take ' + formatNumber(self.outgoingOf('Alternative').map(a, a.share).sum() * 100.0, '0.#') + ' % of its work, not 100 %.'"
+        },
+        "scope": [
+          "Step"
+        ]
+      },
+      {
+        "id": "unmarkedCycle",
+        "code": "vsm.unmarked-cycle",
+        "label": "Cycle of forward flows",
+        "severity": "error",
+        "rule": "!self.inCycle('Flow')",
+        "message": {
+          "cel": "'\"' + self.name + '\" lies on a cycle of forward flows. Mark the flow that goes back as rework; until then the totals of its state are not computed.'"
+        },
+        "scope": [
+          "Step"
+        ]
+      },
+      {
+        "id": "reworkForward",
+        "code": "vsm.rework-forward",
+        "label": "Rework that goes forward",
+        "severity": "warning",
+        "rule": "self.source == self.target || self.source in self.target.reachable('Flow')",
+        "message": {
+          "cel": "'The rework from \"' + self.source.name + '\" goes to \"' + self.target.name + '\", which does not come before it; rework goes back to an earlier step.'"
+        },
+        "scope": [
+          "Rework"
+        ]
+      },
+      {
+        "id": "tooManySteps",
+        "code": "vsm.too-many-steps",
+        "label": "Too many steps",
+        "severity": "warning",
+        "rule": "stepsOf('current').size() <= 64 && stepsOf('future').size() <= 64",
+        "message": {
+          "cel": "'A state has more than 64 steps; its totals are not computed.'"
+        },
+        "scope": [
+          "diagram"
+        ]
+      },
+      {
+        "id": "unknownActivity",
+        "code": "vsm.unknown-activity",
+        "label": "Activity not in the list",
+        "severity": "info",
+        "rule": "!has(self.activity) || self.activity == '' || diagram.nodesOfType('Activity').exists(a, a.name == self.activity)",
+        "message": {
+          "cel": "'\"' + self.activity + '\" is not one of the stream\\'s activities; it is kept as written.'"
+        },
+        "scope": [
+          "Step"
+        ],
+        "attribute": "activity"
+      },
+      {
+        "id": "unknownPractice",
+        "code": "vsm.unknown-practice",
+        "label": "Practice not in the list",
+        "severity": "info",
+        "rule": "self.practices.all(p, diagram.nodesOfType('Practice').exists(q, q.name == p))",
+        "message": {
+          "cel": "'\"' + self.practices.filter(p, !diagram.nodesOfType('Practice').exists(q, q.name == p))[0] + '\" is not one of the stream\\'s practices; it is kept as written.'"
+        },
+        "scope": [
+          "Step"
+        ],
+        "attribute": "practices"
+      },
+      {
+        "id": "sameState",
+        "code": "vsm.cross-state",
+        "label": "Flow across states",
+        "kind": "connect",
+        "rule": "source.state == target.state",
+        "message": {
+          "cel": "'A flow joins two elements of one state; \"' + source.name + '\" is in the ' + source.state + ' state and \"' + target.name + '\" in the ' + target.state + ' state.'"
+        },
+        "doc": "Relations never cross states (data-model.md)."
+      }
+    ]
+  },
+  "behavior": {
+    "doc": "Every edit is one undoable step. Creating the future state copies the current one in one step; showing a state changes the kept filter, which is also one step.",
+    "operations": {
+      "createFutureState": {
+        "label": "Create future state",
+        "icon": "mdi-content-copy",
+        "for": "diagram",
+        "unavailable": [
+          {
+            "when": "diagram.nodes.exists(n, (n.isA('Trigger') || n.isA('Step') || n.isA('Outcome')) && n.state == 'future')",
+            "message": "The map already has a future state. Remove it first to copy the current state again."
+          },
+          {
+            "when": "!diagram.nodesOfType('Trigger').exists(t, t.state == 'current')",
+            "message": "The current state has no trigger to copy yet."
+          }
+        ],
+        "actions": [
+          {
+            "forEach": "diagram.nodes.filter(n, (n.isA('Trigger') || n.isA('Step') || n.isA('Outcome')) && n.state == 'current')",
+            "as": "n",
+            "do": [
+              {
+                "create": {
+                  "type": "n.type",
+                  "attributes": {
+                    "name": "n.name",
+                    "state": "'future'",
+                    "basedOn": "n.id",
+                    "activity": "n.isA('Step') && has(n.activity) ? n.activity : null",
+                    "practices": "n.isA('Step') ? n.practices : []",
+                    "performer": "n.isA('Step') && has(n.performer) ? n.performer : null",
+                    "processTime": "n.isA('Step') && has(n.processTime) ? n.processTime : null",
+                    "waitTime": "n.isA('Step') && has(n.waitTime) ? n.waitTime : null",
+                    "note": "n.isA('Step') && has(n.note) ? n.note : null"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "forEach": "diagram.relations.filter(r, (r.isA('Flow') || r.isA('Rework')) && r.source.state == 'current')",
+            "as": "r",
+            "do": [
+              {
+                "let": {
+                  "from": "diagram.nodes.filter(n, n.state == 'future' && n.basedOn == r.source.id)[0]",
+                  "to": "diagram.nodes.filter(n, n.state == 'future' && n.basedOn == r.target.id)[0]"
+                }
+              },
+              {
+                "connect": {
+                  "type": "r.type",
+                  "source": "from",
+                  "target": "to",
+                  "attributes": {
+                    "share": "r.isA('Alternative') ? r.share : null",
+                    "rate": "r.isA('Rework') ? r.rate : null"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "view": {
+              "filters": {
+                "state": "'future'"
+              }
+            },
+            "target": "diagram"
+          }
+        ],
+        "doc": "Research R3: every trigger, step, outcome and flow of the current state is copied into future:, each copy carrying basedOn, the id of what it copies; then the canvas shows the future state."
+      },
+      "showCurrent": {
+        "label": "Show current state",
+        "for": "diagram",
+        "unavailable": [
+          {
+            "when": "diagram.shownState == 'current'",
+            "message": "The current state is shown."
+          }
+        ],
+        "actions": [
+          {
+            "view": {
+              "filters": {
+                "state": "'current'"
+              }
+            },
+            "target": "diagram"
+          }
+        ]
+      },
+      "showFuture": {
+        "label": "Show future state",
+        "for": "diagram",
+        "unavailable": [
+          {
+            "when": "!diagram.nodesOfType('Trigger').exists(t, t.state == 'future')",
+            "message": "The map has no future state yet. Create it from the current state first."
+          },
+          {
+            "when": "diagram.shownState == 'future'",
+            "message": "The future state is shown."
+          }
+        ],
+        "actions": [
+          {
+            "view": {
+              "filters": {
+                "state": "'future'"
+              }
+            },
+            "target": "diagram"
+          }
+        ]
+      },
+      "removeFutureState": {
+        "label": "Remove future state",
+        "icon": "mdi-delete-outline",
+        "for": "diagram",
+        "unavailable": [
+          {
+            "when": "!diagram.nodes.exists(n, (n.isA('Trigger') || n.isA('Step') || n.isA('Outcome')) && n.state == 'future')",
+            "message": "The map has no future state."
+          }
+        ],
+        "confirm": {
+          "cel": "'Remove the future state and its ' + string(stepsOf('future').size()) + ' steps? The current state is kept.'"
+        },
+        "actions": [
+          {
+            "view": {
+              "filters": {
+                "state": "'current'"
+              }
+            },
+            "target": "diagram"
+          },
+          {
+            "delete": "diagram.nodes.filter(n, (n.isA('Trigger') || n.isA('Step') || n.isA('Outcome')) && n.state == 'future')"
+          }
+        ]
+      }
+    }
+  },
+  "viewpoints": {
+    "stream": {
+      "label": "Value stream",
+      "exclude": [
+        "Activity",
+        "Practice"
+      ],
+      "default": true,
+      "doc": "The vocabularies are lists of names, edited in forms and never drawn."
+    }
+  },
+  "persistence": {
+    "format": "fbl",
+    "binding": "value-stream-map.fbl#vsm",
+    "ids": {
+      "strategy": "sequential",
+      "prefix": {
+        "Trigger": "t",
+        "Step": "s",
+        "Outcome": "o"
+      },
+      "types": {
+        "Flow": {
+          "strategy": "derived",
+          "expression": "'flow:' + self.source.id + '->' + self.target.id",
+          "doc": "A flow is written as its ends alone, so its id is formed from them; two flows between the same ends are refused (allowParallel false)."
+        },
+        "Rework": {
+          "strategy": "derived",
+          "expression": "'rework:' + self.source.id + '->' + self.target.id"
+        },
+        "Activity": {
+          "strategy": "derived",
+          "expression": "'activity:' + self.name"
+        },
+        "Practice": {
+          "strategy": "derived",
+          "expression": "'practice:' + self.name"
+        }
+      },
+      "doc": "A new trigger, step or outcome takes the next free id of its kind, across the file: t, s or o followed by a number (contracts/value-stream-document.md, Rules). Ids written by hand are kept as written. A flow and a vocabulary entry have no id key in the file: theirs are formed from their ends or their name."
+    },
+    "typeMap": {
+      "Diagram": {
+        "as": "diagram",
+        "attributes": {
+          "shownState": null
+        },
+        "hostAttributes": [
+          "unknownKeys"
+        ],
+        "doc": "The root mapping: name and unit; view.state is the kept filter's value (view.bind)."
+      },
+      "Activity": {
+        "as": "Activity"
+      },
+      "Practice": {
+        "as": "Practice"
+      },
+      "Trigger": {
+        "as": "Trigger",
+        "hostAttributes": [
+          "unknownKeys"
+        ]
+      },
+      "Step": {
+        "as": "Step",
+        "hostAttributes": [
+          "unknownKeys"
+        ]
+      },
+      "Outcome": {
+        "as": "Outcome",
+        "hostAttributes": [
+          "unknownKeys"
+        ]
+      },
+      "Flow": {
+        "as": "Flow"
+      },
+      "Alternative": {
+        "as": "Alternative"
+      },
+      "Rework": {
+        "as": "Rework"
+      }
+    },
+    "view": {
+      "store": [
+        "filters"
+      ],
+      "viewer": [
+        "selection",
+        "viewport"
+      ],
+      "bind": {
+        "filters": {
+          "type": "Diagram",
+          "values": {
+            "state": "shownState"
+          },
+          "doc": "The shown state is the key view.state."
+        }
+      },
+      "doc": "The only view data kept in the file is the shown state, under view:, which the diagram writes and an agent leaves alone. Placement is computed from the flows, so nothing else is stored."
+    },
+    "doc": "One YAML file, .vsm, read and written through the FBL binding value-stream-map.fbl#vsm with byte-preserving splices. Its shape for people and agents is in value-stream-map.md, and its JSON Schema is value-stream-map.schema.json."
+  },
+  "x-adp": {
+    "kind": "Diagram",
+    "companion": "value-stream-map.md"
+  }
+}

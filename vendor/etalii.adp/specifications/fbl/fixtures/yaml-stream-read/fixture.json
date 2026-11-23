@@ -1,0 +1,34 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A YAML stream of three documents read with body.stream documents (FBL 0.22, section 4.3): the first document has no --- line, a comment and a blank line stand before the second document's --- line and so belong to the first, and the second ends with a ... marker, which belongs to it. Each document is an entry of the sequence at the root, so the rules at /* read one element per document, in the body's order. Without stream, only the service would be read. ../yaml-stream-edits/ edits the same body.",
+  "binding": "stream.fbl#stream",
+  "input": "stream.yaml",
+  "read": {
+    "elements": [
+      {
+        "id": "checkout",
+        "type": "Service",
+        "attributes": {
+          "owner": "payments"
+        }
+      },
+      {
+        "id": "latency",
+        "type": "Check",
+        "attributes": {
+          "service": "checkout",
+          "target": 0.99
+        }
+      },
+      {
+        "id": "errors",
+        "type": "Check",
+        "attributes": {
+          "service": "checkout",
+          "target": 0.995
+        }
+      }
+    ]
+  },
+  "steps": []
+}

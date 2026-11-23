@@ -166,8 +166,9 @@ binding aad family yaml {
       references project, specification, agent, location, environment by id
       empty: refuse
     }
-    attribute x from key "x" { number: { decimals: 2 } }
-    attribute y from key "y" { number: { decimals: 2 } }
+    /// Written as whole canvas units, as the module writes a locked position.
+    attribute x from key "x" { number: { decimals: 0 } }
+    attribute y from key "y" { number: { decimals: 0 } }
     insert { place: after-last, container: "/view/placements", create: { at: end }, keys: [element, x, y] }
     remove { container: remove-empty-levels }
   }

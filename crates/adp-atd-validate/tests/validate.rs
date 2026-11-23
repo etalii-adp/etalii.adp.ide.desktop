@@ -463,7 +463,7 @@ fn a_create_and_a_connect_are_attributed_to_what_they_run() {
     let differences = validate(&tool, &description, &held);
     let bytes = differences.iter().find(|d| d.part == "bytes").unwrap();
     // The operation `addNodeHere`.
-    assert_eq!(short(bytes), "dependency-graph.atd:201");
+    assert_eq!(short(bytes), "dependency-graph.atd:223");
 }
 
 // ---- seeded differences in a designer's description (etalii.adp spec 076, T051) ------------------------------------

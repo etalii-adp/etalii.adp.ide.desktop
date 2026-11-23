@@ -14,7 +14,7 @@ atd 0.1
 /// (dependency-graph.dgr.atd), the self-dependency an edit may not write as the constraint `noSelfDependency`, and the
 /// written ends the findings judge as the function `writtenEnd`. `dependency-graph.trace.json` says where each came
 /// from, and what stays with the host.
-diagram generic/dependencies version "1.1.0" {
+diagram generic/dependencies version "1.1.6" {
   label "Dependency graph"
   id: "net.etalii.adp.generic.dependencies"
   authors: [{ name: "Peter Vrenken" }]
@@ -22,7 +22,7 @@ diagram generic/dependencies version "1.1.0" {
   homepage: "https://etalii.net/adp"
   icon: mdi-graph-outline
   fileExtension: dgr
-  requires: { conformance: standard, features: ["placement.bound", "edge.bezier", "label.parse", "persist.yaml"] }
+  requires: { conformance: standard, features: ["placement.bound", "edge.bezier", "label.parse"] }
   doc {
     tags: [dependencies, graph, "boxes and arrows", architecture, "build order"]
     seeAlso: [
@@ -123,6 +123,10 @@ diagram generic/dependencies version "1.1.0" {
       message: ('The id \'' + detail.id + '\' is declared more than once, which makes every reference to it ambiguous.')
       doc: "Nodes and dependencies share one id space. Each second and later declaration is reported, at its first line; nodes are read before dependencies."
     }
+    builtin std.missingId {
+      enabled: false
+      doc: "Reported by missingId instead, which names a node by its label and reads `self.id` as the file writes it (persistence.writtenId)."
+    }
     builtin std.references {
       enabled: false
       doc: "Reported by danglingSource and danglingTarget instead, which leave an end written empty or not written at all unreported, as the tool does, and which read the id an end is written with."
@@ -196,6 +200,24 @@ diagram generic/dependencies version "1.1.0" {
     connect DependsOn from self to added
   }
 
+  /// Adds a node with no point to place it at, as the Add node command does with nothing selected: the user is asked
+  /// for its label, and it goes at 0 on row 0.
+  operation addNode "Add node" for document {
+    icon: mdi-plus
+    param label: string { label: "Label" }
+    paramsForm: "addNode"
+    create Node { label: (p.label.trim() != '' ? p.label : 'New node'), x: 0.0, row: 0 }
+  }
+
+  /// Adds a node with no point to place it at, as the Add node command does with a node selected: the user is asked for
+  /// its label, and it goes a fixed step to the right of that node on its row, with no dependency between them.
+  operation addNodeAfter "Add node" for Node {
+    icon: mdi-plus
+    param label: string { label: "Label" }
+    paramsForm: "addNode"
+    create Node { label: (p.label.trim() != '' ? p.label : 'New node'), x: self.x + 240.0, row: self.row }
+  }
+
   /// Adds a node labelled "New node" where the canvas was clicked or the palette entry dropped: its left edge at the
   /// point's x, on the row nearest the point's y.
   operation addNodeHere "Add node here" for document {
@@ -261,6 +283,8 @@ diagram generic/dependencies version "1.1.0" {
       "DependsOn/delete": "dependencies.disconnect"
       addRight: "dependencies.add-after"
       addBelow: "dependencies.add-below"
+      addNode: "dependencies.add-element"
+      addNodeAfter: "dependencies.add-element"
       addNodeHere: "dependencies.add-element"
       connect: "dependencies.connect"
     }
