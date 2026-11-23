@@ -69,7 +69,8 @@ fn asks_for_something_in_common(name: &str) -> bool {
 
 /// The attributes both sides can state, each with the name the case states it under: those the case states anywhere
 /// in its reading that the description's model declares on `type_name`, not derived; an attribute the trace maps for
-/// the type or a type it extends is stated under the recorded name (ATD §2.3).
+/// the type or a type it extends is stated under the recorded name, and one it maps to the empty name not at all (ATD
+/// §2.3).
 fn comparable(
     specification: &DislSpecification,
     type_name: &str,
@@ -91,7 +92,8 @@ fn comparable(
         .values()
         .filter(|attribute| !attribute.is_derived())
         .map(|attribute| (attribute.name.clone(), recorded_as(&attribute.name)))
-        .filter(|(_, recorded)| stated.contains(recorded.as_str()))
+        // An attribute mapped to the empty name is one the module records no value for.
+        .filter(|(_, recorded)| !recorded.is_empty() && stated.contains(recorded.as_str()))
         .collect();
     names.sort();
     names
