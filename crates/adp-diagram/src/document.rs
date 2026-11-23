@@ -252,12 +252,8 @@ impl DiagramDocument {
     /// Why the document cannot be edited, or none: a body that could not be read, a body that is gone, a binding
     /// that is read-only.
     pub fn refusal(&self) -> Option<String> {
-        let name = file_name(&self.body_path);
-        if self.deleted {
-            return Some(format!("{name} is no longer there, so it cannot be edited."));
-        }
-        if self.reading.model.is_unreadable {
-            return Some(format!("{name} could not be read, so it cannot be edited."));
+        if let Some(refusal) = self.unavailable() {
+            return Some(refusal);
         }
         self.tool.binding.read_only.as_ref().map(|reason| {
             if reason.is_empty() {
@@ -266,6 +262,19 @@ impl DiagramDocument {
                 format!("This diagram is read-only: {reason}")
             }
         })
+    }
+
+    /// Why nothing of the document can be written, not even where its elements stand: a body that is gone, or one that
+    /// could not be read.
+    fn unavailable(&self) -> Option<String> {
+        let name = file_name(&self.body_path);
+        if self.deleted {
+            return Some(format!("{name} is no longer there, so it cannot be edited."));
+        }
+        if self.reading.model.is_unreadable {
+            return Some(format!("{name} could not be read, so it cannot be edited."));
+        }
+        None
     }
 
     /// The authored positions, by element id, in the diagram's domain units: a node the tool type's module places is
@@ -483,7 +492,15 @@ impl DiagramDocument {
     /// Plans `changes` as one edit labelled `label`, each against the document as the ones before it left it; the
     /// first refusal, the library's or a missing registration's, plans nothing.
     pub fn plan(&self, label: &str, changes: &[DiagramChange]) -> Result<DocumentEdit, String> {
-        if let Some(refusal) = self.refusal() {
+        // An authored position is view data in the registration: a read-only binding keeps its body unwritten, not
+        // where its elements stand (FBL sections 8.3, 11.4).
+        let places_only = !changes.is_empty() && changes.iter().all(|c| matches!(c, DiagramChange::Place { .. }));
+        let refusal = if places_only {
+            self.unavailable()
+        } else {
+            self.refusal()
+        };
+        if let Some(refusal) = refusal {
             return Err(refusal);
         }
         let numbered = self.with_numbering(changes)?;
