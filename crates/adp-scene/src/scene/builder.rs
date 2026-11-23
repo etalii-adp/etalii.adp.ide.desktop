@@ -743,6 +743,19 @@ impl<'a> Builder<'a> {
                 let radius = param.or(radius).unwrap_or(8.0);
                 Path::rounded_rect(bounds, radius.min(bounds.width.min(bounds.height) / 2.0))
             }
+            BuiltInShape::Folder => {
+                // The tab, 0.4 of the width and 12 high, slanting down to the body at its right.
+                let tab = (bounds.width * 0.4).max(12.0);
+                let height = 12.0_f64.min(bounds.height / 2.0);
+                Path::polygon(&[
+                    Point::new(bounds.x, bounds.y),
+                    Point::new(bounds.x + tab - height / 2.0, bounds.y),
+                    Point::new(bounds.x + tab, bounds.y + height),
+                    Point::new(bounds.right(), bounds.y + height),
+                    Point::new(bounds.right(), bounds.bottom()),
+                    Point::new(bounds.x, bounds.bottom()),
+                ])
+            }
             BuiltInShape::Pill => Path::rounded_rect(bounds, bounds.height / 2.0),
             BuiltInShape::CenteredBox => Path::rounded_rect(bounds, 6.0),
             BuiltInShape::Ellipse => Path::ellipse(bounds),
