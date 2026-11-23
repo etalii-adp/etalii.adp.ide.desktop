@@ -1365,7 +1365,7 @@
         "disl": {
           "type": "string",
           "pattern": "^\\d+\\.\\d+$",
-          "description": "The DISL version the specification targets, as major.minor: 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8 or 0.9. A 0.9 runtime reads 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7 and 0.8 specifications with their meaning. See DISL 0.9, section 2.9."
+          "description": "The DISL version the specification targets, as major.minor: 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9 or 0.10. A 0.10 runtime reads 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8 and 0.9 specifications with their meaning. See DISL 0.10, section 2.9."
         },
         "dedl": {
           "type": "string",
@@ -12787,6 +12787,10 @@
           "patternProperties": {
             "^x-": true
           }
+        },
+        "writtenId": {
+          "type": "string",
+          "description": "(DISL 0.10) The host attribute holding the id an element is written with: findings name an element, and self.id reads it, by that attribute's value, and a finding about an ephemeral element is at its line (section 11.5.4)."
         },
         "ids": {
           "$ref": "#/$defs/IdStrategy"

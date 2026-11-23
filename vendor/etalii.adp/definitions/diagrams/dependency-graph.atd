@@ -237,6 +237,9 @@ diagram generic/dependencies version "1.1.0" {
       doc: "New ids are ShortGuids: a version 4 GUID written as 25 characters of base 36. Hand-written ids such as `api-gateway` are kept as they are."
     }
     view: { store: [] }
+    /// Findings name an element, and `self.id` reads it, by the id the file writes it with, which the binding reads
+    /// into the host attribute `storedId` (DISL 0.10, 11.5.4).
+    writtenId: storedId
     collaboration: { mode: none }
     typeMap: {
       Node: { as: Node, hostAttributes: [storedId] }

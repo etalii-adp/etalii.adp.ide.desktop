@@ -87,4 +87,7 @@ pub struct DislConstraintOptions {
     /// The id an element is written with; none for its model id. A later holder of a written id has an ephemeral id
     /// in the model (section 11.5.4), while its file still names it by what is written.
     pub written_id: Option<WrittenId>,
+    /// Whether a finding about an element the file writes with another id than its model's is at its line rather than
+    /// at the element (DISL 0.10, section 11.5.4): such an element is ephemeral, and no place to go to.
+    pub ephemeral_at_line: bool,
 }
