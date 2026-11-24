@@ -155,15 +155,33 @@ impl MindmapActions {
             // words, are the specification's `deletion.confirm`.
             DELETE => {
                 let specification = document.tool().definition.specification();
-                match deletion::confirmation(specification, &element, None, Some(&DislEnv::default())) {
-                    Some(confirmation) => ActionOutcome::Prompt(Prompt::Confirm {
+                // A delete that breaks links says how many first, in the confirmation (mindmap.md section 3.8).
+                let breaks = adp_diagram::link_actions::breaks_sentence(adp_diagram::link_actions::broken_by_deleting(
+                    document,
+                    std::slice::from_ref(&element),
+                ));
+                match (
+                    deletion::confirmation(specification, &element, None, Some(&DislEnv::default())),
+                    breaks,
+                ) {
+                    (Some(confirmation), breaks) => ActionOutcome::Prompt(Prompt::Confirm {
                         title: confirmation.title,
                         icon: entry.icon.clone(),
-                        message: confirmation.message,
+                        message: match breaks {
+                            Some(breaks) => format!("{} {breaks}", confirmation.message),
+                            None => confirmation.message,
+                        },
                         confirm_label: confirmation.confirm_label,
                         danger: confirmation.danger,
                     }),
-                    None => done(write(session, workspace, "Delete", remove(&element))),
+                    (None, Some(breaks)) => ActionOutcome::Prompt(Prompt::Confirm {
+                        title: "Delete node?".into(),
+                        icon: entry.icon.clone(),
+                        message: breaks,
+                        confirm_label: "Delete".into(),
+                        danger: true,
+                    }),
+                    (None, None) => done(write(session, workspace, "Delete", remove(&element))),
                 }
             }
             // View state, not a command: nothing is written and nothing lands on the history.

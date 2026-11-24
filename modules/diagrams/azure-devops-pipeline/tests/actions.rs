@@ -351,7 +351,7 @@ fn every_offered_action_actually_does_something() {
                     let committed = pipeline.answer(id, &action, "A new name");
                     assert_eq!(ActionOutcome::Done, committed, "{action} on {id}");
                 }
-                ActionOutcome::Done => {}
+                ActionOutcome::Done | ActionOutcome::Open { .. } => {}
             }
         }
     }

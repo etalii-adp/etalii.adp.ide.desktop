@@ -82,6 +82,12 @@ pub enum ActionOutcome {
     Done,
     Refused(String),
     Prompt(Prompt),
+    /// Open the document at `path` in the host's tool for its type, or bring it to the front, with the element
+    /// `element_id` selected (FBL section 17.5): a link followed, or a backlink.
+    Open {
+        path: PathBuf,
+        element_id: Option<String>,
+    },
 }
 
 /// What a selected element shows: the path the selection names it by, and its text.
@@ -173,7 +179,7 @@ impl DiagramSession {
         self.changes.delivered()
     }
 
-    fn document<'a>(&self, documents: &'a DiagramDocuments) -> Result<&'a DiagramDocument, String> {
+    pub(crate) fn document<'a>(&self, documents: &'a DiagramDocuments) -> Result<&'a DiagramDocument, String> {
         documents.get(&self.body_path).ok_or_else(|| NOT_OPEN.to_owned())
     }
 
@@ -851,16 +857,27 @@ impl DiagramSession {
                     .any(|ancestor| element_ids.contains(&ancestor.id()))
             })
             .collect();
+        // A delete that breaks links says how many first (FBL section 17.5).
+        let breaks = crate::link_actions::breaks_sentence(crate::link_actions::broken_by_deleting(
+            document,
+            &removed.iter().map(|e| (*e).clone()).collect::<Vec<_>>(),
+        ));
         if !confirmed
-            && removed
-                .iter()
-                .any(|element| deletion::confirmation(specification, element, None, Some(&self.env)).is_some())
+            && (breaks.is_some()
+                || removed
+                    .iter()
+                    .any(|element| deletion::confirmation(specification, element, None, Some(&self.env)).is_some()))
         {
             let count = removed.len();
+            let mut message =
+                format!("Delete the {count} selected elements and everything under them? You can undo this.");
+            if let Some(breaks) = breaks {
+                message = format!("{message} {breaks}");
+            }
             return ActionOutcome::Prompt(Prompt::Confirm {
                 title: format!("Delete {count} elements?"),
                 icon: "mdi-delete-outline".into(),
-                message: format!("Delete the {count} selected elements and everything under them? You can undo this."),
+                message,
                 confirm_label: "Delete".into(),
                 danger: true,
             });
@@ -967,7 +984,7 @@ impl DiagramSession {
         {
             return match outcome {
                 ActionOutcome::Refused(refusal) => Err(refusal),
-                ActionOutcome::Done | ActionOutcome::Prompt(_) => Ok(()),
+                ActionOutcome::Done | ActionOutcome::Prompt(_) | ActionOutcome::Open { .. } => Ok(()),
             };
         }
         let document = self.document(workspace.documents())?;
@@ -1188,10 +1205,12 @@ impl DiagramSession {
         };
         // What `self.view` reads is the viewer's: a fold's Collapse or Expand follows it.
         document.bind_views();
-        match Self::menu_target(document, target) {
+        let mut groups = match Self::menu_target(document, target) {
             Some(menu) => document.tool().definition.menus(&menu, &self.env),
             None => Vec::new(),
-        }
+        };
+        groups.extend(crate::link_actions::menu(document, target));
+        groups
     }
 
     /// The action a double-click on the element `element_id` runs, as [`DiagramSession::execute`] takes it: the
@@ -1236,7 +1255,12 @@ impl DiagramSession {
             .map(|e| e.id.clone())
     }
 
-    fn entry(&self, document: &DiagramDocument, target: &ActionTarget, action_id: &str) -> Option<DerivedMenuEntry> {
+    pub(crate) fn entry(
+        &self,
+        document: &DiagramDocument,
+        target: &ActionTarget,
+        action_id: &str,
+    ) -> Option<DerivedMenuEntry> {
         document.bind_views();
         let menu = Self::menu_target(document, target)?;
         let definition = &document.tool().definition;
@@ -1274,6 +1298,9 @@ impl DiagramSession {
         if let Some(view) = &self.view {
             return view.execute_with_ids(workspace, target, action_id, ids);
         }
+        if let Some(outcome) = self.link_action(workspace, target, action_id) {
+            return outcome;
+        }
         if let Some(module) = self.module(workspace.documents())
             && let Some(outcome) = module.execute(self, workspace, target, action_id, ids)
         {
@@ -1304,15 +1331,33 @@ impl DiagramSession {
                 {
                     return ActionOutcome::Refused(refusal.message);
                 }
-                match deletion::confirmation(specification, &element, None, Some(&self.env)) {
-                    Some(confirmation) => ActionOutcome::Prompt(Prompt::Confirm {
+                let breaks = crate::link_actions::breaks_sentence(crate::link_actions::broken_by_deleting(
+                    document,
+                    std::slice::from_ref(&element),
+                ));
+                match (
+                    deletion::confirmation(specification, &element, None, Some(&self.env)),
+                    breaks,
+                ) {
+                    (Some(confirmation), breaks) => ActionOutcome::Prompt(Prompt::Confirm {
                         title: confirmation.title,
                         icon: "mdi-delete-outline".into(),
-                        message: confirmation.message,
+                        message: match breaks {
+                            Some(breaks) => format!("{} {breaks}", confirmation.message),
+                            None => confirmation.message,
+                        },
                         confirm_label: confirmation.confirm_label,
                         danger: confirmation.danger,
                     }),
-                    None => self.remove(workspace, id),
+                    // A delete that breaks links says how many first (FBL section 17.5).
+                    (None, Some(breaks)) => ActionOutcome::Prompt(Prompt::Confirm {
+                        title: "Delete?".into(),
+                        icon: "mdi-delete-outline".into(),
+                        message: breaks,
+                        confirm_label: "Delete".into(),
+                        danger: true,
+                    }),
+                    (None, None) => self.remove(workspace, id),
                 }
             }
             ("editLabel", ActionTarget::Element(id)) => {
@@ -1546,6 +1591,9 @@ impl DiagramSession {
     ) -> ActionOutcome {
         if let Some(view) = &self.view {
             return view.answer(workspace, target, action_id, value);
+        }
+        if let Some(outcome) = self.link_answer(workspace, target, action_id, value, given) {
+            return outcome;
         }
         if let Some(module) = self.module(workspace.documents())
             && let Some(outcome) = module.answer(self, workspace, target, action_id, value)

@@ -120,6 +120,7 @@ impl Graph {
             ActionOutcome::Refused(refusal) => Err(refusal),
             ActionOutcome::Prompt(Prompt::Confirm { .. }) => self.answer(target, action, ""),
             ActionOutcome::Prompt(prompt) => Err(format!("it asked: {prompt:?}")),
+            ActionOutcome::Open { path, .. } => Err(format!("it opened {}", path.display())),
         }
     }
 
@@ -131,7 +132,7 @@ impl Graph {
         {
             ActionOutcome::Prompt(_) => self.answer(target, action, value),
             ActionOutcome::Refused(refusal) => Err(refusal),
-            ActionOutcome::Done => Err("it asked nothing".to_owned()),
+            ActionOutcome::Done | ActionOutcome::Open { .. } => Err("it asked nothing".to_owned()),
         }
     }
 
@@ -140,6 +141,7 @@ impl Graph {
             ActionOutcome::Done => Ok(()),
             ActionOutcome::Refused(refusal) => Err(refusal),
             ActionOutcome::Prompt(prompt) => Err(format!("it asked again: {prompt:?}")),
+            ActionOutcome::Open { path, .. } => Err(format!("it opened {}", path.display())),
         }
     }
 
