@@ -11,6 +11,7 @@ pub mod grid;
 pub mod layered_columns;
 pub mod layered_regions;
 pub mod markdown;
+pub mod nested_grid;
 pub mod ranked_boundaries;
 pub mod ranked_columns;
 pub mod ring;
@@ -336,6 +337,9 @@ impl Capabilities {
             .layouts
             .insert("layout.bandedGrid", Rc::new(banded_grid::BandedGrid));
         capabilities.layouts.insert("layout.grid", Rc::new(grid::Grid));
+        capabilities
+            .layouts
+            .insert("layout.nestedGrid", Rc::new(nested_grid::NestedGrid));
         capabilities
             .layouts
             .insert("layout.depthColumns", Rc::new(depth_columns::DepthColumns));

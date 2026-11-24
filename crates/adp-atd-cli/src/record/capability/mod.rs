@@ -83,6 +83,7 @@ pub fn record(name: &str, cases: &Path) -> Result<Vec<PathBuf>, String> {
         "reader.helmChart" => helm_chart(cases),
         "layout.rankedColumns" => ranked_columns(cases),
         "reader.sparql" => sparql(cases),
+        "layout.nestedGrid" => nested_grid(cases),
         "render.markdown" => markdown(cases, "render.markdown", render_markdown),
         "reader.turtle" => super::w3c::turtle(cases),
         "render.descriptionLogic" => super::w3c::description_logic(cases),
@@ -462,6 +463,80 @@ fn sparql(cases: &Path) -> Result<Vec<PathBuf>, String> {
             "input": input,
             "args": {},
             "output": output,
+        });
+        let file = cases.join(format!("{short}.json"));
+        write_json(&file, &fixture)?;
+        written.push(file);
+    }
+    Ok(written)
+}
+
+/// `layout.nestedGrid` from the SPARQL module's scope grid (`modules/diagrams/sparql/src/layout.rs`), on the query of
+/// every SPARQL parity script: the module's nodes and regions as the containment it lays out, each node in the region of
+/// its scope and each region in its parent's, in the order the module places them, a region marked a container; and the
+/// top-left corner of every node and every region's frame.
+fn nested_grid(cases: &Path) -> Result<Vec<PathBuf>, String> {
+    use adp_diagram_sparql::{layout, parser, projection};
+
+    fs::create_dir_all(cases).map_err(|e| format!("{}: {e}", cases.display()))?;
+    let mut written = Vec::new();
+    for name in adp_parity::script_names()
+        .into_iter()
+        .filter(|n| n.starts_with("w3c/sparql/"))
+    {
+        let case = adp_parity::Case::load(&name)?;
+        let text = reader_input(&case)?["body"].as_str().unwrap_or_default().to_owned();
+        let Ok(model) = parser::parse(&text) else {
+            continue;
+        };
+        let projected = projection::project(&model);
+        let placed = layout::compute(&projected, &Default::default());
+        let region_of = |scope: &str| {
+            projected
+                .regions
+                .iter()
+                .find(|r| r.scope_path == scope)
+                .map(|r| r.id.clone())
+        };
+        let parent_of = |region: &projection::SparqlRegion| {
+            (!region.parent_region_id.is_empty()).then(|| region.parent_region_id.clone())
+        };
+        let mut nodes = Vec::new();
+        for node in &projected.nodes {
+            nodes.push(json!({
+                "id": node.id, "width": layout::NODE_WIDTH, "height": layout::NODE_HEIGHT,
+                "parent": region_of(&node.scope_path),
+            }));
+        }
+        // The template region is laid out last among the roots, beside the where clause's items.
+        let (template, others): (Vec<_>, Vec<_>) = projected.regions.iter().partition(|r| r.scope_path == "template");
+        for region in others.into_iter().chain(template) {
+            nodes.push(json!({
+                "id": region.id, "width": layout::NODE_WIDTH, "height": layout::NODE_HEIGHT + 30.0,
+                "parent": parent_of(region), "attributes": { "container": "true" },
+            }));
+        }
+        let mut positions = Map::new();
+        for node in &nodes {
+            let id = node["id"].as_str().unwrap_or_default();
+            let at = placed
+                .node_positions
+                .get(id)
+                .copied()
+                .or_else(|| placed.region_bounds.get(id).map(|r| (r.x, r.y)));
+            if let Some((x, y)) = at {
+                positions.insert(id.to_owned(), json!({ "x": round2(x), "y": round2(y) }));
+            }
+        }
+        let short = name.rsplit('/').next().unwrap_or(&name);
+        let fixture = json!({
+            "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+            "doc": format!(
+                "Recorded by `atd record --capability layout.nestedGrid` from modules/diagrams/sparql/src/layout.rs of etalii.adp.ide.desktop, on the query parity/scripts/{name}.json opens; never edited by hand."
+            ),
+            "input": { "nodes": nodes, "edges": [] },
+            "args": { "columns": 3, "columnGap": 60, "rowGap": 48, "padding": 36, "labelBand": 30, "origin": [40, 90] },
+            "output": { "positions": positions },
         });
         let file = cases.join(format!("{short}.json"));
         write_json(&file, &fixture)?;
