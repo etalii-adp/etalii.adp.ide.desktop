@@ -84,6 +84,7 @@ pub fn row(
     );
 
     if let Some(reasons) = json::get(item, "readOnlyReasons")
+        && evaluation::reasons_apply(specification, item, &pointer, &current)
         && let Some(reason) = evaluation::first_reason(
             specification,
             reasons,
@@ -243,6 +244,7 @@ pub fn diagram_row(
     );
     let current = with_self(current, diagram);
     if let Some(reasons) = json::get(item, "readOnlyReasons")
+        && evaluation::reasons_apply(specification, item, &pointer, &current)
         && let Some(reason) = evaluation::first_reason(
             specification,
             reasons,

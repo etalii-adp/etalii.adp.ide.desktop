@@ -81,6 +81,23 @@ pub(crate) fn holds(
     )
 }
 
+/// Whether a form item's read-only reasons are consulted (section 7.5): always, unless the item declares `readOnly`
+/// (a bindable bool), whose reasons then explain it and apply only while it holds, as the mind map's text row reads
+/// `readOnly: has(self.linkedElement)` with its one reason.
+pub(crate) fn reasons_apply(specification: &DislSpecification, item: &Json, pointer: &str, variables: &Vars) -> bool {
+    match item.get("readOnly") {
+        None => true,
+        Some(Json::Bool(read_only)) => *read_only,
+        Some(read_only) => holds(
+            specification,
+            read_only,
+            &crate::json::pointer(pointer, "readOnly"),
+            crate::expressions::contexts::FORM,
+            variables,
+        ),
+    }
+}
+
 /// The text of a Message (section 2.3): a string as it is, a locale map's English or first text, the value of a
 /// `{cel}` object; `fallback` when it is absent or fails.
 pub(crate) fn message(

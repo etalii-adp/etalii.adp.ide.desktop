@@ -42,10 +42,19 @@ fn texts_under(project: &TestProject, id: &str) -> Vec<String> {
 
 #[test]
 fn a_leaf_offers_everything_but_fold_and_unlink() {
+    // Adding a linked node is spec 089's: the host's lookup picks the element it stands for.
     let project = TestProject::new();
     assert_eq!(
         project.offered(ICOMMAND),
-        [ADD_CHILD, ADD_SIBLING, RENAME, DELETE, EDIT_NOTES, LINK]
+        [
+            ADD_CHILD,
+            ADD_SIBLING,
+            "mindmap.add-linked",
+            RENAME,
+            DELETE,
+            EDIT_NOTES,
+            LINK
+        ]
     );
 }
 

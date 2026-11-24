@@ -413,15 +413,17 @@ impl Walk<'_> {
             declared.as_ref().map(|d| self.attribute_text(d)).unwrap_or_default()
         };
 
-        let mut reason = json::get(item, "readOnlyReasons").and_then(|reasons| {
-            evaluation::first_reason(
-                specification,
-                reasons,
-                &json::pointer(pointer, "readOnlyReasons"),
-                contexts::FORM,
-                variables,
-            )
-        });
+        let mut reason = json::get(item, "readOnlyReasons")
+            .filter(|_| evaluation::reasons_apply(specification, item, pointer, variables))
+            .and_then(|reasons| {
+                evaluation::first_reason(
+                    specification,
+                    reasons,
+                    &json::pointer(pointer, "readOnlyReasons"),
+                    contexts::FORM,
+                    variables,
+                )
+            });
         if reason.is_none()
             && let Some(diagram) = variables.get("diagram").and_then(DislDiagram::from_value)
         {

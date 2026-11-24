@@ -17,7 +17,7 @@ use serde_json::Value;
 use crate::schema;
 
 /// The versions of DED this runtime implements (DED section 4, step 2).
-pub const DED_VERSIONS: [&str; 2] = ["0.1", "0.2"];
+pub const DED_VERSIONS: [&str; 3] = ["0.1", "0.2", "0.3"];
 
 /// Line 1 of a Markdown definition, as DED section 2 reads it.
 static MARKDOWN: LazyLock<Regex> = LazyLock::new(|| {
