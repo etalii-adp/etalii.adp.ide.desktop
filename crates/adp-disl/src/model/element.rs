@@ -62,6 +62,9 @@ pub(crate) struct ElementState {
     pub(crate) view: Option<Map>,
     /// What `self.linked` reads (section 4.12): the target's `shows` values while the link resolves.
     pub(crate) linked: Option<Map>,
+    /// The name a linked element is labelled with while its own body writes none (section 4.12): its name property
+    /// and the target's current name, or the name its link caches.
+    pub(crate) linked_name: Option<(String, String)>,
 }
 
 /// What a new element is made of, for [`DislDiagram::add`]: a node beneath its parent, or a relation at its ends,
@@ -192,6 +195,7 @@ impl DislElement {
                 file: new.file.clone(),
                 view: None,
                 linked: None,
+                linked_name: None,
             }),
         })))
     }
@@ -390,6 +394,12 @@ impl DislElement {
         self.0.state.borrow_mut().linked = linked;
     }
 
+    /// Labels a linked element whose body writes no name (section 4.12): `attribute` reads `name` while the element
+    /// stores no value of its own for it.
+    pub fn set_linked_name(&self, linked_name: Option<(String, String)>) {
+        self.0.state.borrow_mut().linked_name = linked_name;
+    }
+
     /// Whether the element's type is `type_name` or one of its subtypes (section 2.7).
     pub fn is_a(&self, type_name: &str) -> bool {
         self.0.state.borrow().element_type.is_a(type_name)
@@ -415,6 +425,11 @@ impl DislElement {
             return self.derived(&attribute, &diagram);
         }
         let Some(value) = stored else {
+            if let Some((named, linked_name)) = &self.0.state.borrow().linked_name
+                && named == name
+            {
+                return Value::String(linked_name.clone());
+            }
             return values::unset(&attribute, metamodel);
         };
         if metamodel.type_of(&attribute.type_name).is_none() {

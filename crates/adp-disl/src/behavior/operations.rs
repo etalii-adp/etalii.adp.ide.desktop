@@ -31,6 +31,9 @@ pub struct DislInvocation {
     pub selection: Option<Vec<DislElement>>,
     /// The answered parameters, bound as `p`.
     pub parameters: Option<Map>,
+    /// The link of the element picked in the host's lookup, for an operation whose actions hold a `lookup` (DISL
+    /// 0.12, section 9.4).
+    pub picked: Option<String>,
 }
 
 /// Every variable of `context` bound to null, but `diagram` and `env`.
@@ -175,7 +178,15 @@ pub fn run(
     ) {
         return DislTransaction::refused(reason);
     }
-    actions(specification, operation, &pointer, diagram, ids, variables)
+    actions(
+        specification,
+        operation,
+        &pointer,
+        diagram,
+        ids,
+        variables,
+        invocation.picked,
+    )
 }
 
 /// Runs the operation a derived relation type's `edits.connect` names for a new line of `relation_type` from
@@ -228,7 +239,7 @@ pub fn connect(
     ) {
         return DislTransaction::refused(refusal);
     }
-    actions(specification, operation, &pointer, diagram, ids, variables)
+    actions(specification, operation, &pointer, diagram, ids, variables, None)
 }
 
 /// Runs the operation a derived element's `edits."attribute:<name>"` names for a new value of that attribute (section
@@ -261,7 +272,15 @@ pub fn derived_attribute(
     }
     variables.insert("p".into(), Value::map(parameters));
     let ids = crate::behavior::ids::short_guids();
-    Some(actions(specification, operation, &pointer, &diagram, &ids, variables))
+    Some(actions(
+        specification,
+        operation,
+        &pointer,
+        &diagram,
+        &ids,
+        variables,
+        None,
+    ))
 }
 
 /// The operation's `plugin` handed back whole, its `args` as written, or its actions run.
@@ -272,6 +291,7 @@ fn actions(
     diagram: &DislDiagram,
     ids: &dyn IdSource,
     mut variables: Vars,
+    picked: Option<String>,
 ) -> DislTransaction {
     if let Some(plugin) = json::get(operation, "plugin") {
         let name = match plugin {
@@ -288,6 +308,7 @@ fn actions(
         };
     }
     let mut runner = ActionRunner::new(specification, diagram, ids, contexts::OPERATION);
+    runner.picked = picked;
     if let Some(list) = json::get(operation, "actions") {
         runner.run(list, &json::pointer(pointer, "actions"), &mut variables);
     }

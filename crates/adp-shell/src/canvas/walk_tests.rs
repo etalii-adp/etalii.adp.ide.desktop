@@ -497,10 +497,19 @@ impl Harness {
     }
 
     /// The lines of the body that differ from the original's.
+    /// The lines the edits changed, apart from the document id the first edit gives a body without one (etalii.adp
+    /// spec 089; FBL sections 17.2 and 17.4), a top-level `id:` the original does not have.
     fn changed_lines(&self) -> Vec<(String, String)> {
+        let given_id = !self.original.lines().any(|l| l.starts_with("id: "));
+        let written: Vec<String> = self
+            .written()
+            .lines()
+            .filter(|l| !(given_id && l.starts_with("id: ")))
+            .map(str::to_owned)
+            .collect();
         self.original
             .lines()
-            .zip(self.written().lines().map(str::to_owned).collect::<Vec<_>>())
+            .zip(written)
             .filter(|(a, b)| a != b)
             .map(|(a, b)| (a.to_owned(), b))
             .collect()

@@ -25,7 +25,7 @@ use crate::model::diagram::DislDiagram;
 use crate::model::element::DislElement;
 use crate::model::values;
 
-const KINDS: [&str; 25] = [
+const KINDS: [&str; 26] = [
     "set",
     "unset",
     "create",
@@ -51,6 +51,7 @@ const KINDS: [&str; 25] = [
     "call",
     "plugin",
     "extension",
+    "lookup",
 ];
 
 pub(crate) struct ActionRunner<'a> {
@@ -63,6 +64,8 @@ pub(crate) struct ActionRunner<'a> {
     /// When set, each element as it was before the first `set` or `unset` on it, which a change's further hooks
     /// read as `old`.
     pub(crate) before: Option<HashMap<usize, DislElement>>,
+    /// The link the host's lookup answered with, which a `lookup` action creates its linked element for.
+    pub(crate) picked: Option<String>,
     refusal: Option<String>,
 }
 
@@ -99,6 +102,7 @@ impl<'a> ActionRunner<'a> {
             changes: Vec::new(),
             host: Vec::new(),
             before: None,
+            picked: None,
             refusal: None,
         }
     }
@@ -209,6 +213,7 @@ impl<'a> ActionRunner<'a> {
                 self.set(&target, values)
             }
             "create" => self.create(action, body, &body_at, variables),
+            "lookup" => self.lookup(action, body, &body_at, variables),
             "connect" => self.connect(action, body, &body_at, variables),
             "retype" => self.retype(body, &body_at, variables),
             "delete" => {
@@ -567,6 +572,59 @@ impl<'a> ActionRunner<'a> {
             at: point,
             index,
             slot: slot.as_str().map(str::to_owned).filter(|s| !s.is_empty()),
+        });
+        if let Some(name) = json::string_of(action, "as") {
+            variables.insert(name.to_owned(), created.to_value());
+        }
+        true
+    }
+
+    /// A `lookup` (DISL 0.12, section 9.4): an element of `create`, a type with `linked`, whose link attribute is the
+    /// link the host's lookup answered with; with `as: "child"` the last child of `self`, with `as: "at"` at the
+    /// pointer, with `as: "sibling"` beside `self`. The action's own `as` names it.
+    fn lookup(&mut self, action: &Json, body: &Json, at: &str, variables: &mut Vars) -> bool {
+        let Some(picked) = self.picked.clone() else {
+            return self.refuse(format!(
+                "The lookup at {at} needs the host's lookup to pick an element."
+            ));
+        };
+        let Some(create) = json::string_of(body, "create") else {
+            return self.refuse(format!("The lookup at {at} names no type to create."));
+        };
+        let metamodel = self.specification.metamodel();
+        let type_name = match metamodel.type_of(create) {
+            Some(t) if !t.is_relation && !t.is_abstract() => t.name.clone(),
+            _ => return self.refuse(format!("The lookup at {at} names no node type it can create.")),
+        };
+        let Some((attribute, _)) = metamodel.linked(&type_name) else {
+            return self.refuse(format!("'{type_name}' does not stand for a linked element."));
+        };
+        let own = variables.get("self").and_then(DislElement::from_value);
+        let (parent, point) = match json::string_of(body, "as").unwrap_or("child") {
+            "at" => (None, variables.get("position").cloned().unwrap_or(Value::Null)),
+            "sibling" => (own.and_then(|e| e.parent()), Value::Null),
+            _ => (own, Value::Null),
+        };
+        let mut attributes = Map::default();
+        attributes.insert(attribute, Value::String(picked));
+        let created = self.ids.next(&type_name).and_then(|id| match &parent {
+            Some(parent) => self
+                .diagram
+                .add_child(&type_name, &id, attributes.clone(), parent, None),
+            None => self.diagram.add_node(&type_name, &id, attributes.clone()),
+        });
+        let created = match created {
+            Ok(created) => created,
+            Err(e) => return self.refuse(e),
+        };
+        self.changes.push(DislChange::Create {
+            type_name,
+            id: created.id(),
+            attributes,
+            parent_id: parent.map(|p| p.id()),
+            at: point,
+            index: None,
+            slot: None,
         });
         if let Some(name) = json::string_of(action, "as") {
             variables.insert(name.to_owned(), created.to_value());

@@ -1431,7 +1431,7 @@ impl DiagramSession {
                 }
                 let asked: Vec<_> = parameters.iter().filter(|p| !given.contains_key(&p.name)).collect();
                 if !given.is_empty() && (asked.is_empty() || answers) {
-                    return match self.run_operation(workspace, target, &entry, &operation, Some(given), ids) {
+                    return match self.run_operation(workspace, target, &entry, &operation, Some(given), ids, None) {
                         Ok(()) => ActionOutcome::Done,
                         Err(refusal) => ActionOutcome::Refused(refusal),
                     };
@@ -1472,7 +1472,7 @@ impl DiagramSession {
                         ));
                     }
                 }
-                match self.run_operation(workspace, target, &entry, &operation, None, ids) {
+                match self.run_operation(workspace, target, &entry, &operation, None, ids, None) {
                     Ok(()) => ActionOutcome::Done,
                     Err(refusal) => ActionOutcome::Refused(refusal),
                 }
@@ -1651,7 +1651,7 @@ impl DiagramSession {
                         (Ok(minted), None) => minted,
                         (Err(_), _) => &stand_ins,
                     };
-                    return match self.run_operation(workspace, target, &entry, &operation, None, ids) {
+                    return match self.run_operation(workspace, target, &entry, &operation, None, ids, None) {
                         Ok(()) => ActionOutcome::Done,
                         Err(refusal) => ActionOutcome::Refused(refusal),
                     };
@@ -1678,7 +1678,7 @@ impl DiagramSession {
                     (Ok(minted), None) => minted,
                     (Err(_), _) => &stand_ins,
                 };
-                match self.run_operation(workspace, target, &entry, &operation, Some(parameters), ids) {
+                match self.run_operation(workspace, target, &entry, &operation, Some(parameters), ids, None) {
                     Ok(()) => ActionOutcome::Done,
                     Err(refusal) => ActionOutcome::Refused(refusal),
                 }
@@ -1942,7 +1942,8 @@ impl DiagramSession {
 
     /// Runs operation `operation` of `entry` on `target` with its answered `parameters`, the plugin layouts its
     /// `layout` actions name run by the tool type's module, and writes it as one command.
-    fn run_operation(
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn run_operation(
         &self,
         workspace: &mut DiagramWorkspace,
         target: &ActionTarget,
@@ -1950,6 +1951,7 @@ impl DiagramSession {
         operation: &str,
         parameters: Option<Map>,
         ids: &dyn IdSource,
+        picked: Option<String>,
     ) -> Result<(), String> {
         let document = self.document(workspace.documents())?;
         let specification = document.tool().definition.specification();
@@ -1985,6 +1987,7 @@ impl DiagramSession {
                 _ => None,
             },
             parameters,
+            picked,
             ..DislInvocation::default()
         };
         let mut transaction = operations::run(
