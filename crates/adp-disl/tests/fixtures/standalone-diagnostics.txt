@@ -20,11 +20,14 @@ warning at /disl: This runtime knows DISL up to 0.3; what DISL 0.5 adds is not r
 # diagrams/databricks-job.dis loaded=True
 # diagrams/databricks-pipeline.dis loaded=True
 # diagrams/dependency-graph.dis loaded=True
+warning at /disl: This runtime knows DISL up to 0.3; what DISL 0.10 adds is not read (DISL §2.9).
 # diagrams/dotnet-dependency-graph.dis loaded=True
 # diagrams/functional-decomposition-graph.dis loaded=True
 # diagrams/gartner-hype-cycle-graph.dis loaded=True
 # diagrams/helm-chart.dis loaded=True
 # diagrams/mindmap.dis loaded=True
+# diagrams/openslo-slo.dis loaded=True
+warning at /disl: This runtime knows DISL up to 0.3; what DISL 0.10 adds is not read (DISL §2.9).
 # diagrams/sankey.dis loaded=False
 error at /functions/valueText/cel: The function 'formatNumber' is not supported by this CEL evaluator.
 error at /functions/rowNumber/cel: The function 'formatNumber' is not supported by this CEL evaluator.
@@ -60,6 +63,29 @@ error at /notation/edges/Flow/targetMarker/params/length/cel: The function 'band
 error at /notation/edges/Flow/targetMarker/params/width/cel: The function 'bandWidth' is not supported by this CEL evaluator. (context element)
 error at /notation/edges/Flow/labels/1/text/cel: The function 'formatAmount' is not supported by this CEL evaluator. (context element)
 # diagrams/timeline.dis loaded=True
+# diagrams/value-stream-map.dis loaded=False
+warning at /disl: This runtime knows DISL up to 0.3; what DISL 0.10 adds is not read (DISL §2.9).
+error at /functions/minutesOf/cel: The function 'getSeconds' is not supported by this CEL evaluator.
+error at /functions/processMinutes/cel: 'processMinutes' calls 'minutesOf', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).
+error at /functions/waitMinutes/cel: 'waitMinutes' calls 'minutesOf', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).
+error at /functions/leadTime/cel: 'leadTime' calls 'processMinutes', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).
+error at /functions/processTotal/cel: 'processTotal' calls 'processMinutes', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).
+error at /functions/flowEfficiency/cel: 'flowEfficiency' calls 'leadTime', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).
+error at /functions/shownEfficiency/cel: 'shownEfficiency' calls 'flowEfficiency', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).
+error at /functions/longWait/cel: 'longWait' calls 'waitMinutes', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).
+error at /functions/longestWait/cel: 'longestWait' calls 'waitMinutes', which is declared after it or does not compile; a function may call only the functions declared before it (DISL §3.4).
+error at /metamodel/types/Summary/derived/attributes/leadTime: The function 'leadTime' is not supported by this CEL evaluator. (context deriveItem)
+error at /metamodel/types/Summary/derived/attributes/processTime: The function 'processTotal' is not supported by this CEL evaluator. (context deriveItem)
+error at /metamodel/types/Summary/derived/attributes/efficiency: The function 'shownEfficiency' is not supported by this CEL evaluator. (context deriveItem)
+error at /metamodel/types/Comparison/derived/attributes/leadTime: The function 'leadTime' is not supported by this CEL evaluator. (context deriveItem)
+error at /metamodel/types/Comparison/derived/attributes/processTime: The function 'processTotal' is not supported by this CEL evaluator. (context deriveItem)
+error at /metamodel/types/Comparison/derived/attributes/efficiency: The function 'shownEfficiency' is not supported by this CEL evaluator. (context deriveItem)
+error at /notation/nodes/Step/labels/2/text/cel: The function 'formatDuration' is not supported by this CEL evaluator. (context element)
+error at /notation/nodes/Step/badges/2/visible/cel: The function 'longWait' is not supported by this CEL evaluator. (context element)
+error at /notation/nodes/Step/badges/2/tooltip/cel: The function 'formatDuration' is not supported by this CEL evaluator. (context element)
+error at /notation/nodes/Step/badges/3/text/cel: The function 'formatDuration' is not supported by this CEL evaluator. (context element)
+error at /behavior/operations/createFutureState/actions/1/do/1/connect/source: 'from' is not a variable here; available: self, selection, p, diagram, env, position, n, r. (context operation)
+error at /behavior/operations/createFutureState/actions/1/do/1/connect/target: 'to' is not a variable here; available: self, selection, p, diagram, env, position, n, r. (context operation)
 # diagrams/w3c-owl.dis loaded=True
 # diagrams/w3c-rdf.dis loaded=True
 # diagrams/w3c-shacl.dis loaded=True
