@@ -9,10 +9,12 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use adp_cel::Value;
+use adp_context::Prompt;
 use adp_diagram::DiagramDocument;
 use adp_diagram::document::DiagramChange;
+use adp_diagram::link_actions::{LINKED_FROM, OPEN_LINKED};
 use adp_diagram::problems::DiagramProblemLocation;
-use adp_diagram::session::DiagramSession;
+use adp_diagram::session::{ActionOutcome, ActionTarget, DiagramSession};
 use adp_diagram::workspace::DiagramWorkspace;
 use adp_diagram_mindmap::document::MindmapDocument;
 use adp_disl::DislChange;
@@ -214,4 +216,113 @@ fn a_linked_node_reads_as_linked_while_its_link_resolves_and_not_while_it_does_n
     assert!(linked("ID_4"));
     assert!(!linked("ID_5"));
     assert!(!linked("ID_6"));
+}
+
+impl Project {
+    fn run(&mut self, node: &str, action: &str) -> ActionOutcome {
+        self.session.execute(
+            &mut self.workspace,
+            &ActionTarget::Element(node.to_owned()),
+            action,
+            &common::CountingIds::default(),
+        )
+    }
+
+    fn reply(&mut self, node: &str, action: &str, value: &str) -> ActionOutcome {
+        self.session.answer_with_ids(
+            &mut self.workspace,
+            &ActionTarget::Element(node.to_owned()),
+            action,
+            value,
+            &common::CountingIds::default(),
+        )
+    }
+
+    fn labels(&self, node: &str) -> Vec<String> {
+        self.session
+            .actions(self.workspace.documents(), &ActionTarget::Element(node.to_owned()))
+            .into_iter()
+            .flat_map(|g| g.actions)
+            .map(|a| a.label)
+            .collect()
+    }
+}
+
+fn other_path(project: &Project) -> PathBuf {
+    std::path::absolute(project.folder.path().join("other.mm")).unwrap()
+}
+
+#[test]
+fn a_node_others_link_to_lists_them_as_linked_from_and_each_opens_the_node_that_holds_it() {
+    let mut project = Project::new(IDEAS);
+    project.check();
+    assert!(
+        project.labels("ID_2").contains(&"Linked from (1)".to_owned()),
+        "{:?}",
+        project.labels("ID_2")
+    );
+    assert!(!project.labels("ID_1").iter().any(|l| l.starts_with("Linked from")));
+    let ActionOutcome::Prompt(Prompt::Choice { options, .. }) = project.run("ID_2", LINKED_FROM) else {
+        panic!("the backlinks are listed");
+    };
+    assert_eq!(options.len(), 1);
+    assert!(options[0].label.starts_with("Start"), "{}", options[0].label);
+    let ActionOutcome::Open { path, element_id } = project.reply("ID_2", LINKED_FROM, &options[0].id) else {
+        panic!("the backlink opens");
+    };
+    assert_eq!((path, element_id.as_deref()), (project.path(), Some("ID_3")));
+}
+
+#[test]
+fn a_linked_node_whose_link_resolves_opens_its_target_and_a_broken_one_offers_nothing_to_open() {
+    let mut project = Project::new(IDEAS);
+    project.check();
+    assert!(project.labels("ID_4").contains(&"Open linked element".to_owned()));
+    assert!(!project.labels("ID_5").contains(&"Open linked element".to_owned()));
+    let ActionOutcome::Open { path, element_id } = project.run("ID_4", OPEN_LINKED) else {
+        panic!("the target opens");
+    };
+    assert_eq!((path, element_id.as_deref()), (other_path(&project), Some("ID_o2")));
+}
+
+#[test]
+fn add_from_another_document_lists_the_workspaces_linkable_nodes_and_adds_the_picked_one_as_the_last_child() {
+    let mut project = Project::new(IDEAS);
+    project.check();
+    let ActionOutcome::Prompt(Prompt::Choice { options, .. }) = project.run("ID_1", "mindmap.add-linked") else {
+        panic!("the lookup opens");
+    };
+    let headings: Vec<&str> = options.iter().map(|o| o.label.as_str()).collect();
+    assert_eq!(headings, ["maps/ideas.mm", "other.mm"]);
+    let target = options[1]
+        .children
+        .iter()
+        .find(|o| o.label == "Renamed target")
+        .expect("the other map's node");
+    assert_eq!(target.id, "$o7h3r0ne@other.mm#ID_o2.text=Renamed target");
+    assert!(matches!(
+        project.reply("ID_1", "mindmap.add-linked", &target.id),
+        ActionOutcome::Done
+    ));
+    let map = project.map();
+    let root = map.root();
+    let last = *map.children(root).last().unwrap();
+    assert_eq!(map.text(last), "Renamed target");
+    assert_eq!(map.adp_link(last).as_deref(), Some(target.id.as_str()));
+    // The first edit wrote the load-time changes with it, in the same step.
+    assert_eq!(project.text_of("ID_3"), "Launch");
+    project.workspace.undo();
+    assert_eq!(project.body(), IDEAS);
+}
+
+#[test]
+fn deleting_a_node_others_link_to_says_how_many_links_it_breaks() {
+    let mut project = Project::new(IDEAS);
+    project.check();
+    let ActionOutcome::Prompt(Prompt::Confirm { message, .. }) = project.run("ID_2", "mindmap.delete") else {
+        panic!("the delete asks first");
+    };
+    assert!(message.contains("1 link"), "{message}");
+    // A node nothing links to goes without asking, as before.
+    assert!(matches!(project.run("ID_6", "mindmap.delete"), ActionOutcome::Done));
 }

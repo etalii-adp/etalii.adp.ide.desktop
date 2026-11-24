@@ -1029,6 +1029,8 @@ impl Replay {
                 return self.edit_label(&element, label.as_deref(), value);
             }
             ActionOutcome::Refused(reason) => return Err(reason),
+            // Opening another document changes nothing of this one.
+            ActionOutcome::Open { .. } => return Ok(()),
             ActionOutcome::Prompt(prompt) => prompt,
         };
         let answer = match prompt {
@@ -1048,7 +1050,7 @@ impl Replay {
             .session
             .answer_with_ids(&mut self.workspace, target, action, &answer, &self.ids)
         {
-            ActionOutcome::Done => Ok(()),
+            ActionOutcome::Done | ActionOutcome::Open { .. } => Ok(()),
             ActionOutcome::Refused(reason) => Err(reason),
             ActionOutcome::Prompt(_) => Err("the answer asked again".to_owned()),
         }

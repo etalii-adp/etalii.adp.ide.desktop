@@ -1623,7 +1623,26 @@ impl Shell {
         for request in requests {
             self.handle(request);
         }
+        self.follow_links();
         self.tabs_and_editor(ui, theme, palette);
+    }
+
+    /// Opens what a link or a backlink followed in a diagram asked for (FBL section 17.5): its document in the tool for
+    /// its type, or its tab brought to the front, with the element it names selected.
+    fn follow_links(&mut self) {
+        let Some((root, path, element)) = self.tabs.iter_mut().find_map(|tab| {
+            let diagram = tab.diagram_mut()?;
+            let (path, element) = diagram.open_request.take()?;
+            Some((diagram.root.clone(), path, element))
+        }) else {
+            return;
+        };
+        self.open_document(&path, &root);
+        if let (Some(element), Some(diagram)) = (element, self.tabs.get_mut(self.active).and_then(Tab::diagram_mut))
+            && diagram.shows(&path)
+        {
+            diagram.select(vec![element], SelectMode::Replace);
+        }
     }
 
     fn tabs_and_editor(&mut self, ui: &mut egui::Ui, theme: &adp_theme::Theme, palette: &Palette) {
@@ -2256,6 +2275,45 @@ mod tests {
             ..Default::default()
         };
         ctx.run_ui(input, |ui| shell.show(ui)).textures_delta.clear();
+    }
+
+    /// A linked node's "Open linked element" opens the map it links to, in a tab of its own, with the node it names
+    /// selected (etalii.adp spec 089; FBL section 17.5), and opening either map writes neither.
+    #[test]
+    fn following_a_link_opens_its_target_with_the_element_selected() {
+        let folder = tempfile::tempdir().unwrap();
+        let ideas = "<map version=\"freeplane 1.11.5\">\n<node TEXT=\"Ideas\" ID=\"ID_1\">\n<attribute NAME=\"adp-id\" VALUE=\"m8c1u4wa\"/>\n<node TEXT=\"Target\" ID=\"ID_2\">\n<attribute NAME=\"adp-link\" VALUE=\"$o7h3r0ne@other.mm#ID_o2.text=Target\"/>\n</node>\n</node>\n</map>\n";
+        let other = "<map version=\"freeplane 1.11.5\">\n<node TEXT=\"Other\" ID=\"ID_o1\">\n<attribute NAME=\"adp-id\" VALUE=\"o7h3r0ne\"/>\n<node TEXT=\"Target\" ID=\"ID_o2\"/>\n</node>\n</map>\n";
+        std::fs::write(folder.path().join("ideas.mm"), ideas).unwrap();
+        std::fs::write(folder.path().join("other.mm"), other).unwrap();
+        let mut shell = Shell::default();
+        shell.open_path(folder.path());
+        shell.handle(Request::Open("ideas.mm".into()));
+        let ctx = egui::Context::default();
+        theme::install(&ctx);
+        frame(&ctx, &mut shell);
+
+        let active = shell.active;
+        let root = shell.tabs[active].diagram().unwrap().root.clone();
+        let mut host = shell.diagrams.take().unwrap();
+        let tab = shell.tabs[active].diagram_mut().unwrap();
+        tab.run_action(
+            host.workspace(&root),
+            adp_diagram::ActionTarget::Element("ID_2".into()),
+            adp_diagram::link_actions::OPEN_LINKED,
+        );
+        assert!(tab.open_request.is_some(), "{:?}", tab.notice);
+        shell.diagrams = Some(host);
+        frame(&ctx, &mut shell);
+
+        assert_eq!(shell.tabs.len(), 2);
+        let opened = shell.tabs[shell.active]
+            .diagram()
+            .expect("the target opens on its canvas");
+        assert!(opened.opened.body_path.ends_with("other.mm"));
+        assert_eq!(opened.selection, ["ID_o2"]);
+        assert_eq!(std::fs::read_to_string(folder.path().join("ideas.mm")).unwrap(), ideas);
+        assert_eq!(std::fs::read_to_string(folder.path().join("other.mm")).unwrap(), other);
     }
 
     /// A person who opens a document keeps today's tool (etalii.adp spec 067, FR-010): the Databricks and Wardley map

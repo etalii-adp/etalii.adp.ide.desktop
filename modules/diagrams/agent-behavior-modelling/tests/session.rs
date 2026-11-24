@@ -29,7 +29,7 @@ fn add(kind: &str) -> String {
 fn edit(project: &mut TestProject, name: &str) -> Result<(), String> {
     let done = |outcome: ActionOutcome| match outcome {
         ActionOutcome::Done => Ok(()),
-        ActionOutcome::Prompt(_) => Ok(()),
+        ActionOutcome::Prompt(_) | ActionOutcome::Open { .. } => Ok(()),
         ActionOutcome::Refused(refusal) => Err(refusal),
     };
     match name {

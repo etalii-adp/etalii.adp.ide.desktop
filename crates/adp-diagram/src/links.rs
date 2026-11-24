@@ -44,7 +44,7 @@ pub fn new_document_id(specification: &DislSpecification) -> Option<String> {
 }
 
 /// The id the file writes for `element`: its specification's `persistence.writtenId` host attribute, else its id.
-fn written_id(document: &DiagramDocument, element: &DislElement) -> String {
+pub(crate) fn written_id(document: &DiagramDocument, element: &DislElement) -> String {
     let written = document.tool().definition.specification().root()["persistence"]["writtenId"]
         .as_str()
         .and_then(|attribute| match element.host_attributes().get(attribute) {

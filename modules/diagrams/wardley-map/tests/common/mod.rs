@@ -194,6 +194,7 @@ impl Project {
             ActionOutcome::Done => Ok(()),
             ActionOutcome::Refused(refusal) => Err(refusal),
             ActionOutcome::Prompt(prompt) => Err(format!("asked again: {prompt:?}")),
+            ActionOutcome::Open { path, .. } => Err(format!("opened {}", path.display())),
         }
     }
 

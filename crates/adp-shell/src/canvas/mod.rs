@@ -578,6 +578,9 @@ pub struct DiagramTab {
     pub ids: Option<Box<dyn IdSource>>,
     /// The last refusal or report, for the status bar.
     pub notice: Option<String>,
+    /// A document to open, with an element of it to select, that a link or a backlink asked for (FBL section 17.5);
+    /// the shell opens it after the frame.
+    pub open_request: Option<(PathBuf, Option<String>)>,
     /// Whether an edit succeeded since the status bar last looked, so a refusal shown before it is taken away.
     pub cleared: bool,
     hovered: Option<String>,
@@ -622,6 +625,7 @@ impl DiagramTab {
             menu: None,
             ids: None,
             notice: None,
+            open_request: None,
             cleared: false,
             hovered: None,
             surface: egui::Rect::NOTHING,
@@ -1479,6 +1483,7 @@ impl DiagramTab {
             match self.session.execute(workspace, &target, &action, ids) {
                 ActionOutcome::Done => self.report(Ok(())),
                 ActionOutcome::Refused(refusal) => self.notice = Some(refusal),
+                ActionOutcome::Open { path, element_id } => self.open_request = Some((path, element_id)),
                 ActionOutcome::Prompt(prompt) => {
                     self.prompt = Some(PendingPrompt {
                         target,
@@ -1573,6 +1578,7 @@ impl DiagramTab {
                 self.select_new(workspace.documents(), before);
             }
             ActionOutcome::Refused(refusal) => self.notice = Some(refusal),
+            ActionOutcome::Open { path, element_id } => self.open_request = Some((path, element_id)),
             ActionOutcome::Prompt(Prompt::Input { initial_value, .. })
                 if matches!(target, ActionTarget::Element(_)) =>
             {
@@ -1613,6 +1619,7 @@ impl DiagramTab {
     pub fn answer(&mut self, workspace: &mut DiagramWorkspace, value: Option<&str>) {
         let Some(pending) = self.prompt.take() else { return };
         let Some(value) = value else { return };
+        let before = self.node_ids(workspace.documents());
         if let Some(action_id) = pending.action_id.strip_prefix(DELETE_SELECTION) {
             self.delete_selection(workspace, action_id, true);
             return;
@@ -1621,8 +1628,13 @@ impl DiagramTab {
             .session
             .answer(workspace, &pending.target, &pending.action_id, value)
         {
-            ActionOutcome::Done => self.succeeded(),
+            ActionOutcome::Done => {
+                // What a lookup added is selected, as an add from the menu selects what it added.
+                self.succeeded();
+                self.select_new(workspace.documents(), &before);
+            }
             ActionOutcome::Refused(refusal) => self.notice = Some(refusal),
+            ActionOutcome::Open { path, element_id } => self.open_request = Some((path, element_id)),
             ActionOutcome::Prompt(_) => self.notice = Some("That cannot be answered here yet.".to_owned()),
         }
     }
@@ -1682,6 +1694,7 @@ impl DiagramTab {
                 match self.session.answer(workspace, &target, &action_id, &editor.text) {
                     ActionOutcome::Done => self.report(Ok(())),
                     ActionOutcome::Refused(refusal) => self.notice = Some(refusal),
+                    ActionOutcome::Open { path, element_id } => self.open_request = Some((path, element_id)),
                     ActionOutcome::Prompt(_) => {}
                 }
             }
@@ -1751,7 +1764,7 @@ impl DiagramTab {
             .session
             .delete_elements(workspace, &selection, action_id, confirmed)
         {
-            ActionOutcome::Done => self.succeeded(),
+            ActionOutcome::Done | ActionOutcome::Open { .. } => self.succeeded(),
             ActionOutcome::Refused(refusal) => self.notice = Some(refusal),
             ActionOutcome::Prompt(prompt) => {
                 self.prompt = Some(PendingPrompt {
