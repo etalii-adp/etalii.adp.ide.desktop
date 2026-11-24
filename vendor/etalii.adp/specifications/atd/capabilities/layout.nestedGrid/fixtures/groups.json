@@ -1,0 +1,231 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.nestedGrid` from modules/diagrams/sparql/src/layout.rs of etalii.adp.ide.desktop, on the query parity/scripts/w3c/sparql/groups.json opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "var:best",
+        "width": 170.0,
+        "height": 64.0,
+        "parent": null
+      },
+      {
+        "id": "var:doubled",
+        "width": 170.0,
+        "height": 64.0,
+        "parent": null
+      },
+      {
+        "id": "var:s",
+        "width": 170.0,
+        "height": 64.0,
+        "parent": null
+      },
+      {
+        "id": "var:x",
+        "width": 170.0,
+        "height": 64.0,
+        "parent": null
+      },
+      {
+        "id": "var:g2",
+        "width": 170.0,
+        "height": 64.0,
+        "parent": "region:where/graph.0"
+      },
+      {
+        "id": "var:y",
+        "width": 170.0,
+        "height": 64.0,
+        "parent": "region:where/optional.1"
+      },
+      {
+        "id": "var:r",
+        "width": 170.0,
+        "height": 64.0,
+        "parent": "region:where/service.0"
+      },
+      {
+        "id": "lit:true^boolean",
+        "width": 170.0,
+        "height": 64.0,
+        "parent": "region:where/minus.0"
+      },
+      {
+        "id": "sub:where.0",
+        "width": 170.0,
+        "height": 64.0,
+        "parent": null
+      },
+      {
+        "id": "region:where/optional.0",
+        "width": 170.0,
+        "height": 94.0,
+        "parent": null,
+        "attributes": {
+          "container": "true"
+        }
+      },
+      {
+        "id": "region:where/optional.1",
+        "width": 170.0,
+        "height": 94.0,
+        "parent": null,
+        "attributes": {
+          "container": "true"
+        }
+      },
+      {
+        "id": "region:where/union.0",
+        "width": 170.0,
+        "height": 94.0,
+        "parent": null,
+        "attributes": {
+          "container": "true"
+        }
+      },
+      {
+        "id": "region:where/union.0/branch.0",
+        "width": 170.0,
+        "height": 94.0,
+        "parent": "region:where/union.0",
+        "attributes": {
+          "container": "true"
+        }
+      },
+      {
+        "id": "region:where/union.0/branch.1",
+        "width": 170.0,
+        "height": 94.0,
+        "parent": "region:where/union.0",
+        "attributes": {
+          "container": "true"
+        }
+      },
+      {
+        "id": "region:where/union.0/branch.2",
+        "width": 170.0,
+        "height": 94.0,
+        "parent": "region:where/union.0",
+        "attributes": {
+          "container": "true"
+        }
+      },
+      {
+        "id": "region:where/minus.0",
+        "width": 170.0,
+        "height": 94.0,
+        "parent": null,
+        "attributes": {
+          "container": "true"
+        }
+      },
+      {
+        "id": "region:where/graph.0",
+        "width": 170.0,
+        "height": 94.0,
+        "parent": null,
+        "attributes": {
+          "container": "true"
+        }
+      },
+      {
+        "id": "region:where/service.0",
+        "width": 170.0,
+        "height": 94.0,
+        "parent": null,
+        "attributes": {
+          "container": "true"
+        }
+      }
+    ],
+    "edges": []
+  },
+  "args": {
+    "columns": 3,
+    "columnGap": 60,
+    "rowGap": 48,
+    "padding": 36,
+    "labelBand": 30,
+    "origin": [
+      40,
+      90
+    ]
+  },
+  "output": {
+    "positions": {
+      "var:best": {
+        "x": 40.0,
+        "y": 90.0
+      },
+      "var:doubled": {
+        "x": 270.0,
+        "y": 90.0
+      },
+      "var:s": {
+        "x": 500.0,
+        "y": 90.0
+      },
+      "var:x": {
+        "x": 40.0,
+        "y": 202.0
+      },
+      "var:g2": {
+        "x": 76.0,
+        "y": 734.0
+      },
+      "var:y": {
+        "x": 76.0,
+        "y": 450.0
+      },
+      "var:r": {
+        "x": 378.0,
+        "y": 734.0
+      },
+      "lit:true^boolean": {
+        "x": 1356.0,
+        "y": 450.0
+      },
+      "sub:where.0": {
+        "x": 270.0,
+        "y": 202.0
+      },
+      "region:where/optional.0": {
+        "x": 500.0,
+        "y": 202.0
+      },
+      "region:where/optional.1": {
+        "x": 40.0,
+        "y": 384.0
+      },
+      "region:where/union.0": {
+        "x": 342.0,
+        "y": 384.0
+      },
+      "region:where/union.0/branch.0": {
+        "x": 378.0,
+        "y": 450.0
+      },
+      "region:where/union.0/branch.1": {
+        "x": 680.0,
+        "y": 450.0
+      },
+      "region:where/union.0/branch.2": {
+        "x": 982.0,
+        "y": 450.0
+      },
+      "region:where/minus.0": {
+        "x": 1320.0,
+        "y": 384.0
+      },
+      "region:where/graph.0": {
+        "x": 40.0,
+        "y": 668.0
+      },
+      "region:where/service.0": {
+        "x": 342.0,
+        "y": 668.0
+      }
+    }
+  }
+}
