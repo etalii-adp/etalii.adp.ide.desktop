@@ -473,6 +473,10 @@ fn behavior(frame: &Frame, key: &str, path: &[String]) -> Frame {
     if key == "std.notApplicable" && path.len() == 2 && path[1] == "messages" {
         return frame.within(contexts::OPERATION).binding(["operationId".to_owned()]);
     }
+    // std.notAValue is worded in the form context, with the text given bound as value (sections 7.5, 9.1).
+    if key == "std.notAValue" && path.len() == 2 && path[1] == "messages" {
+        return frame.within(contexts::FORM).binding(["value".to_owned()]);
+    }
     match key {
         // A confirmation sees count besides its context (section 9.5); its count is an Expression.
         "confirm" => frame.binding(["count".to_owned()]).as_mode(Mode::Literal),

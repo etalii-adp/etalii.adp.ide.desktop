@@ -442,6 +442,10 @@ pub struct RuntimeModule {
     views: RefCell<HashMap<(PathBuf, String), Map>>,
     /// Where pinned positions are kept in the body (DISL section 11.6, `view.bind.pinned`).
     pinned: Option<crate::view_bind::PinnedBind>,
+    /// Where group states are kept in the body (DISL 0.11, `view.bind.groups`).
+    groups: Option<crate::view_bind::GroupsBind>,
+    /// Where kept filters' values are kept in the body (DISL 0.4, `view.bind.filters`).
+    filters: Option<crate::view_bind::FiltersBind>,
     /// DISL's `force` layout with `tiers` (DISL section 10.4): the rings from the centre outwards.
     force: Option<Vec<Vec<String>>>,
     /// The force layout's last placements, by document, with the reading they were made for: a live change starts
@@ -509,6 +513,8 @@ impl RuntimeModule {
             initial_view,
             views: RefCell::default(),
             pinned: crate::view_bind::PinnedBind::of(specification),
+            groups: crate::view_bind::GroupsBind::of(specification),
+            filters: crate::view_bind::FiltersBind::of(specification),
             force: specification.pointer("/layout").and_then(|layout| {
                 let algorithm = &layout["algorithms"][layout["default"].as_str()?];
                 (algorithm["algorithm"] == "force").then(|| {
@@ -1131,6 +1137,29 @@ impl DiagramModule for RuntimeModule {
         Some(self.pinned.as_ref()?.unpin(document, elements))
     }
 
+    /// A group's state kept in the body (DISL 0.11, section 11.6): its entry, while the state differs from the default.
+    fn kept_fold(
+        &self,
+        document: &DiagramDocument,
+        element: &DislElement,
+        key: &str,
+        folded: bool,
+    ) -> Option<Vec<adp_fbl::planning::ModelChange>> {
+        let groups = self.groups.as_ref()?;
+        let default = element.group_defaults().get(key) == Some(&Value::Bool(true));
+        Some(groups.fold(document, &element.id(), key, folded, default))
+    }
+
+    /// A kept filter's value in the body (DISL 0.4, section 11.6).
+    fn kept_filter(
+        &self,
+        document: &DiagramDocument,
+        filter: &str,
+        value: &Value,
+    ) -> Option<adp_fbl::planning::ModelChange> {
+        self.filters.as_ref()?.set(document, filter, value.clone())
+    }
+
     /// Keeps this viewer's view of `element`, as a `view` action sets it.
     fn set_view(&self, document: &DiagramDocument, element: &DislElement, values: &Map) -> bool {
         let key = (document.body_path().to_path_buf(), element.id());
@@ -1183,7 +1212,8 @@ impl DiagramModule for RuntimeModule {
         let authored = document.authored_positions();
         let placed = self.tidy.is_some();
         let bound = self.pinned.as_ref().map(|pinned| pinned.positions(document));
-        if self.initial_view.is_empty() && set.is_none() && !placed && bound.is_none() {
+        let folds = self.groups.as_ref().map(|groups| groups.states(document));
+        if self.initial_view.is_empty() && set.is_none() && !placed && bound.is_none() && folds.is_none() {
             return None;
         }
         let specification = document.tool().definition.specification();
@@ -1200,6 +1230,13 @@ impl DiagramModule for RuntimeModule {
             && !element.is_relation()
         {
             view.insert("pinned".to_owned(), Value::Bool(bound.contains_key(&element.id())));
+        }
+        // The groups' states the body keeps, which `self.view.groups` reads over their defaults (DISL 0.11).
+        if let Some(folds) = &folds
+            && !element.is_relation()
+        {
+            let stored = folds.get(&element.id()).cloned().unwrap_or_default();
+            view.insert("groups".to_owned(), Value::map(stored));
         }
         if placed && !element.is_relation() {
             let (width, height) = Self::stated_size(element);

@@ -94,15 +94,159 @@ impl PinnedBind {
         }
     }
 
-    /// The changes that unpin `elements`: each one's entry removed; all pinned elements for none.
+    /// The changes that unpin `elements`: each one's entry removed; all pinned elements for none. The last entry of
+    /// the file goes first, so that an entry named by its place is still where its id says when its turn comes.
     pub fn unpin(&self, document: &DiagramDocument, elements: Option<&[String]>) -> Vec<ModelChange> {
-        let mut entries: Vec<(String, String)> = self
+        let mut entries: Vec<(usize, String)> = self
             .entries(document)
             .into_iter()
             .filter(|(id, _)| elements.is_none_or(|elements| elements.contains(id)))
-            .map(|(id, (entry, _, _))| (id, entry.id.clone()))
+            .map(|(_, (entry, _, _))| (entry.line, entry.id.clone()))
             .collect();
-        entries.sort();
+        entries.sort_by(|a, b| b.cmp(a));
         entries.into_iter().map(|(_, id)| ModelChange::Remove { id }).collect()
+    }
+}
+
+/// Where a group's folded state is kept (DISL 0.11, `view.bind.groups`): an entry of the binding type naming the
+/// element, the group's key and whether it is folded, kept only while the state differs from the group's default.
+#[derive(Debug, Clone)]
+pub struct GroupsBind {
+    type_name: String,
+    element: String,
+    group: String,
+    collapsed: String,
+}
+
+impl GroupsBind {
+    /// The `groups` bind of `specification`'s persistence, when it keeps group states in the body.
+    pub fn of(specification: &Json) -> Option<Self> {
+        let bind = specification.pointer("/persistence/view/bind/groups")?;
+        let text = |key: &str| bind[key].as_str().map(str::to_owned);
+        Some(GroupsBind {
+            type_name: text("type")?,
+            element: text("element")?,
+            group: text("group")?,
+            collapsed: text("collapsed")?,
+        })
+    }
+
+    fn text<'e>(entry: &'e FblElement, name: &str) -> Option<&'e str> {
+        match entry.attributes.get(name) {
+            Some(Value::String(text)) if !text.is_empty() => Some(text),
+            _ => entry
+                .referenced
+                .iter()
+                .find(|(attribute, _)| attribute == name)
+                .map(|(_, id)| id.as_str()),
+        }
+    }
+
+    /// The first entry for each group of each element, by element and key: the entry and whether it folds the group.
+    fn entries<'d>(&self, document: &'d DiagramDocument) -> HashMap<(String, String), (&'d FblElement, bool)> {
+        let mut entries = HashMap::new();
+        for entry in document.fbl().elements.iter().filter(|e| e.type_name == self.type_name) {
+            let (Some(id), Some(key)) = (Self::text(entry, &self.element), Self::text(entry, &self.group)) else {
+                continue;
+            };
+            // A boolean as the binding types it, or as the text the file writes.
+            let folded = match entry.attributes.get(&self.collapsed) {
+                Some(Value::Bool(folded)) => *folded,
+                Some(Value::String(text)) if text == "true" || text == "false" => text == "true",
+                _ => continue,
+            };
+            let at = (id.to_owned(), key.to_owned());
+            if document.element(id).is_none() || entries.contains_key(&at) {
+                continue;
+            }
+            entries.insert(at, (entry, folded));
+        }
+        entries
+    }
+
+    /// The stored states, by element id: each group's key to whether it is folded.
+    pub fn states(&self, document: &DiagramDocument) -> HashMap<String, Map> {
+        let mut states: HashMap<String, Map> = HashMap::new();
+        for ((id, key), (_, folded)) in self.entries(document) {
+            states.entry(id).or_default().insert(key, Value::Bool(folded));
+        }
+        states
+    }
+
+    /// The changes that fold (or unfold) the group `key` of `element`, whose default is `default`: its entry removed
+    /// where the state is the default, else its entry set, else a new entry.
+    pub fn fold(
+        &self,
+        document: &DiagramDocument,
+        element: &str,
+        key: &str,
+        folded: bool,
+        default: bool,
+    ) -> Vec<ModelChange> {
+        let entry = self.entries(document).remove(&(element.to_owned(), key.to_owned()));
+        match entry {
+            Some((entry, _)) if folded == default => vec![ModelChange::Remove { id: entry.id.clone() }],
+            Some((entry, stored)) if stored != folded => {
+                let mut attributes = Map::default();
+                attributes.insert(self.collapsed.clone(), Value::Bool(folded));
+                vec![ModelChange::Set {
+                    id: entry.id.clone(),
+                    attributes,
+                }]
+            }
+            Some(_) => Vec::new(),
+            None if folded == default => Vec::new(),
+            None => {
+                let mut attributes = Map::default();
+                attributes.insert(self.element.clone(), Value::String(element.to_owned()));
+                attributes.insert(self.group.clone(), Value::String(key.to_owned()));
+                attributes.insert(self.collapsed.clone(), Value::Bool(folded));
+                vec![ModelChange::Add {
+                    type_name: self.type_name.clone(),
+                    id: None,
+                    attributes,
+                    parent_id: None,
+                    index: None,
+                    slot: None,
+                }]
+            }
+        }
+    }
+}
+
+/// Where a kept filter's value is kept (DISL 0.4, `view.bind.filters`): an attribute of the one entry of the binding
+/// type, by filter id.
+#[derive(Debug, Clone)]
+pub struct FiltersBind {
+    type_name: String,
+    values: Vec<(String, String)>,
+}
+
+impl FiltersBind {
+    /// The `filters` bind of `specification`'s persistence, when it keeps filter values in the body.
+    pub fn of(specification: &Json) -> Option<Self> {
+        let bind = specification.pointer("/persistence/view/bind/filters")?;
+        let values = bind["values"]
+            .as_object()?
+            .iter()
+            .filter_map(|(filter, attribute)| Some((filter.clone(), attribute.as_str()?.to_owned())))
+            .collect();
+        Some(FiltersBind {
+            type_name: bind["type"].as_str()?.to_owned(),
+            values,
+        })
+    }
+
+    /// The change that sets the filter `filter` to `value`: none when the description keeps no such filter, or the
+    /// body has no entry to keep it in.
+    pub fn set(&self, document: &DiagramDocument, filter: &str, value: Value) -> Option<ModelChange> {
+        let (_, attribute) = self.values.iter().find(|(id, _)| id == filter)?;
+        let entry = document.fbl().elements.iter().find(|e| e.type_name == self.type_name)?;
+        let mut attributes = Map::default();
+        attributes.insert(attribute.clone(), value);
+        Some(ModelChange::Set {
+            id: entry.id.clone(),
+            attributes,
+        })
     }
 }

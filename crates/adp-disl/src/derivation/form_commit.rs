@@ -354,13 +354,13 @@ fn set(
                 .collect();
             match values::from_read(&Value::list(items), declared, specification.metamodel()) {
                 Some(value) => value,
-                None => return DislTransaction::refused(format!("'{typed}' is not a value of {}.", declared.name)),
+                None => return not_a_value(specification, element, declared, typed),
             }
         }
         Value::String(text) => {
             match values::from_read(&Value::String(text.clone()), declared, specification.metamodel()) {
                 Some(value) => value,
-                None => return DislTransaction::refused(format!("'{typed}' is not a value of {}.", declared.name)),
+                None => return not_a_value(specification, element, declared, typed),
             }
         }
         other => other.clone(),
@@ -373,7 +373,7 @@ fn set(
         && !key.is_empty()
         && !enumeration.values.iter().any(|v| &v.key == key)
     {
-        return DislTransaction::refused(format!("'{typed}' is not a value of {}.", declared.name));
+        return not_a_value(specification, element, declared, typed);
     }
     let element_type = element.element_type();
     let mut attributes = Map::default();
@@ -390,6 +390,33 @@ fn set(
         host_actions: Vec::new(),
         refusal: None,
     }
+}
+
+/// The refusal of `typed`, which is no value of `declared`: of an enumeration's attribute, `std.notAValue` where the
+/// specification words it, with the text given as `value` (sections 7.5, 9.1); else the runtime's sentence.
+fn not_a_value(
+    specification: &DislSpecification,
+    element: &DislElement,
+    declared: &crate::DislAttribute,
+    typed: &str,
+) -> DislTransaction {
+    let fallback = format!("'{typed}' is not a value of {}.", declared.name);
+    if declared.many
+        || !specification
+            .metamodel()
+            .enums
+            .contains_key(declared.type_name.as_str())
+    {
+        return DislTransaction::refused(fallback);
+    }
+    let variables = variables(Some(element), Value::from(typed), &Map::default(), None);
+    DislTransaction::refused(evaluation::standard_message_in(
+        specification,
+        "std.notAValue",
+        contexts::FORM,
+        &variables,
+        &fallback,
+    ))
 }
 
 /// What writing `text` to attribute `attribute` of `element` does, as an inline edit of a label bound to it does

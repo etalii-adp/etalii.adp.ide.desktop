@@ -639,6 +639,11 @@ impl Replay {
 
     /// One gesture of a case (ATD §2.3), made as the reference host's recorder made it.
     fn step(&mut self, step: &Json) -> Result<(), String> {
+        if let Some(action) = step.get("action").and_then(Json::as_str)
+            && let Some(made) = self.module_gesture(action, step.get("select"))
+        {
+            return made;
+        }
         if let Some(select) = step.get("select") {
             self.select(select)?;
         }
@@ -676,6 +681,63 @@ impl Replay {
             return history(self.workspace.redo());
         }
         Err(format!("The runner knows no step {step}."))
+    }
+
+    /// A module's gesture on a group heading or on the diagram as a whole, as the description's wire-id block names it
+    /// (ATD §2.3, spec 087): `headings.collapse` and `headings.expand` on a selection `<element>#<key>` fold and unfold
+    /// that group, and a gesture of `filters` on the element `elements.diagram` names sets the filters it lists. None
+    /// for any other gesture.
+    fn module_gesture(&mut self, action: &str, select: Option<&Json>) -> Option<Result<(), String>> {
+        let selected = match select.and_then(Json::as_array).map(Vec::as_slice) {
+            Some([one]) => one.as_str()?.to_owned(),
+            _ => return None,
+        };
+        let specification = self.tool.definition.specification().root().clone();
+        let blocks: Vec<&Json> = specification
+            .as_object()?
+            .iter()
+            .filter(|(key, _)| key.starts_with("x-"))
+            .map(|(_, block)| block)
+            .collect();
+        for block in blocks {
+            let heading = |gesture: &str| block.pointer(&format!("/headings/{gesture}")).and_then(Json::as_str);
+            let folded = if heading("collapse") == Some(action) {
+                Some(true)
+            } else if heading("expand") == Some(action) {
+                Some(false)
+            } else {
+                None
+            };
+            if let Some(folded) = folded {
+                let Some((element, key)) = selected.split_once('#') else {
+                    return Some(Err(format!("nothing has the id '{selected}'")));
+                };
+                return Some(self.session.fold_group(&mut self.workspace, element, key, folded));
+            }
+            let diagram = block.pointer("/elements/diagram").and_then(Json::as_str);
+            if let Some(filters) = block
+                .pointer("/filters")
+                .and_then(|f| f.get(action))
+                .and_then(Json::as_object)
+            {
+                if diagram != Some(selected.as_str()) {
+                    return Some(Err(format!("nothing has the id '{selected}'")));
+                }
+                for (filter, value) in filters {
+                    let value = match value {
+                        Json::Bool(on) => adp_cel::Value::Bool(*on),
+                        Json::String(text) => adp_cel::Value::String(text.clone()),
+                        Json::Number(n) => adp_cel::Value::Double(n.as_f64().unwrap_or_default()),
+                        _ => adp_cel::Value::Null,
+                    };
+                    if let Err(refusal) = self.session.set_filter(&mut self.workspace, filter, &value) {
+                        return Some(Err(refusal));
+                    }
+                }
+                return Some(Ok(()));
+            }
+        }
+        None
     }
 
     /// `hierarchy.add` (ATD §2.3): the explorer's add of a document of the case's own tool type, named `args.text`, into

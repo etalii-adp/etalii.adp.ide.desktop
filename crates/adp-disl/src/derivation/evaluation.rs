@@ -212,6 +212,17 @@ pub(crate) fn standard_message(
     variables: &Vars,
     fallback: &str,
 ) -> String {
+    standard_message_in(specification, key, contexts::ELEMENT, variables, fallback)
+}
+
+/// The text `behavior.messages` gives for `key`, worded in `context` (section 9.1), else `fallback`.
+pub(crate) fn standard_message_in(
+    specification: &DislSpecification,
+    key: &str,
+    context: &str,
+    variables: &Vars,
+    fallback: &str,
+) -> String {
     match json::get(
         json::member(json::member(specification.root(), "behavior"), "messages"),
         key,
@@ -220,7 +231,7 @@ pub(crate) fn standard_message(
             specification,
             message,
             &json::pointer("/behavior/messages", key),
-            contexts::ELEMENT,
+            context,
             variables,
             fallback,
         ),
