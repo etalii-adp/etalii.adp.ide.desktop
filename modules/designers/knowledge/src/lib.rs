@@ -18,6 +18,7 @@ pub mod context_actions;
 pub mod definition;
 pub mod designer;
 pub mod edits;
+pub mod links;
 pub mod mapper;
 pub mod model;
 pub mod project;

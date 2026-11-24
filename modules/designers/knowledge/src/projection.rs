@@ -25,8 +25,10 @@ pub fn apply(model: &FblModel, changes: &[ModelChange], beside_its_rule: bool) -
         return model.clone();
     }
     let mut elements = model.elements.clone();
+    let mut document_id = model.document_id.clone();
     for change in changes {
         match change {
+            ModelChange::SetDocumentId { id } => document_id = Some(id.clone()),
             ModelChange::Add {
                 type_name,
                 id,
@@ -56,6 +58,7 @@ pub fn apply(model: &FblModel, changes: &[ModelChange], beside_its_rule: bool) -
     }
     FblModel {
         elements,
+        document_id,
         ..model.clone()
     }
 }

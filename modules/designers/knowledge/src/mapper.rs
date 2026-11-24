@@ -13,7 +13,7 @@ use adp_fbl::model::{FindingSeverity, codes};
 
 use crate::calculations;
 use crate::model::{KnowledgeProperty, KnowledgeTable};
-use crate::relations::{self, SELF, TargetOf};
+use crate::relations::{self, TargetOf};
 use crate::validator;
 
 /// The setting a column says under how many rows have one of its options: what deleting that option would clear.
@@ -109,13 +109,16 @@ fn column_settings(
         return None;
     }
     settings.insert("limit".into(), property.limit.clone());
+    if !property.backlink_name.is_empty() {
+        settings.insert("backlinkName".into(), property.backlink_name.clone());
+    }
     if property.is_computed {
         settings.insert("computed".into(), "true".into());
     }
     if property.is_parent {
         settings.insert("parent".into(), "true".into());
     }
-    let itself = property.target_file == SELF || property.target_file.is_empty();
+    let itself = relations::is_itself(table, &property.target_file);
     // A relation to the table itself that holds one row can be the one its rows are nested by.
     if itself && property.limit == "one" && !property.is_computed {
         settings.insert("nestable".into(), "true".into());

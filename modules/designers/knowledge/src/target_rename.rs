@@ -2,6 +2,10 @@
 //! knowledge-designer Requirement 5.8): every knowledge file in the project whose relation names the renamed file, or
 //! a file in the renamed folder, names it by its new path from the moment it has it. An undo of the rename is a rename
 //! back, which comes through here again and puts each relation back as it was.
+//!
+//! Only a file made before links names its target by a path. A relation that names its target by a link needs no
+//! step: the link resolves by the target's document id, and the file rewrites the name when it is next loaded (FBL
+//! section 17.4).
 
 use std::path::{Path, PathBuf};
 
@@ -38,7 +42,13 @@ pub fn renamed(root: &Path, from: &Path, to: &Path) -> Vec<PathBuf> {
             .table()
             .columns
             .iter()
-            .filter(|p| p.value_type == "relation" && !p.target_file.is_empty() && p.target_file != SELF)
+            // A target named by a link is found by its document id wherever it is (etalii.adp spec 089).
+            .filter(|p| {
+                p.value_type == "relation"
+                    && !p.target_file.is_empty()
+                    && p.target_file != SELF
+                    && !crate::links::is_link(&p.target_file)
+            })
             .filter_map(|p| {
                 let target = now(&relations::target_path(&path, &p.target_file), from, to)?;
                 let attributes: Map = [("targetFile", Value::String(relations::target_name(&path, &target)))]

@@ -75,7 +75,7 @@ pub fn targets(root: &Path, body_path: &Path) -> Vec<(String, String)> {
 
 /// How many rows of the project's other knowledge files relate to any of the given rows of one file: what deleting
 /// those rows would leave pointing at nothing.
-pub fn rows_relating_to(root: &Path, body_path: &Path, row_ids: &[String]) -> usize {
+pub fn rows_relating_to(root: &Path, body_path: &Path, document_id: &str, row_ids: &[String]) -> usize {
     let mut count = 0;
     for path in files(root).into_iter().filter(|p| !relations::same_path(p, body_path)) {
         let Some(body) = store::read(&path).body else {
@@ -91,7 +91,13 @@ pub fn rows_relating_to(root: &Path, body_path: &Path, row_ids: &[String]) -> us
                     && !p.is_computed
                     && !p.target_file.is_empty()
                     && p.target_file != SELF
-                    && relations::same_path(&relations::target_path(&path, &p.target_file), body_path)
+                    && if crate::links::is_link(&p.target_file) {
+                        // A link names its target by its document id (FBL section 17.3).
+                        !document_id.is_empty()
+                            && adp_links::Link::parse(&p.target_file).is_some_and(|l| l.document_id == document_id)
+                    } else {
+                        relations::same_path(&relations::target_path(&path, &p.target_file), body_path)
+                    }
             })
             .map(|p| p.id.as_str())
             .collect();

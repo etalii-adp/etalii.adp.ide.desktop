@@ -75,6 +75,17 @@ pub enum ModelChange {
     },
     /// Changes an entry of a block of the registration that the binding declares (FBL 0.7 sections 8.1, 8.4, 15.3).
     Setting(Setting),
+    /// *(FBL 0.23)* Writes the body's document id into its binding's `document.id` slot (FBL section 17.2): given by
+    /// load-time validation to a body that holds none (section 17.4), or a new one by the fix of
+    /// `link.ambiguous-document` (section 17.6). The attribute that reads the slot is read-only to every other change.
+    SetDocumentId {
+        id: String,
+    },
+    /// *(FBL 0.23)* A conversion's change of attributes of the body's root that are read-only to a `set`, such as its
+    /// version: the conversion of a body from an older form that load-time validation makes (section 17.4, step 2).
+    Migrate {
+        attributes: Map,
+    },
     /// Saves without a change: no splice (FBL section 15.3).
     Save,
 }

@@ -185,6 +185,16 @@ pub fn validate(table: &KnowledgeTable, model: &FblModel, target_of: Option<Targ
                     .as_ref()
                     .map(|t| t.problem.clone())
                     .unwrap_or_else(|| "it names no file.".into());
+                // A target named by a link that does not resolve is that link's finding (FBL section 17.6).
+                if let Some(code) = target.as_ref().map(|t| t.code.as_str()).filter(|c| !c.is_empty()) {
+                    let message = format!("'{}' relates to a table that cannot be shown: {problem}", relation.name);
+                    if code == adp_links::codes::MALFORMED {
+                        findings.error(code, message, "", &relation.id);
+                    } else {
+                        findings.warn(code, message, "", &relation.id);
+                    }
+                    continue;
+                }
                 findings.warn(
                     UNRESOLVED_TARGET,
                     format!(
@@ -211,7 +221,11 @@ pub fn validate(table: &KnowledgeTable, model: &FblModel, target_of: Option<Targ
                 };
                 for value in cell.values.iter().filter(|v| !there.contains(v.as_str())) {
                     findings.warn(
-                        UNRESOLVED_ROW,
+                        if crate::links::is_link(&relation.target_file) {
+                            adp_links::codes::BROKEN_ELEMENT
+                        } else {
+                            UNRESOLVED_ROW
+                        },
                         format!("This value names a row that is not in {name} ('{value}'); it is kept as it is."),
                         &row.id,
                         &relation.id,

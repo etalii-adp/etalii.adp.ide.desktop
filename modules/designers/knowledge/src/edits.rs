@@ -17,6 +17,7 @@ use regex::Regex;
 
 use crate::calculations;
 use crate::definition;
+use crate::links;
 use crate::model::{KnowledgeProperty, KnowledgeTable};
 use crate::relations::{self, KnowledgeTarget, SELF};
 use crate::vocabulary;
@@ -32,7 +33,9 @@ pub const NUMBER_EXPECTED: &str = "A number is expected.";
 pub const DATE_EXPECTED: &str = "A date is expected, as year-month-day.";
 pub const DATE_TIME_EXPECTED: &str = "A date and a time are expected.";
 pub const TIME_EXPECTED: &str = "A time is expected, as hours:minutes.";
-const COMPUTED: &str = "This side of the relation is filled in from the other table.";
+pub const COMPUTED: &str = "This side of the relation is filled in from the other table.";
+/// What a backlink column answers a change of itself with: it is the other side of a relation elsewhere.
+pub const BACKLINK_COLUMN: &str = "This column shows the rows of another table that link here: it is changed with the relation it shows, in that table.";
 pub const RELATION_NEEDS_TARGET: &str = "A relation is added by choosing the table it relates to.";
 pub const TITLE_IS_TEXT: &str = "The title property is always text.";
 pub const OPTION_FIRST: &str = "Make the option in one row first; it can then be given to several.";
@@ -570,7 +573,7 @@ fn set_cell(
                 return refused(PARENT_CYCLE);
             }
         }
-        if relations::is_mutual(property) {
+        if relations::is_mutual(table, property) {
             return set_mutual(table, &row.id, property, &values, changes);
         }
         let key = if property.value_type == "relation" {
@@ -1129,7 +1132,7 @@ fn delete_column(
     changes.push(remove(property.id.clone()));
 
     // One side of a two-way relation: what becomes of the other side is its author's choice, never a guess.
-    let itself = property.target_file == SELF || property.target_file.is_empty();
+    let itself = relations::is_itself(table, &property.target_file);
     let target = if itself {
         None
     } else {
@@ -1240,10 +1243,14 @@ fn add_relation(
     };
     let name = unique_name(table.columns.iter().map(|p| p.name.as_str()), &wanted);
     let id = new_id();
-    let target_file = if itself {
+    // A target with a document id is named by a link to it, and a relation to it is two-way by the backlinks it
+    // shows there, which neither file stores (etalii.adp spec 089; knowledge.md section 9). A target made before links
+    // is named by its path, and its other side is a property of its own, as before.
+    let linked = !related.document_id.is_empty();
+    let target_file = if itself && !linked {
         SELF.to_owned()
     } else {
-        relations::target_name(files.body_path, &target.path)
+        links::target_text(files.body_path, &target)
     };
     let mut pairs = vec![
         ("name", text(name.clone())),
@@ -1265,6 +1272,10 @@ fn add_relation(
         other_name = other_side_name(table);
     }
     if other_name.is_empty() {
+        return KnowledgeEdit::of(place(table, view, &id, pairs, &gesture.target_id, left));
+    }
+    if linked {
+        pairs.push(("backlinkName", text(other_name)));
         return KnowledgeEdit::of(place(table, view, &id, pairs, &gesture.target_id, left));
     }
     // The other side: in the target, computed, naming this one - and this one naming it.
@@ -1361,7 +1372,25 @@ fn set_other_side(
     let Some(property) = own_relation(table, &gesture.column_id) else {
         return refused(NOT_A_RELATION);
     };
-    let itself = property.target_file == SELF || property.target_file.is_empty();
+    // A relation named by a link is two-way by its backlinks: only its `backlinkName` changes.
+    if links::is_link(&property.target_file) {
+        let two_way = flag(gesture, "twoWay");
+        if two_way != property.backlink_name.is_empty() {
+            return KnowledgeEdit::nothing();
+        }
+        let name = if two_way {
+            let asked = gesture.setting_of("counterpart").trim().to_owned();
+            text(if asked.is_empty() {
+                other_side_name(table)
+            } else {
+                asked
+            })
+        } else {
+            Value::Null
+        };
+        return KnowledgeEdit::of(vec![set(property.id.clone(), vec![("backlinkName", name)])]);
+    }
+    let itself = relations::is_itself(table, &property.target_file);
     let target = if itself {
         None
     } else {
@@ -1456,7 +1485,7 @@ fn set_parent(table: &KnowledgeTable, gesture: &TableGesture) -> KnowledgeEdit {
     if !parent {
         return KnowledgeEdit::of(vec![set(property.id.clone(), vec![("isParent", Value::Null)])]);
     }
-    let itself = property.target_file == SELF || property.target_file.is_empty();
+    let itself = relations::is_itself(table, &property.target_file);
     if !(property.value_type == "relation" && itself && property.limit == "one" && !property.is_computed) {
         return refused("Only a relation to this table that holds one row can be the parent relation.");
     }

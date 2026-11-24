@@ -4,7 +4,7 @@
 
 use adp_cel::{Map, Value};
 
-use crate::documents::types::{AttributeBinding, Rule, Slot};
+use crate::documents::types::{AttributeBinding, DocumentIdSlot, Rule, Slot};
 use crate::planning::new_text;
 use crate::planning::plan::{Plan, Planning, invalid, refuse};
 use crate::planning::{ModelChange, PlanResult, PlannedEdit};
@@ -61,6 +61,8 @@ pub(crate) fn plan(reading: &BodyReading, change: &ModelChange) -> PlanResult {
             index,
         } => plan_move(&mut plan, id, new_parent_id.as_deref(), *index),
         ModelChange::StoreId { id, new_id } => plan_store_id(&mut plan, id, new_id),
+        ModelChange::SetDocumentId { id } => plan_set_document_id(&mut plan, id),
+        ModelChange::Migrate { attributes } => plan_migrate(&mut plan, attributes),
         ModelChange::Retype {
             id,
             type_name,
@@ -169,6 +171,92 @@ fn plan_store_id(plan: &mut Plan<'_>, id: &str, new_id: &str) -> Planning {
         is_empty: false,
     };
     reading.family.write(plan, element, &[change])
+}
+
+/// The element a rule reads at the body's root, by its index.
+fn root_element(reading: &BodyReading) -> Planning<usize> {
+    let Some(root) = reading.family.root_entry() else {
+        return refuse("The file has no root to write to.");
+    };
+    match reading
+        .element_indices()
+        .iter()
+        .copied()
+        .find(|&i| reading.element(i).candidate.entry == root)
+    {
+        Some(index) => Ok(index),
+        None => refuse("No rule of this file's binding reads its root."),
+    }
+}
+
+/// The document id written into the root's `document.id` slot (FBL 0.23, section 17.2), through the element a rule
+/// reads at the body's root, read-only as that slot is to a `set`.
+fn plan_set_document_id(plan: &mut Plan<'_>, new_id: &str) -> Planning {
+    let reading = plan.reading;
+    let Some(slot) = reading.binding_rc().document_id.clone() else {
+        return refuse("This file keeps no document id.");
+    };
+    if new_id.is_empty() {
+        return refuse("A document id is not empty.");
+    }
+    let index = root_element(reading)?;
+    let element = reading.element(index);
+    let binding = AttributeBinding::of_slot(match slot {
+        DocumentIdSlot::Key(key) => Slot {
+            key: Some(key),
+            ..Slot::default()
+        },
+        DocumentIdSlot::Attribute(name) => Slot {
+            xml_attribute: Some(name),
+            ..Slot::default()
+        },
+    });
+    let read = reading.read_slot_unchecked(&element.candidate, &binding.slot, None, element.rule);
+    if read.present && read.written() == new_id {
+        return Ok(());
+    }
+    let change = SlotChange {
+        attribute: "documentId".into(),
+        binding: &binding,
+        rule: element.rule,
+        read,
+        value: Value::from(new_id),
+        is_empty: false,
+    };
+    reading.family.write(plan, element, &[change])
+}
+
+/// Attributes of the root written past their `readOnly`, as a conversion to a newer form writes them (FBL 0.23,
+/// section 17.4, step 2). A value already written is left alone.
+fn plan_migrate(plan: &mut Plan<'_>, attributes: &Map) -> Planning {
+    let reading = plan.reading;
+    let index = root_element(reading)?;
+    let element = reading.element(index);
+    let mut changes = Vec::new();
+    for (attribute, value) in attributes.iter() {
+        let (rule, Some(binding)) = binding_of(reading, index, attribute) else {
+            return refuse(format!("The root keeps no '{attribute}' in this file."));
+        };
+        let mut candidate = element.candidate.clone();
+        candidate.rule = Some(rule);
+        let read = reading.read_slot_unchecked(&candidate, &binding.slot, Some(binding), element.rule);
+        let written = new_text::plain(value, None);
+        if read.present && read.written() == written {
+            continue;
+        }
+        changes.push(SlotChange {
+            attribute: attribute.to_owned(),
+            binding,
+            rule,
+            read,
+            value: value.clone(),
+            is_empty: false,
+        });
+    }
+    if changes.is_empty() {
+        return Ok(());
+    }
+    reading.family.write(plan, element, &changes)
 }
 
 fn plan_set(plan: &mut Plan<'_>, id: &str, attributes: &Map) -> Planning {

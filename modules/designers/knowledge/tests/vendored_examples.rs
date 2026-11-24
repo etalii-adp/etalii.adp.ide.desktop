@@ -10,6 +10,7 @@ use std::path::PathBuf;
 
 use adp_designer_knowledge::{KnowledgeBody, KnowledgeSession, ORIGIN, validator};
 use adp_desl::DedEnvelope;
+use adp_desl::table::model::TableChange;
 use adp_desl::table::session::DesignerSession;
 use common::describe;
 
@@ -73,13 +74,26 @@ fn every_vendored_knowledge_file_reads_with_nothing_to_report_and_is_one_table()
 }
 
 #[test]
-fn a_vendored_knowledge_file_opens_in_a_session_and_says_its_relation_has_no_target_here() {
-    // The vendored examples come without `provinces.yaml`, the table their relation names.
-    let session = KnowledgeSession::new(common::vendor().join("definitions/designers/examples/cities.yaml"));
+fn a_vendored_knowledge_file_opens_in_a_session_and_its_relation_resolves_by_link_beside_it() {
+    // The vendored examples hold `provinces.yaml` too, which the cities' relation names by a link to its document.
+    let mut session = KnowledgeSession::new(common::vendor().join("definitions/designers/examples/cities.yaml"));
     let baseline = session.baseline();
     assert_eq!("Cities", baseline.title);
     assert_eq!("v1", baseline.settings.view_id);
     assert_eq!("p2", baseline.settings.group_by);
-    let codes: Vec<&str> = baseline.findings.iter().map(|f| f.code.as_str()).collect();
-    assert_eq!(vec![validator::UNRESOLVED_TARGET], codes);
+    assert!(baseline.findings.is_empty(), "{:?}", baseline.findings);
+    // The related province is shown by its title.
+    session.set_window(0, usize::MAX);
+    let labels: Vec<String> = session
+        .take_changes()
+        .into_iter()
+        .filter_map(|c| match c {
+            TableChange::Rows { rows, .. } => Some(rows),
+            _ => None,
+        })
+        .flatten()
+        .filter_map(|r| r.cell("p5").map(|c| c.labels.clone()))
+        .flatten()
+        .collect();
+    assert!(labels.contains(&"Noord-Holland".to_owned()), "{labels:?}");
 }

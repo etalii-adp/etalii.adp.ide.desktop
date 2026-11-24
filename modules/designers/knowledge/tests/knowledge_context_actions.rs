@@ -111,7 +111,6 @@ fn the_table_to_relate_to_is_asked_for_in_the_file_dialog_which_takes_knowledge_
 }
 
 #[test]
-#[ignore = "etalii.adp spec 089 replaced a two-way relation's counterpart column with backlinkName; this module still makes the old two-way relation, which knowledge.fbl no longer writes"]
 fn the_relation_is_made_as_its_answers_say_in_one_undoable_step() {
     for (holds, limit, two_way) in [
         (MANY, "none", false),
@@ -141,31 +140,15 @@ fn the_relation_is_made_as_its_answers_say_in_one_undoable_step() {
                 relation.target_file.as_str(),
                 relation.limit.as_str()
             ),
-            ("relation", common::RELATED, limit)
+            ("relation", "$p7v3k9qd@provinces.yaml", limit)
         );
-        // Two-way, the other table shows it under this table's name; one-way, the other table is as it was.
-        let others = store::read(&provinces).body.unwrap().table().clone();
-        if two_way {
-            let other = others
-                .columns
-                .iter()
-                .find(|p| p.name == "Cities")
-                .expect("the other side");
-            assert_eq!(
-                (
-                    other.counterpart.as_str(),
-                    other.is_computed,
-                    other.target_file.as_str()
-                ),
-                (relation.id.as_str(), true, "cities.yaml")
-            );
-            assert_eq!(other.id, relation.counterpart);
-        } else {
-            assert_eq!(std::fs::read(&provinces).unwrap(), theirs);
-            assert_eq!(relation.counterpart, "");
-        }
+        // Two-way, its backlinks show in the other table under this table's name, and the other table is never
+        // written (etalii.adp spec 089).
+        assert_eq!(relation.backlink_name, if two_way { "Cities" } else { "" });
+        assert_eq!(relation.counterpart, "");
+        assert_eq!(std::fs::read(&provinces).unwrap(), theirs);
 
-        // One undo puts both back.
+        // One undo puts it back.
         restore.expect("a byte changed").undo().expect("undone");
         assert_eq!(std::fs::read(&cities).unwrap(), ours);
         assert_eq!(std::fs::read(&provinces).unwrap(), theirs);
@@ -173,7 +156,6 @@ fn the_relation_is_made_as_its_answers_say_in_one_undoable_step() {
 }
 
 #[test]
-#[ignore = "etalii.adp spec 089 replaced a two-way relation's counterpart column with backlinkName; this module still makes the old two-way relation, which knowledge.fbl no longer writes"]
 fn a_relation_is_asked_for_in_notions_order_the_table_how_many_rows_and_whether_both_tables_show_it() {
     let folder = common::folder();
     let root = folder.path();
@@ -240,10 +222,9 @@ fn a_relation_is_asked_for_in_notions_order_the_table_how_many_rows_and_whether_
     let table = store::read(&cities).body.unwrap().table().clone();
     assert!(table.columns.iter().any(|p| p.value_type == "relation"
         && p.limit == "one"
-        && p.target_file == common::RELATED
-        && !p.counterpart.is_empty()));
-    let others = store::read(&provinces).body.unwrap().table().clone();
-    assert!(others.columns.iter().any(|p| p.name == "Seats" && p.is_computed));
+        && p.target_file == "$p7v3k9qd@provinces.yaml"
+        && p.backlink_name == "Seats"));
+    assert_eq!(std::fs::read(&provinces).unwrap(), theirs);
 
     // An answer that is none of a step's is refused.
     assert!(matches!(
@@ -266,11 +247,15 @@ fn a_relation_to_the_table_itself_is_made_by_choosing_this_table() {
         .iter()
         .find(|p| p.name == "Relation")
         .expect("the relation");
-    assert_eq!((relation.target_file.as_str(), relation.limit.as_str()), (".", "one"));
+    // A link to the table's own document (etalii.adp spec 089).
+    assert_eq!(
+        (relation.target_file.as_str(), relation.limit.as_str()),
+        ("$c4m8x2tr@cities.yaml", "one")
+    );
 }
 
 #[test]
-fn the_chosen_file_is_named_from_the_projects_root_also_from_a_folder_below_it() {
+fn the_chosen_file_is_named_by_its_document_id_and_file_name_also_from_a_folder_below_it() {
     let folder = common::folder();
     let root = folder.path();
     std::fs::create_dir(root.join("here")).unwrap();
@@ -291,7 +276,8 @@ fn the_chosen_file_is_named_from_the_projects_root_also_from_a_folder_below_it()
         .iter()
         .find(|p| p.name == "Provinces 2" || p.name == "Provinces")
         .expect("the relation");
-    assert_eq!(relation.target_file, "../there/regions.yaml");
+    // A link, which names no folder: the copy has the same document id, and its file name tells the two apart.
+    assert_eq!(relation.target_file, "$p7v3k9qd@regions.yaml");
 }
 
 #[test]

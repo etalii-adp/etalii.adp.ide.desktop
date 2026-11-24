@@ -200,6 +200,7 @@ pub fn read(specification: &DeslSpecification, model: &FblModel) -> Option<Table
     let name = document.map(|d| text(d.attributes.get("name"))).unwrap_or_default();
     Some(TableContent {
         name,
+        document_id: model.document_id.clone().unwrap_or_default(),
         active_view_id,
         columns,
         views,

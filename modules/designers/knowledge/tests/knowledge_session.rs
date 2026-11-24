@@ -78,7 +78,7 @@ fn the_example_opens_as_the_expected_table_model() {
         );
         let province = baseline.columns.iter().find(|c| c.id == "p5").expect("p5");
         assert_eq!(
-            ("provinces.yaml", "one"),
+            ("$p7v3k9qd@provinces.yaml", "one"),
             (
                 province.settings["targetFile"].as_str(),
                 province.settings["limit"].as_str()
@@ -404,7 +404,7 @@ fn a_file_of_another_version_refuses_every_edit_and_is_not_written() {
     let folder = common::folder();
     let path = copy_example("cities.yaml", folder.path());
     let text = std::fs::read_to_string(&path).expect("read");
-    std::fs::write(&path, text.replace("ded: \"0.1\"", "ded: \"9.0\"")).expect("written");
+    std::fs::write(&path, text.replace("ded: \"0.3\"", "ded: \"9.0\"")).expect("written");
     let before = std::fs::read(&path).expect("read");
     let mut session = KnowledgeSession::open_for_editing(&path, PathBuf::new());
 
@@ -433,7 +433,7 @@ fn a_file_that_is_not_there_is_its_refusal() {
 
 #[test]
 fn a_new_file_is_one_title_property_one_view_and_no_rows_with_ids_of_its_own() {
-    let short_guid = regex::Regex::new("^[0-9a-z]{25}$").expect("the pattern compiles");
+    let new_id = regex::Regex::new("^[0-9a-z]{8}$").expect("the pattern compiles");
     for extension in EXTENSIONS {
         let format = designer::definition()
             .formats
@@ -469,9 +469,16 @@ fn a_new_file_is_one_title_property_one_view_and_no_rows_with_ids_of_its_own() {
         };
         assert!(first.table().rows.is_empty());
 
-        // The ids are ShortGuids: twenty-five characters of base 36, and different every time.
-        assert!(short_guid.is_match(&property.id), "{}", property.id);
-        assert!(short_guid.is_match(&view.id), "{}", view.id);
+        // The ids, the document's own among them, are eight characters of base 36, and different every time
+        // (etalii.adp spec 089, FR-001 and FR-003).
+        assert!(
+            new_id.is_match(&first.table().document_id),
+            "{}",
+            first.table().document_id
+        );
+        assert_ne!(first.table().document_id, second.table().document_id);
+        assert!(new_id.is_match(&property.id), "{}", property.id);
+        assert!(new_id.is_match(&view.id), "{}", view.id);
         assert_ne!(property.id, view.id);
         assert_ne!(property.id, second.table().columns[0].id);
     }

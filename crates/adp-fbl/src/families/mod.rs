@@ -408,6 +408,16 @@ impl Family {
         }
     }
 
+    /// The entry of the body's root: a `yaml` or `json` body's root value, an `xml` body's root element; none for a
+    /// family whose bodies have no one root.
+    pub fn root_entry(&self) -> Option<EntryId> {
+        match &self.kind {
+            FamilyKind::Yaml(_) | FamilyKind::Json(_) => self.tree_root(),
+            FamilyKind::Xml(_) => self.xml_document(),
+            _ => None,
+        }
+    }
+
     /// *(FBL 0.23)* The document id the body's root holds in `slot` (FBL section 17.2), or none: a root key of a `yaml`
     /// or `json` body, an attribute of an `xml` body's root element. An empty value is no id.
     pub fn document_id(&self, slot: &DocumentIdSlot) -> Option<String> {

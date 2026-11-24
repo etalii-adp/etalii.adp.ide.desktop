@@ -33,6 +33,7 @@ use crate::body::{ANOTHER_VERSION, KnowledgeBody};
 use crate::command::{KnowledgeEditCommand, KnowledgeRestore};
 use crate::definition;
 use crate::edits::{self, KnowledgeOtherFile, KnowledgeSurroundings};
+use crate::links::{self, KnowledgeFile};
 use crate::mapper;
 use crate::model::{self, KnowledgeProperty, KnowledgeTable};
 use crate::project;
@@ -40,6 +41,9 @@ use crate::projection;
 use crate::relations::{self, KnowledgeTarget};
 use crate::store::{self, KnowledgeRead};
 use crate::validator;
+
+/// The pending edit that holds what loading the file changes, until the next edit takes it along.
+const ON_LOAD: &str = "on-load";
 
 /// How often a re-read is tried before the file is taken to be unreadable rather than mid-replace.
 pub const READ_ATTEMPTS: usize = 3;
@@ -86,6 +90,12 @@ pub struct KnowledgeSession {
     targets: RefCell<HashMap<String, Rc<KnowledgeTarget>>>,
     /// The file itself as a target, made once for what is shown now.
     itself: RefCell<Option<Rc<KnowledgeTarget>>>,
+    /// The knowledge files of the workspace as they were last read, until one of them is written again.
+    files: RefCell<Option<Rc<Vec<KnowledgeFile>>>>,
+    /// The index the links of what is shown are resolved in (FBL section 17.3): the files, with this one as shown.
+    workspace: adp_links::Workspace,
+    /// The targets named by links, resolved once for what is shown now.
+    linked: RefCell<HashMap<String, Rc<KnowledgeTarget>>>,
     view_id: String,
     /// The rows added while this view was open: they stay in sight until it is next opened.
     kept: HashSet<String>,
@@ -147,6 +157,9 @@ impl KnowledgeSession {
             view: KnowledgeTable::default(),
             targets: RefCell::new(HashMap::new()),
             itself: RefCell::new(None),
+            files: RefCell::new(None),
+            workspace: adp_links::Workspace::default(),
+            linked: RefCell::new(HashMap::new()),
             view_id: String::new(),
             kept: HashSet::new(),
             search: String::new(),
@@ -165,7 +178,61 @@ impl KnowledgeSession {
             .view_or_default("")
             .map(|v| v.id.clone())
             .unwrap_or_default();
+        session.validate_on_load();
         session
+    }
+
+    /// What loading a file for editing changes in it (FBL section 17.4; `knowledge.md` section 9): its document id,
+    /// the conversion of a file made before links, and the links refreshed. Shown at once and written with the next
+    /// edit of the file, in the same write: the first edit made in ADP also gives every entry without an id its id,
+    /// which a write of its own would give under other ids than the next edit was planned with. Nothing when nothing
+    /// differs, and nothing for a file opened only to be shown: opening writes nothing.
+    fn validate_on_load(&mut self) {
+        if self.write.is_none() || self.body.is_none() || !self.read_only_reason().is_empty() {
+            return;
+        }
+        let changes = {
+            let target_of = |p: &KnowledgeProperty| self.target_of(p);
+            links::load_changes(
+                &self.shown_model,
+                &self.shown,
+                &self.body_path,
+                &self.workspace,
+                &target_of,
+                &mut definition::new_id,
+            )
+        };
+        if !changes.is_empty() {
+            self.project(&changes);
+            self.pending.push(PendingEdit {
+                edit_id: ON_LOAD.into(),
+                changes,
+                cell: None,
+            });
+        }
+    }
+
+    /// The folder whose knowledge files a link of this file is resolved among: the root it was opened under, or its
+    /// own folder.
+    fn folder(&self) -> PathBuf {
+        if self.root_path.as_os_str().is_empty() {
+            relations::full_path(&self.body_path)
+                .parent()
+                .map(Path::to_path_buf)
+                .unwrap_or_default()
+        } else {
+            self.root_path.clone()
+        }
+    }
+
+    /// The knowledge files of the workspace, read once and kept until one of them is written again.
+    fn files(&self) -> Rc<Vec<KnowledgeFile>> {
+        if let Some(files) = self.files.borrow().as_ref() {
+            return files.clone();
+        }
+        let files = Rc::new(links::read_files(&self.folder(), &*self.read));
+        self.files.replace(Some(files.clone()));
+        files
     }
 
     /// Hands out the ids of what later edits make - a row, a view, an option - from `ids` rather than as fresh
@@ -179,9 +246,30 @@ impl KnowledgeSession {
         &self.body_path
     }
 
-    /// How many edits are shown and not written yet.
+    /// How many edits are shown and not written yet; what loading the file changed is not one of them until an edit
+    /// takes it along.
     pub fn pending_edits(&self) -> usize {
-        self.pending.len()
+        self.pending.iter().filter(|p| p.edit_id != ON_LOAD).count()
+    }
+
+    /// Leaves the file in the form it was read in: what loading it changed is no longer shown and goes with no edit.
+    /// For a replay of edits recorded by a host that predates links (etalii.adp spec 089), whose bytes are compared
+    /// with that host's; a file a user opens is always validated on load (FBL section 17.4).
+    pub fn discard_load_changes(&mut self) {
+        let before = self.pending.len();
+        self.pending.retain(|p| p.edit_id != ON_LOAD);
+        if self.pending.len() != before {
+            let body = self.body.take();
+            self.show(body);
+        }
+    }
+
+    /// What loading the file changed and is shown, not yet written: none when nothing differed (FBL section 17.4).
+    pub fn load_changes(&self) -> Option<&[ModelChange]> {
+        self.pending
+            .iter()
+            .find(|p| p.edit_id == ON_LOAD)
+            .map(|p| p.changes.as_slice())
     }
 
     /// Why the table cannot be edited, or empty when it can: the reason of a file of another version, or of one that
@@ -270,6 +358,7 @@ impl KnowledgeSession {
         }
         // A relation's target this step wrote is read again.
         self.targets.borrow_mut().clear();
+        self.files.replace(None);
         self.relate();
         self.changes.push(TableChange::EditSettled {
             edit_id: edit_id.to_owned(),
@@ -361,7 +450,13 @@ impl KnowledgeSession {
             return;
         }
         let key = relations::full_path(path).to_string_lossy().to_lowercase();
-        if self.targets.borrow_mut().remove(&key).is_none() || self.body.is_none() {
+        let targeted = self.targets.borrow_mut().remove(&key).is_some();
+        // Any knowledge file of the workspace may hold links to this one, or be what one of its links names.
+        let in_workspace = relations::full_path(path).starts_with(self.folder());
+        if in_workspace {
+            self.files.replace(None);
+        }
+        if !(targeted || in_workspace) || self.body.is_none() {
             return;
         }
         self.relate();
@@ -393,8 +488,11 @@ impl KnowledgeSession {
     /// Fills in the computed sides of the relations of what is shown, whenever what is shown changed.
     fn relate(&mut self) {
         self.itself.replace(None);
+        self.linked.borrow_mut().clear();
+        let files = self.files();
+        self.workspace = links::workspace(&files, &self.body_path, &self.shown);
         let view = relations::with_computed(self.shown.clone(), &|p| self.target_of(p));
-        self.view = view;
+        self.view = links::with_backlinks(view, &self.body_path, &self.workspace, &files);
     }
 
     /// What a relation property of this file points at, read once and kept until the target is written again.
@@ -404,6 +502,20 @@ impl KnowledgeSession {
 
     /// What a target named from this file is: a relative path, or `.` for the file itself.
     fn target_at(&self, target_file: &str) -> Rc<KnowledgeTarget> {
+        if links::is_link(target_file) {
+            if let Some(target) = self.linked.borrow().get(target_file) {
+                return target.clone();
+            }
+            let target = Rc::new(links::target_of_link(
+                &self.workspace,
+                &self.files(),
+                &self.body_path,
+                &self.shown,
+                target_file,
+            ));
+            self.linked.borrow_mut().insert(target_file.to_owned(), target.clone());
+            return target;
+        }
         let path = relations::target_path(&self.body_path, target_file);
         if relations::same_path(&path, &self.body_path) {
             if let Some(itself) = self.itself.borrow().as_ref() {
@@ -412,7 +524,7 @@ impl KnowledgeSession {
             let itself = Rc::new(KnowledgeTarget {
                 path,
                 table: Some(self.shown.clone()),
-                problem: String::new(),
+                ..KnowledgeTarget::default()
             });
             self.itself.replace(Some(itself.clone()));
             return itself;
@@ -427,16 +539,18 @@ impl KnowledgeSession {
                 path,
                 table: None,
                 problem: format!("'{target_file}' is not there."),
+                ..KnowledgeTarget::default()
             },
             Some(body) if !body.unreadable().is_empty() => KnowledgeTarget {
                 path,
                 table: None,
                 problem: format!("'{target_file}' cannot be read as a knowledge file."),
+                ..KnowledgeTarget::default()
             },
             Some(body) => KnowledgeTarget {
                 path,
                 table: Some(body.table().clone()),
-                problem: String::new(),
+                ..KnowledgeTarget::default()
             },
         });
         self.targets.borrow_mut().insert(key, target.clone());
@@ -538,6 +652,37 @@ impl KnowledgeSession {
         changes
     }
 
+    /// The related rows an edit adds, written as links to them (FBL section 17.1) where their target has a document
+    /// id; the edits themselves name a row by its id, as what is shown does.
+    fn write_rows_as_links(&self, changes: &mut [ModelChange]) {
+        for change in changes {
+            let ModelChange::Add {
+                type_name,
+                attributes,
+                parent_id: Some(cell),
+                ..
+            } = change
+            else {
+                continue;
+            };
+            if type_name != "CellItem" {
+                continue;
+            }
+            let Some(Value::String(row)) = attributes.get("row").cloned() else {
+                continue;
+            };
+            let property_id = cell.split_once('/').map(|(_, p)| p).unwrap_or_default();
+            let Some(property) = self.shown.column(property_id) else {
+                continue;
+            };
+            let target = self.target_of(property);
+            let text = links::row_text(target.as_deref(), &row);
+            if text != row {
+                attributes.insert("row", Value::String(text));
+            }
+        }
+    }
+
     /// Takes an edit as made: shown from now on, and queued to be written.
     fn accept(
         &mut self,
@@ -547,6 +692,15 @@ impl KnowledgeSession {
         others: Vec<KnowledgeOtherFile>,
     ) {
         self.project(&changes);
+        // What loading the file changed goes with the first edit, in its write and its step.
+        let changes = match self.pending.iter().position(|p| p.edit_id == ON_LOAD) {
+            Some(at) => {
+                let mut all = self.pending.remove(at).changes;
+                all.extend(changes);
+                all
+            }
+            None => changes,
+        };
         self.queue.push_back(Queued {
             edit_id: edit_id.to_owned(),
             generation: self.generation,
@@ -664,10 +818,23 @@ impl DesignerSession for KnowledgeSession {
             } else {
                 gesture.values.clone()
             };
-            let relating = project::rows_relating_to(&self.root_path, &self.body_path, &ids);
+            let relating = project::rows_relating_to(&self.root_path, &self.body_path, &self.shown.document_id, &ids);
             if relating > 0 {
                 return edits::ask_first(relating, ids.len());
             }
+        }
+        // A backlink column is computed from another relation's links: it is neither filled in nor changed here.
+        if links::is_backlink_column(&gesture.column_id)
+            && matches!(
+                gesture.kind.as_str(),
+                "setCell" | "setCells" | "deleteColumn" | "renameColumn" | "setColumnType" | "duplicateColumn"
+            )
+        {
+            return if gesture.kind.starts_with("setCell") {
+                edits::COMPUTED.into()
+            } else {
+                edits::BACKLINK_COLUMN.into()
+            };
         }
         // A relation asked for without the table it relates to is answered with the tables there are to choose from.
         if gesture.kind == "addRelation" && gesture.setting_of("target").trim().is_empty() {
@@ -696,6 +863,8 @@ impl DesignerSession for KnowledgeSession {
         if edit.is_refused() {
             return edit.refusal;
         }
+        let mut edit = edit;
+        self.write_rows_as_links(&mut edit.changes);
         if edit.changes.is_empty() {
             // Nothing to write: the edit is settled as it is made.
             self.changes.push(TableChange::EditSettled {

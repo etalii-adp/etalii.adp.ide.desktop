@@ -1,7 +1,9 @@
 //! Relations between knowledge files (the standalone host's `KnowledgeRelations.Tests.cs` at 8b6ccfc;
-//! knowledge-designer Requirement 5): a relation names its target by a path and its values by the target's row ids,
-//! shows them by their titles, and keeps them when the target or a row is not there; a two-way relation is made in
-//! both files in one step and shown from both sides; and the parent relation never makes a row its own ancestor.
+//! knowledge-designer Requirement 5; etalii.adp spec 089): a relation names its target by a link to its document and
+//! its values by links to the target's rows, shows them by their titles, and keeps them when the target or a row is
+//! not there; a two-way relation is one property whose `backlinkName` shows its backlinks in the target, computed
+//! and stored in neither file; a file made before links names its target by a path and is converted when it is
+//! loaded; and the parent relation never makes a row its own ancestor.
 //!
 //! Two tables open in one application hear of each other's writes through the core; here a test tells the one table
 //! of what the other wrote (`told`), where the standalone host's tests share a `KnowledgeDocuments`.
@@ -10,11 +12,14 @@ mod common;
 
 use std::path::{Path, PathBuf};
 
-use adp_designer_knowledge::edits::{NOT_A_RELATION, OTHER_SIDE_CHOICE, PARENT_CYCLE, PARENT_HOLDS_ONE};
+use adp_designer_knowledge::edits::{BACKLINK_COLUMN, NOT_A_RELATION, PARENT_CYCLE, PARENT_HOLDS_ONE};
 use adp_designer_knowledge::relations::SELF;
-use adp_designer_knowledge::{KnowledgeProperty, KnowledgeTable, store, target_rename, validator};
+use adp_designer_knowledge::{KnowledgeProperty, KnowledgeTable, store, target_rename};
 use adp_desl::table::model::{Settings, TableCell, TableFindingSeverity, TableGesture, TableRow};
-use common::{EXTENSIONS, EditingTable, RELATED, copy_plain, describe};
+use common::{EXTENSIONS, EditingTable, RELATED, copy_before_links, copy_plain, describe};
+
+/// How the cities' relation names the provinces: a link to their document (etalii.adp spec 089).
+const PROVINCES_LINK: &str = "$p7v3k9qd@provinces.yaml";
 
 fn provinces(folder: &Path) -> PathBuf {
     folder.join(RELATED)
@@ -110,8 +115,9 @@ fn a_relation_whose_target_is_not_there_keeps_its_values_and_says_so() {
     let [finding] = baseline.findings.as_slice() else {
         panic!("{:?}", baseline.findings)
     };
+    // The link names a document the workspace does not hold (FBL section 17.6).
     assert_eq!(
-        (validator::UNRESOLVED_TARGET, TableFindingSeverity::Warning, "p5"),
+        (adp_links::codes::BROKEN_DOCUMENT, TableFindingSeverity::Warning, "p5"),
         (finding.code.as_str(), finding.severity, finding.column_id.as_str())
     );
     let shown = cell(&lines, "r1", "p5").expect("a cell");
@@ -129,14 +135,15 @@ fn a_value_naming_a_row_that_is_not_in_the_target_is_kept_and_reported_on_its_ce
     let folder = common::folder();
     let path = copy_plain("cities.yaml", folder.path());
     let text = std::fs::read_to_string(&path).expect("read");
-    std::fs::write(&path, text.replace("- row: nh", "- row: atlantis")).expect("written");
+    std::fs::write(&path, text.replace("#nh.Name=Noord-Holland", "#atlantis.Name=Atlantis")).expect("written");
     let mut table = EditingTable::new(path);
     let findings = table.baseline().findings;
     let [finding] = findings.as_slice() else {
         panic!("{findings:?}")
     };
+    // The link names a row the target does not hold (FBL section 17.6).
     assert_eq!(
-        (validator::UNRESOLVED_ROW, "r1", "p5"),
+        (adp_links::codes::BROKEN_ELEMENT, "r1", "p5"),
         (
             finding.code.as_str(),
             finding.row_id.as_str(),
@@ -215,12 +222,13 @@ fn a_one_way_relation_is_a_property_of_this_file_and_the_target_is_not_touched()
         // The target by its path from this file, any number of rows, and no other side.
         let made = property(&table, "Twinned with");
         assert_eq!(
-            ("relation", RELATED, "none", "", false),
+            ("relation", PROVINCES_LINK, "none", "", "", false),
             (
                 made.value_type.as_str(),
                 made.target_file.as_str(),
                 made.limit.as_str(),
                 made.counterpart.as_str(),
+                made.backlink_name.as_str(),
                 made.is_computed
             ),
             "{extension}"
@@ -231,8 +239,7 @@ fn a_one_way_relation_is_a_property_of_this_file_and_the_target_is_not_touched()
 }
 
 #[test]
-#[ignore = "etalii.adp spec 089 makes a relation a link with a backlinkName, its other side computed backlinks; this module still keeps the old counterpart column, which knowledge.fbl no longer writes (the module follows next)"]
-fn a_two_way_relation_is_made_in_both_files_in_one_step_and_undone_in_one() {
+fn a_two_way_relation_is_one_property_whose_backlinks_show_in_the_target_which_is_not_written() {
     for extension in EXTENSIONS {
         let folder = common::folder();
         let mut table = open(extension, folder.path());
@@ -240,42 +247,41 @@ fn a_two_way_relation_is_made_in_both_files_in_one_step_and_undone_in_one() {
 
         table.edit(relation("Seat of", RELATED, "Seats"));
 
-        // Each side names the other; the other side is computed, has no cells, and points back at this file.
+        // This side names the target by a link and its backlink column by name; nothing is written over there.
         let here = property(&table, "Seat of");
-        let there_table = read_table(&provinces(folder.path()));
-        let there = there_table.columns.iter().find(|p| p.name == "Seats").expect("Seats");
         assert_eq!(
-            (there.id.as_str(), false),
-            (here.counterpart.as_str(), here.is_computed)
-        );
-        assert_eq!(
-            (here.id.as_str(), true, "relation", format!("cities{extension}")),
+            (PROVINCES_LINK, "Seats", "", false),
             (
-                there.counterpart.as_str(),
-                there.is_computed,
-                there.value_type.as_str(),
-                there.target_file.clone()
-            )
+                here.target_file.as_str(),
+                here.backlink_name.as_str(),
+                here.counterpart.as_str(),
+                here.is_computed
+            ),
+            "{extension}"
         );
-        assert!(there_table.rows.iter().all(|r| r.cell(&there.id).is_none()));
+        assert_eq!(theirs, std::fs::read(provinces(folder.path())).expect("read"));
 
-        // One undo: both files as they were. And one redo.
+        // The target shows the backlink column, computed, and its file has no such property.
+        let other = EditingTable::new(provinces(folder.path()));
+        let seats = other
+            .baseline()
+            .columns
+            .into_iter()
+            .find(|c| c.name == "Seats")
+            .expect("the backlink column");
+        assert_eq!("true", seats.settings["computed"]);
+        assert!(other.on_disk().columns.iter().all(|p| p.name != "Seats"));
+
+        // One undo: this file as it was. And one redo.
         table.session.undo().expect("undone");
         assert_eq!(ours, table.bytes(), "{extension}");
-        assert_eq!(theirs, std::fs::read(provinces(folder.path())).expect("read"));
         table.session.redo().expect("redone");
-        assert!(
-            read_table(&provinces(folder.path()))
-                .columns
-                .iter()
-                .any(|p| p.name == "Seats")
-        );
         assert!(table.on_disk().columns.iter().any(|p| p.name == "Seat of"));
+        assert_eq!(theirs, std::fs::read(provinces(folder.path())).expect("read"));
     }
 }
 
 #[test]
-#[ignore = "etalii.adp spec 089 makes a relation a link with a backlinkName, its other side computed backlinks; this module still keeps the old counterpart column, which knowledge.fbl no longer writes (the module follows next)"]
 fn the_other_side_shows_the_rows_that_name_it_and_is_not_filled_in_from_there() {
     // A two-way relation, and both tables open.
     let folder = common::folder();
@@ -316,27 +322,30 @@ fn the_other_side_shows_the_rows_that_name_it_and_is_not_filled_in_from_there() 
 }
 
 #[test]
-#[ignore = "etalii.adp spec 089 makes a relation a link with a backlinkName, its other side computed backlinks; this module still keeps the old counterpart column, which knowledge.fbl no longer writes (the module follows next)"]
-fn deleting_one_side_of_a_two_way_relation_asks_what_becomes_of_the_other_side() {
+fn deleting_a_two_way_relation_asks_nothing_and_its_backlink_column_goes_with_it() {
     let folder = common::folder();
     let mut table = open(".yaml", folder.path());
+    let before = table.bytes();
     table.edit(relation("Near", RELATED, "Cities nearby"));
     let near = property(&table, "Near").id;
-    let (ours, theirs) = (table.bytes(), std::fs::read(provinces(folder.path())).expect("read"));
+    let theirs = std::fs::read(provinces(folder.path())).expect("read");
 
+    // The column says what its backlink column is called, and there is no other side to ask about.
+    assert_eq!("Cities nearby", column_settings(&table, &near)["backlinkName"]);
+    assert!(!column_settings(&table, &near).contains_key("otherSide"));
     let (_, answer) = table.begin(TableGesture::new("deleteColumn").column(near.clone()));
+    assert_eq!("", answer);
+    table.session.write_pending();
 
-    // Asked, nothing written, and the column names its other side so that the question can be put.
-    assert_eq!(OTHER_SIDE_CHOICE, answer);
-    assert_eq!(ours, table.bytes());
+    // This file as before the relation; the target untouched, and no longer showing the backlink column.
+    assert_eq!(before, table.bytes());
     assert_eq!(theirs, std::fs::read(provinces(folder.path())).expect("read"));
-    assert_eq!("Cities nearby", column_settings(&table, &near)["otherSide"]);
-    assert!(!column_settings(&table, "p5").contains_key("otherSide"));
+    let other = EditingTable::new(provinces(folder.path()));
+    assert!(other.baseline().columns.iter().all(|c| c.name != "Cities nearby"));
 }
 
 #[test]
-#[ignore = "etalii.adp spec 089 makes a relation a link with a backlinkName, its other side computed backlinks; this module still keeps the old counterpart column, which knowledge.fbl no longer writes (the module follows next)"]
-fn deleting_one_side_and_the_other_side_too_takes_both_out_in_one_step() {
+fn deleting_a_two_way_relation_with_its_values_is_one_step_of_its_own_file() {
     for extension in EXTENSIONS {
         let folder = common::folder();
         let mut table = open(extension, folder.path());
@@ -349,165 +358,102 @@ fn deleting_one_side_and_the_other_side_too_takes_both_out_in_one_step() {
                 .column(near.clone())
                 .values(["nh", "zh"]),
         );
-        let (ours_with, theirs_with) = (table.bytes(), std::fs::read(provinces(folder.path())).expect("read"));
+        let ours_with = table.bytes();
 
-        table.edit(
-            TableGesture::new("deleteColumn")
-                .column(near)
-                .setting("otherSide", "delete"),
-        );
+        table.edit(TableGesture::new("deleteColumn").column(near));
 
-        // Both files as they were before the relation.
+        // This file as it was before the relation; the target was never written.
         assert_eq!(ours, table.bytes(), "{extension}");
         assert_eq!(theirs, std::fs::read(provinces(folder.path())).expect("read"));
 
-        // One undo: both sides are back, values and all.
+        // One undo: the relation is back, values and all.
         table.session.undo().expect("undone");
         assert_eq!(ours_with, table.bytes());
-        assert_eq!(theirs_with, std::fs::read(provinces(folder.path())).expect("read"));
+        assert_eq!(theirs, std::fs::read(provinces(folder.path())).expect("read"));
     }
 }
 
 #[test]
-#[ignore = "etalii.adp spec 089 makes a relation a link with a backlinkName, its other side computed backlinks; this module still keeps the old counterpart column, which knowledge.fbl no longer writes (the module follows next)"]
-fn deleting_the_side_that_holds_the_values_and_keeping_the_other_gives_the_other_those_values() {
-    for extension in EXTENSIONS {
-        // Amsterdam is near two provinces, Antwerp near one of them.
-        let folder = common::folder();
-        let mut table = open(extension, folder.path());
-        table.edit(relation("Near", RELATED, "Cities nearby"));
-        let near = property(&table, "Near").id;
-        table.edit(
-            TableGesture::new("setCell")
-                .row("r1")
-                .column(near.clone())
-                .values(["nh", "zh"]),
-        );
-        table.edit(
-            TableGesture::new("setCell")
-                .row("r2")
-                .column(near.clone())
-                .values(["zh"]),
-        );
-
-        table.edit(
-            TableGesture::new("deleteColumn")
-                .column(near.clone())
-                .setting("otherSide", "keep"),
-        );
-
-        // This side is gone; the other is a relation of its own, holding what it showed.
-        assert!(table.on_disk().column(&near).is_none());
-        let provinces = read_table(&provinces(folder.path()));
-        let nearby = provinces
-            .columns
-            .iter()
-            .find(|p| p.name == "Cities nearby")
-            .expect("the other side");
-        assert_eq!(
-            ("", false, "relation", format!("cities{extension}")),
-            (
-                nearby.counterpart.as_str(),
-                nearby.is_computed,
-                nearby.value_type.as_str(),
-                nearby.target_file.clone()
-            ),
-            "{extension}"
-        );
-        let held = |row: &str| {
-            provinces
-                .row(row)
-                .expect("the row")
-                .cell(&nearby.id)
-                .map(|c| c.values.clone())
-        };
-        assert_eq!(Some(vec!["r1".to_owned()]), held("nh"));
-        assert_eq!(Some(vec!["r1".to_owned(), "r2".to_owned()]), held("zh"));
-        assert_eq!(None, held("an"));
-    }
-}
-
-#[test]
-#[ignore = "etalii.adp spec 089 makes a relation a link with a backlinkName, its other side computed backlinks; this module still keeps the old counterpart column, which knowledge.fbl no longer writes (the module follows next)"]
-fn deleting_the_side_that_shows_the_values_and_keeping_the_other_leaves_the_other_its_values() {
+fn a_backlink_column_is_changed_with_its_relation_and_not_from_the_table_it_shows_in() {
     let folder = common::folder();
     let mut cities = open(".yaml", folder.path());
     cities.edit(relation("Near", RELATED, "Cities nearby"));
-    let near = property(&cities, "Near").id;
-    cities.edit(
-        TableGesture::new("setCell")
-            .row("r1")
-            .column(near.clone())
-            .values(["nh"]),
-    );
     let mut provinces = EditingTable::new(provinces(folder.path()));
+    let before = provinces.bytes();
     let nearby = provinces
         .baseline()
         .columns
         .into_iter()
         .find(|c| c.name == "Cities nearby")
-        .expect("the other side");
+        .expect("the backlink column");
+
+    // It names the relation it shows; it is neither deleted nor renamed here, and nothing is written.
     assert_eq!("Near", nearby.settings["otherSide"]);
-
-    // The computed side is deleted from its own table.
-    provinces.edit(
-        TableGesture::new("deleteColumn")
+    let (_, deleted) = provinces.begin(TableGesture::new("deleteColumn").column(nearby.id.clone()));
+    let (_, renamed) = provinces.begin(
+        TableGesture::new("renameColumn")
             .column(nearby.id.clone())
-            .setting("otherSide", "keep"),
+            .values(["Towns"]),
     );
+    assert_eq!((BACKLINK_COLUMN, BACKLINK_COLUMN), (deleted.as_str(), renamed.as_str()));
+    assert_eq!(before, provinces.bytes());
+}
 
-    // The side that holds the values is a one-way relation, with its values.
-    assert!(provinces.on_disk().column(&nearby.id).is_none());
-    let kept = read_table(&cities.path);
-    let held = kept.column(&near).expect("near");
-    assert_eq!(("", false), (held.counterpart.as_str(), held.is_computed));
+#[test]
+fn a_relation_written_after_the_target_is_open_shows_there_when_it_is_told() {
+    let folder = common::folder();
+    let cities_path = copy_plain("cities.yaml", folder.path());
+    let mut provinces = EditingTable::new(provinces(folder.path()));
+    assert!(provinces.baseline().columns.iter().all(|c| c.name != "Cities nearby"));
+
+    // The relation is made and filled in in the cities, and the provinces are told of the write.
+    let mut cities = EditingTable::new(cities_path);
+    cities.edit(relation("Near", RELATED, "Cities nearby"));
+    let near = property(&cities, "Near").id;
+    cities.edit(TableGesture::new("setCell").row("r1").column(near).values(["nh"]));
+    provinces.told(&[cities.path.as_path()]);
+
+    let nearby = provinces
+        .baseline()
+        .columns
+        .into_iter()
+        .find(|c| c.name == "Cities nearby")
+        .expect("the backlink column");
+    let lines = provinces.lines();
     assert_eq!(
-        vec!["nh"],
-        kept.row("r1").expect("r1").cell(&near).expect("near").values
+        vec!["Amsterdam"],
+        cell(&lines, "nh", &nearby.id).expect("a cell").labels
     );
 }
 
 #[test]
-#[ignore = "etalii.adp spec 089 makes a relation a link with a backlinkName, its other side computed backlinks; this module still keeps the old counterpart column, which knowledge.fbl no longer writes (the module follows next)"]
-fn deleting_one_side_of_a_relation_to_the_table_itself_keeps_the_other_in_the_same_file() {
+fn deleting_a_two_way_relation_to_the_table_itself_takes_its_backlink_column_with_it() {
     let folder = common::folder();
     let mut table = open(".yaml", folder.path());
+    let before = table.bytes();
     table.edit(relation("Rival of", SELF, "Rivalled by"));
-    let (rival, rivalled) = (property(&table, "Rival of").id, property(&table, "Rivalled by").id);
+    let rival = property(&table, "Rival of").id;
     table.edit(
         TableGesture::new("setCell")
             .row("r1")
             .column(rival.clone())
             .values(["r2"]),
     );
+    assert!(table.baseline().columns.iter().any(|c| c.name == "Rivalled by"));
 
-    table.edit(
-        TableGesture::new("deleteColumn")
-            .column(rival.clone())
-            .setting("otherSide", "keep"),
-    );
+    table.edit(TableGesture::new("deleteColumn").column(rival));
 
-    // What the other side showed is now what it holds, and the table shows it as before.
-    let kept = table.on_disk();
-    assert!(kept.column(&rival).is_none());
-    let other = kept.column(&rivalled).expect("rivalled");
-    assert_eq!(("", false), (other.counterpart.as_str(), other.is_computed));
-    assert_eq!(
-        vec!["r1"],
-        kept.row("r2").expect("r2").cell(&rivalled).expect("a cell").values
-    );
-    assert_eq!(
-        vec!["Amsterdam"],
-        cell(&table.lines(), "r2", &rivalled).expect("a cell").labels
-    );
-    assert!(!column_settings(&table, &rivalled).contains_key("otherSide"));
+    // The file as before the relation, and the backlink column gone from what is shown.
+    assert_eq!(before, table.bytes());
+    assert!(table.baseline().columns.iter().all(|c| c.name != "Rivalled by"));
 }
 
 #[test]
-fn when_the_target_is_renamed_the_relation_names_it_by_its_new_name_and_by_its_old_one_when_that_is_undone() {
+fn when_the_target_of_a_file_made_before_links_is_renamed_the_relation_names_its_new_path_and_its_old_one_when_that_is_undone()
+ {
     for extension in EXTENSIONS {
         let folder = common::folder();
-        let cities = copy_plain(&format!("cities{extension}"), folder.path());
+        let cities = copy_before_links(&format!("cities{extension}"), folder.path());
         let before = std::fs::read(&cities).expect("read");
         let regions = folder.path().join("regions.yaml");
 
@@ -539,9 +485,9 @@ fn when_the_target_is_renamed_the_relation_names_it_by_its_new_name_and_by_its_o
 
 #[test]
 fn when_a_folder_is_renamed_relations_into_it_follow_and_relations_inside_it_stay() {
-    // Cities relates to a table in a folder; a table in that folder relates to its neighbour there.
+    // Cities, made before links, relates to a table in a folder; a table in that folder relates to its neighbour.
     let folder = common::folder();
-    let cities = copy_plain("cities.yaml", folder.path());
+    let cities = copy_before_links("cities.yaml", folder.path());
     let (old, renamed) = (folder.path().join("data"), folder.path().join("reference"));
     std::fs::create_dir(&old).expect("made");
     std::fs::rename(provinces(folder.path()), old.join(RELATED)).expect("moved");
@@ -567,6 +513,107 @@ fn when_a_folder_is_renamed_relations_into_it_follow_and_relations_inside_it_sta
     assert_eq!(
         text,
         std::fs::read_to_string(renamed.join("inside.yaml")).expect("read")
+    );
+}
+
+#[test]
+fn when_a_target_named_by_a_link_is_renamed_nothing_is_written_and_the_next_load_names_it_anew() {
+    for extension in EXTENSIONS {
+        let folder = common::folder();
+        let cities = copy_plain(&format!("cities{extension}"), folder.path());
+        let before = std::fs::read(&cities).expect("read");
+        let regions = folder.path().join("regions.yaml");
+
+        // The rename needs no step: the link resolves by the target's document id.
+        std::fs::rename(provinces(folder.path()), &regions).expect("renamed");
+        assert!(target_rename::renamed(folder.path(), &provinces(folder.path()), &regions).is_empty());
+        assert_eq!(before, std::fs::read(&cities).expect("read"));
+
+        // Loaded, it resolves and shows the titles; the link is named anew, and written with the next edit.
+        let mut open = EditingTable::new(cities.clone());
+        assert_eq!(
+            vec!["Noord-Holland"],
+            cell(&open.lines(), "r1", "p5").expect("a cell").labels
+        );
+        assert!(open.baseline().findings.is_empty(), "{:?}", open.baseline().findings);
+        assert!(open.session.load_changes().is_some());
+        assert_eq!(before, std::fs::read(&cities).expect("read"));
+        open.edit(TableGesture::new("setCell").row("r2").column("p5").values(["zh"]));
+        let text = String::from_utf8(open.bytes()).expect("UTF-8");
+        assert!(
+            text.contains("$p7v3k9qd@regions.yaml#nh.Name=Noord-Holland"),
+            "{extension}: {text}"
+        );
+        assert!(
+            text.contains("$p7v3k9qd@regions.yaml#zh.Name=Zuid-Holland"),
+            "{extension}: {text}"
+        );
+        assert!(!text.contains("@provinces.yaml"), "{extension}: {text}");
+        assert_eq!(
+            "$p7v3k9qd@regions.yaml",
+            read_table(&cities).column("p5").expect("p5").target_file
+        );
+    }
+}
+
+#[test]
+fn a_file_made_before_links_is_converted_when_it_is_loaded_and_written_with_the_next_edit() {
+    for extension in EXTENSIONS {
+        // The provinces have been given their id already, as loading them would; the cities are as they were.
+        let folder = common::folder();
+        let cities = copy_before_links(&format!("cities{extension}"), folder.path());
+        std::fs::copy(common::examples_folder().join(RELATED), provinces(folder.path())).expect("copied");
+        let before = std::fs::read(&cities).expect("read");
+
+        // Loaded for editing: shown converted, nothing written yet.
+        let mut table = EditingTable::new(cities.clone());
+        assert!(table.session.load_changes().is_some(), "{extension}");
+        assert_eq!(before, std::fs::read(&cities).expect("read"));
+        assert_eq!(
+            vec!["Noord-Holland"],
+            cell(&table.lines(), "r1", "p5").expect("a cell").labels
+        );
+
+        // The next edit writes the conversion with it: an id, the version that holds links, and links.
+        table.edit(TableGesture::new("setCell").row("r2").column("p5").values(["zh"]));
+        let converted = read_table(&cities);
+        assert_eq!(8, converted.document_id.len(), "{extension}");
+        let text = String::from_utf8(table.bytes()).expect("UTF-8");
+        assert!(text.contains("0.3"), "{extension}: {text}");
+        assert!(
+            text.contains("$p7v3k9qd@provinces.yaml#nh.Name=Noord-Holland"),
+            "{extension}: {text}"
+        );
+        assert!(
+            text.contains("$p7v3k9qd@provinces.yaml#zh.Name=Zuid-Holland"),
+            "{extension}: {text}"
+        );
+        assert_eq!(PROVINCES_LINK, converted.column("p5").expect("p5").target_file);
+        // No related row is lost, and the edit and the conversion are one step.
+        assert_eq!(
+            vec!["nh"],
+            converted.row("r1").expect("r1").cell("p5").expect("p5").values
+        );
+        table.session.undo().expect("undone");
+        assert_eq!(before, table.bytes());
+    }
+}
+
+#[test]
+fn a_file_made_before_links_whose_target_has_no_id_yet_keeps_the_relation_as_it_is_and_says_so() {
+    let folder = common::folder();
+    let cities = copy_before_links("cities.yaml", folder.path());
+    let mut table = EditingTable::new(cities.clone());
+
+    // Given its own id; the relation still names a path, shows its titles, and nothing is reported of it.
+    table.edit(TableGesture::new("setCell").row("r2").column("p5").values(["zh"]));
+    let after = read_table(&cities);
+    assert_eq!(8, after.document_id.len());
+    assert_eq!(RELATED, after.column("p5").expect("p5").target_file);
+    assert_eq!(vec!["zh"], after.row("r2").expect("r2").cell("p5").expect("p5").values);
+    assert_eq!(
+        vec!["Zuid-Holland"],
+        cell(&table.lines(), "r2", "p5").expect("a cell").labels
     );
 }
 
@@ -603,9 +650,10 @@ fn deleting_a_row_other_tables_relate_to_tells_how_many_first_and_deletes_when_c
 
 #[test]
 fn when_the_other_file_refuses_neither_file_is_written() {
-    // The edit is accepted and shown, and waits to be written.
+    // A file made before links, whose target has no id: its two-way relation writes both. The edit is accepted and
+    // shown, and waits to be written.
     let folder = common::folder();
-    let mut table = open(".yaml", folder.path());
+    let mut table = EditingTable::new(copy_before_links("cities.yaml", folder.path()));
     let ours = table.bytes();
     let (edit, answer) = table.begin(relation("Seat of", RELATED, "Seats"));
     assert_eq!("", answer);
@@ -629,7 +677,6 @@ fn when_the_other_file_refuses_neither_file_is_written() {
 }
 
 #[test]
-#[ignore = "etalii.adp spec 089 makes a relation a link with a backlinkName, its other side computed backlinks; this module still keeps the old counterpart column, which knowledge.fbl no longer writes (the module follows next)"]
 fn a_relation_is_a_property_asked_for_by_name_with_its_table_chosen_from_the_projects_tables() {
     for extension in EXTENSIONS {
         // The table knows the project it is in.
@@ -664,27 +711,22 @@ fn a_relation_is_a_property_asked_for_by_name_with_its_table_chosen_from_the_pro
         let at = properties.iter().position(|p| p.name == "Region").expect("Region");
         let region = &properties[at];
         assert_eq!(
-            ("relation", RELATED, "one", false),
+            ("relation", PROVINCES_LINK, "one", false, "Cities"),
             (
                 region.value_type.as_str(),
                 region.target_file.as_str(),
                 region.limit.as_str(),
-                region.is_computed
+                region.is_computed,
+                region.backlink_name.as_str()
             )
         );
         assert_eq!("p3", properties[at + 1].id);
-        let others = read_table(&provinces(folder.path()));
-        let other = others.column(&region.counterpart).expect("the other side");
-        assert_eq!(
-            ("Cities", true, region.id.as_str()),
-            (other.name.as_str(), other.is_computed, other.counterpart.as_str())
-        );
-        assert_ne!(theirs, std::fs::read(provinces(folder.path())).expect("read"));
+        // Its backlinks show in the provinces, whose file is not written.
+        assert_eq!(theirs, std::fs::read(provinces(folder.path())).expect("read"));
     }
 }
 
 #[test]
-#[ignore = "etalii.adp spec 089 makes a relation a link with a backlinkName, its other side computed backlinks; this module still keeps the old counterpart column, which knowledge.fbl no longer writes (the module follows next)"]
 fn a_relations_limit_and_its_other_side_are_set_on_the_property_and_no_row_changes() {
     for extension in EXTENSIONS {
         let folder = common::folder();
@@ -727,35 +769,38 @@ fn a_relations_limit_and_its_other_side_are_set_on_the_property_and_no_row_chang
         );
         assert_eq!("one", province(&table).limit);
 
-        // Shown in the provinces too, under a name.
+        // Shown in the provinces too, under a name: its backlinks, which the provinces' file does not hold.
         table.edit(
             TableGesture::new("setRelationOtherSide")
                 .column("p5")
                 .setting("twoWay", "true")
                 .setting("counterpart", "Towns"),
         );
-        let others = read_table(&provinces(folder.path()));
-        let other = others.columns.iter().find(|p| p.name == "Towns").expect("Towns");
         assert_eq!(
-            (true, "p5", "relation"),
-            (other.is_computed, other.counterpart.as_str(), other.value_type.as_str())
+            ("Towns", ""),
+            (
+                province(&table).backlink_name.as_str(),
+                province(&table).counterpart.as_str()
+            )
         );
-        assert_eq!(other.id, province(&table).counterpart);
-        assert_eq!("Towns", column_settings(&table, "p5")["otherSide"]);
+        assert_eq!("Towns", column_settings(&table, "p5")["backlinkName"]);
+        let shown = |folder: &Path| {
+            EditingTable::new(provinces(folder))
+                .baseline()
+                .columns
+                .into_iter()
+                .any(|c| c.name == "Towns" && c.settings.get("computed").is_some_and(|v| v == "true"))
+        };
+        assert!(shown(folder.path()), "{extension}");
 
-        // In this table only again: the other side is gone, this side names none, the provinces are what they were.
+        // In this table only again: no backlinks, and the provinces are what they were throughout.
         table.edit(
             TableGesture::new("setRelationOtherSide")
                 .column("p5")
                 .setting("twoWay", "false"),
         );
-        assert_eq!("", province(&table).counterpart);
-        assert!(
-            !read_table(&provinces(folder.path()))
-                .columns
-                .iter()
-                .any(|p| p.name == "Towns")
-        );
+        assert_eq!("", province(&table).backlink_name);
+        assert!(!shown(folder.path()));
         assert_eq!(theirs, describe(&read_table(&provinces(folder.path()))));
 
         // Through all of it no row changed.
@@ -809,12 +854,11 @@ fn a_relation_needs_a_table_to_relate_to() {
 // ---- the table itself, and the parent relation ----
 
 #[test]
-#[ignore = "etalii.adp spec 089 makes a relation a link with a backlinkName, its other side computed backlinks; this module still keeps the old counterpart column, which knowledge.fbl no longer writes (the module follows next)"]
-fn a_two_way_relation_to_the_table_itself_has_both_sides_in_the_one_file() {
+fn a_two_way_relation_to_the_table_itself_shows_its_backlinks_in_the_same_table() {
     let folder = common::folder();
     let mut table = open(".yaml", folder.path());
     table.edit(relation("Rival of", SELF, "Rivalled by"));
-    let (rival, rivalled) = (property(&table, "Rival of"), property(&table, "Rivalled by"));
+    let rival = property(&table, "Rival of");
     table.edit(
         TableGesture::new("setCell")
             .row("r1")
@@ -822,19 +866,22 @@ fn a_two_way_relation_to_the_table_itself_has_both_sides_in_the_one_file() {
             .values(["r2"]),
     );
 
-    // One side holds the value, the other shows it from the other end.
+    // One property in the file, a link to the file's own document; its backlinks are a column of their own.
     assert_eq!(
-        (SELF, rivalled.id.as_str()),
-        (rival.target_file.as_str(), rival.counterpart.as_str())
-    );
-    assert_eq!(
-        (SELF, rival.id.as_str(), true),
+        ("$c4m8x2tr@cities.yaml", "Rivalled by", ""),
         (
-            rivalled.target_file.as_str(),
-            rivalled.counterpart.as_str(),
-            rivalled.is_computed
+            rival.target_file.as_str(),
+            rival.backlink_name.as_str(),
+            rival.counterpart.as_str()
         )
     );
+    assert!(table.on_disk().columns.iter().all(|p| p.name != "Rivalled by"));
+    let rivalled = table
+        .baseline()
+        .columns
+        .into_iter()
+        .find(|c| c.name == "Rivalled by")
+        .expect("the backlink column");
     let lines = table.lines();
     assert_eq!(vec!["Antwerp"], cell(&lines, "r1", &rival.id).expect("a cell").labels);
     assert_eq!(vec!["r1"], cell(&lines, "r2", &rivalled.id).expect("a cell").values);
@@ -842,6 +889,9 @@ fn a_two_way_relation_to_the_table_itself_has_both_sides_in_the_one_file() {
         vec!["Amsterdam"],
         cell(&lines, "r2", &rivalled.id).expect("a cell").labels
     );
+    // The cell holds a link to the row, named by its title.
+    let text = String::from_utf8(table.bytes()).expect("UTF-8");
+    assert!(text.contains("row: $c4m8x2tr@cities.yaml#r2.Name=Antwerp"), "{text}");
 }
 
 #[test]

@@ -5,7 +5,9 @@
 //! `tests/examples/` holds the standalone host's `src/designers/knowledge/examples/` at 8b6ccfc byte for byte - the
 //! cities in three formats, with the data its maintainer added, and `provinces.yaml`, the table their relation names -
 //! because the ported expectations are about those files. The examples vendored from etalii.adp are read by
-//! `vendored_examples.rs`.
+//! `vendored_examples.rs`. Since etalii.adp spec 089 they hold document ids and links, as converting them on load
+//! made them; `tests/examples/before-links/` keeps them as they were, for the conversion and the relations of files
+//! made before links.
 
 #![allow(dead_code)]
 
@@ -44,6 +46,24 @@ pub fn copy_example(name: &str, folder: &Path) -> PathBuf {
     let related = folder.join(RELATED);
     if name != RELATED && !related.exists() {
         std::fs::copy(examples_folder().join(RELATED), &related).expect("the related table is copied");
+    }
+    path
+}
+
+/// The examples as they were before links (etalii.adp spec 089): relations naming their target by a path and their
+/// rows by their ids, and no document ids.
+pub fn before_links_folder() -> PathBuf {
+    examples_folder().join("before-links")
+}
+
+/// A copy of an example as it was before links in `folder`, under its own name, with the table its relation names
+/// beside it as it was then too.
+pub fn copy_before_links(name: &str, folder: &Path) -> PathBuf {
+    let path = folder.join(name);
+    std::fs::copy(before_links_folder().join(name), &path).expect("the example is copied");
+    let related = folder.join(RELATED);
+    if name != RELATED && !related.exists() {
+        std::fs::copy(before_links_folder().join(RELATED), &related).expect("the related table is copied");
     }
     path
 }

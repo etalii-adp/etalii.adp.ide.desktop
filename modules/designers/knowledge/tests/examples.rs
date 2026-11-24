@@ -8,29 +8,30 @@ mod common;
 use std::path::Path;
 use std::rc::Rc;
 
-use adp_designer_knowledge::relations::{self, KnowledgeTarget, SELF};
-use adp_designer_knowledge::{KnowledgeBody, KnowledgeProperty, KnowledgeTable, validator};
+use adp_designer_knowledge::relations::{self, KnowledgeTarget};
+use adp_designer_knowledge::{KnowledgeBody, KnowledgeProperty, KnowledgeTable, links, store, validator};
 use adp_desl::table::model::TableGesture;
 use common::{EXTENSIONS, EditingTable, copy_example, describe, example_bytes, examples_folder, read_example};
 
-/// What a relation of an example points at: the table itself, or the file beside it that it names.
+/// What a relation of an example points at: the table itself, or the file beside it that its link names.
 fn target(path: &Path, own: &KnowledgeTable, property: &KnowledgeProperty) -> Option<Rc<KnowledgeTarget>> {
-    if property.target_file == SELF || property.target_file.is_empty() {
+    if relations::is_itself(own, &property.target_file) {
         return Some(Rc::new(KnowledgeTarget {
             path: path.to_path_buf(),
             table: Some(own.clone()),
-            problem: String::new(),
+            ..KnowledgeTarget::default()
         }));
     }
-    let at = relations::target_path(path, &property.target_file);
-    let table = std::fs::read(&at)
-        .ok()
-        .map(|bytes| KnowledgeBody::read(bytes, &at.to_string_lossy()).table().clone());
-    Some(Rc::new(KnowledgeTarget {
-        path: at,
-        table,
-        problem: String::new(),
-    }))
+    let folder = path.parent().expect("a folder");
+    let files = links::read_files(folder, &|p: &Path| store::read(p));
+    let workspace = links::workspace(&files, path, own);
+    Some(Rc::new(links::target_of_link(
+        &workspace,
+        &files,
+        path,
+        own,
+        &property.target_file,
+    )))
 }
 
 #[test]
@@ -38,6 +39,7 @@ fn an_example_reads_with_nothing_to_report_and_written_unchanged_keeps_its_bytes
     let mut files: Vec<_> = std::fs::read_dir(examples_folder())
         .expect("the examples")
         .map(|e| e.expect("an entry").path())
+        .filter(|p| p.is_file())
         .collect();
     files.sort();
     // The table in three formats and the table it relates to.

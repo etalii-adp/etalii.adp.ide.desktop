@@ -58,7 +58,8 @@ pub struct ContentColumn {
     pub kind: ValueKind,
     pub is_title: bool,
     pub options: Vec<ContentOption>,
-    /// The document a column of rows relates to, `.` for the document itself (DESL section 5.4).
+    /// The document a column of rows relates to, `.` for the document itself (DESL section 5.4); *(DESL 0.5)* a link
+    /// to that document, `$<document-id>@<file name>` (FBL section 17.1).
     pub target_file: String,
     /// How many rows a column of rows holds: `one` or `none` (no limit).
     pub limit: String,
@@ -66,6 +67,9 @@ pub struct ContentColumn {
     pub counterpart: String,
     /// Whether its values are read from the other side rather than held.
     pub is_computed: bool,
+    /// *(DESL 0.5)* The name of the column that shows this relation's backlinks in the target document, computed and
+    /// never stored there (DESL section 7.5.1); empty for none.
+    pub backlink_name: String,
     /// Whether its values are the row's parent within the same document, for nesting (DESL section 7.3).
     pub is_parent: bool,
 }
@@ -84,6 +88,7 @@ impl ContentColumn {
             limit: "none".into(),
             counterpart: String::new(),
             is_computed: false,
+            backlink_name: String::new(),
             is_parent: false,
         }
     }
@@ -252,6 +257,8 @@ impl ContentRow {
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct TableContent {
     pub name: String,
+    /// *(DESL 0.5)* The document's id (FBL section 17.2), by which links name it; empty for a document without one.
+    pub document_id: String,
     /// The view the table was last left in, or empty for the first.
     pub active_view_id: String,
     pub columns: Vec<ContentColumn>,

@@ -16,7 +16,8 @@ const WINDOW: usize = 60;
 
 /// A table of `rows` rows by rule: a name, a number, one of three sizes and a tick on every other row.
 fn table(rows: usize) -> String {
-    let mut text = String::from("ded: \"0.1\"\r\ndesigner: etalii/knowledge\r\nname: Places\r\nproperties:\r\n");
+    let mut text =
+        String::from("ded: \"0.3\"\r\ndesigner: etalii/knowledge\r\nid: l4rg3t4b\r\nname: Places\r\nproperties:\r\n");
     text += "  - id: p1\r\n    name: Name\r\n    type: text\r\n    title: true\r\n";
     text += "  - id: p2\r\n    name: People\r\n    type: number\r\n";
     text += "  - id: p3\r\n    name: Size\r\n    type: selection\r\n    options:\r\n      - id: o1\r\n        name: Small\r\n      - id: o2\r\n        name: Medium\r\n      - id: o3\r\n        name: Large\r\n";

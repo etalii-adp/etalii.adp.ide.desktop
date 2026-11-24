@@ -3022,11 +3022,15 @@ mod tests {
             table.refusal
         );
         table.write_behind();
-        let provinces = std::fs::read_to_string(folder.path().join("provinces.yaml")).unwrap();
-        assert!(provinces.contains("Cities nearby"), "the other table has its side");
+        // Two-way is the relation's backlinkName, its backlinks shown in the other table and stored in neither file
+        // (etalii.adp spec 089): the other table is not written.
+        let theirs = std::fs::read(folder.path().join("provinces.yaml")).unwrap();
+        let cities = std::fs::read_to_string(folder.path().join("cities.yaml")).unwrap();
+        assert!(cities.contains("backlinkName: Cities nearby"), "{cities}");
         table.undo().expect("undone");
-        let provinces = std::fs::read_to_string(folder.path().join("provinces.yaml")).unwrap();
-        assert!(!provinces.contains("Cities nearby"), "one undo takes both sides back");
+        let cities = std::fs::read_to_string(folder.path().join("cities.yaml")).unwrap();
+        assert!(!cities.contains("Cities nearby"), "one undo takes the relation back");
+        assert_eq!(theirs, std::fs::read(folder.path().join("provinces.yaml")).unwrap());
     }
 
     #[test]
