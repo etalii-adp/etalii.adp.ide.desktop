@@ -262,7 +262,7 @@
         },
         "GroupSetting": { "strategy": "derived", "expression": "self.parent.id + '/' + self.slot + '/' + self.key" },
         "Cell": { "strategy": "derived", "expression": "self.parent.id + '/' + self.property.id", "doc": "A cell is its row and its property (Q3)." },
-        "CellItem": { "strategy": "derived", "expression": "self.parent.id + '/' + (self.option != null ? self.option.id : self.row)" }
+        "CellItem": { "strategy": "derived", "expression": "self.parent.id + '/' + (self.option != null ? self.option.id : (self.row.contains('#') ? self.row.split('#')[1].split('=')[0].split('.')[0] : self.row))", "doc": "A related row's item is its row's element id, the part of the link between `#` and the first `.` or `=` (FBL section 17.1), so that refreshing the cached name does not change it; a file made before links holds the bare row id." }
       },
       "doc": "Properties, options, views and rows get 8 characters of base 36 (spec 089, FR-001 and FR-003), never reused and never changed; the ShortGuids of 25 characters that earlier versions wrote, and ids written by hand, are kept as written (Requirement 2.6). An entry read without an id is given one by the first edit made in ADP (Requirement 8.5)."
     },

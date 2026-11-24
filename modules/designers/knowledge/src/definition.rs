@@ -100,7 +100,16 @@ pub fn derive_id(request: &IdRequest<'_>) -> Option<String> {
         }
         "cell" => format!("{parent}/{}", text("property")),
         "cellOption" => format!("{parent}/{}", text("option")),
-        "cellRow" => format!("{parent}/{}", text("row")),
+        // A related row's item is its row's element id, the link's part between `#` and the first `.` or `=` (FBL
+        // section 17.1), so that refreshing the cached name keeps it; a file made before links holds the bare id.
+        "cellRow" => {
+            let row = text("row");
+            let id = match row.split_once('#') {
+                Some((_, element)) => element.split(['.', '=']).next().unwrap_or_default().to_owned(),
+                None => row,
+            };
+            format!("{parent}/{id}")
+        }
         _ => return None,
     })
 }
