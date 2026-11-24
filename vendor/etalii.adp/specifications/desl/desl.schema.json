@@ -13,13 +13,12 @@
           "type": "string"
         },
         "desl": {
-          "description": "The DESL version the specification is written in: 0.1, 0.2, which adds the hierarchy surface, counted ids, mentions, move and persistence.settings, 0.3, which names an element read with a counter's placeholder line/<line>, 0.4, which adds the sections surface, or 0.5, which adds links to elements of other documents. See section 2.7.",
+          "description": "The DESL version the specification is written in: 0.1, 0.2, which adds the hierarchy surface, counted ids, mentions, move and persistence.settings, 0.3, which names an element read with a counter's placeholder line/<line>, or 0.4, which adds the sections surface. See section 2.7.",
           "enum": [
             "0.1",
             "0.2",
             "0.3",
-            "0.4",
-            "0.5"
+            "0.4"
           ]
         },
         "language": {
@@ -307,29 +306,6 @@
         "labelAttribute": {
           "$ref": "#/$defs/SimpleId"
         },
-        "linkable": {
-          "description": "(DESL 0.5) Elements of this type can be linked to from other documents; true takes the default name property, the labelAttribute. See section 4.5.",
-          "anyOf": [
-            {
-              "const": true
-            },
-            {
-              "type": "object",
-              "properties": {
-                "nameProperty": {
-                  "$ref": "#/$defs/SimpleId"
-                },
-                "doc": {
-                  "$ref": "#/$defs/Doc"
-                }
-              },
-              "additionalProperties": false,
-              "patternProperties": {
-                "^x-": true
-              }
-            }
-          ]
-        },
         "doc": {
           "$ref": "#/$defs/Doc"
         }
@@ -409,8 +385,7 @@
                 "bool",
                 "date",
                 "datetime",
-                "time",
-                "link"
+                "time"
               ]
             },
             {
@@ -466,20 +441,6 @@
         },
         "mentions": {
           "$ref": "#/$defs/Mentions"
-        },
-        "origins": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "pattern": "^[a-z0-9-]+/[a-z0-9-]+$"
-          },
-          "minItems": 1,
-          "uniqueItems": true,
-          "description": "(DESL 0.5) For link: the tool types, as <vendor>/<type>, whose documents the link may point into; absent, any. See section 4.2."
-        },
-        "document": {
-          "type": "boolean",
-          "description": "(DESL 0.5) For link: the value is a link to a document, without an element. Defaults to false. See section 4.2."
         }
       },
       "additionalProperties": false,
@@ -602,22 +563,6 @@
           "additionalProperties": {
             "$ref": "#/$defs/Setting"
           }
-        },
-        "documentId": {
-          "description": "(DESL 0.5) The rule of the document's own id (FBL section 17.2), a nanoid rule. See section 5.3.6.",
-          "allOf": [
-            {
-              "$ref": "#/$defs/IdRule"
-            }
-          ],
-          "properties": {
-            "strategy": {
-              "const": "nanoid"
-            }
-          },
-          "required": [
-            "strategy"
-          ]
         },
         "doc": {
           "$ref": "#/$defs/Doc"
@@ -751,8 +696,7 @@
           "enum": [
             "uuid-v4",
             "uuid-v7",
-            "derived",
-            "nanoid"
+            "derived"
           ]
         },
         "encoding": {
@@ -760,19 +704,6 @@
             "hex",
             "base36"
           ]
-        },
-        "alphabet": {
-          "description": "(DESL 0.5) nanoid: the characters of an id, nanoid's 64 (A-Za-z0-9_-, the default) or 0-9a-z. See section 5.3.6.",
-          "enum": [
-            "nanoid",
-            "base36"
-          ]
-        },
-        "length": {
-          "description": "(DESL 0.5) nanoid: the number of characters of an id. Default 21. See section 5.3.6.",
-          "type": "integer",
-          "minimum": 2,
-          "maximum": 64
         },
         "stable": {
           "type": "boolean"
@@ -810,25 +741,11 @@
             "uuid-v4",
             "uuid-v7",
             "derived",
-            "counter",
-            "nanoid"
+            "counter"
           ]
         },
         "expression": {
           "$ref": "#/$defs/Expression"
-        },
-        "alphabet": {
-          "description": "(DESL 0.5) nanoid: the characters of an id, nanoid's 64 (A-Za-z0-9_-, the default) or 0-9a-z. See section 5.3.6.",
-          "enum": [
-            "nanoid",
-            "base36"
-          ]
-        },
-        "length": {
-          "description": "(DESL 0.5) nanoid: the number of characters of an id. Default 21. See section 5.3.6.",
-          "type": "integer",
-          "minimum": 2,
-          "maximum": 64
         },
         "prefix": {
           "description": "(DESL 0.2) counter: what every id of the type starts with.",
@@ -2039,31 +1956,6 @@
           },
           "additionalProperties": {
             "$ref": "#/$defs/Conversion"
-          }
-        },
-        "link": {
-          "description": "(DESL 0.5) The cells hold links into one document, chosen with the relation picker: the attributes of the columns' type that hold the target document's link, the limit and the backlink column's name. See section 7.5.1.",
-          "type": "object",
-          "properties": {
-            "target": {
-              "$ref": "#/$defs/SimpleId"
-            },
-            "limit": {
-              "$ref": "#/$defs/SimpleId"
-            },
-            "backlinkName": {
-              "$ref": "#/$defs/SimpleId"
-            },
-            "doc": {
-              "$ref": "#/$defs/Doc"
-            }
-          },
-          "required": [
-            "target"
-          ],
-          "additionalProperties": false,
-          "patternProperties": {
-            "^x-": true
           }
         },
         "doc": {

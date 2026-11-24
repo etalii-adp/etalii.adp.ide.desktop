@@ -24,13 +24,13 @@ name: word
     | "as" | "break" | "continue" | "else" | "for" | "if" | "import" | "in" | "let" | "return" | "var" | "while"
 word: NAME
     | "after" | "algorithm" | "at" | "atd" | "attribute" | "axis" | "badge" | "before" | "behavior"
-    | "binding" | "block" | "body" | "builtin" | "by" | "call" | "canvas" | "capability" | "cells" | "check" | "child"
+    | "binding" | "block" | "body" | "builtin" | "by" | "call" | "canvas" | "capability" | "cells" | "check"
     | "claims" | "columns" | "compartment" | "complete" | "confirm" | "connect" | "constraint" | "constraints"
     | "contains" | "context" | "convert" | "coordinates" | "create" | "datatype" | "default" | "defaults" | "delete"
     | "designer" | "diagram" | "doc" | "document" | "edge" | "editLabel" | "editor" | "element"
     | "enabled" | "entries" | "enum" | "extends" | "fail" | "family" | "field" | "files" | "filters" | "fix" | "fn"
     | "fold" | "form" | "from" | "grammar" | "group" | "header" | "hierarchy" | "highlight" | "hook" | "icon" | "id"
-    | "insert" | "into" | "item" | "label" | "labels" | "layout" | "levels" | "limit" | "line" | "list" | "lookup" | "many" | "marker"
+    | "insert" | "into" | "item" | "label" | "labels" | "layout" | "levels" | "limit" | "line" | "list" | "many" | "marker"
     | "message" | "mid" | "model" | "move" | "node" | "notation" | "notes" | "notify" | "of" | "on" | "open"
     | "openForm" | "operation" | "ordered" | "outline" | "param" | "parent" | "part" | "persistence" | "place"
     | "plugin" | "port" | "preview" | "readonly" | "reason" | "record" | "recursion" | "references" | "registration"
@@ -268,9 +268,6 @@ script__if_stmt: "if" expr script__stmt_block ["else" (script__if_stmt | script_
        | "layout" name ["on" expr] [settings_block] -> script__layout_action
        | "call" qualified "(" [script__call_arg ("," script__call_arg)*] ")" -> script__call_action
        | "call" "plugin" qualified "(" [script__call_arg ("," script__call_arg)*] ")" -> script__plugin_action
-       | "lookup" type_ref script__lookup_place ["from" value] ["as" name] -> script__lookup_action
-script__lookup_place: "child" -> script__child
-            | "at" -> script__at_pointer
 script__path: name ("." name)*
 script__assignments: "{" script__assignment* "}"
 script__assignment: KEY expr [","]

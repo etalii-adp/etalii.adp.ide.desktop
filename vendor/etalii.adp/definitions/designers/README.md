@@ -16,7 +16,3 @@ A designer's documents are DED definitions ([DED](../../specifications/ded/DED-s
 ## Tool descriptions
 
 Each type here has a tool description in the ADP tool language ([ATD](../../specifications/atd/ATD-specification.md)): a root `<name>.atd` with its parts beside it, and a `<name>.trace.json` that traces what it carries back to the files it comes from. Its conformance cases are in `conformance/<type>/<case>/`. The Knowledge designer has no description yet (spec 076). A person's document still opens on today's tool, read from the JSON files, and not on the description; the `atd` command line checks and validates the descriptions.
-
-## Links between tools
-
-The knowledge designer's relations are links between documents (spec 089, [FBL section 17](../../specifications/fbl/FBL-specification.md#17-links-between-documents), DESL 7.5.1): a relation names its target file by document id and name, each cell links rows of it, and its rows can be linked to from a mind map, a timeline or a dependency graph. A file made before links is converted once when it is loaded (`knowledge.md`, *Relations and the steps that write two files*). [`specifications/fbl/links-example/`](../../specifications/fbl/links-example/) is a workspace with one document of each of the four tool types that hold links.

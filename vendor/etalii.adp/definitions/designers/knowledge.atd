@@ -3,7 +3,7 @@ atd 0.1
 /// The Knowledge designer: ADP's first designer, specified by the standalone specification `knowledge-designer` and by etalii.adp's spec 013.
 ///
 /// This description carries `knowledge.des` and the three bindings of `knowledge.fbl` (in knowledge.yaml.atd, knowledge.json.atd and knowledge.xml.atd). What it cannot state is the host's, as `knowledge.md` lists it.
-designer etalii/knowledge version "0.2.0" {
+designer etalii/knowledge version "0.1.0" {
   label "Knowledge"
   id: "net.etalii.adp.etalii.knowledge"
   authors: [{ name: "Peter Vrenken", url: "https://github.com/vrenken" }]
@@ -68,8 +68,6 @@ designer etalii/knowledge version "0.2.0" {
       attribute name: string required
       /// The view the table was last left in; absent, the first view (Requirement 6.10).
       attribute activeView: View
-      /// The file's document id (FBL section 17.2), stored under the envelope's key `id` (DED 0.3); made by `documentId` and never changed (spec 089).
-      attribute documentId: string readonly
     }
 
     /// A property's type (Requirement 3.1); the keys of `surface.valueTypes`.
@@ -147,16 +145,14 @@ designer etalii/knowledge version "0.2.0" {
       attribute valueType: ValueType required
       /// Marks the one text property whose value names a row (Requirement 3.7).
       attribute title: bool default false
-      /// A relation's target knowledge file, as a link without an element, `$<document-id>@<file name>` (FBL section 17.1, spec 089); a link to the file's own id is this file. Stored under the key `target`; the model calls it targetFile so that it never reads as the `target` of an action. A file made before links holds a path here, `.` for itself, which the conversion on load replaces (knowledge.md, section 9).
-      attribute targetFile: link { document: true, origins: ["etalii/knowledge"] }
+      /// A relation's target knowledge file, relative to this file; `.` is this file. Stored under the key `target`; the model calls it targetFile so that it never reads as the `target` of an action.
+      attribute targetFile: string
       /// How many rows a relation cell may hold.
       attribute limit: Limit default none
-      /// The name of the column that shows this relation's backlinks in the target file, computed and never stored there (DESL 0.5, section 7.5.1; spec 089).
-      attribute backlinkName: string
-      /// Read only from a file made before links: a two-way relation's property in the target file, by its id there. The conversion on load removes it (knowledge.md, section 9).
-      attribute counterpart: string readonly
-      /// Read only from a file made before links: the counterpart side of a two-way relation, which holds no cells. The conversion on load removes it (knowledge.md, section 9).
-      attribute computed: bool readonly default false
+      /// A two-way relation's property in the target file, by its id there. The side that was created holds the values; the counterpart is `computed` (Requirement 5.4, Q5).
+      attribute counterpart: string
+      /// The counterpart side of a two-way relation: it shows the rows that point at this table's rows and holds no cells.
+      attribute computed: bool default false
       /// A relation to this file whose value is the row's parent (Requirement 5.9). Stored under the key `parent`, which DESL reserves.
       attribute isParent: bool default false
       contains Option ordered
@@ -244,11 +240,10 @@ designer etalii/knowledge version "0.2.0" {
       attribute key: string required
     }
 
-    /// One entry of the table. Document order is the order of rows where no sort applies. Other documents link to a row by its id, and name it by the value of its title property, under that property's name (knowledge.md, section 9).
+    /// One entry of the table. Document order is the order of rows where no sort applies.
     element Row {
       label "Row"
       icon: "mdi-table-row"
-      linkable: true
       contains Cell ordered
       contains Cell as cells
     }
@@ -278,8 +273,8 @@ designer etalii/knowledge version "0.2.0" {
     element CellItem {
       /// An option of a multiple selection.
       attribute option: Option
-      /// A row of the relation's target file, as a link, `$<document-id>@<file name>#<row id>.<title property's name>=<title>` (FBL section 17.1, spec 089). Not a reference: the target is another file, which the host resolves. A file made before links holds the row's id here, which the conversion on load replaces (knowledge.md, section 9).
-      attribute row: link
+      /// A row of the relation's target file, by its id there. Not a reference: the target is another file, which the designer resolves.
+      attribute row: string
     }
   }
 
@@ -293,11 +288,9 @@ designer etalii/knowledge version "0.2.0" {
         doc: "The root's keys are the table's own attributes, after the DED envelope: `version` and `designer` are the envelope, read and checked by the binding."
       }
     }
-    documentId: { strategy: nanoid, alphabet: base36, length: 8, doc: "The file's own id, written in the envelope (spec 089, FR-001)." }
     ids: {
-      strategy: nanoid
-      alphabet: base36
-      length: 8
+      strategy: uuid-v4
+      encoding: base36
       stable: true
       missing: assign
       types: {
@@ -325,7 +318,7 @@ designer etalii/knowledge version "0.2.0" {
           expression: (self.parent.id + '/' + (self.option != null ? self.option.id : self.row))
         }
       }
-      doc: "Properties, options, views and rows get 8 characters of base 36 (spec 089, FR-001 and FR-003), never reused and never changed; the ShortGuids of 25 characters that earlier versions wrote, and ids written by hand, are kept as written (Requirement 2.6). An entry read without an id is given one by the first edit made in ADP (Requirement 8.5)."
+      doc: "Properties, options, views and rows get a ShortGuid: a version 4 GUID written as 25 characters of base 36, never reused and never changed (Requirement 2.6). Ids written by hand are kept as written. An entry read without an id is given one by the first edit made in ADP (Requirement 8.5)."
     }
   }
 
@@ -541,7 +534,6 @@ designer etalii/knowledge version "0.2.0" {
       comparisons: ["contains", does-not-contain]
       sort: title
       convert text written-form
-      link: { target: targetFile, limit: limit, backlinkName: backlinkName, doc: "Notion's relation picker and the backlink column (DESL 0.5, section 7.5.1; knowledge.md, section 9)." }
     }
   }
 
@@ -607,7 +599,6 @@ designer etalii/knowledge version "0.2.0" {
       valueType: self.valueType,
       targetFile: self.targetFile,
       limit: (self.limit) == 'none' ? null : (self.limit),
-      backlinkName: has(self.backlinkName) ? self.backlinkName : null,
       title: null,
       computed: null,
       isParent: null
@@ -658,18 +649,17 @@ designer etalii/knowledge version "0.2.0" {
     set title = (true) == false ? null : (true)
   }
 
-  /// Notion's steps: the target file, chosen in the host's lookup as a link without an element, one row or no limit, and optionally the name under which the target shows this relation's backlinks (Requirement 7.6). Nothing is written to the target file: its backlink column is computed (spec 089, FR-026; knowledge.md, section 9).
+  /// Notion's steps: the target file, one row or no limit, and optionally the other side's name (Requirement 7.6). With `counterpartName`, the host adds the computed counterpart to the target file and sets `counterpart` here in the same step (`knowledge.md`, two-file steps).
   operation createRelation "New relation" for document {
     param name: string required
-    param targetFile: link required { document: true }
+    param targetFile: string required
     param limit: Limit default none
-    param backlinkName: string
+    param counterpartName: string
     create Property {
       name: uniqueName(p.name, document.elementsOfType('Property').map(x, x.name)),
       valueType: 'relation',
       targetFile: p.targetFile,
       limit: (p.limit) == 'none' ? null : (p.limit),
-      backlinkName: has(p.backlinkName) ? p.backlinkName : null,
       title: null,
       computed: null,
       isParent: null
@@ -679,7 +669,7 @@ designer etalii/knowledge version "0.2.0" {
   /// A relation to this file becomes the parent relation (Requirement 5.9).
   operation setParentRelation "Use as parent" for Property {
     unavailable [{
-      when: (self.valueType != 'relation' || (self.targetFile != '.' && !self.targetFile.startsWith('$' + document.documentId + '@') && has(self.targetFile)) || self.limit != 'one' || self.computed),
+      when: (self.valueType != 'relation' || (self.targetFile != '.' && has(self.targetFile)) || self.limit != 'one' || self.computed),
       message: "Only a relation to this table that holds one row can be the parent relation."
     }
     ]

@@ -1,5 +1,5 @@
 // ATD 0.1, module script: functions, statements and the action set as statements (ATD §12).
-// Uses from core: name, qualified, names, type_ref, settings_block, setting, value, KEY, NAME. Uses from cel: expr, INT.
+// Uses from core: name, qualified, names, type_ref, settings_block, setting, KEY, NAME. Uses from cel: expr, INT.
 
 // `fn siblingName(parent: Topic, base: string) -> string recursion 8 { … }`
 fn_decl: "fn" name "(" [fn_param ("," fn_param)*] ")" ["->" type_ref] ["recursion" INT] stmt_block
@@ -46,11 +46,6 @@ if_stmt: "if" expr stmt_block ["else" (if_stmt | stmt_block)]
        | "layout" name ["on" expr] [settings_block] -> layout_action
        | "call" qualified "(" [call_arg ("," call_arg)*] ")" -> call_action
        | "call" "plugin" qualified "(" [call_arg ("," call_arg)*] ")" -> plugin_action
-       | "lookup" type_ref lookup_place ["from" value] ["as" name] -> lookup_action
-
-// Where `lookup` puts the element it creates (DISL 0.12, §9.4): the last child of `self`, or at the pointer.
-lookup_place: "child" -> child
-            | "at" -> at_pointer
 
 // The attribute or element a `set` changes: `set self.text = …`, or `set text = …` for `self`.
 path: name ("." name)*

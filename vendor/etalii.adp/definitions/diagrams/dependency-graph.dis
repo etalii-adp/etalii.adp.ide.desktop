@@ -1,9 +1,9 @@
 {
   "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
-  "disl": "0.12",
+  "disl": "0.10",
   "language": {
     "id": "net.etalii.adp.generic.dependencies",
-    "version": "1.2.0",
+    "version": "1.1.6",
     "origin": "generic/dependencies",
     "label": "Dependency graph",
     "doc": {
@@ -66,21 +66,7 @@
               "description": "Negative rows are as valid as positive ones, several nodes may share a row, and gaps between rows are the author's business. A value that does not read as a whole number reads as 0; the property row refuses a fractional row rather than truncating it."
             }
           }
-        },
-        "linkable": { "nameProperty": "label", "doc": "A node can be linked to from other documents, named by its label (FBL 17.1, spec 089)." }
-      },
-      "LinkedNode": {
-        "extends": "Node",
-        "label": "Linked node",
-        "icon": "mdi-link-variant",
-        "doc": {
-          "summary": "A node that stands for an element of another document, or of this graph (spec 089).",
-          "description": "An entry of `elements` with a `link` key. Its `x` and `row` are its own, and dependencies go to and from it as to any node; its label is the target's current name, never written (DISL 4.12). Added with Add from another document here."
-        },
-        "attributes": {
-          "link": { "type": "link", "required": true, "label": "Linked element", "group": "Identity", "order": 0, "doc": "The element this node stands for, as FBL 17.1 writes it; checked and rewritten when the graph is loaded (FBL 17.4)." }
-        },
-        "linked": { "attribute": "link" }
+        }
       }
     },
     "relations": {
@@ -183,9 +169,6 @@
       "dependency": {
         "stroke": { "color": { "token": "color.text.muted" }, "width": 1.5 },
         "font": { "size": 11, "color": { "token": "color.text.muted" } }
-      },
-      "emptyHint": {
-        "font": { "family": { "token": "font.body" }, "size": 14, "color": { "token": "color.text.muted" } }
       }
     },
     "nodes": {
@@ -213,14 +196,6 @@
             "maxLines": 1,
             "overflow": "ellipsis",
             "doc": "The node's label, or its id when it has none. Editing it renames the node."
-          },
-          {
-            "id": "link",
-            "text": { "cel": "has(self.linked) ? '\u21aa' : '\u21aa\u26a0'" },
-            "visible": { "cel": "has(self.link)" },
-            "position": "outside-left",
-            "wrap": "none",
-            "doc": "The link mark of a linked node (DISL 4.12), with a broken mark when its link does not resolve (FBL 17.6)."
           }
         ],
         "anchors": {
@@ -254,14 +229,6 @@
         ],
         "reconnectable": false,
         "doc": "A curve from the dependent to its dependency, with the arrowhead at the dependency."
-      }
-    },
-    "canvas": {
-      "empty": {
-        "text": "This graph has no nodes yet. Right-click here and choose Add node here, or drop a Node from the toolbox.",
-        "when": "diagram.nodesOfType('Node').size() == 0",
-        "style": "emptyHint",
-        "doc": "A new graph says how to begin, so a first-time user does not face a blank canvas (spec 088, SC-004)."
       }
     }
   },
@@ -325,7 +292,7 @@
         "placement": "menu",
         "standardEntries": false,
         "tools": [
-          { "kind": "editLabel", "group": "edit", "label": "Rename…", "icon": "mdi-pencil-outline", "shortcut": "F2", "visible": "!has(self.link)" },
+          { "kind": "editLabel", "group": "edit", "label": "Rename…", "icon": "mdi-pencil-outline", "shortcut": "F2" },
           { "kind": "delete", "group": "edit", "label": "Remove", "icon": "mdi-delete-outline", "shortcut": "Delete" },
           { "kind": "operation", "operation": "addRight", "group": "add", "label": "Add node to the right", "icon": "mdi-arrow-expand-right", "shortcut": "Tab" },
           { "kind": "operation", "operation": "addBelow", "group": "add", "label": "Add node below", "icon": "mdi-arrow-expand-down", "shortcut": "Enter" }
@@ -346,8 +313,7 @@
         "placement": "menu",
         "standardEntries": false,
         "tools": [
-          { "kind": "operation", "operation": "addNodeHere", "group": "add", "label": "Add node here", "icon": "mdi-plus" },
-          { "kind": "operation", "operation": "addLinkedHere", "group": "add", "label": "Add from another document…", "icon": "mdi-link-plus" }
+          { "kind": "operation", "operation": "addNodeHere", "group": "add", "label": "Add node here", "icon": "mdi-plus" }
         ],
         "doc": "Empty canvas, and a toolbox drop there, which runs the same action."
       },
@@ -369,7 +335,7 @@
       "for": "Node",
       "usage": ["inspector"],
       "items": [
-        { "kind": "section", "label": "Identity", "items": [ { "attribute": "link", "widget": "lookup", "visible": "has(self.link)" }, { "attribute": "label", "label": "Label", "visible": "!has(self.link)" } ] },
+        { "kind": "section", "label": "Identity", "items": [ { "attribute": "label", "label": "Label" } ] },
         { "kind": "section", "label": "Placement", "items": [
           { "attribute": "x", "label": "X", "widget": "number",
             "validate": [ {
@@ -546,17 +512,6 @@
         "actions": [
           { "create": { "type": "'Node'", "at": "position", "attributes": { "label": "'New node'", "x": "double(position.x)", "row": "int(math.round(double(position.y)))" } } }
         ]
-      },
-      "addLinkedHere": {
-        "label": "Add from another document…",
-        "icon": "mdi-link-plus",
-        "for": "diagram",
-        "doc": "Opens the host's lookup over the linkable elements of the workspace (DISL 9.4) and adds a linked node for the picked one where the canvas was clicked: its left edge at the point's x, on the row nearest the point's y (spec 089).",
-        "actions": [
-          { "lookup": { "create": "LinkedNode", "as": "at" }, "as": "added" },
-          { "set": { "x": "double(position.x)", "row": "int(math.round(double(position.y)))" }, "target": "added" },
-          { "select": "added" }
-        ]
       }
     },
     "deletion": {
@@ -586,19 +541,16 @@
     "format": "fbl",
     "binding": "https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/dependency-graph/backend/EtAlii.Adp.Diagram.DependencyGraph/dependency-graph.fbl#dgr",
     "ids": {
-      "strategy": "nanoid",
-      "alphabet": "base36",
-      "length": 8,
+      "strategy": "uuid-v4",
+      "encoding": "base36",
       "stable": true,
-      "doc": "New ids are 8 random characters of `0-9a-z` (spec 089, FR-003); ids written before, ShortGuids of 25 characters and hand-written ids such as `api-gateway`, are kept as they are."
+      "doc": "New ids are ShortGuids: a version 4 GUID written as 25 characters of base 36. Hand-written ids such as `api-gateway` are kept as they are."
     },
-    "documentId": { "strategy": "nanoid", "alphabet": "base36", "length": 8, "doc": "The top-level key `id` beside `dependencies: 1` (FBL 17.2, spec 089), written by the load-time step when a graph has none." },
     "writtenId": "storedId",
     "view": { "store": [] },
     "collaboration": { "mode": "none" },
     "typeMap": {
       "Node": { "as": "Node", "hostAttributes": ["storedId"] },
-      "LinkedNode": { "as": "LinkedNode", "hostAttributes": ["storedId"], "doc": "An entry of `elements` with a `link` key (spec 089)." },
       "Dependency": { "as": "DependsOn", "attributes": { "from": "source", "to": "target" }, "hostAttributes": ["storedId", "writtenFrom", "writtenTo"] },
       "Unreadable": { "as": "unreadable" }
     }
@@ -645,14 +597,12 @@
       "addNode": "dependencies.add-element",
       "addNodeAfter": "dependencies.add-element",
       "addNodeHere": "dependencies.add-element",
-      "addLinkedHere": "dependencies.add-linked",
       "connect": "dependencies.connect"
     },
     "properties": {
       "label": "dependencies.label",
       "x": "dependencies.x",
       "row": "dependencies.row",
-      "link": "dependencies.link",
       "from": "dependencies.from",
       "to": "dependencies.to"
     }

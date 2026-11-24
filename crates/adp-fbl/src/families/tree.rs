@@ -359,7 +359,12 @@ impl Family {
             return false;
         };
         let Some(expected) = &header.value else { return true };
-        scalar_text(expected) == self.value_of(member).text
+        let written = &self.value_of(member).text;
+        // FBL 0.23 (section 5.6): a list accepts any of its values, the versions of a format a binding knows.
+        match expected.as_array() {
+            Some(accepted) => accepted.iter().any(|value| scalar_text(value) == *written),
+            None => scalar_text(expected) == *written,
+        }
     }
 
     /// The mapping a slot is read in: the entry's own, or the one `child` reaches from it.

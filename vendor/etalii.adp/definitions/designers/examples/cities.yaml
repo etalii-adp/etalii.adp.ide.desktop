@@ -1,6 +1,5 @@
-ded: "0.3"
+ded: "0.1"
 designer: etalii/knowledge
-id: c4m8x2tr
 # Cities of the Low Countries, kept by hand and by ADP.
 name: Cities
 activeView: v1
@@ -42,7 +41,7 @@ properties:
   - id: p5
     name: Province
     type: relation
-    target: $p7v3k9qd@provinces.yaml
+    target: provinces.yaml
     limit: one
   - id: p6
     name: Visited
@@ -87,7 +86,7 @@ rows:
           - option: o4
       - property: p5
         rows:
-          - row: $p7v3k9qd@provinces.yaml#nh.Name=Noord-Holland
+          - row: nh
       - property: p6
         checked: true
       - property: p7

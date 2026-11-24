@@ -1,9 +1,9 @@
 {
   "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
-  "disl": "0.12",
+  "disl": "0.3",
   "language": {
     "id": "net.etalii.adp.generic.timeline",
-    "version": "1.2.0",
+    "version": "1.1.0",
     "origin": "generic/timeline",
     "label": "Timeline diagram",
     "doc": {
@@ -107,7 +107,6 @@
         "abstract": true,
         "doc": "Something on the timeline: a period when it has an end, a moment when it does not.",
         "labelAttribute": "label",
-        "linkable": { "nameProperty": "label", "doc": "An element can be linked to from other documents, named by its label (FBL 17.1, spec 089)." },
         "attributes": {
           "label": {
             "type": "string",
@@ -163,26 +162,6 @@
         "label": "Moment",
         "icon": "mdi-rhombus-medium",
         "doc": "A single point in time. Drop on the canvas at the time and row it marks."
-      },
-      "LinkedPeriod": {
-        "extends": "Period",
-        "label": "Linked element",
-        "icon": "mdi-link-variant",
-        "doc": "A period that stands for an element of another document, or of this timeline (spec 089): an entry of `elements` with a `link` key and an `end`. Its begin, end and row are its own; its label is the target's current name, never written (DISL 4.12).",
-        "attributes": {
-          "link": { "type": "link", "required": true, "label": "Linked element", "group": "Identity", "order": 0, "doc": "The element this one stands for, as FBL 17.1 writes it; checked and rewritten when the timeline is loaded (FBL 17.4)." }
-        },
-        "linked": { "attribute": "link" }
-      },
-      "LinkedMoment": {
-        "extends": "Moment",
-        "label": "Linked moment",
-        "icon": "mdi-link-variant",
-        "doc": "A moment that stands for an element of another document, or of this timeline (spec 089): an entry of `elements` with a `link` key and no `end`. Added with Add from another document here.",
-        "attributes": {
-          "link": { "type": "link", "required": true, "label": "Linked element", "group": "Identity", "order": 0, "doc": "The element this one stands for, as FBL 17.1 writes it; checked and rewritten when the timeline is loaded (FBL 17.4)." }
-        },
-        "linked": { "attribute": "link" }
       }
     },
     "relations": {
@@ -318,14 +297,6 @@
             "overflow": "ellipsis",
             "wrap": "none",
             "maxLines": 1
-          },
-          {
-            "id": "link",
-            "text": { "cel": "has(self.linked) ? '\u21aa' : '\u21aa\u26a0'" },
-            "visible": { "cel": "has(self.link)" },
-            "position": "outside-left",
-            "wrap": "none",
-            "doc": "The link mark of a linked element (DISL 4.12), with a broken mark when its link does not resolve (FBL 17.6)."
           }
         ],
         "anchors": {
@@ -358,14 +329,6 @@
             "position": "outside-right",
             "editable": "inline",
             "wrap": "none"
-          },
-          {
-            "id": "link",
-            "text": { "cel": "has(self.linked) ? '\u21aa' : '\u21aa\u26a0'" },
-            "visible": { "cel": "has(self.link)" },
-            "position": "outside-left",
-            "wrap": "none",
-            "doc": "The link mark of a linked element (DISL 4.12), with a broken mark when its link does not resolve (FBL 17.6)."
           }
         ],
         "anchors": {
@@ -489,7 +452,7 @@
         "placement": "menu",
         "standardEntries": false,
         "tools": [
-          { "kind": "editLabel", "group": "edit", "label": "Rename…", "icon": "mdi-pencil-outline", "shortcut": "F2", "visible": "!has(self.link)" },
+          { "kind": "editLabel", "group": "edit", "label": "Rename…", "icon": "mdi-pencil-outline", "shortcut": "F2" },
           { "kind": "operation", "operation": "giveEnd", "group": "edit", "label": "Give it an end…", "icon": "mdi-ray-start-end", "visible": "self.isA('Moment')" },
           { "kind": "operation", "operation": "removeEnd", "group": "edit", "label": "Remove its end", "icon": "mdi-ray-start", "visible": "self.isA('Period')" },
           { "kind": "delete", "group": "edit", "label": "Remove", "icon": "mdi-delete-outline", "shortcut": "Delete" },
@@ -516,7 +479,6 @@
         "tools": [
           { "kind": "operation", "operation": "addElementHere", "group": "add", "label": "Add element here", "icon": "mdi-plus" },
           { "kind": "operation", "operation": "addMomentHere", "group": "add", "label": "Add moment here", "icon": "mdi-rhombus-medium" },
-          { "kind": "operation", "operation": "addLinkedHere", "group": "add", "label": "Add from another document…", "icon": "mdi-link-plus" },
           { "kind": "operation", "operation": "arrange", "group": "arrange", "label": "Arrange diagram", "icon": "mdi-sitemap-outline" }
         ],
         "doc": "Empty canvas, at the time and row that was clicked or dropped on. A toolbox drop runs the same additions."
@@ -540,7 +502,7 @@
       "usage": ["inspector"],
       "commit": "onBlur",
       "items": [
-        { "kind": "section", "label": "Identity", "items": [ { "attribute": "link", "widget": "lookup", "visible": "has(self.link)" }, { "attribute": "label", "visible": "!has(self.link)" } ] },
+        { "kind": "section", "label": "Identity", "items": [ { "attribute": "label" } ] },
         { "kind": "section", "label": "Timing", "items": [
           { "attribute": "begin", "widget": "text",
             "validate": [
@@ -562,7 +524,7 @@
       "usage": ["inspector"],
       "commit": "onBlur",
       "items": [
-        { "kind": "section", "label": "Identity", "items": [ { "attribute": "link", "widget": "lookup", "visible": "has(self.link)" }, { "attribute": "label", "visible": "!has(self.link)" } ] },
+        { "kind": "section", "label": "Identity", "items": [ { "attribute": "label" } ] },
         { "kind": "section", "label": "Timing", "items": [
           { "attribute": "begin", "widget": "text",
             "validate": [
@@ -727,17 +689,6 @@
         ],
         "doc": "A moment at the start of the day that was clicked or dropped on, on the nearest row; asked for as addElementHere is where the menu has no position."
       },
-      "addLinkedHere": {
-        "label": "Add from another document…",
-        "icon": "mdi-link-plus",
-        "for": "diagram",
-        "actions": [
-          { "lookup": { "create": "LinkedMoment", "as": "at" }, "as": "added" },
-          { "set": { "begin": "position.x", "row": "position.y" }, "target": "added" },
-          { "select": "added" }
-        ],
-        "doc": "Opens the host's lookup over the linkable elements of the workspace (DISL 9.4) and adds a linked moment for the picked one where the menu was opened, at the start of that day on the nearest row (spec 089). Give it an end to make it a linked period."
-      },
       "giveEnd": {
         "label": "Give it an end…",
         "icon": "mdi-ray-start-end",
@@ -748,7 +699,7 @@
         "actions": [
           { "if": "!readableTime(p.end)", "then": [ { "abort": { "message": "'\\'' + p.end + '\\' is not a time this timeline can read.'" } } ] },
           { "if": "readableTime(self.begin) && compareTimes(p.end, self.begin) < 0", "then": [ { "abort": { "message": "'An element cannot end before it begins.'" } } ] },
-          { "retype": { "to": "self.isA('LinkedMoment') ? 'LinkedPeriod' : 'Period'" } },
+          { "retype": { "to": "'Period'" } },
           { "set": { "end": "p.end" } }
         ],
         "doc": "Turns a moment into a period ending at the given time, written as typed. The dialog is titled \"Give it an end\", its field \"End\" and its button \"Set\", prefilled with the begin as written."
@@ -759,7 +710,7 @@
         "for": ["Period"],
         "actions": [
           { "unset": ["end"] },
-          { "retype": { "to": "self.isA('LinkedPeriod') ? 'LinkedMoment' : 'Moment'" } }
+          { "retype": { "to": "'Moment'" } }
         ],
         "doc": "Turns a period into a moment at its begin: the `end` line is removed."
       },
@@ -802,9 +753,7 @@
     },
     "retype": {
       "Moment": { "to": ["Period"] },
-      "Period": { "to": ["Moment"] },
-      "LinkedMoment": { "to": ["LinkedPeriod"] },
-      "LinkedPeriod": { "to": ["LinkedMoment"] }
+      "Period": { "to": ["Moment"] }
     },
     "deletion": {
       "Element": {
@@ -836,13 +785,11 @@
     "format": "fbl",
     "binding": "https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/timeline/backend/EtAlii.Adp.Diagram.Timeline/timeline.fbl#timeline",
     "ids": {
-      "strategy": "nanoid",
-      "alphabet": "base36",
-      "length": 8,
+      "strategy": "uuid-v4",
+      "encoding": "base36",
       "stable": true,
-      "doc": "New elements and relations get 8 random characters of `0-9a-z` (spec 089, FR-003); ids written before, ShortGuids of 25 characters and hand-written ids such as `discovery`, are kept as written. Ids are unique across elements and relations together."
+      "doc": "New elements and relations get a ShortGuid: a version 4 GUID written as 25 characters of base 36. Hand-written ids such as `discovery` are kept as written. Ids are unique across elements and relations together."
     },
-    "documentId": { "strategy": "nanoid", "alphabet": "base36", "length": 8, "doc": "The top-level key `id` beside `timeline: 1` (FBL 17.2, spec 089), written by the load-time step when a timeline has none." },
     "references": "id",
     "view": { "store": [] },
     "collaboration": { "mode": "none" },
@@ -856,16 +803,6 @@
         "as": "Moment",
         "hostAttributes": ["storedId"],
         "doc": "An entry of `elements` without an `end` key."
-      },
-      "LinkedPeriod": {
-        "as": "LinkedPeriod",
-        "hostAttributes": ["storedId"],
-        "doc": "An entry of `elements` with a `link` key and an `end` key (spec 089)."
-      },
-      "LinkedMoment": {
-        "as": "LinkedMoment",
-        "hostAttributes": ["storedId"],
-        "doc": "An entry of `elements` with a `link` key and no `end` key (spec 089)."
       },
       "Connection": {
         "as": "Connection",
@@ -894,7 +831,6 @@
       "addBelow": "timeline.add-below",
       "addElementHere": "timeline.add-element",
       "addMomentHere": "timeline.add-moment",
-      "addLinkedHere": "timeline.add-linked",
       "arrange": "timeline.arrange",
       "connect": "timeline.connect"
     },
@@ -903,7 +839,6 @@
       "begin": "timeline.begin",
       "end": "timeline.end",
       "row": "timeline.row",
-      "link": "timeline.link",
       "from": "timeline.from",
       "to": "timeline.to"
     }

@@ -142,7 +142,10 @@ impl BodyReading {
             let mark = match &header.key {
                 Some(key) => format!(
                     "'{key}: {}'",
-                    header.value.as_ref().map(scalar_text).unwrap_or_default()
+                    match header.value.as_ref().and_then(|v| v.as_array()) {
+                        Some(accepted) => accepted.iter().map(scalar_text).collect::<Vec<_>>().join("' or '"),
+                        None => header.value.as_ref().map(scalar_text).unwrap_or_default(),
+                    }
                 ),
                 None => "its first line".to_owned(),
             };

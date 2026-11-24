@@ -1,6 +1,6 @@
 # Dependency graph
 
-[`dependency-graph.dis`](dependency-graph.dis) specifies ADP's dependency graph in DISL 0.12 (written for 0.3; it uses 0.10 for `persistence.writtenId` and 0.12 for links between tools, spec 089): its node and relation types, its two authored axes, its notation, toolbox, context menus, forms, findings, operations and persistence settings, and, in its `x-dependencies` block, the ids the standalone tool gives each palette entry, menu entry and property row. This document holds everything about the diagram type that DISL cannot express, and records where the `.dis` had to approximate. Each statement is tied to the code or document that shows it.
+[`dependency-graph.dis`](dependency-graph.dis) specifies ADP's dependency graph in DISL 0.10 (written for 0.3; it uses 0.10 only for `persistence.writtenId`): its node and relation types, its two authored axes, its notation, toolbox, context menus, forms, findings, operations and persistence settings, and, in its `x-dependencies` block, the ids the standalone tool gives each palette entry, menu entry and property row. This document holds everything about the diagram type that DISL cannot express, and records where the `.dis` had to approximate. Each statement is tied to the code or document that shows it.
 
 | | |
 |---|---|
@@ -54,43 +54,13 @@ relations:
 - An empty file, or a file whose root is not a mapping, is an empty graph rather than an error; nothing can be added to it ("The file has no place to create elements in."). A mapping that repeats a key is read, its first value counting, and reported as `fbl.duplicate-key`, a warning on a graph that stays editable.
 - The file holds no date, duration or instant anywhere. A `.dgr` that did would be a defect ([fixtures readme](https://github.com/etalii-adp/etalii.adp.ide.standalone/blob/develop/src/diagrams/dependency-graph/backend/EtAlii.Adp.Diagram.DependencyGraph.Tests/Fixtures/readme.md)).
 
-**Links between tools (spec 089).** A graph takes part in links (FBL section 17):
-
-```yaml
-dependencies: 1
-id: d7n2k4qp
-elements:
-  - id: api
-    label: API gateway
-    x: 270
-    row: 4
-  - id: l1
-    link: $t5h8w1rz@release.tml#launch.label=Launch
-    x: 800
-    row: 4
-relations:
-  - id: r1
-    from: api
-    to: l1
-```
-
-- The top-level key `id`, beside `dependencies: 1`, is the document id: 8 characters of `0-9a-z` (`persistence.documentId`; the binding's `document.id`, FBL 17.2). A graph without one is given one when it is loaded, in one edit that is one step of the history (FBL 17.4), inserted right after the `dependencies:` line, or as the first key when there is none; a new graph is written with one (`template`: `dependencies: 1\r\nid: {newid:document}\r\nelements: []\r\n`).
-- Every node can be linked to, by its id and its label (`linkable: { nameProperty: "label" }`): `$d7n2k4qp@services.dgr#api.label=API gateway`.
-- An entry of `elements` with a `link` key is a **linked node** (`LinkedNode`, the binding's rule `linkedNode`). Its `x` and `row` are its own, and dependencies go to and from it as to any node (the references of the rule `dependency` name both rules); it has no `label` key, because its label is its target's current name, drawn with a link mark, and with a broken mark and the cached name when the link does not resolve (DISL 4.12, FBL 17.6). Its keys are written in the order `id`, `link`, `x`, `row`.
-- Load-time validation rewrites a `link` whose target resolves under another id or name, or whose cached name is stale, in place (FBL 17.4).
-- **A broken linked node** (its link does not resolve, FBL 17.6) is drawn at its own place with the name the link caches and the broken mark ↪⚠; the finding stands at the node. Activating a resolving link mark opens the target with it selected (FBL 17.5).
-- **Linked from.** The links that resolve to a node, from any document of the workspace (a mind map node, a timeline element, a dependency graph node or a knowledge file's relation cell), are its backlinks (FBL 17.5), computed and never stored. The node's context menu lists them as **Linked from (N)**, each with the consuming document's name and the name of the element that holds it; activating one opens that document with that element selected. Removing a node that has backlinks first says how many links the removal breaks, beside the dependencies the confirmation already counts; they are then reported where they are held (`link.broken-element`) and are not removed.
-- **Add from another document…** on the canvas menu opens the host's lookup and adds a linked node for the picked element where the canvas was clicked: its left edge at the point's x, on the row nearest the point's y (`addLinkedHere`, DISL `lookup` with `as: "at"`). Rename is not offered on a linked node.
-- The fixture `specifications/fbl/fixtures/links-workspace/teams/` holds two graphs with one id, a node id held twice and a link to a timeline; `conformance.json` beside it lists what each link resolves to.
-
 ### 1.2 Mapping to DID
 
 A runtime that works on DID definitions sees a `.dgr` file through this mapping. DISL expresses the DID side; the binding and the `.dis`'s `typeMap` state the mapping. The binding reads a dependency as an element with reference attributes, so one whose end names no node is kept and reported, and reads each entry's id and each end a second time as written, into the host attributes `storedId`, `writtenFrom` and `writtenTo`.
 
 | `.dgr` | DID |
 |---|---|
-| `elements[i]` | `elements[]` record with `type: "Node"`, `id` from `id`, `attributes.label`, `attributes.x`, `attributes.row`; with a `link` key, `type: "LinkedNode"` and `attributes.link` in place of `attributes.label` |
-| `id` | the document id (FBL 17.2) |
+| `elements[i]` | `elements[]` record with `type: "Node"`, `id` from `id`, `attributes.label`, `attributes.x`, `attributes.row` |
 | `relations[i]` | `relations[]` record with `type: "DependsOn"`, `id`, `source` from `from`, `target` from `to`, `attributes.label` when present |
 | `dependencies: 1` | `language.version` 1.x of `net.etalii.adp.generic.dependencies` |
 | any other key, at any level | preserved verbatim, never modelled (section 1.4) |
@@ -123,7 +93,7 @@ A graph is one `.dgr` file. In standalone it may also have an `.adp` registratio
 
 ## 2. Identity and loading
 
-- **Ids come from the file.** A hand-written file may use readable ids (`api-gateway`); ids ADP generates are 8 random characters of `0-9a-z` (`nanoid` with `alphabet: "base36"` and `length: 8`, spec 089, FR-003). Ids written before are kept: the standalone tool has written ShortGuids, a version 4 GUID as 25 characters of base 36 (`ShortGuid.cs` in standalone's `src/backend/EtAlii.Adp/`), and does until it builds spec 089; an earlier version of this document said 22 URL-safe base64 characters, which the code never wrote.
+- **Ids come from the file.** A hand-written file may use readable ids (`api-gateway`); ids ADP generates are ShortGuids, a version 4 GUID written as 25 characters of base 36 (`ShortGuid.cs` in standalone's `src/backend/EtAlii.Adp/`). The `.dis` says `uuid-v4` with `encoding: "base36"`, as the hype cycle graph does; an earlier version of this document said 22 URL-safe base64 characters, which the code never wrote.
 - **Missing and duplicate ids are tolerated on load and reported** (section 3). Wherever an id is looked up, the first node with it wins, else the first dependency, found by the binding's `storedId`; FBL addresses a later holder by its place ([`DependencyGraphEdits.cs`](https://github.com/etalii-adp/etalii.adp.ide.standalone/blob/develop/src/diagrams/dependency-graph/backend/EtAlii.Adp.Diagram.DependencyGraph/Commands/DependencyGraphEdits.cs)). DID requires unique, present ids, so these states exist only in a `.dgr` file.
 - **A file that is not YAML still opens.** The canvas shows the diagram as unavailable, naming the file and line, the Errors and Warnings panel carries the same message, and every edit is withheld ([`DependencyGraphDocumentStore.cs`](https://github.com/etalii-adp/etalii.adp.ide.standalone/blob/develop/src/diagrams/dependency-graph/backend/EtAlii.Adp.Diagram.DependencyGraph/DependencyGraphDocumentStore.cs)).
 - **An unreadable `x` or `row` reads as 0**, silently (section 9).
@@ -217,7 +187,7 @@ Found while tracing the code for this document; each is a candidate for its own 
 
 Where DISL had more than one reasonable reading, these were chosen:
 
-- **Language id `net.etalii.adp.generic.dependencies`**, version `1.1.0` since the DISL 0.3 rewrite `1.1.1` since its colours took standalone's and its stale `persist.yaml` requirement went, and `1.1.2` since it reads ids as written through DISL 0.10's `persistence.writtenId` and leaves a missing id to its own rule, `std.missingId` off, `1.1.3` since a dependency's label states standalone's 11 px in the lines' colour, `1.1.4` since the `.dis` states the gesture constraint `noSelfDependency` its ATD already had, and `1.1.5` since adding a node with no point to place it at asks for its label, the operations `addNode` and `addNodeAfter`, and `1.1.6` since the rows "Depends on (from)" and "Depended on (to)" show an end as the file writes it, also one that names no node, and `1.1.7` since an empty graph shows a hint how to begin, `canvas.empty` (spec 088): it is persisted through an FBL binding, never as DID in YAML: the reverse-DNS form of etalii.net followed by the origin tag, which `language.origin` now carries.
+- **Language id `net.etalii.adp.generic.dependencies`**, version `1.1.0` since the DISL 0.3 rewrite `1.1.1` since its colours took standalone's and its stale `persist.yaml` requirement went, and `1.1.2` since it reads ids as written through DISL 0.10's `persistence.writtenId` and leaves a missing id to its own rule, `std.missingId` off, `1.1.3` since a dependency's label states standalone's 11 px in the lines' colour, `1.1.4` since the `.dis` states the gesture constraint `noSelfDependency` its ATD already had, and `1.1.5` since adding a node with no point to place it at asks for its label, the operations `addNode` and `addNodeAfter`, and `1.1.6` since the rows "Depends on (from)" and "Depended on (to)" show an end as the file writes it, also one that names no node (spec 088): it is persisted through an FBL binding, never as DID in YAML: the reverse-DNS form of etalii.net followed by the origin tag, which `language.origin` now carries.
 - **Node label shown with a fallback.** The label is a CEL text (`label`, or the id when empty) with a `parse` write-back, so it stays editable inline even though its text is computed.
 - **`DependsOn` label defaults to `""`**, and an empty relation label has no key while a node always keeps its `label`; with persistence through an FBL binding, the binding says so (`empty` of each label), not `omitDefaults`.
 - **`std.unreadableEntry` is switched off.** An entry of `elements` or `relations` that is not a mapping is kept as it is and not drawn, silently, as the tool has always skipped it; the binding reads it as an `Unreadable` element so that it is kept.

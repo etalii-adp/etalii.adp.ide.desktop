@@ -1365,7 +1365,7 @@
         "disl": {
           "type": "string",
           "pattern": "^\\d+\\.\\d+$",
-          "description": "The DISL version the specification targets, as major.minor: 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.10, 0.11 or 0.12. A 0.12 runtime reads 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.10 and 0.11 specifications with their meaning. See DISL 0.12, section 2.9."
+          "description": "The DISL version the specification targets, as major.minor: 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.10 or 0.11. A 0.11 runtime reads 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9 and 0.10 specifications with their meaning. See DISL 0.11, section 2.9."
         },
         "dedl": {
           "type": "string",
@@ -1657,20 +1657,6 @@
           "description": "Whether a value past min or max is clamped or refused, per kind of edit. See DISL 0.2, section 4.3.",
           "$ref": "#/$defs/OutOfRange"
         },
-        "origins": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
-          },
-          "minItems": 1,
-          "uniqueItems": true,
-          "description": "For link: the tool types, as <vendor>/<type>, whose documents the link may point into; absent, any. See DISL 0.12, section 4.12."
-        },
-        "document": {
-          "type": "boolean",
-          "description": "For link: the value is a link to a document, without an element. Defaults to false. See DISL 0.12, section 4.12."
-        },
         "doc": {
           "$ref": "#/$defs/Doc"
         }
@@ -1818,7 +1804,6 @@
             "duration",
             "color",
             "uri",
-            "link",
             "expression",
             "json",
             "binary"
@@ -2214,12 +2199,6 @@
         "labelAttribute": {
           "$ref": "#/$defs/SimpleId"
         },
-        "linkable": {
-          "$ref": "#/$defs/Linkable"
-        },
-        "linked": {
-          "$ref": "#/$defs/Linked"
-        },
         "tags": {
           "type": "array",
           "items": {
@@ -2230,72 +2209,6 @@
           "$ref": "#/$defs/Doc"
         }
       },
-      "additionalProperties": false,
-      "patternProperties": {
-        "^x-": true
-      }
-    },
-    "Linkable": {
-      "description": "Declares that elements of a node type can be linked to from other documents: they are listed in the host's lookup, kept in its index and shown with their backlinks. true takes the defaults. See DISL 0.12, section 4.12.",
-      "anyOf": [
-        {
-          "const": true
-        },
-        {
-          "type": "object",
-          "properties": {
-            "nameProperty": {
-              "type": "string",
-              "description": "The attribute that names the element in a link (FBL 17.1, name-prop). Defaults to the type's labelAttribute. See DISL 0.12, section 4.12."
-            },
-            "doc": {
-              "$ref": "#/$defs/Doc"
-            }
-          },
-          "additionalProperties": false,
-          "patternProperties": {
-            "^x-": true
-          }
-        }
-      ]
-    },
-    "Linked": {
-      "description": "Declares that an element of a node type stands for an element of another document, named by its link attribute. See DISL 0.12, section 4.12.",
-      "type": "object",
-      "properties": {
-        "attribute": {
-          "type": "string",
-          "description": "The attribute of type link that holds the link. Required. See DISL 0.12, section 4.12."
-        },
-        "shows": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "attribute": {
-                "type": "string"
-              },
-              "label": {
-                "$ref": "#/$defs/LocalizedText"
-              }
-            },
-            "required": [
-              "attribute"
-            ],
-            "additionalProperties": false,
-            "patternProperties": {
-              "^x-": true
-            }
-          },
-          "description": "The attributes of the linked element shown with it, read live from the target. See DISL 0.12, section 4.12."
-        },
-        "doc": {
-          "$ref": "#/$defs/Doc"
-        }
-      },
-      "required": [
-        "attribute"
-      ],
       "additionalProperties": false,
       "patternProperties": {
         "^x-": true
@@ -9861,7 +9774,6 @@
             "file",
             "image",
             "link",
-            "lookup",
             "progress",
             "readonly",
             "plugin"
@@ -11252,38 +11164,6 @@
         "plugin": {
           "$ref": "#/$defs/QualifiedId"
         },
-        "lookup": {
-          "description": "Let the person pick an element of the workspace with the host's lookup and create an element of create, a type with linked, for it: as the last child of self (child) or at the pointer (at). Dismissing the lookup ends the transaction with nothing done. See DISL 0.12, section 9.4.",
-          "type": "object",
-          "properties": {
-            "create": {
-              "$ref": "#/$defs/QualifiedId"
-            },
-            "as": {
-              "enum": [
-                "child",
-                "at"
-              ]
-            },
-            "origins": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
-              },
-              "minItems": 1,
-              "uniqueItems": true
-            }
-          },
-          "required": [
-            "create",
-            "as"
-          ],
-          "additionalProperties": false,
-          "patternProperties": {
-            "^x-": true
-          }
-        },
         "when": {
           "$ref": "#/$defs/Expression"
         },
@@ -12599,19 +12479,6 @@
           ],
           "description": "The text form of uuid-v4 and uuid-v7 ids: hex (the 0.1 form, the default), base64url (22 characters) or base36 (25 characters); ids stay opaque strings. See DISL 0.2, section 11.5."
         },
-        "alphabet": {
-          "enum": [
-            "nanoid",
-            "base36"
-          ],
-          "description": "For nanoid: the characters of an id, nanoid's 64 (A-Za-z0-9_-, the default) or 0-9a-z. See DISL 0.12, section 11.5."
-        },
-        "length": {
-          "type": "integer",
-          "minimum": 2,
-          "maximum": 64,
-          "description": "For nanoid: the number of characters of an id. Defaults to 21. See DISL 0.12, section 11.5."
-        },
         "prefix": {
           "anyOf": [
             {
@@ -12732,19 +12599,6 @@
             "base36"
           ],
           "description": "The text form of uuid-v4 and uuid-v7 ids: hex (the 0.1 form, the default), base64url (22 characters) or base36 (25 characters); ids stay opaque strings. See DISL 0.2, section 11.5."
-        },
-        "alphabet": {
-          "enum": [
-            "nanoid",
-            "base36"
-          ],
-          "description": "For nanoid: the characters of an id, nanoid's 64 (A-Za-z0-9_-, the default) or 0-9a-z. See DISL 0.12, section 11.5."
-        },
-        "length": {
-          "type": "integer",
-          "minimum": 2,
-          "maximum": 64,
-          "description": "For nanoid: the number of characters of an id. Defaults to 21. See DISL 0.12, section 11.5."
         },
         "prefix": {
           "type": "string",
@@ -12937,10 +12791,6 @@
         "writtenId": {
           "type": "string",
           "description": "(DISL 0.10) The host attribute holding the id an element is written with: findings name an element, and self.id reads it, by that attribute's value, and a finding about an ephemeral element is at its line (section 11.5.4)."
-        },
-        "documentId": {
-          "$ref": "#/$defs/IdRule",
-          "description": "The id rule of the diagram's document id (FBL 17.2), made once when the document is created or first loaded without one; requires format fbl with a binding that declares document.id. See DISL 0.12, section 11.5."
         },
         "ids": {
           "$ref": "#/$defs/IdStrategy"

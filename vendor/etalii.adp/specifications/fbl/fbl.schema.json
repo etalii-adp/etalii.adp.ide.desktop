@@ -55,8 +55,7 @@
             "0.19",
             "0.20",
             "0.21",
-            "0.22",
-            "0.23"
+            "0.22"
           ]
         },
         "doc": {
@@ -167,9 +166,6 @@
         },
         "template": {
           "$ref": "#/$defs/Template"
-        },
-        "document": {
-          "$ref": "#/$defs/DocumentSettings"
         }
       },
       "additionalProperties": false,
@@ -333,20 +329,6 @@
           }
         }
       ]
-    },
-    "DocumentSettings": {
-      "type": "object",
-      "description": "(FBL 0.23) Where the body keeps its document id (section 17.2).",
-      "properties": {
-        "id": {
-          "$ref": "#/$defs/Slot",
-          "description": "The slot of the body's root that holds the document id."
-        }
-      },
-      "required": [
-        "id"
-      ],
-      "additionalProperties": false
     },
     "Claims": {
       "description": "Which files a binding claims: by extension or name, whether the extension is shared with other formats, the opt-in marker a shared extension requires, what makes a host suggest this reading, and whether a bare file is ever claimed. See section 12.",
@@ -1039,9 +1021,7 @@
         "line": {
           "$ref": "#/$defs/Regex"
         },
-        "value": {
-          "description": "The value of the root key. (FBL 0.23) A list: any of its values is the mark (section 5.6)."
-        },
+        "value": {},
         "required": {
           "type": "boolean"
         }

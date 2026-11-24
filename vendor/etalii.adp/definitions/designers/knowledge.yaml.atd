@@ -13,8 +13,7 @@ binding yaml family yaml {
     suggest: { contains: ["designer: etalii/knowledge"] }
   }
   text { newline: crlf, indent: 2, finalNewline: true, sequenceIndent: indented, quote: double }
-  header { key: ded, value: ["0.1", "0.3"], required: true }
-  document: { id: { key: id } }
+  header { key: ded, value: "0.1", required: true }
 
   /// The root mapping: the table's own settings. A rule at '/' binds the root's keys, as databricks-pipeline.fbl's 'pipeline' rule does.
   element Table as table at "/" {
@@ -29,9 +28,6 @@ binding yaml family yaml {
       empty: "remove"
       references view by id
     }
-    attribute documentId from key "id" {
-      readOnly: "The document id is written once, by the load-time validation of FBL section 17.4 or the template, and changed by nobody."
-    }
   }
 
   element Property as property at "/properties/*" {
@@ -41,7 +37,6 @@ binding yaml family yaml {
     attribute title from key "title" { empty: "remove", default: false }
     attribute targetFile from key "target" { empty: "remove" }
     attribute limit from key "limit" { empty: "remove", default: none }
-    attribute backlinkName from key "backlinkName" { empty: "remove" }
     attribute counterpart from key "counterpart" { empty: "remove" }
     attribute computed from key "computed" { empty: "remove", default: false }
     attribute isParent from key "parent" { empty: "remove", default: false }
@@ -49,7 +44,7 @@ binding yaml family yaml {
       place: after-last,
       container: "/properties",
       create: { at: { before: "views" } },
-      keys: ["id", name, type, title, target, limit, backlinkName, "parent"]
+      keys: ["id", name, type, title, target, limit, counterpart, computed, "parent"]
     }
     remove { cascade: [cell, column, sort, condition1, condition2, condition3] }
   }
@@ -294,7 +289,7 @@ binding yaml family yaml {
     remove { container: remove-when-empty }
   }
 
-  /// A related row, as a link to it (FBL section 17.1), or, in a file made before links, by its id in the target file, which the conversion on load replaces (knowledge.md, section 9). Not a reference: the target is another file, which the host resolves.
+  /// A related row, by its id in the target file. Not a reference: the target is another file, which the designer resolves (L5).
   element CellItem as cellRow at "/rows/*/cells/*/rows/*" {
     parent cell slot items
     attribute row from key "row" { empty: refuse }
@@ -303,5 +298,5 @@ binding yaml family yaml {
   }
 
   registration { createOnFirstPlacement: false }
-  template "ded: \"0.3\"\r\ndesigner: etalii/knowledge\r\nid: {newid:document}\r\nname: {base}\r\nproperties:\r\n  - id: {newid:property}\r\n    name: Name\r\n    type: text\r\n    title: true\r\nviews:\r\n  - id: {newid:view}\r\n    name: Table\r\n"
+  template "ded: \"0.1\"\r\ndesigner: etalii/knowledge\r\nname: {base}\r\nproperties:\r\n  - id: {newid:property}\r\n    name: Name\r\n    type: text\r\n    title: true\r\nviews:\r\n  - id: {newid:view}\r\n    name: Table\r\n"
 }

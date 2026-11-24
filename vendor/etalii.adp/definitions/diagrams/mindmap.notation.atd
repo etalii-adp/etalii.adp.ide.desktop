@@ -89,38 +89,6 @@ notation {
     doubleClick: none
   }
 
-  /// As a node, with the target's current name as its text and the link mark among the corner glyphs (`indicators`);
-  /// the text is not edited in place, because it is the target's name. A link that does not resolve shows the cached
-  /// name and the broken mark (spec 089).
-  node LinkedNode {
-    shape topicBox
-    style: node
-    size: {
-      min: [32, 31.6]
-      width: (math.round(max(32.0, textWidth(self.text, 14.0) + 20.0) * 100.0) / 100.0)
-      height: (textHeight(1, 14.0) + 12.0)
-      resizable: false
-    }
-    placement: {
-      x: { layout: true }
-      y: { layout: true }
-      anchor: center
-      movable: true
-      resizable: false
-    }
-    label @text as text { editable: false, position: center, wrap: none }
-    label (indicators(self)) as indicators {
-      visible: (indicators(self) != "")
-      position: { anchor: [1, 0], offset: [-4, 12], align: end }
-    }
-    anchors: { mode: sides, sides: [left, right] }
-    container: { layout: "layout:mindmap", clip: false, collapsible: true, highlightOnDrop: true }
-    state dragging { opacity: 0.65 }
-    state dropTarget { stroke: { color: $color.primary, width: 2.5, dash: [6, 3], dashScale: absolute } }
-    deletable: (self.parent != null)
-    doubleClick: none
-  }
-
   /// A smooth curve from the facing side of the parent to the facing side of the child, under the boxes, with no
   /// arrowheads.
   edge Branch {
@@ -148,18 +116,16 @@ toolbox {
     /// canvas does nothing (mindmap.md §7.5).
     tool node "Node" { kind: operation, operation: addChild, icon: "mdi-card-plus-outline", mode: drop }
   }
-  /// Three groups: the structure (add, add from another document, rename, delete), the content (notes and link) and the
-  /// view (expand or collapse). An entry that does not apply is left out rather than greyed: the central topic has no
-  /// sibling and cannot be deleted, an unlinked node has nothing to unlink, a linked node is named by its target and is
-  /// not renamed, a leaf has nothing to collapse. Expand and Collapse are one
+  /// Three groups: the structure (add, rename, delete), the content (notes and link) and the view (expand or collapse).
+  /// An entry that does not apply is left out rather than greyed: the central topic has no sibling and cannot be
+  /// deleted, an unlinked node has nothing to unlink, a leaf has nothing to collapse. Expand and Collapse are one
   /// operation with two faces; which one shows follows this viewer's collapsed state.
   context for Node {
     placement: menu
     standardEntries: false
     tool "Add child" { kind: operation, operation: addChild, group: structure, icon: "mdi-subdirectory-arrow-right", shortcut: "Insert" }
     tool "Add sibling" { kind: operation, operation: addSibling, group: structure, icon: "mdi-plus", shortcut: "Enter", visible: (self.parent != null) }
-    tool "Add from another document…" { kind: operation, operation: addLinked, group: structure, icon: "mdi-link-plus" }
-    tool "Rename…" { kind: editLabel, group: structure, icon: "mdi-pencil-outline", shortcut: "F2", visible: (!has(self.linkedElement)) }
+    tool "Rename…" { kind: editLabel, group: structure, icon: "mdi-pencil-outline", shortcut: "F2" }
     tool "Delete" { kind: delete, group: structure, icon: "mdi-trash-can-outline", shortcut: "Delete", visible: (self.parent != null) }
     tool { kind: operation, operation: editNotes, group: content, label: (self.notes != "" ? "Edit notes…" : "Add notes…"), icon: "mdi-note-text-outline" }
     tool { kind: operation, operation: link, group: content, label: (has(self.link) ? "Change link…" : "Link to…"), icon: "mdi-link-variant" }
@@ -171,8 +137,7 @@ toolbox {
 
 form nodeProperties "Mind map node" for Node {
   usage: [inspector]
-  field linkedElement { widget: lookup, visible: (has(self.linkedElement)), doc: "The linked element, shown by its name; a click opens it." }
-  field text { widget: text, readOnly: (has(self.linkedElement)), readOnlyReasons: ["A linked node shows its target's name; rename the target in its own document."] }
+  field text { widget: text }
   field notes { widget: textarea, rows: 4 }
   field link { widget: text, placeholder: "Empty to unlink", doc: "An emptied link is an unlink." }
   section view "View" {

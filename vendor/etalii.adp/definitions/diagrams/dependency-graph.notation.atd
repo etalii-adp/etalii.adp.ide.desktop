@@ -63,15 +63,6 @@ notation {
     stroke: { color: $color.text.muted, width: 1.5 }
     font: { size: 11, color: $color.text.muted }
   }
-  style emptyHint { font: { family: $font.body, size: 14, color: $color.text.muted } }
-  /// A new graph says how to begin, so a first-time user does not face a blank canvas (spec 088, SC-004).
-  canvas {
-    empty: {
-      text: "This graph has no nodes yet. Right-click here and choose Add node here, or drop a Node from the toolbox."
-      when: (diagram.nodesOfType('Node').size() == 0)
-      style: emptyHint
-    }
-  }
 
   node Node {
     shape: { type: roundedRect, params: { radius: 6 } }
@@ -84,8 +75,6 @@ notation {
       maxLines: 1
       overflow: ellipsis
     }
-    /// The link mark of a linked node (DISL §4.12), with a broken mark when its link does not resolve (FBL §17.6).
-    label (has(self.linked) ? "↪" : "↪⚠") as link { visible: (has(self.link)), position: outside-left, wrap: none }
     style: node
     size: { fixed: [160, 36] }
     placement: {
@@ -157,7 +146,7 @@ toolbox {
   context for Node {
     placement: menu
     standardEntries: false
-    tool "Rename…" { kind: editLabel, group: edit, icon: mdi-pencil-outline, shortcut: F2, visible: (!has(self.link)) }
+    tool "Rename…" { kind: editLabel, group: edit, icon: mdi-pencil-outline, shortcut: F2 }
     tool "Remove" { kind: delete, group: edit, icon: mdi-delete-outline, shortcut: Delete }
     tool "Add node to the right" { kind: operation, operation: addRight, group: add, icon: mdi-arrow-expand-right, shortcut: Tab }
     tool "Add node below" { kind: operation, operation: addBelow, group: add, icon: mdi-arrow-expand-down, shortcut: Enter }
@@ -173,7 +162,6 @@ toolbox {
     placement: menu
     standardEntries: false
     tool "Add node here" { kind: operation, operation: addNodeHere, group: add, icon: mdi-plus }
-    tool "Add from another document…" { kind: operation, operation: addLinkedHere, group: add, icon: mdi-link-plus }
   }
   /// A finished connect gesture from a node's side anchor to another node or to empty canvas.
   context for connection {
@@ -188,8 +176,7 @@ form node for Node {
   usage: [inspector]
   section {
     label: Identity
-    field link { widget: lookup, visible: (has(self.link)) }
-    field label "Label" { visible: (!has(self.link)) }
+    field label "Label"
   }
   section {
     label: Placement

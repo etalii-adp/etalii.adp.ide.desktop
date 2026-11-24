@@ -13,8 +13,7 @@ binding json family json {
     suggest: { contains: ["\"designer\": \"etalii/knowledge\""] }
   }
   text { newline: crlf, indent: 2, finalNewline: true }
-  header { key: ded, value: ["0.1", "0.3"], required: true }
-  document: { id: { key: id } }
+  header { key: ded, value: "0.1", required: true }
 
   /// The root mapping: the table's own settings. A rule at '/' binds the root's keys, as databricks-pipeline.fbl's 'pipeline' rule does.
   element Table as table at "/" {
@@ -29,9 +28,6 @@ binding json family json {
       empty: "remove"
       references view by id
     }
-    attribute documentId from key "id" {
-      readOnly: "The document id is written once, by the load-time validation of FBL section 17.4 or the template, and changed by nobody."
-    }
   }
 
   element Property as property at "/properties/*" {
@@ -41,7 +37,6 @@ binding json family json {
     attribute title from key "title" { empty: "remove", default: false }
     attribute targetFile from key "target" { empty: "remove" }
     attribute limit from key "limit" { empty: "remove", default: none }
-    attribute backlinkName from key "backlinkName" { empty: "remove" }
     attribute counterpart from key "counterpart" { empty: "remove" }
     attribute computed from key "computed" { empty: "remove", default: false }
     attribute isParent from key "parent" { empty: "remove", default: false }
@@ -49,7 +44,7 @@ binding json family json {
       place: after-last,
       container: "/properties",
       create: { at: { before: "views" } },
-      emit: "{ \"id\": \"{id}\", \"name\": \"{name}\", \"type\": \"{valueType}\"[, \"title\": {title}][, \"target\": \"{targetFile}\"][, \"limit\": \"{limit}\"][, \"backlinkName\": \"{backlinkName}\"][, \"parent\": {isParent}] }"
+      emit: "{ \"id\": \"{id}\", \"name\": \"{name}\", \"type\": \"{valueType}\"[, \"title\": {title}][, \"target\": \"{targetFile}\"][, \"limit\": \"{limit}\"][, \"counterpart\": \"{counterpart}\"][, \"computed\": {computed}][, \"parent\": {isParent}] }"
     }
     remove { cascade: [cell, column, sort, condition1, condition2, condition3] }
   }
@@ -334,7 +329,7 @@ binding json family json {
     remove { container: remove-when-empty }
   }
 
-  /// A related row, as a link to it (FBL section 17.1), or, in a file made before links, by its id in the target file, which the conversion on load replaces (knowledge.md, section 9). Not a reference: the target is another file, which the host resolves.
+  /// A related row, by its id in the target file. Not a reference: the target is another file, which the designer resolves (L5).
   element CellItem as cellRow at "/rows/*/cells/*/rows/*" {
     parent cell slot items
     attribute row from key "row" { empty: refuse }
@@ -343,5 +338,5 @@ binding json family json {
   }
 
   registration { createOnFirstPlacement: false }
-  template "{\r\n  \"ded\": \"0.3\",\r\n  \"designer\": \"etalii/knowledge\",\r\n  \"id\": \"{newid:document}\",\r\n  \"name\": \"{base}\",\r\n  \"properties\": [\r\n    { \"id\": \"{newid:property}\", \"name\": \"Name\", \"type\": \"text\", \"title\": true }\r\n  ],\r\n  \"views\": [\r\n    { \"id\": \"{newid:view}\", \"name\": \"Table\" }\r\n  ],\r\n  \"rows\": [\r\n  ]\r\n}\r\n"
+  template "{\r\n  \"ded\": \"0.1\",\r\n  \"designer\": \"etalii/knowledge\",\r\n  \"name\": \"{base}\",\r\n  \"properties\": [\r\n    { \"id\": \"{newid:property}\", \"name\": \"Name\", \"type\": \"text\", \"title\": true }\r\n  ],\r\n  \"views\": [\r\n    { \"id\": \"{newid:view}\", \"name\": \"Table\" }\r\n  ],\r\n  \"rows\": [\r\n  ]\r\n}\r\n"
 }

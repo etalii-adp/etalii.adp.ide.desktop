@@ -9,53 +9,11 @@
       "description": "One document a user created of a designer type (DED section 3).",
       "type": "object",
       "properties": {
-        "ded": {
-          "description": "The version of DED the definition is written in (DED section 2).",
-          "enum": [
-            "0.1",
-            "0.2",
-            "0.3"
-          ]
-        },
-        "designer": {
-          "description": "The origin of the designer type the definition was made with, `<vendor>/<type>` (DESL section 3.2).",
-          "$ref": "#/$defs/Origin"
-        },
-        "id": {
-          "description": "(DED 0.3) The document id that links between documents resolve by (DED section 2, FBL section 17.2).",
-          "type": "string",
-          "pattern": "^[^#$%.=@\\s\\x00-\\x1f\\x7f]+$"
-        }
+        "ded": {"description": "The version of DED the definition is written in (DED section 2).", "enum": ["0.1", "0.2"]},
+        "designer": {"description": "The origin of the designer type the definition was made with, `<vendor>/<type>` (DESL section 3.2).", "$ref": "#/$defs/Origin"}
       },
-      "required": [
-        "ded",
-        "designer"
-      ],
-      "allOf": [
-        {
-          "if": {
-            "required": [
-              "id"
-            ]
-          },
-          "then": {
-            "properties": {
-              "ded": {
-                "not": {
-                  "enum": [
-                    "0.1",
-                    "0.2"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      ]
+      "required": ["ded", "designer"]
     },
-    "Origin": {
-      "type": "string",
-      "pattern": "^[a-z0-9-]+/[a-z0-9-]+$"
-    }
+    "Origin": {"type": "string", "pattern": "^[a-z0-9-]+/[a-z0-9-]+$"}
   }
 }

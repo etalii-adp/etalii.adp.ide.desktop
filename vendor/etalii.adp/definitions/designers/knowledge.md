@@ -1,6 +1,6 @@
 # Knowledge designer
 
-[knowledge.des](knowledge.des) specifies ADP's **Knowledge designer** (`etalii/knowledge`) in DESL 0.5 (DESL 0.1 until spec 089 gave it links): its metamodel, its three FBL bindings, its ids, its constraints, its table surface with the value types and their conversions, and one operation per gesture. This file holds what DESL cannot say: the file in each of its three formats, complete enough to write one by hand; the layout and behaviour taken from Notion and where they differ; the conversion table for a change of type; the steps that write two files and the conversion of relations into links (spec 089); entries without an id; and the findings.
+[knowledge.des](knowledge.des) specifies ADP's **Knowledge designer** (`etalii/knowledge`) in DESL 0.1: its metamodel, its three FBL bindings, its ids, its constraints, its table surface with the value types and their conversions, and one operation per gesture. This file holds what DESL 0.1 cannot say: the file in each of its three formats, complete enough to write one by hand; the layout and behaviour taken from Notion and where they differ; the conversion table for a change of type; the steps that write two files; entries without an id; and the findings.
 
 **These definition files are authoritative.** The standalone host's specification `knowledge-designer` (in etalii.adp.ide.standalone, `.spec-workflow/specs/knowledge-designer/`) asked for them, and etalii.adp's [spec 013](../../specs/013-knowledge-designer/) delivered them; where either and these files disagree, these files win and the other is amended (standalone Requirement 1.7). Every other host builds the same designer from these files.
 
@@ -22,12 +22,12 @@
 
 ## The two files
 
-A knowledge document is exactly two files: the **knowledge file**, which holds everything, and its **registration** beside it, which only identifies it. The knowledge file is a DED 0.3 definition ([DED](../../specifications/ded/DED-specification.md)): it begins with DED's envelope, which names DED's version, the designer type `etalii/knowledge` and the file's **document id** (`id`), by which links in other documents find it (FBL section 17.2). A file made before links is a DED 0.1 definition without an id; it is read as it is and converted once (section 9).
+A knowledge document is exactly two files: the **knowledge file**, which holds everything, and its **registration** beside it, which only identifies it. The knowledge file is a DED 0.1 definition ([DED](../../specifications/ded/DED-specification.md)): it begins with DED's envelope, which names DED's version and the designer type `etalii/knowledge`.
 
 - The registration is an `.adp` file whose first line is `etalii/knowledge`, followed by `body: <file name>` when the names differ (FBL section 8). It holds nothing else: no property, row, view, width or position. Deleting it and creating it again changes nothing; the bindings set `createOnFirstPlacement: false` and store no layout.
 - The knowledge file is YAML (`.yaml`, `.yml`), JSON (`.json`, or DED's own `.ded`) or XML (`.xml`). Each extension is claimed `shared`, with DED's envelope as its marker (DED section 4): a file is a knowledge file only when its envelope names `etalii/knowledge`, so ordinary YAML, JSON and XML files are never taken for one, and a knowledge file is recognised without its registration.
 - The format is chosen when the document is added, from the three bindings' templates, and is never changed afterwards (DESL section 5): a change of format would rewrite every byte.
-- A new document is one title property named `Name`, one view named `Table` and no rows; its document id and its ids are new, 8 characters of base 36 each (spec 089, FR-001). The ShortGuids of 25 characters that earlier versions wrote are kept as written.
+- A new document is one title property named `Name`, one view named `Table` and no rows; its ids are new ShortGuids.
 
 ## The table
 
@@ -35,15 +35,15 @@ The model is the same in every format; only the writing differs. Names in bracke
 
 | Entry | Holds | Id |
 |---|---|---|
-| The root | DED's envelope, `ded` (`0.3`; `0.1` in a file made before links), `designer` (`etalii/knowledge`) and `id` (documentId, the document id), then `name`, `activeView` (a view's id) | the document id |
-| `properties` | One entry per property, in column order: `id`, `name`, `type` (valueType), `title`, `target` (targetFile), `limit`, `backlinkName`, `parent` (isParent), and `options` for a selection | stored |
+| The root | DED's envelope, `ded` (`0.1`) and `designer` (`etalii/knowledge`), then `name`, `activeView` (a view's id) | none: it is the table |
+| `properties` | One entry per property, in column order: `id`, `name`, `type` (valueType), `title`, `target` (targetFile), `limit`, `counterpart`, `computed`, `parent` (isParent), and `options` for a selection | stored |
 | `properties/*/options` | One entry per option, in order: `id`, `name`, `colour` | stored |
 | `views` | One entry per view, in tab order: `id`, `name`, `filterMatch`, `columns`, `sorts`, `filter`, `groupBy`, `hideEmptyGroups`, `freeze`, `groupOrder`, `hiddenGroups`, `collapsed` | stored |
 | `rows` | One entry per row: `id`, `cells` | stored |
 | `rows/*/cells` | One entry per value: `property` and the value under its type's key | derived: `<row>/<property>` |
 | `rows/*/cells/*/options`, `rows/*/cells/*/rows` | One entry per value of several: `option` or `row` | derived: `<cell>/<value>` |
 
-Only `id`, `name` and `type` of a property, `id` and `name` of an option and of a view, and `id` of a row are required. Every other key is written only when it differs from its default: `title`, `parent`, `wrap` and `hideEmptyGroups` are `false`, `visible` is `true`, `limit` is `none`, `colour` is `default`, `direction` is `ascending`, `filterMatch` is `all`.
+Only `id`, `name` and `type` of a property, `id` and `name` of an option and of a view, and `id` of a row are required. Every other key is written only when it differs from its default: `title`, `computed`, `parent`, `wrap` and `hideEmptyGroups` are `false`, `visible` is `true`, `limit` is `none`, `colour` is `default`, `direction` is `ascending`, `filterMatch` is `all`.
 
 - **A cell is an entry of its own** naming its property by id, so one unreadable value costs one cell and never its row, and nothing in the file is keyed by a name the file defines (standalone design, L1).
 - **A value sits under a key named for its type** (section 4), so the file says what each value is without looking up its property, and a value that no longer fits its property's type stays readable.
@@ -60,7 +60,7 @@ All three are written with CRLF line endings and two-space indentation when ADP 
 
 **JSON.** One object with the same keys. ADP writes each property, view and row as one line, with its options, settings and cells inside it on that line, so a row is one line of the file and a diff shows one line per changed row. A list written on one line is created with its first item and removed with its last (FBL section 6.2, 0.3). Comments are not allowed in JSON, so a JSON knowledge file has none.
 
-**XML.** The root element is DED's, `<ded version="0.3" designer="etalii/knowledge" id="…" name="…" activeView="…">`, and holds `<properties>`, `<views>` and `<rows>`. Every key becomes an attribute; every list becomes repeated child elements, named in the singular:
+**XML.** The root element is DED's, `<ded version="0.1" designer="etalii/knowledge" name="…" activeView="…">`, and holds `<properties>`, `<views>` and `<rows>`. Every key becomes an attribute; every list becomes repeated child elements, named in the singular:
 
 | YAML and JSON | XML |
 |---|---|
@@ -88,7 +88,7 @@ The three are equivalent: the same table written in each reads as the same eleme
 | Time (`time`) | `time` | `HH:MM` or `HH:MM:SS` | a time | as date | chronological |
 | Selection (`selection`) | `option` | an option's id | one option, picked or typed to create | is, is-not | the options' order |
 | Multiple selection (`multipleSelection`) | `options` | a list of `option:` items | several options, picked or typed to create | contains, does-not-contain | the options' order, by the first value |
-| Relation (`relation`) | `rows` | a list of `row:` items, each a link to a row of the target file (section 9) | rows of the target file, in Notion's relation picker (section 9) | contains, does-not-contain | by the first related row's title |
+| Relation (`relation`) | `rows` | a list of `row:` items, each a row id of the target file | rows of the target file, searched by title | contains, does-not-contain | by the first related row's title |
 
 Every type also offers `is-empty` and `is-not-empty`. A filter condition stores its comparison as `operator` and the value it compares with under the same key a cell would use. Empty values sort last in both directions.
 
@@ -122,7 +122,7 @@ The Knowledge designer looks and works as Notion's table view does (standalone R
 - **The calculation line** under the last row of the table and of every group: under each column, its calculation or, on hover, a menu to choose one.
 - **Rows** beneath, and a *new* row at the bottom of the table and of every group. A row added in a group gets the value that puts it there. A new row stays visible in the view until the view is next opened, even when the filter would hide it.
 - **Cells** are edited in place, over the cell, by their type's editor. Options and relations open a searchable list that also creates: typing a name that is not an option and confirming creates the option. Selection values are rounded tags in their option's colour.
-- **Relations** are created as in Notion: choose the target file (in the host's lookup, which offers only knowledge files of the workspace, *this file* first), one row or no limit, optionally show it on the target too and name that column (`backlinkName`), then confirm.
+- **Relations** are created as in Notion: choose the target file (in a dialog that offers only knowledge files, *this file* first), one row or no limit, optionally show it on the target too and name that side, then confirm.
 - **Keyboard**: the arrow keys move between cells, Enter starts and commits an edit, Escape cancels it, Tab moves to the next cell, and a key adds a row. Selected rows are deleted with Delete. The table exposes the roles of a grid.
 - **Selection**: one or more rows; a single selected row's properties appear in the host's property grid.
 
@@ -146,13 +146,12 @@ Reading never fails on content: what cannot be accepted is a finding at its plac
 | `knowledge.filter-too-deep` | warning | a filter group nested deeper than three levels | constraint `filterDepth` |
 | `knowledge.no-view` | warning | the table; it opens as if it had one view with no settings | constraint `lastView` |
 | `knowledge.unknown-type` | warning | a property whose `type` is none of the nine; its cells are shown as text and cannot be edited | the host |
-| `knowledge.unresolved-target` | warning | a relation property still in the form before links whose target file is missing, unreadable or has no document id, so that it cannot be converted yet (section 9) | the host |
-| `knowledge.unresolved-row` | warning | a value of such a relation naming a row that is not in the target file | the host |
-| `link.malformed`, `link.broken-document`, `link.broken-element`, `link.ambiguous-document` | as FBL section 17.6 says | a relation's `target`, or a related row, that is a link and does not resolve (section 9) | the host, by FBL section 17 |
+| `knowledge.unresolved-target` | warning | a relation property whose target file is missing, unreadable or not a knowledge file | the host |
+| `knowledge.unresolved-row` | warning | a relation value naming a row that is not in the target file | the host |
 | `knowledge.parent-cycle` | error | a row that would be its own ancestor through the parent relation | the host: DESL's expressions do not recurse over values |
 | `knowledge.missing-id` | info | a property, option, view or row without an id (section 10) | the host |
 | `knowledge.unknown-key` | info | a key or element the designer does not know; kept | the host |
-| `knowledge.newer-version` | warning | a file whose DED version (`ded`) is newer than 0.3; it opens read-only (DED section 4) | the host |
+| `knowledge.newer-version` | warning | a file whose DED version (`ded`) is newer than 0.1; it opens read-only (DED section 4) | the host |
 
 FBL's and DESL's own findings apply too (DESL section 6.5): an entry that cannot be read is `std.unreadableEntry` and keeps its bytes; a file that is not well-formed is `std.unparseable`, opens empty and read-only, and is never written; a file without DED's envelope is unreadable; two entries with one id are `std.duplicateId`.
 
@@ -170,42 +169,29 @@ A change of type converts, in the same step, every value that has a meaning in t
 | Multiple selection | the names, joined by `, ` | kept | kept | kept | the only item, when there is one | | kept |
 | Relation | the related rows' titles, joined by `, ` | kept | kept | kept | kept | kept | |
 
-*Kept* means not converted. Converting writes the new key where the binding's key order puts it and removes the old one (fixture step "A number converted to text"). Options created by a conversion are created in the same step. Changing a type away from relation keeps the property's `target`, `limit` and `backlinkName` until the type changes back or the property is deleted; the title property's type does not change.
+*Kept* means not converted. Converting writes the new key where the binding's key order puts it and removes the old one (fixture step "A number converted to text"). Options created by a conversion are created in the same step. Changing a type away from relation keeps the property's `target`, `limit` and `counterpart` until the type changes back or the property is deleted; the title property's type does not change.
 
 ## Relations and the steps that write two files
 
-A relation property names its target file by a **link without an element**, `$<document-id>@<file name>` (`target`; FBL section 17.1), and holds, per cell, a **link** to each related row, `$<document-id>@<file name>#<row id>.<title property's name>=<title>`. A row is linkable (`knowledge.des`, `Row`): its element id is its id, and its name is the value of the file's title property, so the name property of a link to a row is that property's name (`Name` in the examples). A relation to the file itself is a link to its own document id. The host resolves links within the workspace, reads the target file read-only for the rows' titles, and watches it (FBL section 17.3).
+A relation property names its target file by a path relative to its own file (`target`, `.` for the file itself) and holds, per cell, row ids of that file. To FBL a row id in another file is a plain string: the designer resolves it, reads the target file read-only for titles and watches it.
 
-- **Load.** When a knowledge file is loaded, every link it holds is checked as FBL section 17.4 says: a link whose target was renamed, moved or retitled is rewritten in place, and the edit is written with the next write of the file; a link that does not resolve keeps its text and is reported (`link.*`, section 7). Nothing is written to a target file.
-- **The relation picker** is DESL's (DESL section 7.5.1) and Notion's: typing searches the target's rows by title; the rows the cell links to are chips that a click removes; picking a row adds a link to it, and with `limit: one` replaces the link the cell holds; when nothing matches, *Create* adds a row with that title to the target and the link to the cell, as one step over the two files (below).
-- **Linked from.** The links that resolve to a row, from any document of the workspace (a mind map node, a timeline element, a dependency graph node or a relation cell of any knowledge file), are its backlinks (FBL section 17.5), computed and never stored. The row's menu lists them as **Linked from (N)**, each with the consuming document's name and the name of the element that holds it; activating one opens that document with that element selected. The backlink columns below are the part of them that relations name with `backlinkName`.
-- **A broken link** in a cell is a chip with the name the link caches and a broken mark; its finding (`link.*`, FBL section 17.6) stands at the cell, and a click on the chip offers the finding's fixes rather than opening a target.
-- **Backlinks.** A relation with `backlinkName` shows, in its target file, a read-only column of that name listing, per row, the rows of this file that link to it. It is computed from the workspace's links (FBL section 17.5) and stored in neither file, so a two-way relation is one relation: deleting it deletes its backlink column too, and the target file is never edited for it.
+A **two-way** relation is stored on one side (standalone Q5): the property that was created holds the values, and the target file gets a **counterpart** property with `computed: true`, no cells, and `counterpart` naming the first property's id; the first names the counterpart's id in its own `counterpart`. The counterpart shows, per row, the rows of the first file that point at it.
 
-These steps change two files, and every host **MUST** make each one undoable step (DESL section 5.4): plan the edit of both bodies first, write neither when either edit is refused, write both, and record one history entry whose undo restores both files' bytes.
+These steps change two files, and every host **MUST** make each one undoable step (DESL section 5): plan the edit of both bodies first, write neither when either edit is refused, write both, and record one history entry whose undo restores both files' bytes.
 
 | Step | This file | The other file |
 |---|---|---|
-| Create a row from the relation picker | add the link to the cell | add the row, with a new id and its title |
-| Delete a backlink from the target's backlink column | – (the target file is the one being edited) | remove the link from the cell that holds it |
+| Create a two-way relation | add the property, with `counterpart` | add the computed counterpart |
+| Delete one side of a two-way relation | delete the property | the user chooses: delete the counterpart too, or keep it as a one-way relation (remove `computed` and `counterpart`; it then holds values of its own) |
+| Rename or move a target file inside ADP | rewrite `target` in every open file that names it | move or rename the file |
 
-Renaming or moving a target file needs no step: the links that name it still resolve by its document id, and each consuming file rewrites the name when it is next loaded. Deleting a row that rows of other files link to first says how many; their links are then broken (`link.broken-element`) and are not removed. A link whose target is missing is never removed by ADP (standalone Requirement 5.7).
-
-**The conversion of a file made before links** (spec 089, FR-026, research R9). A file whose relations name their target by a path (`target: provinces.yaml`, `.` for itself), hold row ids (`row: nh`), and may carry `counterpart` and `computed`, is read as it is: `knowledge.fbl` reads both forms and writes only the new one. When such a file is loaded and is not opened read-only, the host converts it once, as one undoable step that writes this file alone:
-
-1. **Its own id first.** A file without a document id is given one, and its `ded` becomes `0.3` (FBL section 17.4).
-2. **Each relation whose target file has a document id** becomes a link: `target` becomes `$<id>@<file name>`, and each of its cells' row ids `r` becomes the link to row `r`, named by the target's title property and the row's title, or `$<id>@<file name>#r` when the target holds no such row, which is then reported as `link.broken-element`. No related row is lost: a cell holds as many links after the conversion as it held row ids before.
-3. **Its counterpart's name.** A relation with `counterpart` gets `backlinkName`, the name of the property `counterpart` names in the target file, read read-only, and loses `counterpart`.
-4. **A counterpart property** (`computed: true`) of this file is removed once no relation still in the old form names it as its counterpart; until then it is kept and shown as the backlink column it already was, and removed on a later load.
-5. **A relation whose target has no id yet**, or is missing, is left as it is and reported (`knowledge.unresolved-target`). The target gets its id when it is itself loaded, and the relation is converted on a later load of this file. No file is written while another is loaded except for its own id, so converting never writes a second file.
-
-The fixture [`specifications/fbl/fixtures/links-workspace/`](../../specifications/fbl/fixtures/links-workspace/) holds a file made before links, `knowledge/cities.yaml`, and the file its conversion yields, `knowledge/cities.converted`; `validate-examples.py` converts the one and compares it with the other on every pull request.
+Deleting a row that rows of other files relate to first says how many; their values naming it are then unresolved (`knowledge.unresolved-row`) and are not removed. A value whose target is missing is never removed by ADP (standalone Requirement 5.7).
 
 **The parent relation** is a relation to the file itself with `parent: true` and `limit: one`. A row's parent is the row its cell names; grouping a view by it nests rows under their parents, and a change that would make a row its own ancestor is refused (`knowledge.parent-cycle` when a file already holds one).
 
 ## Entries without an id
 
-A property, option, view or row written without an id (by hand or by a language model) is read with an id the host makes up, is shown, and is reported as `knowledge.missing-id` (info). The first edit made in ADP to the file writes a new id, 8 characters of base 36, into every such entry, in the same step (DESL `ids.missing: "assign"`, DESL section 5.3.4), so references to it can be stored. Cells, items and view settings have no id of their own and never need one.
+A property, option, view or row written without an id (by hand or by a language model) is read with an id the host makes up, is shown, and is reported as `knowledge.missing-id` (info). The first edit made in ADP to the file writes a new ShortGuid into every such entry, in the same step (DESL `ids.missing: "assign"`, DESL section 5.3.4), so references to it can be stored. Cells, items and view settings have no id of their own and never need one.
 
 ## Gestures and operations
 
@@ -239,18 +225,17 @@ A property, option, view or row written without an id (by hand or by a language 
 - A parent cycle, which needs a recursive walk over values.
 - The view logic itself (how a filter, a sort and a grouping select and order rows): stated by the value types' comparisons and sorts and by section 5, and implemented by each host.
 
-[knowledge.atd](knowledge.atd) carries this specification in ATD, with the three bindings in [knowledge.yaml.atd](knowledge.yaml.atd), [knowledge.json.atd](knowledge.json.atd) and [knowledge.xml.atd](knowledge.xml.atd), each `knowledge.fbl`'s binding of its name. Of the list above it states the three forms and how XML writes lists (its bindings), the relation values across files (a related row is a link, a plain string of the rule `cellRow`, which the host resolves by FBL section 17) and the parent cycle (the constraint `parentCycle`, whose walk up the parent relation is the function `reaches` of its script). What remains is the host's, and none of it is a gap of the language: how the table is drawn and how a view selects and orders its rows are rendering, which no case compares; the steps that write two files keep one history entry for both files, which is the host's undo stack; and the findings that need another file or the reader's own wording (`knowledge.unresolved-target`, `knowledge.unresolved-row`, `knowledge.unknown-key`, `knowledge.missing-id`, `knowledge.unknown-type`, `knowledge.newer-version`) are the host's, as section 7 says. The description writes some operations as the desktop host's module does them, which `knowledge.des` words otherwise: an unticked checkbox removes its cell, a new view is named View and leaves the file in the view it was in, and a value equal to its attribute's default is written as none. A condition's value is set with its operator (`setCondition`), and a new option typed in a cell is one operation, `setNewOption`, given the colour the host picked for it; `knowledge.des` states both as the description does (spec 076, Peter's ruling of 2026-11-07).
+[knowledge.atd](knowledge.atd) carries this specification in ATD, with the three bindings in [knowledge.yaml.atd](knowledge.yaml.atd), [knowledge.json.atd](knowledge.json.atd) and [knowledge.xml.atd](knowledge.xml.atd), each `knowledge.fbl`'s binding of its name. Of the list above it states the three forms and how XML writes lists (its bindings), the relation values across files (a related row is a plain string of the rule `cellRow`) and the parent cycle (the constraint `parentCycle`, whose walk up the parent relation is the function `reaches` of its script). What remains is the host's, and none of it is a gap of the language: how the table is drawn and how a view selects and orders its rows are rendering, which no case compares; the steps that write two files keep one history entry for both files, which is the host's undo stack; and the findings that need another file or the reader's own wording (`knowledge.unresolved-target`, `knowledge.unresolved-row`, `knowledge.unknown-key`, `knowledge.missing-id`, `knowledge.unknown-type`, `knowledge.newer-version`) are the host's, as section 7 says. The description writes some operations as the desktop host's module does them, which `knowledge.des` words otherwise: an unticked checkbox removes its cell, a new view is named View and leaves the file in the view it was in, and a value equal to its attribute's default is written as none. A condition's value is set with its operator (`setCondition`), and a new option typed in a cell is one operation, `setNewOption`, given the colour the host picked for it; `knowledge.des` states both as the description does (spec 076, Peter's ruling of 2026-11-07).
 
 ## Complete examples
 
-The examples in [examples/](examples/) are one table, Cities, written in each format: cities of the Low Countries and a few beyond them. Its relation Province links to the rows of [examples/provinces.yaml](examples/provinces.yaml). Each validates against [knowledge.schema.json](knowledge.schema.json) (XML through the mapping of section 3) and reads through its binding without findings; the validator checks both on every pull request.
+The examples in [examples/](examples/) are one table, Cities, written in each format: cities of the Low Countries and a few beyond them. Each validates against [knowledge.schema.json](knowledge.schema.json) (XML through the mapping of section 3) and reads through its binding without findings; the validator checks both on every pull request.
 
 ### YAML ([examples/cities.yaml](examples/cities.yaml))
 
 ```yaml
-ded: "0.3"
+ded: "0.1"
 designer: etalii/knowledge
-id: c4m8x2tr
 # Cities of the Low Countries, kept by hand and by ADP.
 name: Cities
 activeView: v1
@@ -292,7 +277,7 @@ properties:
   - id: p5
     name: Province
     type: relation
-    target: $p7v3k9qd@provinces.yaml
+    target: provinces.yaml
     limit: one
   - id: p6
     name: Visited
@@ -337,7 +322,7 @@ rows:
           - option: o4
       - property: p5
         rows:
-          - row: $p7v3k9qd@provinces.yaml#nh.Name=Noord-Holland
+          - row: nh
       - property: p6
         checked: true
       - property: p7
@@ -408,9 +393,8 @@ rows:
 
 ```json
 {
-  "ded": "0.3",
+  "ded": "0.1",
   "designer": "etalii/knowledge",
-  "id": "c4m8x2tr",
   "name": "Cities",
   "activeView": "v1",
   "properties": [
@@ -418,7 +402,7 @@ rows:
     { "id": "p2", "name": "Country", "type": "selection", "options": [{ "id": "o1", "name": "Netherlands", "colour": "blue" }, { "id": "o2", "name": "Belgium", "colour": "yellow" }, { "id": "b4ff5lo4rezgty4ge7siqndey", "name": "Germany" }, { "id": "dn1qx45l0fu88pip2l9ua7joz", "name": "France" }, { "id": "7h1eyx85f462uj3sb6jlxdxvu", "name": "Finland" }, { "id": "2xc52nefzictwc49wy8ldxh7t", "name": "Italy" }] },
     { "id": "p3", "name": "Population", "type": "number" },
     { "id": "p4", "name": "Tags", "type": "multipleSelection", "options": [{ "id": "o3", "name": "Port" }, { "id": "o4", "name": "Capital", "colour": "red" }] },
-    { "id": "p5", "name": "Province", "type": "relation", "target": "$p7v3k9qd@provinces.yaml", "limit": "one" },
+    { "id": "p5", "name": "Province", "type": "relation", "target": "provinces.yaml", "limit": "one" },
     { "id": "p6", "name": "Visited", "type": "checkbox" },
     { "id": "p7", "name": "Founded", "type": "date" },
     { "id": "p8", "name": "Updated", "type": "dateTime" },
@@ -429,7 +413,7 @@ rows:
     { "id": "v2", "name": "Map" }
   ],
   "rows": [
-    { "id": "r1", "cells": [{ "property": "p1", "text": "Amsterdam" }, { "property": "p2", "option": "o1" }, { "property": "p3", "number": 931298 }, { "property": "p4", "options": [{ "option": "o3" }, { "option": "o4" }] }, { "property": "p5", "rows": [{ "row": "$p7v3k9qd@provinces.yaml#nh.Name=Noord-Holland" }] }, { "property": "p6", "checked": true }, { "property": "p7", "date": "1275-10-27" }, { "property": "p8", "dateTime": "2026-10-08T09:30:00Z" }, { "property": "p9", "time": "09:00" }] },
+    { "id": "r1", "cells": [{ "property": "p1", "text": "Amsterdam" }, { "property": "p2", "option": "o1" }, { "property": "p3", "number": 931298 }, { "property": "p4", "options": [{ "option": "o3" }, { "option": "o4" }] }, { "property": "p5", "rows": [{ "row": "nh" }] }, { "property": "p6", "checked": true }, { "property": "p7", "date": "1275-10-27" }, { "property": "p8", "dateTime": "2026-10-08T09:30:00Z" }, { "property": "p9", "time": "09:00" }] },
     { "id": "r2", "cells": [{ "property": "p1", "text": "Antwerp" }, { "property": "p2", "option": "o2" }, { "property": "p4", "options": [{ "option": "o3" }] }] },
     { "id": "45ako65f2m2wasyxq3mam8ikt", "cells": [{ "property": "p2", "option": "o1" }, { "property": "p3", "number": 345345 }, { "property": "p1", "text": "Sevenum" }, { "property": "p4", "options": [{ "option": "o3" }] }] },
     { "id": "a8q7ddqb6zyubcyf5vuky6iwb", "cells": [{ "property": "p2", "option": "o1" }, { "property": "p1", "text": "Venlo" }] },
@@ -445,7 +429,7 @@ rows:
 ### XML ([examples/cities.xml](examples/cities.xml))
 
 ```xml
-<ded version="0.3" designer="etalii/knowledge" id="c4m8x2tr" name="Cities" activeView="v1">
+<ded version="0.1" designer="etalii/knowledge" name="Cities" activeView="v1">
   <!-- Cities of the Low Countries, kept by hand and by ADP. -->
   <properties>
     <property id="p1" name="Name" type="text" title="true"/>
@@ -462,7 +446,7 @@ rows:
       <option id="o3" name="Port"/>
       <option id="o4" name="Capital" colour="red"/>
     </property>
-    <property id="p5" name="Province" type="relation" target="$p7v3k9qd@provinces.yaml" limit="one"/>
+    <property id="p5" name="Province" type="relation" target="provinces.yaml" limit="one"/>
     <property id="p6" name="Visited" type="checkbox"/>
     <property id="p7" name="Founded" type="date"/>
     <property id="p8" name="Updated" type="dateTime"/>
@@ -486,7 +470,7 @@ rows:
         <item option="o4"/>
       </cell>
       <cell property="p5">
-        <item row="$p7v3k9qd@provinces.yaml#nh.Name=Noord-Holland"/>
+        <item row="nh"/>
       </cell>
       <cell property="p6" checked="true"/>
       <cell property="p7" date="1275-10-27"/>
