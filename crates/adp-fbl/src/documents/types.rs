@@ -45,6 +45,9 @@ pub struct FblBinding {
     pub read_only: Option<String>,
     pub text: TextDefaults,
     pub header: Option<HeaderSettings>,
+    /// *(FBL 0.23)* Where the body's root holds its document id (FBL section 17.2); none when the tool type holds no
+    /// links and is not linked to.
+    pub document_id: Option<DocumentIdSlot>,
     pub comment: Option<String>,
     pub report_unmatched: bool,
     pub blocks: Vec<BlockRule>,
@@ -225,6 +228,14 @@ impl Default for TextDefaults {
             quote: "double".into(),
         }
     }
+}
+
+/// *(FBL 0.23)* The slot of the body's root that holds the document id (FBL section 17.2, `document.id`): a root key in
+/// the `yaml` and `json` families, an attribute of the root element in the `xml` family.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DocumentIdSlot {
+    Key(String),
+    Attribute(String),
 }
 
 #[derive(Debug, Clone)]

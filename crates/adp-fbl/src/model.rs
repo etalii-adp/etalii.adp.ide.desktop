@@ -144,6 +144,13 @@ pub struct FblModel {
     pub body_views: Vec<FblBodyView>,
     /// The resources a body holds (FBL section 8.2): the values of the binding's resource capture.
     pub resources: Vec<String>,
+    /// *(FBL 0.23)* The document id the body's root holds in the binding's `document.id` slot (FBL section 17.2); none
+    /// when the binding declares no such slot or the body holds no id there yet.
+    pub document_id: Option<String>,
+    /// The elements addressed by their place although they were written with an id, because an earlier entry has
+    /// that id (`std.duplicateId`): each as (the id it is addressed by, the id written). A link to the written id
+    /// names all of them (FBL 0.23, section 17.3, step 4).
+    pub written_ids: Vec<(String, String)>,
     /// The file the body was read from, as the caller names it (`FblOptions::file_name`); none for a reading that
     /// names no file.
     pub file: Option<String>,
