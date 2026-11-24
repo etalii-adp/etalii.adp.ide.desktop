@@ -131,7 +131,7 @@ fn a_requirement_in_no_item_is_offered_nothing_below_with_the_reason_and_another
 #[test]
 fn a_document_that_cannot_change_offers_nothing() {
     let folder = WebShopFolder::new();
-    folder.write_as_an_agent(|text| text.replace("<!-- ded: 0.2 ", "<!-- ded: 0.3 "));
+    folder.write_as_an_agent(|text| text.replace("<!-- ded: 0.2 ", "<!-- ded: 0.9 "));
 
     assert!(context_actions::discover(&folder.body(), "ITEM-0003").is_empty());
 }
