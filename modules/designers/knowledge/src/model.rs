@@ -91,6 +91,15 @@ fn filter_item(element: &FblElement, children: &Children<'_>) -> FilterItem {
     }
 }
 
+/// The row a relation cell's item names: the element of its link (FBL section 17.1), or, in a file made before links,
+/// the row id it holds. A value that is neither is kept as written, and reported.
+pub fn row_id(written: &str) -> String {
+    match adp_links::Link::parse(written) {
+        Some(link) => link.element_id().unwrap_or_default().to_owned(),
+        None => written.to_owned(),
+    }
+}
+
 /// Reads a table out of a body's FBL model.
 pub fn read(model: &FblModel) -> KnowledgeTable {
     // One pass to group every element under its parent and slot, so reading stays linear in the size of the file:
@@ -126,7 +135,7 @@ pub fn read(model: &FblModel) -> KnowledgeTable {
                 })
                 .collect();
             let limit = text(p, "limit");
-            property(
+            let mut property = property(
                 &p.id,
                 &text(p, "name"),
                 &text(p, "valueType"),
@@ -137,7 +146,9 @@ pub fn read(model: &FblModel) -> KnowledgeTable {
                 &text(p, "counterpart"),
                 values::is_true(p.attributes.get("computed")),
                 values::is_true(p.attributes.get("isParent")),
-            )
+            );
+            property.backlink_name = text(p, "backlinkName");
+            property
         })
         .collect();
 
@@ -212,7 +223,7 @@ pub fn read(model: &FblModel) -> KnowledgeTable {
                                 if i.attributes.contains_key("option") {
                                     text(i, "option")
                                 } else {
-                                    text(i, "row")
+                                    row_id(&text(i, "row"))
                                 }
                             })
                             .filter(|v| !v.is_empty())
@@ -238,6 +249,7 @@ pub fn read(model: &FblModel) -> KnowledgeTable {
 
     KnowledgeTable {
         name: table.map(|t| text(t, "name")).unwrap_or_default(),
+        document_id: model.document_id.clone().unwrap_or_default(),
         active_view_id: table.map(|t| text(t, "activeView")).unwrap_or_default(),
         columns: properties,
         views,

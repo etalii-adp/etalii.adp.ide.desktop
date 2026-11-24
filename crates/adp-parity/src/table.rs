@@ -60,6 +60,10 @@ pub fn replay_observed(
         )));
     };
     let mut session = KnowledgeSession::open_for_editing(&body, project);
+    // The goldens were recorded by the standalone host at 8b6ccfc, which predates links between documents
+    // (etalii.adp spec 089) and so neither gives a file a document id nor converts it on load: the replay leaves the
+    // file in the form it was recorded in, and compares every edit's bytes with that host's.
+    session.discard_load_changes();
     if !session.refusal().is_empty() {
         return Ok(Verdict::CannotOpen(session.refusal().to_owned()));
     }

@@ -20,6 +20,7 @@ use adp_desl::table::model::TableGesture;
 use crate::command::{KnowledgeEditCommand, KnowledgeRestore};
 use crate::definition;
 use crate::edits::{self, KnowledgeSurroundings};
+use crate::links;
 use crate::model::{KnowledgeProperty, KnowledgeTable};
 use crate::project;
 use crate::relations::{self, KnowledgeTarget};
@@ -250,14 +251,24 @@ pub fn commit(root: &Path, path: &Path, action_id: &str, value: &str, text: &str
     }
 }
 
-/// What a target named from a file is, read from disk, or the file's own table for itself.
+/// What a target named from a file is, read from disk, or the file's own table for itself; a target named by a link
+/// is resolved among the knowledge files of the file's folder.
 fn target_at(body_path: &Path, own: &KnowledgeTable, target_file: &str) -> Rc<KnowledgeTarget> {
+    if links::is_link(target_file) {
+        let folder = relations::full_path(body_path)
+            .parent()
+            .map(Path::to_path_buf)
+            .unwrap_or_default();
+        let files = links::read_files(&folder, &|p: &Path| store::read(p));
+        let workspace = links::workspace(&files, body_path, own);
+        return Rc::new(links::target_of_link(&workspace, &files, body_path, own, target_file));
+    }
     let path = relations::target_path(body_path, target_file);
     if relations::same_path(&path, body_path) {
         return Rc::new(KnowledgeTarget {
             path,
             table: Some(own.clone()),
-            problem: String::new(),
+            ..KnowledgeTarget::default()
         });
     }
     let read = store::read(&path);
@@ -266,16 +277,18 @@ fn target_at(body_path: &Path, own: &KnowledgeTable, target_file: &str) -> Rc<Kn
             path,
             table: None,
             problem: format!("'{target_file}' is not there."),
+            ..KnowledgeTarget::default()
         },
         Some(body) if !body.unreadable().is_empty() => KnowledgeTarget {
             path,
             table: None,
             problem: format!("'{target_file}' cannot be read as a knowledge file."),
+            ..KnowledgeTarget::default()
         },
         Some(body) => KnowledgeTarget {
             path,
             table: Some(body.table().clone()),
-            problem: String::new(),
+            ..KnowledgeTarget::default()
         },
     })
 }

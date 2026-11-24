@@ -17,7 +17,7 @@ use crate::validator;
 /// What is said of a file that does not open with the mark of the format version the vendored bindings read. The
 /// bindings require that mark, so such a file is not read at all: a file of a later version may hold what this
 /// version would misread, and a misread file that is then written is a damaged file.
-pub const ANOTHER_VERSION: &str = "This file does not say it is a knowledge file of version 0.1, the version this application knows. It is left exactly as it is and cannot be changed here.";
+pub const ANOTHER_VERSION: &str = "This file does not say it is a knowledge file of version 0.1 or 0.3, the versions this application knows. It is left exactly as it is and cannot be changed here.";
 
 /// What a change planned against an earlier state of the file is refused with.
 pub const CHANGED_SINCE: &str = "The file has changed since this edit was made, so it was not written.";

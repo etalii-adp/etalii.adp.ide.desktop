@@ -998,7 +998,7 @@ impl BodyReading {
         read
     }
 
-    fn read_slot_unchecked(
+    pub(crate) fn read_slot_unchecked(
         &self,
         candidate: &Candidate,
         slot: &Slot,

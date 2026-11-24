@@ -1,5 +1,6 @@
-ded: "0.1"
+ded: "0.3"
 designer: etalii/knowledge
+id: c4m8x2tr
 # Cities of the Low Countries, kept by hand and by ADP.
 name: Cities
 activeView: v2
@@ -41,7 +42,7 @@ properties:
   - id: p5
     name: Province
     type: relation
-    target: provinces.yaml
+    target: $p7v3k9qd@provinces.yaml
     limit: one
   - id: p6
     name: Visited
@@ -101,7 +102,7 @@ rows:
           - option: o4
       - property: p5
         rows:
-          - row: nh
+          - row: $p7v3k9qd@provinces.yaml#nh.Name=Noord-Holland
       - property: p6
         checked: true
       - property: p7
@@ -138,7 +139,7 @@ rows:
         text: Venlo
       - property: p5
         rows:
-          - row: 9wvrdvjn4ob2f2nw421bouq7y
+          - row: $p7v3k9qd@provinces.yaml#9wvrdvjn4ob2f2nw421bouq7y.Name=Limburg
   - id: 8heh3sdyy0a63fyq7gicize5a
     cells:
       - property: p2
@@ -183,4 +184,4 @@ rows:
         text: Enschede
       - property: p5
         rows:
-          - row: cdns3i0ehcr45q7zh0z15iqzt
+          - row: $p7v3k9qd@provinces.yaml#cdns3i0ehcr45q7zh0z15iqzt.Name=Overijssel

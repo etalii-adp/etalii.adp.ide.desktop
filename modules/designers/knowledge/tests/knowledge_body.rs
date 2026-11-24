@@ -71,7 +71,7 @@ fn the_example_opens_as_the_expected_table() {
         let colours: Vec<&str> = table.columns[3].options.iter().map(|o| o.colour.as_str()).collect();
         assert_eq!(vec!["default", "red"], colours);
         assert_eq!(
-            ("provinces.yaml", "one"),
+            ("$p7v3k9qd@provinces.yaml", "one"),
             (table.columns[4].target_file.as_str(), table.columns[4].limit.as_str())
         );
 
@@ -201,7 +201,7 @@ fn a_file_that_is_not_well_formed_says_so_with_its_position_and_holds_no_table()
 fn a_file_of_another_version_is_not_read_and_says_why() {
     let text = String::from_utf8(example_bytes("cities.yaml"))
         .expect("UTF-8")
-        .replace("ded: \"0.1\"", "ded: \"9.0\"");
+        .replace("ded: \"0.3\"", "ded: \"9.0\"");
     let body = KnowledgeBody::read(text.into_bytes(), "cities.yaml");
 
     // The bindings require the version's mark, so the file is not read - a later version may hold what this one

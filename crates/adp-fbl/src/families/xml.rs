@@ -734,6 +734,11 @@ impl Family {
         }
     }
 
+    /// The root element.
+    pub(super) fn xml_document(&self) -> Option<EntryId> {
+        self.xml_data().document
+    }
+
     /// The text of the root element's attribute `name`, or none.
     pub(super) fn xml_root_attribute(&self, name: &str) -> Option<String> {
         let document = self.xml_data().document?;

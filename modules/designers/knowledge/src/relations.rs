@@ -19,12 +19,15 @@ use crate::model::{KnowledgeProperty, KnowledgeTable};
 pub const SELF: &str = ".";
 
 /// What a relation property points at: the table of its target file, or why there is none to show.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct KnowledgeTarget {
     pub path: PathBuf,
     pub table: Option<KnowledgeTable>,
     /// Why there is no table, as a sentence; empty when there is one.
     pub problem: String,
+    /// The finding the problem is: a link's (`link.*`, FBL section 17.6) for a target named by a link, empty for
+    /// one named by its path, which is `knowledge.unresolved-target`.
+    pub code: String,
 }
 
 /// What a relation property of a file points at, or none where relations are not resolved.
@@ -102,12 +105,23 @@ pub fn label_of(target: Option<&KnowledgeTarget>, row_id: &str) -> String {
         .unwrap_or_default()
 }
 
+/// Whether a relation's target names the table it is in: [`SELF`] or nothing in a file made before links, a link
+/// to its own document id after.
+pub fn is_itself(table: &KnowledgeTable, target_file: &str) -> bool {
+    if target_file == SELF || target_file.is_empty() {
+        return true;
+    }
+    !table.document_id.is_empty()
+        && adp_links::Link::parse(target_file).is_some_and(|link| link.document_id == table.document_id)
+}
+
 /// Whether a relation shows both directions in its one property, as Notion's relation of a database to itself
 /// does: a relation of the table to itself that has no other side of its own and is not the parent relation.
-pub fn is_mutual(property: &KnowledgeProperty) -> bool {
+pub fn is_mutual(table: &KnowledgeTable, property: &KnowledgeProperty) -> bool {
     property.value_type == "relation"
-        && property.target_file == SELF
+        && is_itself(table, &property.target_file)
         && property.counterpart.is_empty()
+        && property.backlink_name.is_empty()
         && !property.is_parent
         && !property.is_computed
 }
@@ -117,7 +131,7 @@ fn with_mutual(table: KnowledgeTable) -> KnowledgeTable {
     let mutual: HashSet<String> = table
         .columns
         .iter()
-        .filter(|p| is_mutual(p))
+        .filter(|p| is_mutual(&table, p))
         .map(|p| p.id.clone())
         .collect();
     if mutual.is_empty() {
@@ -183,7 +197,7 @@ pub fn with_computed(table: KnowledgeTable, target_of: TargetOf<'_>) -> Knowledg
     let mut related: HashMap<String, HashMap<String, Vec<String>>> = HashMap::new();
     for property in &computed {
         // A relation to the file itself is read from the table as it is shown, edits not yet written included.
-        let itself = property.target_file == SELF || property.target_file.is_empty();
+        let itself = is_itself(&table, &property.target_file);
         let target = if itself { None } else { target_of(property) };
         let other = if itself {
             Some(&table)

@@ -114,19 +114,9 @@ pub fn derive_id(request: &IdRequest<'_>) -> Option<String> {
     })
 }
 
-/// A new id: a ShortGuid, a version 4 GUID written as 25 characters of base 36, never reused and never derived
-/// from anything that could change (`knowledge.des`, `persistence.ids`).
+/// A new id: 8 characters of base 36, never reused and never derived from anything that could change
+/// (`knowledge.des`, `persistence.ids` and `persistence.documentId`: `nanoid`, spec 089 FR-001 and FR-003). The
+/// ShortGuids of 25 characters earlier versions wrote are kept as written.
 pub fn new_id() -> String {
-    let mut value = uuid::Uuid::new_v4().as_u128();
-    let mut digits = Vec::with_capacity(25);
-    while value > 0 {
-        let digit = (value % 36) as u8;
-        digits.push(if digit < 10 { b'0' + digit } else { b'a' + digit - 10 });
-        value /= 36;
-    }
-    while digits.len() < 25 {
-        digits.push(b'0');
-    }
-    digits.reverse();
-    String::from_utf8(digits).expect("base 36 is ASCII")
+    adp_links::nanoid(adp_links::BASE36, 8)
 }

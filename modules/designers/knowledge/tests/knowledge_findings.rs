@@ -15,8 +15,9 @@ use adp_desl::table::session::DesignerSession;
 use common::{EditingTable, copy_example};
 
 /// A small table with nothing wrong in it: a title, a number, a selection, one view, two rows.
-const SOUND: &str = "ded: \"0.1\"
+const SOUND: &str = "ded: \"0.3\"
 designer: etalii/knowledge
+id: s0und0ne
 name: Cities
 properties:
   - id: p1
@@ -153,7 +154,7 @@ fn a_condition_is_reported_under_its_code_at_its_place() {
         (
             MISSING_ID,
             Info,
-            "row@30",
+            "row@31",
             "",
             "  - id: r2\n    cells:\n",
             "  - cells:\n",
@@ -291,7 +292,7 @@ fn an_attribute_or_element_the_designer_does_not_know_is_reported_in_an_xml_file
 #[test]
 fn a_file_of_another_version_is_told_so_in_one_finding_and_is_not_changed() {
     let folder = common::folder();
-    let path = write(folder.path(), &changed("ded: \"0.1\"", "ded: \"9.0\""));
+    let path = write(folder.path(), &changed("ded: \"0.3\"", "ded: \"9.0\""));
     let before = std::fs::read(&path).expect("read");
     let baseline = KnowledgeSession::new(&path).baseline();
 

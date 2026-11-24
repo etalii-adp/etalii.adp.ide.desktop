@@ -122,6 +122,7 @@ fn table_of(count: usize) -> KnowledgeTable {
         columns: properties(),
         views: Vec::new(),
         rows,
+        ..KnowledgeTable::default()
     }
 }
 
@@ -697,6 +698,7 @@ fn family(rows: &[(&str, &str)]) -> KnowledgeTable {
                 ContentRow::new(*id, cells)
             })
             .collect(),
+        ..KnowledgeTable::default()
     }
 }
 
