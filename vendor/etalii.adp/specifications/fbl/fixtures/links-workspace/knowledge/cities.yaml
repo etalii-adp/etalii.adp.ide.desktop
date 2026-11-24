@@ -1,0 +1,58 @@
+ded: "0.1"
+designer: etalii/knowledge
+name: Cities
+properties:
+  - id: p1
+    name: Name
+    type: text
+    title: true
+  - id: p2
+    name: Province
+    type: relation
+    target: provinces.yaml
+    limit: one
+    counterpart: p9
+  - id: p3
+    name: Twinned with
+    type: relation
+    target: .
+  - id: p4
+    name: Region
+    type: relation
+    target: ../teams/nowhere.yaml
+views:
+  - id: v1
+    name: Table
+rows:
+  - id: ams
+    cells:
+      - property: p1
+        text: Amsterdam
+      - property: p2
+        rows:
+          - row: nh
+      - property: p3
+        rows:
+          - row: utr
+          - row: haa
+      - property: p4
+        rows:
+          - row: x1
+  - id: utr
+    cells:
+      - property: p1
+        text: Utrecht
+      - property: p2
+        rows:
+          - row: ut
+  - id: haa
+    cells:
+      - property: p1
+        text: Haarlem
+      - property: p2
+        rows:
+          - row: nh
+      - property: p3
+        rows:
+          - row: ams
+          - row: gone

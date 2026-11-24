@@ -1,7 +1,7 @@
 {
   "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
-  "fbl": "0.4",
-  "doc": "The knowledge file of the Knowledge designer (definitions/designers/knowledge.des, knowledge.md): one table of typed properties, rows and views, in YAML, JSON or XML, one binding per format family. Every knowledge file is a DED definition: it opens with `ded` and `designer`, which are also the marker that lets a host recognise it without a registration. The file is ADP's own; every id is stored in it, a cell names its property by id and holds its value under a key named for its type, and several values are several entries.",
+  "fbl": "0.23",
+  "doc": "The knowledge file of the Knowledge designer (definitions/designers/knowledge.des, knowledge.md): one table of typed properties, rows and views, in YAML, JSON or XML, one binding per format family. Every knowledge file is a DED definition: it opens with `ded` and `designer`, which are also the marker that lets a host recognise it without a registration. The file is ADP's own; its document id is the envelope's `id` (DED 0.3, FBL section 17.2), every id is stored in it, a cell names its property by id and holds its value under a key named for its type, and several values are several entries.",
   "bindings": {
     "yaml": {
       "title": "Knowledge file, YAML",
@@ -15,7 +15,8 @@
       "body": { "kind": "file", "family": "yaml" },
       "reader": "declared",
       "text": { "newline": "crlf", "indent": 2, "finalNewline": true, "sequenceIndent": "indented", "quote": "double" },
-      "header": { "key": "ded", "value": "0.1", "required": true },
+      "header": { "key": "ded", "value": ["0.1", "0.3"], "required": true },
+      "document": { "id": { "key": "id" } },
       "elements": [
         {
           "name": "table",
@@ -26,7 +27,8 @@
             "version": { "key": "ded", "readOnly": "The version is written when the file is created and changed by nobody but a migration." },
             "designer": { "key": "designer", "readOnly": "The designer type is written when the file is created and changed by nobody." },
             "name": { "key": "name", "empty": "keep" },
-            "activeView": { "key": "activeView", "empty": "remove", "reference": { "to": ["view"], "by": "id" } }
+            "activeView": { "key": "activeView", "empty": "remove", "reference": { "to": ["view"], "by": "id" } },
+            "documentId": { "key": "id", "readOnly": "The document id is written once, by the load-time validation of FBL section 17.4 or the template, and changed by nobody." }
           }
         },
         {
@@ -40,6 +42,7 @@
             "title": { "key": "title", "empty": "remove", "default": false },
             "targetFile": { "key": "target", "empty": "remove" },
             "limit": { "key": "limit", "empty": "remove", "default": "none" },
+            "backlinkName": { "key": "backlinkName", "empty": "remove" },
             "counterpart": { "key": "counterpart", "empty": "remove" },
             "computed": { "key": "computed", "empty": "remove", "default": false },
             "isParent": { "key": "parent", "empty": "remove", "default": false }
@@ -48,7 +51,7 @@
             "place": "after-last",
             "container": "/properties",
             "create": { "at": { "before": "views" } },
-            "keys": ["id", "name", "type", "title", "target", "limit", "counterpart", "computed", "parent"]
+            "keys": ["id", "name", "type", "title", "target", "limit", "backlinkName", "parent"]
           },
           "remove": { "cascade": ["cell", "column", "sort", "condition1", "condition2", "condition3"] }
         },
@@ -296,7 +299,7 @@
         {
           "name": "cellRow",
           "type": "CellItem",
-          "doc": "A related row, by its id in the target file. Not a reference: the target is another file, which the designer resolves (L5).",
+          "doc": "A related row, as a link to it (FBL section 17.1), or, in a file made before links, by its id in the target file, which the conversion on load replaces (knowledge.md, section 5). Not a reference: the target is another file, which the host resolves.",
           "at": "/rows/*/cells/*/rows/*",
           "parent": { "rules": ["cell"], "slot": "items" },
           "attributes": { "row": { "key": "row", "empty": "refuse" } },
@@ -306,7 +309,7 @@
       ],
       "registration": { "createOnFirstPlacement": false },
       "template": {
-        "text": "ded: \"0.1\"\r\ndesigner: etalii/knowledge\r\nname: {base}\r\nproperties:\r\n  - id: {newid:property}\r\n    name: Name\r\n    type: text\r\n    title: true\r\nviews:\r\n  - id: {newid:view}\r\n    name: Table\r\n"
+        "text": "ded: \"0.3\"\r\ndesigner: etalii/knowledge\r\nid: {newid:document}\r\nname: {base}\r\nproperties:\r\n  - id: {newid:property}\r\n    name: Name\r\n    type: text\r\n    title: true\r\nviews:\r\n  - id: {newid:view}\r\n    name: Table\r\n"
       }
     },
     "json": {
@@ -321,7 +324,8 @@
       "body": { "kind": "file", "family": "json" },
       "reader": "declared",
       "text": { "newline": "crlf", "indent": 2, "finalNewline": true },
-      "header": { "key": "ded", "value": "0.1", "required": true },
+      "header": { "key": "ded", "value": ["0.1", "0.3"], "required": true },
+      "document": { "id": { "key": "id" } },
       "elements": [
         {
           "name": "table",
@@ -332,7 +336,8 @@
             "version": { "key": "ded", "readOnly": "The version is written when the file is created and changed by nobody but a migration." },
             "designer": { "key": "designer", "readOnly": "The designer type is written when the file is created and changed by nobody." },
             "name": { "key": "name", "empty": "keep" },
-            "activeView": { "key": "activeView", "empty": "remove", "reference": { "to": ["view"], "by": "id" } }
+            "activeView": { "key": "activeView", "empty": "remove", "reference": { "to": ["view"], "by": "id" } },
+            "documentId": { "key": "id", "readOnly": "The document id is written once, by the load-time validation of FBL section 17.4 or the template, and changed by nobody." }
           }
         },
         {
@@ -346,6 +351,7 @@
             "title": { "key": "title", "empty": "remove", "default": false },
             "targetFile": { "key": "target", "empty": "remove" },
             "limit": { "key": "limit", "empty": "remove", "default": "none" },
+            "backlinkName": { "key": "backlinkName", "empty": "remove" },
             "counterpart": { "key": "counterpart", "empty": "remove" },
             "computed": { "key": "computed", "empty": "remove", "default": false },
             "isParent": { "key": "parent", "empty": "remove", "default": false }
@@ -354,7 +360,7 @@
             "place": "after-last",
             "container": "/properties",
             "create": { "at": { "before": "views" } },
-            "emit": "{ \"id\": \"{id}\", \"name\": \"{name}\", \"type\": \"{valueType}\"[, \"title\": {title}][, \"target\": \"{targetFile}\"][, \"limit\": \"{limit}\"][, \"counterpart\": \"{counterpart}\"][, \"computed\": {computed}][, \"parent\": {isParent}] }"
+            "emit": "{ \"id\": \"{id}\", \"name\": \"{name}\", \"type\": \"{valueType}\"[, \"title\": {title}][, \"target\": \"{targetFile}\"][, \"limit\": \"{limit}\"][, \"backlinkName\": \"{backlinkName}\"][, \"parent\": {isParent}] }"
           },
           "remove": { "cascade": ["cell", "column", "sort", "condition1", "condition2", "condition3"] }
         },
@@ -622,7 +628,7 @@
         {
           "name": "cellRow",
           "type": "CellItem",
-          "doc": "A related row, by its id in the target file. Not a reference: the target is another file, which the designer resolves (L5).",
+          "doc": "A related row, as a link to it (FBL section 17.1), or, in a file made before links, by its id in the target file, which the conversion on load replaces (knowledge.md, section 5). Not a reference: the target is another file, which the host resolves.",
           "at": "/rows/*/cells/*/rows/*",
           "parent": { "rules": ["cell"], "slot": "items" },
           "attributes": { "row": { "key": "row", "empty": "refuse" } },
@@ -632,7 +638,7 @@
       ],
       "registration": { "createOnFirstPlacement": false },
       "template": {
-        "text": "{\r\n  \"ded\": \"0.1\",\r\n  \"designer\": \"etalii/knowledge\",\r\n  \"name\": \"{base}\",\r\n  \"properties\": [\r\n    { \"id\": \"{newid:property}\", \"name\": \"Name\", \"type\": \"text\", \"title\": true }\r\n  ],\r\n  \"views\": [\r\n    { \"id\": \"{newid:view}\", \"name\": \"Table\" }\r\n  ],\r\n  \"rows\": [\r\n  ]\r\n}\r\n"
+        "text": "{\r\n  \"ded\": \"0.3\",\r\n  \"designer\": \"etalii/knowledge\",\r\n  \"id\": \"{newid:document}\",\r\n  \"name\": \"{base}\",\r\n  \"properties\": [\r\n    { \"id\": \"{newid:property}\", \"name\": \"Name\", \"type\": \"text\", \"title\": true }\r\n  ],\r\n  \"views\": [\r\n    { \"id\": \"{newid:view}\", \"name\": \"Table\" }\r\n  ],\r\n  \"rows\": [\r\n  ]\r\n}\r\n"
       }
     },
     "xml": {
@@ -648,6 +654,7 @@
       "reader": "declared",
       "text": { "newline": "crlf", "indent": 2, "finalNewline": true },
       "header": { "line": "^<ded(?:\\s|/|>)", "required": true },
+      "document": { "id": { "attribute": "id" } },
       "elements": [
         {
           "name": "table",
@@ -658,7 +665,8 @@
             "version": { "attribute": "version", "readOnly": "The version is written when the file is created and changed by nobody but a migration." },
             "designer": { "attribute": "designer", "readOnly": "The designer type is written when the file is created and changed by nobody." },
             "name": { "attribute": "name", "empty": "keep" },
-            "activeView": { "attribute": "activeView", "empty": "remove", "reference": { "to": ["view"], "by": "id" } }
+            "activeView": { "attribute": "activeView", "empty": "remove", "reference": { "to": ["view"], "by": "id" } },
+            "documentId": { "attribute": "id", "readOnly": "The document id is written once, by the load-time validation of FBL section 17.4 or the template, and changed by nobody." }
           }
         },
         {
@@ -672,6 +680,7 @@
             "title": { "attribute": "title", "empty": "remove", "default": false },
             "targetFile": { "attribute": "target", "empty": "remove" },
             "limit": { "attribute": "limit", "empty": "remove", "default": "none" },
+            "backlinkName": { "attribute": "backlinkName", "empty": "remove" },
             "counterpart": { "attribute": "counterpart", "empty": "remove" },
             "computed": { "attribute": "computed", "empty": "remove", "default": false },
             "isParent": { "attribute": "parent", "empty": "remove", "default": false }
@@ -679,7 +688,7 @@
           "insert": {
             "place": "after-last",
             "container": "/ded/properties",
-            "emit": "<property id=\"{id}\" name=\"{name}\" type=\"{valueType}\"[ title=\"{title}\"][ target=\"{targetFile}\"][ limit=\"{limit}\"][ counterpart=\"{counterpart}\"][ computed=\"{computed}\"][ parent=\"{isParent}\"]/>"
+            "emit": "<property id=\"{id}\" name=\"{name}\" type=\"{valueType}\"[ title=\"{title}\"][ target=\"{targetFile}\"][ limit=\"{limit}\"][ backlinkName=\"{backlinkName}\"][ parent=\"{isParent}\"]/>"
           },
           "remove": { "cascade": ["cell", "column", "sort", "condition1", "condition2", "condition3"] }
         },
@@ -917,7 +926,7 @@
         {
           "name": "cellRow",
           "type": "CellItem",
-          "doc": "A related row, by its id in the target file. Not a reference: the target is another file, which the designer resolves (L5).",
+          "doc": "A related row, as a link to it (FBL section 17.1), or, in a file made before links, by its id in the target file, which the conversion on load replaces (knowledge.md, section 5). Not a reference: the target is another file, which the host resolves.",
           "at": "/ded/rows/row/cell/item",
           "when": "has(entry.row)",
           "parent": { "rules": ["cell"], "slot": "items" },
@@ -928,7 +937,7 @@
       ],
       "registration": { "createOnFirstPlacement": false },
       "template": {
-        "text": "<ded version=\"0.1\" designer=\"etalii/knowledge\" name=\"{base}\">\r\n  <properties>\r\n    <property id=\"{newid:property}\" name=\"Name\" type=\"text\" title=\"true\"/>\r\n  </properties>\r\n  <views>\r\n    <view id=\"{newid:view}\" name=\"Table\"/>\r\n  </views>\r\n  <rows/>\r\n</ded>\r\n"
+        "text": "<ded version=\"0.3\" designer=\"etalii/knowledge\" id=\"{newid:document}\" name=\"{base}\">\r\n  <properties>\r\n    <property id=\"{newid:property}\" name=\"Name\" type=\"text\" title=\"true\"/>\r\n  </properties>\r\n  <views>\r\n    <view id=\"{newid:view}\" name=\"Table\"/>\r\n  </views>\r\n  <rows/>\r\n</ded>\r\n"
       }
     }
   }

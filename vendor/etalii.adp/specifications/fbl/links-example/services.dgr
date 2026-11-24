@@ -1,0 +1,30 @@
+dependencies: 1
+id: s2v5b9hu
+elements:
+  - id: web
+    label: Web shop
+    x: 0
+    row: 0
+  - id: pay
+    label: Payment gateway
+    x: 240
+    row: 0
+  - id: checkout
+    link: $k7q2m9xa@features.yaml#checkout.Name=Checkout
+    x: 0
+    row: 2
+  - id: beta
+    link: $r6d3w8ne@roadmap.tml#beta.label=Beta
+    x: 240
+    row: 2
+  - id: idea
+    link: $p4r8t1zc@ideas.mm#ID_1.text=Shop relaunch
+    x: 480
+    row: 2
+relations:
+  - id: r1
+    from: web
+    to: pay
+  - id: r2
+    from: checkout
+    to: pay

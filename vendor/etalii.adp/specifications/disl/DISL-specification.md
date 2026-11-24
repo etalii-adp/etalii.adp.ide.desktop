@@ -7,7 +7,7 @@ parent: disl
 ---
 # DISL — Diagram Specification Language
 
-**Specification, version 0.11 (Draft)**
+**Specification, version 0.12 (Draft)**
 
 |                           |                                                                              |
 |---------------------------|------------------------------------------------------------------------------|
@@ -23,7 +23,7 @@ parent: disl
 
 ## Status of this document
 
-This is a draft, version 0.11. It is complete enough to implement a conforming validator, a documentation generator and a reference runtime, but individual constructs may still change before version 1.0. DISL 0.1 continued the earlier combined format (DEDL became DISL and DID); section 18 lists the old identifiers that runtimes still read. DISL 0.2 adds declarative constructs to 0.1 (declared identity, findings that point at files, reasons the tool gives, derived elements, gestures and menus, view state, budgets, notation and time details). Every valid 0.1 specification is a valid 0.2 specification and keeps its meaning, except in the places listed in [Changes from 0.1](#changes-from-01), where 0.1 was silent or ambiguous and 0.2 now says what it means. DISL 0.3 adds the constructs that the Gartner hype cycle graph and Agent Behavior Modelling tools needed and 0.2 could not state (neighbour-aware bounds, standard row and tree layouts, a type map for format bindings, part tooltips, form fields that parse their own text, per-case built-in codes, geometric drop placement, typed retyping fields and pointer bindings for connect gestures, and, by the ruling of 2026-10-06, menu groups, form row ids, a declared order of findings, one finding per group of duplicates and the case of an endpoint finding); every valid 0.2 specification is a valid 0.3 specification with the same meaning, apart from the clarifications in [Changes from 0.2](#changes-from-02). DISL 0.4 adds what a diagram that agents write and a person arranges needs (items grouped inside a node with collapse defaults, a kept canvas filter, pinning as standard gestures, a layout in tiers, links that open, and view data kept in a format binding's body); every valid 0.3 specification is a valid 0.4 specification with the same meaning, apart from the clarifications in [Changes from 0.3](#changes-from-03). DISL 0.5 adds a built-in `person` shape, a rounded box with a round head above it, which the C4 diagram tool type needs; every valid 0.4 specification is a valid 0.5 specification with the same meaning, apart from the clarification in [Changes from 0.4](#changes-from-04). DISL 0.6 adds no construct and settles where a relation type's `directed`, `allowSelfLoops` and `allowParallel` come from: they are inherited along its C3 linearisation, else the section 4.9 default; a subtype may only narrow them; and supertypes whose values differ are a specification error unless the subtype states the flag (4.7). DISL 0.5 left this open, and two readings were in use, inheritance and the type's own declaration only; every valid 0.5 specification that neither widens a flag nor inherits two different values of one is a valid 0.6 specification, with the meaning of the first reading, apart from the clarifications in [Changes from 0.5](#changes-from-05). DISL 0.7 adds two members to `View`, the scope the view is written with and its location, so that a rule about the model can say something about a view that it holds no element for (8.2, 12.2); every valid 0.6 specification is a valid 0.7 specification with the same meaning, as [Changes from 0.6](#changes-from-06) says. DISL 0.8 adds no construct and lets a stored relation's end resolve to a derived node, so that a placeholder for what a relation names and nothing declares has its edge (4.9); every valid 0.7 specification is a valid 0.8 specification with the same meaning, apart from the clarification in [Changes from 0.7](#changes-from-07). DISL 0.9 adds the macro `groupBy`, which groups a list by a key once so that its groups are read by key afterwards, rather than filtering the whole list again for every key (12.4); every valid 0.8 specification is a valid 0.9 specification with the same meaning, as [Changes from 0.8](#changes-from-08) says. Sections and paragraphs marked *(informative)* explain intent and give guidance; everything else is *normative*.
+This is a draft, version 0.12. It is complete enough to implement a conforming validator, a documentation generator and a reference runtime, but individual constructs may still change before version 1.0. DISL 0.1 continued the earlier combined format (DEDL became DISL and DID); section 18 lists the old identifiers that runtimes still read. DISL 0.2 adds declarative constructs to 0.1 (declared identity, findings that point at files, reasons the tool gives, derived elements, gestures and menus, view state, budgets, notation and time details). Every valid 0.1 specification is a valid 0.2 specification and keeps its meaning, except in the places listed in [Changes from 0.1](#changes-from-01), where 0.1 was silent or ambiguous and 0.2 now says what it means. DISL 0.3 adds the constructs that the Gartner hype cycle graph and Agent Behavior Modelling tools needed and 0.2 could not state (neighbour-aware bounds, standard row and tree layouts, a type map for format bindings, part tooltips, form fields that parse their own text, per-case built-in codes, geometric drop placement, typed retyping fields and pointer bindings for connect gestures, and, by the ruling of 2026-10-06, menu groups, form row ids, a declared order of findings, one finding per group of duplicates and the case of an endpoint finding); every valid 0.2 specification is a valid 0.3 specification with the same meaning, apart from the clarifications in [Changes from 0.2](#changes-from-02). DISL 0.4 adds what a diagram that agents write and a person arranges needs (items grouped inside a node with collapse defaults, a kept canvas filter, pinning as standard gestures, a layout in tiers, links that open, and view data kept in a format binding's body); every valid 0.3 specification is a valid 0.4 specification with the same meaning, apart from the clarifications in [Changes from 0.3](#changes-from-03). DISL 0.5 adds a built-in `person` shape, a rounded box with a round head above it, which the C4 diagram tool type needs; every valid 0.4 specification is a valid 0.5 specification with the same meaning, apart from the clarification in [Changes from 0.4](#changes-from-04). DISL 0.6 adds no construct and settles where a relation type's `directed`, `allowSelfLoops` and `allowParallel` come from: they are inherited along its C3 linearisation, else the section 4.9 default; a subtype may only narrow them; and supertypes whose values differ are a specification error unless the subtype states the flag (4.7). DISL 0.5 left this open, and two readings were in use, inheritance and the type's own declaration only; every valid 0.5 specification that neither widens a flag nor inherits two different values of one is a valid 0.6 specification, with the meaning of the first reading, apart from the clarifications in [Changes from 0.5](#changes-from-05). DISL 0.7 adds two members to `View`, the scope the view is written with and its location, so that a rule about the model can say something about a view that it holds no element for (8.2, 12.2); every valid 0.6 specification is a valid 0.7 specification with the same meaning, as [Changes from 0.6](#changes-from-06) says. DISL 0.8 adds no construct and lets a stored relation's end resolve to a derived node, so that a placeholder for what a relation names and nothing declares has its edge (4.9); every valid 0.7 specification is a valid 0.8 specification with the same meaning, apart from the clarification in [Changes from 0.7](#changes-from-07). DISL 0.9 adds the macro `groupBy`, which groups a list by a key once so that its groups are read by key afterwards, rather than filtering the whole list again for every key (12.4); every valid 0.8 specification is a valid 0.9 specification with the same meaning, as [Changes from 0.8](#changes-from-08) says. Sections and paragraphs marked *(informative)* explain intent and give guidance; everything else is *normative*. DISL 0.12 adds links to elements of other documents (4.12): the attribute type `link`, element types that can be linked to (`linkable`) and that stand for an element of another document (`linked`), the standard action `lookup`, and an 8-character id (`nanoid` with `alphabet` and `length`, and `persistence.documentId`); see [Changes from 0.11](#changes-from-011).
 
 The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **MAY** and **OPTIONAL** are to be interpreted as described in RFC 2119 and RFC 8174 when, and only when, they appear in bold capitals.
 
@@ -363,7 +363,7 @@ Any object in a specification or DID definition MAY contain properties whose nam
 
 ### 2.9 Versioning
 
-- `disl` (required) is the version of DISL the specification targets, as `"major.minor"`: `"0.1"`, `"0.2"`, `"0.3"`, `"0.4"`, `"0.5"`, `"0.6"`, `"0.7"`, `"0.8"`, `"0.9"`, `"0.10"` or `"0.11"`. A runtime MUST refuse a specification with a higher major version than it supports and SHOULD warn for a higher minor version. The deprecated alias of section 18 is still read.
+- `disl` (required) is the version of DISL the specification targets, as `"major.minor"`: `"0.1"`, `"0.2"`, `"0.3"`, `"0.4"`, `"0.5"`, `"0.6"`, `"0.7"`, `"0.8"`, `"0.9"`, `"0.10"`, `"0.11"` or `"0.12"`. A runtime MUST refuse a specification with a higher major version than it supports and SHOULD warn for a higher minor version. The deprecated alias of section 18 is still read.
 - DISL 0.2 is a superset of 0.1. A 0.2 runtime **MUST** read a specification that declares `"disl": "0.1"`, or whose `$schema` names the 0.1 schema (`https://etalii.net/adp/disl/schema/0.1/disl.schema.json`), as a 0.2 specification with the same meaning, apart from the clarifications listed in [Changes from 0.1](#changes-from-01). A validator **MUST** validate such a specification against the 0.2 schema and **MUST NOT** report its 0.1 version or schema address as deprecated.
 - DISL 0.3 is a superset of 0.2. A 0.3 runtime **MUST** read a specification that declares `"disl": "0.1"` or `"disl": "0.2"` with its meaning, apart from the clarifications listed in [Changes from 0.2](#changes-from-02). While 0.3 is a draft, its schema is published at the 0.2 address (`https://etalii.net/adp/disl/schema/0.2/disl.schema.json`), which accepts every 0.2 specification unchanged; a specification that uses a construct new in 0.3 **SHOULD** declare `"disl": "0.3"`, and a 0.2 runtime **SHOULD** warn about it as a newer minor version.
 - `language.version` (required) is the semantic version (SemVer 2.0.0) of the defined language. DID definitions record the language version they were written with; this drives migrations (section 11.9).
@@ -651,6 +651,7 @@ The metamodel defines the abstract syntax of the language: the kinds of elements
 | `duration`   | `duration`                | ISO 8601 duration   | `min`, `max`, `calendar` (allow `P1M`/`P1Y`)                                    |
 | `color`      | `string`                  | CSS color string    | `palette` (list of allowed colors), `alpha` (bool)                              |
 | `uri`        | `string`                  | URI string          | `schemes` (allowed schemes), `paths` (DISL 0.4: a path is accepted too, below) |
+| `link`       | `string`                  | a link (FBL 17.1)   | *(DISL 0.12)* `origins` (the tool types it may point into), `document` (bool: a link to a document, without an element) (4.12) |
 | `expression` | `string`                  | CEL source          | `context` (name of the CEL context it will be evaluated in), `resultType`       |
 | `json`       | `dyn`                     | any JSON            | `schema` (inline JSON Schema)                                                   |
 | `binary`     | `bytes`                   | base64 string       | `mediaTypes`, `maxBytes`                                                        |
@@ -895,6 +896,8 @@ A node type describes a kind of element that is drawn as a node.
 | `multiplicity`         | `{min, max}`         | Number of instances allowed per diagram (for example exactly one `Start`). Enforced as a built-in constraint.                                                                                                                              |
 | `derived`              | DerivedNode          | The type's elements are computed from the model and never stored (4.11).                                                                                                                                                                   |
 | `viewOnly`             | bool                 | The element has no model meaning and lives only in a view: notes, free text, frames, images, annotations. View-only elements are stored in view data (11.6) and are excluded from `diagram.nodes` unless `includeViewOnly` is used (12.4). |
+| `linkable`             | Linkable             | *(DISL 0.12)* Elements of this type can be linked to from other documents (4.12). |
+| `linked`               | Linked               | *(DISL 0.12)* An element of this type stands for an element of another document (4.12). |
 | `labelAttribute`       | attribute name       | The attribute used as the element's name in lists, finding messages, reference pickers and default labels. Default: the first `key` attribute, else the first required `string` attribute, else the first `string` attribute.              |
 | `tags`                 | string[]             | Free classification, usable in CEL as `self.isTagged('x')`.                                                                                                                                                                                |
 | `x-*`                  |                      | Extensions.                                                                                                                                                                                                                                |
@@ -1196,6 +1199,40 @@ A C4 view lifts each stored relationship to the nearest ancestor of each end tha
 - Derived elements are drawn at step 2 of the drawing order (6.1) and count toward budgets (3.2.1) in their computation order.
 - `from` is subject to `language.limits.celCost` per evaluation; every other derived expression per item.
 
+
+
+### 4.12 Links to other documents *(DISL 0.12)*
+
+A diagram links to an element of another document, or of its own, with an attribute of type `link`, whose value is a link as FBL section 17.1 writes it. How a link is written, resolved within the workspace, checked when the diagram is loaded and reported is FBL section 17's; this section says what a specification declares. Only a diagram type whose persistence declares `documentId` (11.5) holds links or is linked to.
+
+**Linkable.** `linkable` on a node type says that its elements can be linked to; `true` takes the defaults:
+
+| Property       | Type           | Description |
+|----------------|----------------|-------------|
+| `nameProperty` | attribute name | The attribute that names an element in a link (FBL 17.1, `name-prop`), in the lookup and in the documents that link to it. Default: the type's `labelAttribute`. |
+| `doc`          | Doc            | |
+
+A host lists the elements of linkable types in its lookup, keeps them in its index (FBL 17.3), and shows an element's backlinks (FBL 17.5).
+
+**Linked.** `linked` on a node type says that each of its elements stands for the target of one of its links:
+
+| Property    | Type             | Description |
+|-------------|------------------|-------------|
+| `attribute` | attribute name   | **Required.** The type's attribute of type `link` that holds the link. |
+| `shows`     | `[{ attribute, label }]` | Attributes of the target element, by the target type's attribute names, shown with their current values. A target without the attribute shows nothing for it. |
+| `doc`       | Doc              | |
+
+- A linked element is an element of the diagram: it is placed, sized, connected, moved, copied and deleted by its type's own gestures and rules, and its own attributes are stored as any other's. Deleting it deletes the link and nothing of the target.
+- Its label is the target element's current name, read through the link's name property; while the link has not been resolved, the name it caches. Its notation **MUST** draw a link mark, and a link that does not resolve (FBL 17.6) **MUST** be drawn with the cached name and a broken mark.
+- `shows` values come from the target document while the diagram is open (FBL 17.4) and are never stored in the diagram. In CEL, `self.linked` is a map from each `shows` attribute to its current value, absent when the link does not resolve; nothing else of another document is visible to CEL, so a rule never depends on a file it does not own.
+- Activating a linked element's link mark opens the target (FBL 17.5). A host **MUST** offer the same as a context menu entry.
+
+```json
+"Task": { "attributes": { "title": { "type": "string" } }, "linkable": { "nameProperty": "title" } },
+"LinkedTask": {
+  "attributes": { "link": { "type": "link", "required": true }, "x": { "type": "number" }, "row": { "type": "int" } },
+  "linked": { "attribute": "link", "shows": [ { "attribute": "status", "label": "Status" } ] } }
+```
 
 ---
 
@@ -3356,7 +3393,7 @@ A hype cycle trend's form lists the influences of each of its four phases under 
 }
 ```
 
-**Widgets**: `text`, `textarea`, `markdown`, `code` (with `widgetOptions.language`: `"cel"`, `"json"`, `"sql"`, …; the `cel` language is type-checked in the attribute's `context`), `number`, `slider` (`min`, `max`, `step`, `marks`), `spinner`, `rating` (`max`, `icon`), `checkbox`, `switch`, `select`, `combobox` (free entry allowed), `radio`, `segmented` (button group), `multiselect`, `tags`, `date`, `datetime`, `time`, `duration`, `month` (a `yearMonth` value), `daterange` (edits two attributes: `attribute` and `widgetOptions.endAttribute`), `color` (`palette`, `alpha`), `icon` (icon picker), `reference` (element picker, with `widgetOptions.pickOnCanvas: true` to select by clicking), `references` (for `many` references), `list` (editable list of primitives), `table` (list of structs, with `widgetOptions.columns`), `struct` (nested sub-form), `file` (binary or URI, `mediaTypes`), `image`, `link`, `progress` (read-only bar), `readonly` (plain text), `plugin`.
+**Widgets**: `text`, `textarea`, `markdown`, `code` (with `widgetOptions.language`: `"cel"`, `"json"`, `"sql"`, …; the `cel` language is type-checked in the attribute's `context`), `number`, `slider` (`min`, `max`, `step`, `marks`), `spinner`, `rating` (`max`, `icon`), `checkbox`, `switch`, `select`, `combobox` (free entry allowed), `radio`, `segmented` (button group), `multiselect`, `tags`, `date`, `datetime`, `time`, `duration`, `month` (a `yearMonth` value), `daterange` (edits two attributes: `attribute` and `widgetOptions.endAttribute`), `color` (`palette`, `alpha`), `icon` (icon picker), `reference` (element picker, with `widgetOptions.pickOnCanvas: true` to select by clicking), `references` (for `many` references), `list` (editable list of primitives), `table` (list of structs, with `widgetOptions.columns`), `struct` (nested sub-form), `file` (binary or URI, `mediaTypes`), `image`, `link`, `lookup` (*DISL 0.12*: a `link` value, shown by its cached name, chosen with the host's lookup, 9.4, and opened by a click), `progress` (read-only bar), `readonly` (plain text), `plugin`.
 
 **Containers and other items** (by `kind`): `section` (`title` as a Message, `collapsible`, `collapsed`, `items`), `row` (horizontal group), `tabs` (`tabs: [{title, icon, items}]`), `group` (a bordered box with `title`), `text` (static help text, Markdown), `divider`, `computed` (read-only `value` Bindable; `id`, DISL 0.3), `button` (`label` as a Message, `icon`, `operation` or `actions`, `enabled`, `unavailable` as Reason[], `confirm` as a Message or Confirmation (9.5); a button that runs an operation inherits its reasons, 9.3), `findings` (list of the element's current findings with quick fixes; `problems` is its deprecated alias, section 18), `type` (the element's type, changed through `behavior.retype`; DISL 0.3, above), `plugin`.
 
@@ -3942,6 +3979,7 @@ Actions are a small, closed set of declarative steps. **All values in actions ar
 | `reparent`  | `{ "reparent": { "target": expr, "parent": expr, "slot": expr, "after": expr, "before": expr } }`                          | `after` or `before` places it next to a sibling (below).                     |
 | `reorder`   | `{ "reorder": { "target": expr, "by": expr } }`, or with `after` or `before` in place of `by`                             | Change only the element's place among its siblings: `by` a signed number of places (−1 is one earlier), or directly after or before a sibling. |
 | `view`      | `{ "view": { "collapsed": expr, "filters": { "<id>": expr }, "viewpoint": expr, "pinned": expr, "groups": { "<key>": expr } }, "target": expr }` | Change view data (11.6) of `target` (default `self`): its collapsed state, the canvas filters' values (6.13.1), the viewpoint variant shown (3.5), and *(DISL 0.4)* whether it is pinned (7.3) and the collapse state of its groups by group key (6.9). |
+| `lookup`    | `{ "lookup": { "create": TypeRef, "as": "child" \| "at", "origins": [origin] }, "as": "name" }` | *(DISL 0.12)* Let the person pick an element of the workspace and create a linked element for it (below). |
 | `open`      | `{ "open": expr }`                                                                                                        | *(DISL 0.4)* Open a link (below).                                                                                     |
 | `let`       | `{ "let": { "name": expr } }`                                                                                             | Bind a variable for later actions.                                           |
 | `if`        | `{ "if": expr, "then": [ … ], "else": [ … ] }`                                                                            | Conditional.                                                                 |
@@ -3982,6 +4020,13 @@ Every action MAY carry `when` (skip unless true) and `doc`.
 - Anything else is not opened; the action is refused with a reason that names the link.
 
 `open` changes no model, no view data and no history, and is allowed in read-only mode.
+
+**Lookup** *(DISL 0.12)*. `lookup` opens the host's lookup: a search, by name as the person types, over the elements of linkable types of the documents of the workspace (FBL 17.3), the diagram's own included, each shown with its document's name and folder, limited to the tool types `origins` lists when it is given. When the person picks an element, the action creates an element of `create`, a type with `linked`, whose link attribute is the picked element's link with its cached name; with `as: "child"`, as the last child of the action's `self`, and with `as: "at"`, at the pointer (the context `at`, 9.1). The created element is bound to the action's `as` name for later actions. Dismissing the lookup ends the transaction with nothing done, as an `abort` without a message. `lookup` is not allowed in read-only mode.
+
+```json
+"addLinked": { "label": "Add from another document…", "for": ["Node"],
+  "actions": [ { "lookup": { "create": "LinkedNode", "as": "child" }, "as": "added" }, { "select": "added" } ] }
+```
 
 ```json
 "openLink": { "label": "Open link", "for": ["Item"], "enabled": "self.link != ''",
@@ -4372,6 +4417,8 @@ What a stored diagram looks like, independently of format and file split, is spe
 | Property     | Type                                                                                           | Description                                                                                                                                                                                                                                                                                                                         |
 |--------------|------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `strategy`   | `"uuid-v4"`, `"uuid-v7"` (default), `"ulid"`, `"nanoid"`, `"sequential"`, `"natural"`, `"cel"`, `"derived"` | How ids are made (DID, section 4). `uuid-v7` and `ulid` are time-ordered, which keeps `id`-sorted files in creation order and helps merges. `sequential` uses per-type counters (`State_1`) and is only suitable for single-user editing. `natural` derives ids from `key` attributes (unique by constraint). `cel` evaluates `expression` once, on creation. `derived` computes the id from the model with `expression`, whenever the model is read or changed (11.5.2). |
+| `alphabet`   | `"nanoid"` (default), `"base36"`                                                               | *(DISL 0.12)* The characters of a `nanoid` id: nanoid's 64 (`A-Za-z0-9_-`), or `0-9a-z`. |
+| `length`     | int, 2 to 64                                                                                   | *(DISL 0.12)* The number of characters of a `nanoid` id. Default 21. |
 | `encoding`   | `"hex"` (default), `"base64url"`, `"base36"`                                                   | Text form of `uuid-v4` and `uuid-v7` ids (11.5.1).                                                                                                                                                                                                                                                                                   |
 | `prefix`     | string or map TypeRef → string                                                                 | Type prefixes (`"st_"`), making ids self-describing in diffs. A map is allowed only at the top level. Not applied to the results of `cel` and `derived`, whose expression writes any prefix itself.                                                                                                                                  |
 | `expression` | Expression                                                                                     | **Required** for `cel` and `derived`. For `cel`: context `create`, must return a string. For `derived`: context `identity` (12.3), must return a string.                                                                                                                                                                             |
@@ -4455,6 +4502,7 @@ An element is **ephemeral** when the rule that applies to its type has `ephemera
 - Of the elements that share an id, the first in reading order (8.6) **MUST** keep it: every lookup and reference resolves to it. The second and later **MUST** be drawn, and **MUST** be treated as ephemeral (11.5.3) until the duplication is resolved.
 - With `missing: "assign"`, an element without a usable id (absent, empty, or not matching `pattern`) **MUST** receive a new id from the rule that applies to its type. The new id **MUST NOT** be written when the model is opened or validated, and **MUST** be written with the next save that writes the model. With `missing: "ephemeral"`, such an element **MUST** be drawn and treated as ephemeral.
 - A runtime **MUST NOT** change an id in order to resolve a duplicate, except through a user action such as a quick fix of `std.duplicateId`.
+- *(DISL 0.12)* `persistence.documentId` is an IdRule for the diagram's document id (FBL 17.2), made once when the document is created or first loaded without one; `{ "strategy": "nanoid", "alphabet": "base36", "length": 8 }` makes the 8-character ids of the tool types that hold links. A `nanoid` id **MUST** be drawn from a cryptographically secure random source. A specification with `documentId` **MUST** have a `persistence.format` of `fbl` whose binding declares `document.id`.
 - *(DISL 0.10)* `persistence.writtenId` names a host attribute (11.2, `typeMap`'s `hostAttributes`) that holds the id an element is written with in its file. With it, a finding **MUST** name an element, and `self.id` in a constraint and its message **MUST** read, the value of that attribute, the empty text where the element is written without an id; and a finding about an element whose written id is not its model id (a later holder of an id, or an element written without one, ephemeral by the rules above) **MUST** be located at its line rather than at the element. Without it, both are the element's model id.
 - With `compare: "ignore-case"`, ids **MUST** be compared using Unicode default case folding for lookups, references, duplicate detection and view keys, and the spelling of the first occurrence in reading order **MUST** be kept. With `compare: "exact"`, ids compare as code-point sequences, as in 0.1.
 
@@ -6253,6 +6301,18 @@ DISL 0.8 (draft, 2026-11-01) adds no construct and settles the one thing below, 
 
 DISL 0.8 needs no change to DID, DESL or FBL: what a DID definition or a binding stores for the end is unchanged. The worked examples are [`placeholder-tasks.dis`](placeholder-tasks.dis) and [`databricks-job.atd`](../../definitions/diagrams/databricks-job.atd).
 
+## Changes from 0.11
+
+DISL 0.12 (draft, 2026-11-23) adds links to elements of other documents, specified in spec 089-cross-tool-links and approved by the maintainer on 2026-11-23; every construct is optional to use, and every valid 0.11 specification is a valid 0.12 specification with the same meaning.
+
+| # | Change | 0.11 said | 0.12 says | Reason | Section |
+|---|--------|-----------|-----------|--------|---------|
+| 1 | The attribute type `link`, `linkable` and `linked` | A diagram reaches another document only by `open` on a path, and never an element in it (D.2, question 1). | An attribute holds a link to an element of another document; a type declares that its elements can be linked to, or stand for a linked element. | The mind map, the timeline and the dependency graph show elements of other tools' documents. | 4.2, 4.6, 4.12 |
+| 2 | The action `lookup` | No standard way to pick an element of another document. | One action lets the person search the workspace and creates a linked element. | One reusable context menu entry for every diagram type that holds links. | 9.4 |
+| 3 | `nanoid`'s `alphabet` and `length`; `persistence.documentId` | `nanoid` ids have 21 characters of nanoid's alphabet; a diagram has no document id. | Both can be set; a diagram can keep a document id. | Links name documents and elements by 8 characters of `0-9a-z`. | 11.5 |
+
+DISL 0.12 relies on FBL 0.23 (section 17) and needs no change to DID or DESL.
+
 ## Changes from 0.10
 
 DISL 0.11 (draft, 2026-11-23) adds the two constructs below, by Peter's choice of 2026-11-23 on a decision card of spec 035, T132 (spec 087); both are optional to use, and every valid 0.10 specification is a valid 0.11 specification with the same meaning.
@@ -7097,6 +7157,7 @@ Runtimes provide these monochrome icons under `std.`: `add`, `remove`, `delete`,
 | `yearMonth`                            | `month`                                                                                |
 | `color`                                | `color`                                                                                |
 | `uri`                                  | `link`                                                                                 |
+| `link` *(DISL 0.12)*                   | `lookup`                                                                               |
 | `expression`                           | `code` with `language: "cel"`                                                          |
 | `json`                                 | `code` with `language: "json"`                                                         |
 | `binary`                               | `file`                                                                                 |
@@ -7121,6 +7182,8 @@ DISL 0.9 adds: `cel.groupBy` (12.4).
 DISL 0.10 adds: `persistence.writtenId` (11.5.4).
 
 DISL 0.11 adds: `view.groups` (6.9) and `messages.notAValue` (7.5, 9.1).
+
+DISL 0.12 adds: `links` (4.12, 9.4, 11.5).
 
 ### B.9 Built-in constraints
 
@@ -7226,7 +7289,7 @@ The algorithms whose results DISL defines *(DISL 0.3)*. Every other name of sect
 
 The questions 0.1 left open, and what 0.2 did with them. Items marked *answered* or *partly answered* say where.
 
-1. **Diagram-to-diagram links:** references across DID definitions (a sub-process defined in another file) and their persistence and integrity rules.
+1. **Diagram-to-diagram links:** references across DID definitions (a sub-process defined in another file) and their persistence and integrity rules. *Answered in 0.12* by links (4.12), written, resolved and checked as FBL section 17 says.
 2. **Typed CEL for view-only data:** stronger static typing for `self.view` fields per coordinate system (currently `dyn`).
 3. **Animation and simulation:** a standard extension profile for token-flow animation (Petri nets, BPMN simulation) driven by CEL. *Answered in 0.2* by simulated runs (9.6): stepwise states computed in CEL, played outside the model's history; a token-flow profile can be written with them.
 4. **Responsive notation:** notation variants driven by available screen size (mobile editing).

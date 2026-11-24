@@ -127,7 +127,7 @@ pub fn action(statement: &Json, parameters: &Parameters, arguments: &mut dyn Arg
         // DISL 0.12's `lookup` (section 9.4): the linked type it creates, where, and the tool types it searches.
         "lookup" => {
             body.insert("create".into(), Json::String(text(&statement["type"]["name"])));
-            body.insert("as".into(), statement["place"].clone());
+            body.insert("as".into(), Json::String(text(&statement["place"])));
             if let Some(origins) = statement["value"].get("items").and_then(Json::as_array) {
                 let origins: Vec<Json> = origins.iter().map(|o| o["literal"].clone()).collect();
                 body.insert("origins".into(), Json::Array(origins));

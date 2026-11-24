@@ -26,7 +26,7 @@ VERSION: /[0-9]+\.[0-9]+/
 
 %import .core (core_member, name, word, qualified, names, type_ref, value, setting, settings_block, doc_member, label_member, extends, fix, fn_decl, stmt, void_return, expr, NAME, DASHED_WORD, KEY, STRING, LENGTH, ATTR_REF, TOKEN_REF, PARAM_REF, CAPABILITY_RANGE, ORIGIN, INT, DOUBLE, WHITESPACE, COMMENT, BLOCK_COMMENT)
 %import .cel (expr, word, STRING, INT, UINT, DOUBLE, BYTES)
-%import .script (fn_decl, stmt, void_return, name, qualified, names, type_ref, settings_block, setting, expr, KEY, NAME, INT, ASSIGN)
+%import .script (fn_decl, stmt, void_return, name, qualified, names, type_ref, settings_block, setting, value, expr, KEY, NAME, INT, ASSIGN)
 %import .canvas (canvas_member, name, qualified, names, value, setting, settings_block, doc_member, label_member, extends, expr, STRING)
 %import .form (form_surface, name, type_ref, value, setting, settings_block, doc_member, label_member, STRING)
 %import .text (text_surface, name, qualified, names, setting, settings_block, doc_member, fix, STRING)

@@ -13,7 +13,7 @@ atd 0.1
 /// counting days are this description's own functions over the text a time is written with (`readTime` and those it
 /// calls), where the DISL specification needed the `net.etalii.adp.generic.timelineTimes` plugin; the wire ids are
 /// declared under `x-timeline`, and the rest is in timeline.md beside this file.
-diagram generic/timeline version "1.1.0" {
+diagram generic/timeline version "1.2.0" {
   label "Timeline diagram"
   id: "net.etalii.adp.generic.timeline"
   authors: [{ name: "Peter Vrenken" }]
@@ -54,6 +54,7 @@ diagram generic/timeline version "1.1.0" {
       addBelow: "timeline.add-below"
       addElementHere: "timeline.add-element"
       addMomentHere: "timeline.add-moment"
+      addLinkedHere: "timeline.add-linked"
       arrange: "timeline.arrange"
       connect: "timeline.connect"
     }
@@ -62,6 +63,7 @@ diagram generic/timeline version "1.1.0" {
       begin: "timeline.begin"
       end: "timeline.end"
       row: "timeline.row"
+      link: "timeline.link"
       from: "timeline.from"
       to: "timeline.to"
     }
@@ -528,6 +530,8 @@ diagram generic/timeline version "1.1.0" {
     element Element {
       abstract: true
       labelAttribute: label
+      /// An element can be linked to from other documents, named by its label (FBL §17.1, spec 089).
+      linkable: { nameProperty: label }
       /// What it is called. May be empty; the canvas then shows the element's id.
       attribute label: string { label: Label, group: Identity, order: 1 }
       /// When it starts, as written: normally an ISO 8601 date (2026-01-05) or date-time (2026-01-05T14:30:00).
@@ -558,6 +562,29 @@ diagram generic/timeline version "1.1.0" {
     element Moment extends Element {
       label Moment
       icon: mdi-rhombus-medium
+    }
+
+    /// A period that stands for an element of another document, or of this timeline (spec 089): an entry of
+    /// `elements` with a `link` key and an `end`. Its begin, end and row are its own; its label is the target's current
+    /// name, never written (DISL §4.12).
+    element LinkedPeriod extends Period {
+      label "Linked element"
+      icon: mdi-link-variant
+      /// The element this one stands for, as FBL §17.1 writes it; checked and rewritten when the timeline is loaded
+      /// (FBL §17.4).
+      attribute link: link required { label: "Linked element", group: Identity, order: 0 }
+      linked: { attribute: link }
+    }
+
+    /// A moment that stands for an element of another document, or of this timeline (spec 089): an entry of
+    /// `elements` with a `link` key and no `end`. Added with Add from another document here.
+    element LinkedMoment extends Moment {
+      label "Linked moment"
+      icon: mdi-link-variant
+      /// The element this one stands for, as FBL §17.1 writes it; checked and rewritten when the timeline is loaded
+      /// (FBL §17.4).
+      attribute link: link required { label: "Linked element", group: Identity, order: 0 }
+      linked: { attribute: link }
     }
 
     /// A line from one element to another, carrying whatever the author says it means and nothing this type assigns to
@@ -706,6 +733,17 @@ diagram generic/timeline version "1.1.0" {
     create Moment { label: 'New moment', begin: position.x, row: position.y }
   }
 
+  /// Opens the host's lookup over the linkable elements of the workspace (DISL §9.4) and adds a linked moment for the
+  /// picked one where the menu was opened, at the start of that day on the nearest row (spec 089). Give it an end to
+  /// make it a linked period.
+  operation addLinkedHere "Add from another document…" for document {
+    icon: mdi-link-plus
+    lookup LinkedMoment at as added
+    set added.begin = position.x
+    set added.row = position.y
+    select added
+  }
+
   /// Turns a moment into a period ending at the given time, written as typed. The dialog is titled "Give it an end",
   /// its field "End" and its button "Set", prefilled with the begin as written.
   operation giveEnd "Give it an end…" for Moment {
@@ -717,7 +755,11 @@ diagram generic/timeline version "1.1.0" {
     if readableTime(self.begin) && compareTimes(p.end, self.begin) < 0 {
       fail 'An element cannot end before it begins.'
     }
-    retype self to Period
+    if self.isA('LinkedMoment') {
+      retype self to LinkedPeriod
+    } else {
+      retype self to Period
+    }
     set end = p.end
   }
 
@@ -725,7 +767,11 @@ diagram generic/timeline version "1.1.0" {
   operation removeEnd "Remove its end" for Period {
     icon: mdi-ray-start
     unset end
-    retype self to Moment
+    if self.isA('LinkedPeriod') {
+      retype self to LinkedMoment
+    } else {
+      retype self to Moment
+    }
   }
 
   /// The next thing, a little later on the same row: six days after this one ends (or begins, for a moment, or after
@@ -757,7 +803,7 @@ diagram generic/timeline version "1.1.0" {
   }
 
   behavior {
-    retype: { Moment: { to: [Period] }, Period: { to: [Moment] } }
+    retype: { Moment: { to: [Period] }, Period: { to: [Moment] }, LinkedMoment: { to: [LinkedPeriod] }, LinkedPeriod: { to: [LinkedMoment] } }
     deletion: {
       Element: {
         relations: delete
@@ -780,11 +826,13 @@ diagram generic/timeline version "1.1.0" {
   /// are in timeline.md.
   persistence {
     format: fbl
+    documentId: { strategy: nanoid, alphabet: base36, length: 8, doc: "The top-level key `id` beside `timeline: 1` (FBL §17.2, spec 089), written by the load-time step when a timeline has none." }
     ids: {
-      strategy: uuid-v4
-      encoding: base36
+      strategy: nanoid
+      alphabet: base36
+      length: 8
       stable: true
-      doc: "New elements and relations get a ShortGuid: a version 4 GUID written as 25 characters of base 36. Hand-written ids such as `discovery` are kept as written. Ids are unique across elements and relations together."
+      doc: "New elements and relations get 8 random characters of `0-9a-z` (spec 089, FR-003); ids written before, ShortGuids of 25 characters and hand-written ids such as `discovery`, are kept as written. Ids are unique across elements and relations together."
     }
     references: id
     view: { store: [] }
@@ -796,6 +844,8 @@ diagram generic/timeline version "1.1.0" {
         doc: "An entry of `elements` with an `end` key. `storedId` is the id as written, kept beside the model, so that an id written more than once is reported and an element is found by what is written."
       }
       Moment: { as: Moment, hostAttributes: [storedId], doc: "An entry of `elements` without an `end` key." }
+      LinkedPeriod: { as: LinkedPeriod, hostAttributes: [storedId], doc: "An entry of `elements` with a `link` key and an `end` key (spec 089)." }
+      LinkedMoment: { as: LinkedMoment, hostAttributes: [storedId], doc: "An entry of `elements` with a `link` key and no `end` key (spec 089)." }
       Connection: {
         as: Connection
         attributes: { from: source, to: target }

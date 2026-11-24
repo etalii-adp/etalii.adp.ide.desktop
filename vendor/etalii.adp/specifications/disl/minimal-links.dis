@@ -1,0 +1,52 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.12",
+  "language": {
+    "id": "org.example.minimal-links",
+    "version": "1.0.0",
+    "label": "Minimal links",
+    "doc": {
+      "summary": "The smallest diagram type that holds links to elements of other documents and is linked to (DISL 0.12, 4.12).",
+      "description": "`Task` can be linked to from other documents, named by its `title`. `LinkedTask` stands for an element of another document, shows that element's `status` live, and is added with the standard action `lookup` from the canvas menu. The document gets an 8-character id; the binding, not shown here, declares `document.id` (FBL 17.2)."
+    }
+  },
+  "metamodel": {
+    "types": {
+      "Task": {
+        "doc": "A task of this plan, which other documents can link to.",
+        "attributes": {
+          "title": { "type": "string", "required": true },
+          "status": { "type": "string" }
+        },
+        "labelAttribute": "title",
+        "linkable": { "nameProperty": "title" }
+      },
+      "LinkedTask": {
+        "doc": "An element of another document, shown in this plan.",
+        "attributes": {
+          "link": { "type": "link", "required": true, "origins": ["etalii/timeline", "etalii/knowledge"] },
+          "x": { "type": "number" }
+        },
+        "linked": { "attribute": "link", "shows": [ { "attribute": "status", "label": "Status" } ] }
+      }
+    }
+  },
+  "behavior": {
+    "operations": {
+      "addLinked": {
+        "label": "Add from another document…",
+        "for": "diagram",
+        "actions": [
+          { "lookup": { "create": "LinkedTask", "as": "at" }, "as": "added" },
+          { "select": "added" }
+        ]
+      }
+    }
+  },
+  "persistence": {
+    "format": "fbl",
+    "binding": "minimal-links.fbl#tasks",
+    "ids": { "strategy": "nanoid", "alphabet": "base36", "length": 8 },
+    "documentId": { "strategy": "nanoid", "alphabet": "base36", "length": 8 }
+  }
+}

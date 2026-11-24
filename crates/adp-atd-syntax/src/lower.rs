@@ -1247,12 +1247,12 @@ impl Lowerer<'_> {
                     "type".into(),
                     self.type_ref(self.find(node, "type_ref").expect("a type")),
                 );
-                let place = if self.find(node, "at_pointer").is_some() {
-                    "at"
-                } else {
-                    "child"
-                };
-                o.insert("place".into(), json!(place));
+                // The place is a name, as `create`'s is: `child` or `at`, at the keyword that says it.
+                let at = self.find(node, "at_pointer");
+                let keyword = at.or_else(|| self.find(node, "child"));
+                let place = if at.is_some() { "at" } else { "child" };
+                let span = keyword.map_or_else(|| self.node_span(node), |k| self.node_span(k));
+                o.insert("place".into(), json!({"text": place, "span": span}));
                 if let Some(origins) = self.value_child(node) {
                     o.insert("value".into(), self.value(origins));
                 }
