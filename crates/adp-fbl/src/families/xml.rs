@@ -734,6 +734,12 @@ impl Family {
         }
     }
 
+    /// The text of the root element's attribute `name`, or none.
+    pub(super) fn xml_root_attribute(&self, name: &str) -> Option<String> {
+        let document = self.xml_data().document?;
+        self.element(document).attribute(name).map(|(_, a)| a.text.clone())
+    }
+
     pub(super) fn xml_header_holds(&self, header: &HeaderSettings) -> bool {
         let Some(line) = &header.line else { return true };
         let Some(document) = self.xml_data().document else {

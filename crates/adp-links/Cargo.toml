@@ -1,0 +1,22 @@
+[package]
+name = "adp-links"
+description = "Links between documents: written, resolved in the workspace, refreshed on load and counted back (FBL section 17, etalii.adp spec 089)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+# A new document or element id's randomness (DISL and DESL `nanoid`, spec 089 FR-001).
+getrandom = "0.3"
+
+[dev-dependencies]
+# The links-workspace fixture is read through the tool types' own bindings (FBL section 17.3).
+adp-cel = { path = "../adp-cel" }
+adp-fbl = { path = "../adp-fbl" }
+roxmltree = "0.20"
+serde_json = "1"

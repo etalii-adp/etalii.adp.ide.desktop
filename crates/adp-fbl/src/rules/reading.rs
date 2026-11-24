@@ -11,7 +11,7 @@ use adp_cel::{Map, Program, Value, Variables};
 use serde_json::Value as Json;
 
 use crate::documents::loader::scalar_text;
-use crate::documents::types::{AttributeBinding, FblBinding, Slot};
+use crate::documents::types::{AttributeBinding, DocumentIdSlot, FblBinding, Slot};
 use crate::expressions::{self, CelContext};
 use crate::families::{EntryId, EntryKind, Family, FamilyKind};
 use crate::model::{
@@ -437,6 +437,10 @@ impl BodyReading {
             // The root also holds the marks a file is known by, and may name its schema.
             if let Some(header) = self.binding().header.as_ref().and_then(|h| h.key.clone()) {
                 keys.insert(header);
+            }
+            // The document id (FBL 0.23, section 17.2), which no rule need bind.
+            if let Some(DocumentIdSlot::Key(key)) = &self.binding().document_id {
+                keys.insert(key.clone());
             }
             if let Some(marker) = self.binding().claims.marker.as_ref().and_then(|m| m.root_key.clone()) {
                 keys.insert(marker);
@@ -1487,6 +1491,19 @@ impl BodyReading {
             views: self.views.clone(),
             body_views: self.body_views.clone(),
             resources: self.resources.clone(),
+            document_id: self
+                .binding()
+                .document_id
+                .as_ref()
+                .and_then(|slot| self.family.document_id(slot)),
+            written_ids: self
+                .elements()
+                .filter(|e| !e.id_stored)
+                .filter_map(|e| {
+                    let written = e.id_read.as_ref().filter(|r| r.present)?.written();
+                    (!written.is_empty() && written != e.id).then(|| (e.id.clone(), written))
+                })
+                .collect(),
             file: Some(self.options().file_name.clone()),
         }
     }

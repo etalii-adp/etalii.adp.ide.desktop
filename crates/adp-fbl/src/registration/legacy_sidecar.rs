@@ -46,6 +46,7 @@ fn sidecar_binding() -> FblBinding {
         read_only: None,
         text: TextDefaults::default(),
         header: None,
+        document_id: None,
         comment: None,
         report_unmatched: false,
         blocks: Vec::new(),

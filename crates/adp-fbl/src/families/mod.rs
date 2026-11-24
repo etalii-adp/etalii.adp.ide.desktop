@@ -22,7 +22,7 @@ use std::rc::Rc;
 use adp_cel::{BoundedRegex, Value};
 
 use crate::documents::types::{
-    AttributeBinding, BlockRule, Family as FamilyName, FblBinding, HeaderSettings, Rule, Slot,
+    AttributeBinding, BlockRule, DocumentIdSlot, Family as FamilyName, FblBinding, HeaderSettings, Rule, Slot,
 };
 use crate::model::{FblOptions, Finding, FindingSeverity, SourceLocation};
 use crate::planning::plan::{Plan, Planning, refuse};
@@ -406,6 +406,17 @@ impl Family {
             FamilyKind::Lines(l) if l.bullets.is_some() => self.bullets_header_holds(header),
             FamilyKind::Lines(_) => self.lines_header_holds(header),
         }
+    }
+
+    /// *(FBL 0.23)* The document id the body's root holds in `slot` (FBL section 17.2), or none: a root key of a `yaml`
+    /// or `json` body, an attribute of an `xml` body's root element. An empty value is no id.
+    pub fn document_id(&self, slot: &DocumentIdSlot) -> Option<String> {
+        let id = match (&self.kind, slot) {
+            (FamilyKind::Yaml(_) | FamilyKind::Json(_), DocumentIdSlot::Key(key)) => self.tree_root_text(key),
+            (FamilyKind::Xml(_), DocumentIdSlot::Attribute(name)) => self.xml_root_attribute(name),
+            _ => None,
+        }?;
+        (!id.is_empty()).then_some(id)
     }
 
     /// Findings about entries no rule claimed, once reading is done.

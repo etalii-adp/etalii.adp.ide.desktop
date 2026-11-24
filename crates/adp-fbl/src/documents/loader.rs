@@ -494,6 +494,11 @@ fn read_binding(name: &str, json: &Json, pointer: &str, problems: &mut Vec<LoadP
             line: s(h, "line"),
             required: flag(h, "required"),
         }),
+        document_id: json.get("document").and_then(|d| d.get("id")).and_then(|slot| {
+            s(slot, "key")
+                .map(DocumentIdSlot::Key)
+                .or_else(|| s(slot, "attribute").map(DocumentIdSlot::Attribute))
+        }),
         comment: s(json, "comment"),
         report_unmatched: s(json, "unmatched").as_deref() == Some("report"),
         blocks: array(json, "blocks")

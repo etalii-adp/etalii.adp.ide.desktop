@@ -352,6 +352,13 @@ impl Family {
             .collect()
     }
 
+    /// The text of the root mapping's member `key`, or none.
+    pub(super) fn tree_root_text(&self, key: &str) -> Option<String> {
+        let root = self.tree_root()?;
+        let member = self.member(self.entries[root].tree().value, key)?;
+        Some(self.value_of(member).text.clone())
+    }
+
     pub(super) fn tree_header_holds(&self, header: &HeaderSettings) -> bool {
         let Some(key) = &header.key else { return true };
         let Some(root) = self.tree_root() else { return false };
