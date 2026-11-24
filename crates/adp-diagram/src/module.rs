@@ -27,7 +27,7 @@ use std::fmt;
 use std::path::Path;
 use std::rc::Rc;
 
-use adp_cel::Map;
+use adp_cel::{Map, Value};
 use adp_context::{ActionGroup, PropertyRow};
 use adp_disl::derivation::finding::DislReaderFinding;
 use adp_disl::{
@@ -319,6 +319,31 @@ pub trait DiagramModule {
         elements: Option<&[String]>,
     ) -> Option<Vec<adp_fbl::planning::ModelChange>> {
         let _ = (document, elements);
+        None
+    }
+
+    /// The changes of the body that fold (or unfold) the group `key` of `element`, when the module keeps group states
+    /// in the body (DISL 0.11, `view.bind.groups`); none when it does not.
+    fn kept_fold(
+        &self,
+        document: &DiagramDocument,
+        element: &DislElement,
+        key: &str,
+        folded: bool,
+    ) -> Option<Vec<adp_fbl::planning::ModelChange>> {
+        let _ = (document, element, key, folded);
+        None
+    }
+
+    /// The change of the body that sets the canvas filter `filter` to `value`, when the module keeps that filter in
+    /// the body (DISL 0.4, `view.bind.filters`); none when it does not.
+    fn kept_filter(
+        &self,
+        document: &DiagramDocument,
+        filter: &str,
+        value: &Value,
+    ) -> Option<adp_fbl::planning::ModelChange> {
+        let _ = (document, filter, value);
         None
     }
 

@@ -1540,7 +1540,7 @@ impl DiagramDocuments {
                 reading
             }
         };
-        DiagramDocument {
+        let document = DiagramDocument {
             tool,
             body_path,
             registration_path,
@@ -1550,7 +1550,21 @@ impl DiagramDocuments {
             reading,
             deleted: false,
             link_index: self.link_index.clone(),
+        };
+        // View data kept in the body (DISL section 11.6, `view.bind`) is part of the reading: what `self.view` reads of
+        // it is bound as soon as the body is read, so that a size or a placement that reads it is measured as the body
+        // now keeps it (DISL 0.11, `self.view.groups`). Viewer state stays bound where a gesture binds it.
+        let kept_in_body = document
+            .tool
+            .definition
+            .specification()
+            .root()
+            .pointer("/persistence/view/bind")
+            .is_some();
+        if kept_in_body {
+            document.bind_views();
         }
+        document
     }
 
     /// Replaces the bytes of the document at `index` and reads it again.

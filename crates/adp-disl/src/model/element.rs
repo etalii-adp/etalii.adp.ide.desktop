@@ -380,6 +380,67 @@ impl DislElement {
         self.0.state.borrow().view.clone()
     }
 
+    /// What `self.view.groups` reads (DISL 0.11, section 6.9): each group key of the node's compartments, an enum
+    /// value of a `groupBy` and the id of a collapsible compartment without one, to whether that group is folded: the
+    /// state the host keeps as `groups` of the view, else the compartment's default. Empty for a node without a
+    /// collapsible compartment.
+    pub fn view_groups(&self) -> Map {
+        let mut groups = self.group_defaults();
+        let stored = self.view().and_then(|view| view.get("groups").cloned());
+        if let Some(stored) = stored.as_ref().and_then(Value::as_map) {
+            for (key, folded) in stored.iter() {
+                if groups.contains_key(key.as_str())
+                    && let Value::Bool(folded) = folded
+                {
+                    groups.insert(key.clone(), Value::Bool(*folded));
+                }
+            }
+        }
+        groups
+    }
+
+    /// Each group key of the node's compartments to whether its group comes folded (DISL 0.11, section 6.9): a
+    /// `groupBy`'s `collapsed` for its value, else a collapsible compartment's own `collapsed`.
+    pub fn group_defaults(&self) -> Map {
+        let mut groups = Map::default();
+        let Some(diagram) = self.try_diagram() else {
+            return groups;
+        };
+        let specification = diagram.specification();
+        let nodes = json::member(json::member(specification.root(), "notation"), "nodes");
+        let type_name = self.type_name();
+        let notation = json::get(nodes, &type_name).or_else(|| {
+            nodes
+                .as_object()
+                .and_then(|nodes| nodes.iter().find(|(name, _)| self.is_a(name)).map(|(_, n)| n))
+        });
+        let metamodel = specification.metamodel();
+        for compartment in notation
+            .and_then(|n| json::items(n, "compartments"))
+            .into_iter()
+            .flatten()
+        {
+            if let Some(group_by) = json::get(compartment, "groupBy") {
+                let attribute = json::string_of(group_by, "attribute").unwrap_or_default();
+                let collapsed = json::get(group_by, "collapsed");
+                let enumeration = json::strings_of(json::member(compartment, "items"), "children")
+                    .first()
+                    .and_then(|t| metamodel.type_of(t))
+                    .and_then(|t| t.attributes.get(attribute).cloned())
+                    .and_then(|a| metamodel.enums.get(&a.type_name).cloned());
+                for value in enumeration.iter().flat_map(|e| e.values.iter()) {
+                    let folded = collapsed.and_then(|c| c.get(&value.key)).and_then(|f| f.as_bool());
+                    groups.insert(value.key.clone(), Value::Bool(folded == Some(true)));
+                }
+            } else if json::get(compartment, "collapsible").and_then(|c| c.as_bool()) == Some(true) {
+                let id = json::string_of(compartment, "id").unwrap_or_default().to_owned();
+                let folded = json::get(compartment, "collapsed").and_then(|c| c.as_bool()) == Some(true);
+                groups.insert(id, Value::Bool(folded));
+            }
+        }
+        groups
+    }
+
     pub fn set_view(&self, view: Option<Map>) {
         self.0.state.borrow_mut().view = view;
     }
@@ -728,7 +789,17 @@ impl DislElement {
             "ports" if !is_relation => Value::list(Vec::new()),
             "source" if is_relation => element_or_null(self.source()),
             "target" if is_relation => element_or_null(self.target()),
-            "view" => Value::map(self.view()?),
+            "view" if is_relation => Value::map(self.view()?),
+            "view" => {
+                let groups = self.view_groups();
+                let view = self.view();
+                if view.is_none() && groups.is_empty() {
+                    return None;
+                }
+                let mut view = view.unwrap_or_default();
+                view.insert("groups".to_owned(), Value::map(groups));
+                Value::map(view)
+            }
             "linked" if !is_relation => Value::map(self.linked()?),
             _ => return None,
         })

@@ -1552,6 +1552,58 @@ impl DiagramSession {
         }
     }
 
+    /// Folds (or unfolds) the group `key` of the node `element_id`, as activating its heading does (DISL 0.11, section
+    /// 6.9): where the tool type keeps group states in the body, the body's entry for it is written, and kept only while
+    /// the state differs from the group's default; else the state is the viewer's. A key that names no group of the
+    /// node is refused as a heading that is not there.
+    pub fn fold_group(
+        &self,
+        workspace: &mut DiagramWorkspace,
+        element_id: &str,
+        key: &str,
+        folded: bool,
+    ) -> Result<(), String> {
+        let document = self.document(workspace.documents())?;
+        let nothing = || format!("nothing has the id '{element_id}#{key}'");
+        let element = document.element(element_id).ok_or_else(nothing)?;
+        if !element.group_defaults().contains_key(key) {
+            return Err(nothing());
+        }
+        let module = document.tool().module.clone().ok_or_else(nothing)?;
+        if let Some(changes) = module.kept_fold(document, &element, key, folded) {
+            if changes.is_empty() {
+                return Ok(());
+            }
+            let label = if folded { "Collapse group" } else { "Expand group" };
+            let changes: Vec<DiagramChange> = changes.into_iter().map(DiagramChange::Body).collect();
+            return document.plan(label, &changes).and_then(|edit| workspace.execute(edit));
+        }
+        let mut groups = element.view_groups();
+        groups.insert(key.to_owned(), Value::Bool(folded));
+        let mut values = Map::default();
+        values.insert("groups".to_owned(), Value::map(groups));
+        if !module.set_view(document, &element, &values) {
+            return Err(format!("The group '{key}' cannot be folded here."));
+        }
+        document.bind_views();
+        Ok(())
+    }
+
+    /// Sets the canvas filter `filter` to `value` (DISL section 6.13.1), where the tool type keeps that filter in the
+    /// body (`view.bind.filters`): the body's value of it is written, as any edit is.
+    pub fn set_filter(&self, workspace: &mut DiagramWorkspace, filter: &str, value: &Value) -> Result<(), String> {
+        let document = self.document(workspace.documents())?;
+        let change = document
+            .tool()
+            .module
+            .as_ref()
+            .and_then(|module| module.kept_filter(document, filter, value))
+            .ok_or_else(|| format!("The filter '{filter}' cannot be set here."))?;
+        document
+            .plan("Set filter", &[DiagramChange::Body(change)])
+            .and_then(|edit| workspace.execute(edit))
+    }
+
     /// Answers the prompt as [`DiagramSession::answer`] does, where what a module's own view creates in answer takes
     /// the ids `ids` hands out (a supply chain's group put around a node); the specification's answers take their own.
     pub fn answer_with_ids(

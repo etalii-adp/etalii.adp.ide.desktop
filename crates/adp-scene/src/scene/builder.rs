@@ -468,10 +468,11 @@ impl<'a> Builder<'a> {
             let vars = self.evaluator.element_vars(&element);
             match positions.get(&element.id()) {
                 Some(rect) => {
+                    let folding = self.options.folding.with_view(&element, &element_type.compartments);
                     let context = CompartmentContext {
                         evaluator: self.evaluator,
                         vars: &vars,
-                        folding: self.options.folding,
+                        folding: &folding,
                         metrics: self.options.metrics,
                     };
                     let rows = compartments_height(&element_type.compartments, &context).unwrap_or(0.0);
@@ -1041,10 +1042,14 @@ impl<'a> Builder<'a> {
         if placed.element_type.compartments.is_empty() {
             return;
         }
+        let folding = self
+            .options
+            .folding
+            .with_view(&placed.element, &placed.element_type.compartments);
         let context = CompartmentContext {
             evaluator: self.evaluator,
             vars: &placed.vars,
-            folding: self.options.folding,
+            folding: &folding,
             metrics: self.options.metrics,
         };
         let laid_out = layout_compartments(&placed.element_type.compartments, &context, placed.bounds);

@@ -105,6 +105,36 @@ pub struct Folding {
     pub opened: HashSet<(String, String)>,
 }
 
+impl Folding {
+    /// This folding for `element`, whose lists are `declarations`, with the states its view keeps (DISL 0.11,
+    /// `self.view.groups`): a group the host has not folded or opened itself is as the view says.
+    pub fn with_view(&self, element: &DislElement, declarations: &[CompartmentDeclaration]) -> Folding {
+        let mut folding = self.clone();
+        if !element.view().is_some_and(|view| view.contains_key("groups")) {
+            return folding;
+        }
+        let groups = element.view_groups();
+        for declaration in declarations {
+            let keys: Vec<String> = match &declaration.group_by {
+                Some(grouping) => grouping.groups.iter().map(|(key, _)| key.clone()).collect(),
+                None => vec![declaration.id.clone()],
+            };
+            for key in keys {
+                let id = (declaration.id.clone(), key.clone());
+                if self.folded.contains(&id) || self.opened.contains(&id) {
+                    continue;
+                }
+                match groups.get(key.as_str()) {
+                    Some(Value::Bool(true)) => folding.folded.insert(id),
+                    Some(Value::Bool(false)) => folding.opened.insert(id),
+                    _ => false,
+                };
+            }
+        }
+        folding
+    }
+}
+
 struct Group {
     key: String,
     title: String,
