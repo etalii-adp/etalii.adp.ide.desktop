@@ -19,6 +19,9 @@ use crate::model::{FblElement, Finding};
 use crate::planning::ModelChange;
 use crate::splice::Splice;
 
+/// *(FBL 0.23)* The root's attribute a plugin reads a body's document id as (FBL section 17.2).
+pub const DOCUMENT_ID_ATTRIBUTE: &str = "documentId";
+
 /// One file a plugin reads: the body itself (`relative_path` empty) or a file of a folder subject.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PluginFile {

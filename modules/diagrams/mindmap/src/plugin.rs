@@ -23,8 +23,8 @@ use adp_cel::Value;
 use adp_fbl::ModelChange;
 use adp_fbl::model::{FblElement, Finding, FindingSeverity, codes};
 use adp_fbl::plugins::{
-    PersistencePlugin, PluginPlanRequest, PluginPlanResult, PluginReadRequest, PluginReadResult, PluginSplice,
-    PluginTemplateRequest,
+    DOCUMENT_ID_ATTRIBUTE, PersistencePlugin, PluginPlanRequest, PluginPlanResult, PluginReadRequest, PluginReadResult,
+    PluginSplice, PluginTemplateRequest,
 };
 use adp_fbl::splice::{Operation, Splice};
 use adp_fbl::text::Span;
@@ -37,6 +37,12 @@ pub const PLUGIN_ID: &str = "net.etalii.adp.freeplane.mm";
 
 /// The binding's element type, which `persistence.typeMap` maps to the metamodel's.
 pub const NODE_TYPE: &str = "Node";
+
+/// The binding's type of a node that holds a link (mindmap.md section 3.8).
+pub const LINKED_NODE_TYPE: &str = "LinkedNode";
+
+/// A linked node's attribute that holds its link.
+pub const LINKED_ELEMENT_ATTRIBUTE: &str = "linkedElement";
 
 /// The attribute holding the `ID` the file writes, kept beside the metamodel's.
 pub const STORED_ID_ATTRIBUTE: &str = "storedId";
@@ -69,11 +75,20 @@ impl MindmapFreeplanePlugin {
                 if let Some(position) = document.position(node) {
                     attributes.insert("position", Value::String(position.to_owned()));
                 }
+                let linked = document.adp_link(node);
+                if let Some(link) = &linked {
+                    attributes.insert(LINKED_ELEMENT_ATTRIBUTE, Value::String(link.clone()));
+                }
+                if document.is_root(node)
+                    && let Some(id) = document.document_id()
+                {
+                    attributes.insert(DOCUMENT_ID_ATTRIBUTE, Value::String(id));
+                }
                 let parent = document.parent(node).map(|p| ids[&p].clone());
                 FblElement {
                     id_is_stored: !written.is_empty() && id == written,
                     id,
-                    type_name: NODE_TYPE.into(),
+                    type_name: if linked.is_some() { LINKED_NODE_TYPE } else { NODE_TYPE }.into(),
                     rule: "node".into(),
                     is_relation: false,
                     attributes,
@@ -259,6 +274,10 @@ fn apply(
             document.move_node(target, parent, *index)?;
             Ok(Operation::InsertEntry)
         }
+        ModelChange::SetDocumentId { id } => {
+            document.set_document_id(id);
+            Ok(Operation::ReplaceValue)
+        }
         ModelChange::Save => Ok(Operation::ReplaceValue),
         _ => Err("A mind map cannot be changed that way.".into()),
     }
@@ -276,6 +295,13 @@ fn set(document: &mut MindmapDocument, node: NodeId, name: &str, value: &Value) 
         "text" => document.set_text(node, text.as_deref().unwrap_or_default()),
         "notes" => document.set_notes(node, text.as_deref().unwrap_or_default()),
         "link" => document.set_link(node, text.as_deref().filter(|t| !t.is_empty())),
+        // A link is written with the name it caches as the node's text (mindmap.md section 3.8).
+        LINKED_ELEMENT_ATTRIBUTE => {
+            let link = text.as_deref().unwrap_or_default();
+            let parsed = adp_links::Link::parse(link).ok_or_else(|| format!("'{link}' is not a link."))?;
+            let name = parsed.cached_name().unwrap_or(&parsed.document_name).to_owned();
+            document.set_adp_link(node, link, &name);
+        }
         "folded" => return Err("Collapsing is a view setting rather than part of the document.".into()),
         _ => return Err(format!("'{name}' is not ADP's to write.")),
     }

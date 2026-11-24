@@ -369,6 +369,10 @@ impl DiagramSession {
         };
         let options = written_ids(document, options);
         let mut problems = missing;
+        // The links that do not resolve (FBL section 17.6), once the workspace's links index is built.
+        if let Some(index) = document.link_index() {
+            problems.extend(crate::links::problems(document, index));
+        }
         if let Some(found) = document
             .tool()
             .module

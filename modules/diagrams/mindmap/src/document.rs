@@ -20,6 +20,13 @@ const RICH_CONTENT_ELEMENT: &str = "richcontent";
 const RICH_CONTENT_TYPE_ATTRIBUTE: &str = "TYPE";
 const NOTE_TYPE: &str = "NOTE";
 const NODE_TEXT_TYPE: &str = "NODE";
+const ATTRIBUTE_ELEMENT: &str = "attribute";
+const ATTRIBUTE_NAME: &str = "NAME";
+const ATTRIBUTE_VALUE: &str = "VALUE";
+/// The Freeplane attribute of the central topic that holds the map's document id (mindmap.md section 3.8).
+pub const DOCUMENT_ID_ATTRIBUTE: &str = "adp-id";
+/// The Freeplane attribute of a linked node that holds its link (mindmap.md section 3.8).
+pub const LINK_ATTRIBUTE_NAME: &str = "adp-link";
 
 /// The version a map ADP creates declares: the newest Freeplane format the reader was written against.
 const FORMAT_VERSION: &str = "freeplane 1.11.5";
@@ -365,6 +372,106 @@ impl MindmapDocument {
         self.xml.set_attribute(node, ID_ATTRIBUTE, Some(id));
     }
 
+    // ---- links between documents (spec 089, mindmap.md section 3.8) ---------------------------------------------
+
+    /// The map's document id: the `VALUE` of the central topic's first `adp-id` attribute; none when it has none, or
+    /// an empty one.
+    pub fn document_id(&self) -> Option<String> {
+        self.attribute_value(self.root(), DOCUMENT_ID_ATTRIBUTE)
+            .filter(|id| !id.is_empty())
+    }
+
+    /// Gives the map the document id `id`: in the central topic's `adp-id` when it has one, else in a new one, its
+    /// first child element after its `richcontent`, on a line of its own.
+    pub fn set_document_id(&mut self, id: &str) {
+        let root = self.root();
+        if let Some(existing) = self.attribute_element(root, DOCUMENT_ID_ATTRIBUTE) {
+            self.xml.set_attribute(existing, ATTRIBUTE_VALUE, Some(id));
+            return;
+        }
+        let element = self.new_attribute(DOCUMENT_ID_ATTRIBUTE, id);
+        let elements: Vec<NodeId> = self
+            .xml
+            .children(root)
+            .iter()
+            .copied()
+            .filter(|c| self.xml.is_element(*c))
+            .collect();
+        let first_other = elements
+            .iter()
+            .copied()
+            .find(|e| self.xml.name(*e) != RICH_CONTENT_ELEMENT);
+        let last_rich = elements
+            .iter()
+            .copied()
+            .rfind(|e| self.xml.name(*e) == RICH_CONTENT_ELEMENT);
+        let newline = self.newline();
+        match (first_other, last_rich) {
+            (Some(before), _) => {
+                let after = self.xml.new_text(newline);
+                self.xml.insert_before(before, &[element, after]);
+            }
+            (None, Some(rich)) => {
+                let before = self.xml.new_text(newline);
+                self.xml.insert_after(rich, &[before, element]);
+            }
+            (None, None) => self.append_child(root, element),
+        }
+    }
+
+    /// The link a linked node holds: the `VALUE` of its `adp-link` attribute; none for any other node.
+    pub fn adp_link(&self, node: NodeId) -> Option<String> {
+        self.attribute_value(node, LINK_ATTRIBUTE_NAME)
+    }
+
+    /// Makes `node` hold `link`, in its `adp-link` attribute, and shows `name`, the name the link caches, as its
+    /// `TEXT`, dropping formatted text as a rename does.
+    pub fn set_adp_link(&mut self, node: NodeId, link: &str, name: &str) {
+        match self.attribute_element(node, LINK_ATTRIBUTE_NAME) {
+            Some(existing) => self.xml.set_attribute(existing, ATTRIBUTE_VALUE, Some(link)),
+            None => {
+                let element = self.new_attribute(LINK_ATTRIBUTE_NAME, link);
+                let first_child = self.xml.elements_named(node, NODE_ELEMENT).next();
+                match first_child {
+                    Some(first_child) => {
+                        let after = self.xml.new_text(self.newline());
+                        self.xml.insert_before(first_child, &[element, after]);
+                    }
+                    None => self.append_child(node, element),
+                }
+            }
+        }
+        if self.text(node) != name || self.rich_content(node, NODE_TEXT_TYPE).is_some() {
+            self.set_text(node, name);
+        }
+    }
+
+    fn attribute_element(&self, node: NodeId, name: &str) -> Option<NodeId> {
+        self.xml
+            .elements_named(node, ATTRIBUTE_ELEMENT)
+            .find(|a| self.xml.attribute(*a, ATTRIBUTE_NAME) == Some(name))
+    }
+
+    fn attribute_value(&self, node: NodeId, name: &str) -> Option<String> {
+        let element = self.attribute_element(node, name)?;
+        Some(
+            self.xml
+                .attribute(element, ATTRIBUTE_VALUE)
+                .unwrap_or_default()
+                .to_owned(),
+        )
+    }
+
+    fn new_attribute(&mut self, name: &str, value: &str) -> NodeId {
+        self.xml.new_element(
+            ATTRIBUTE_ELEMENT,
+            vec![
+                (ATTRIBUTE_NAME.into(), name.to_owned()),
+                (ATTRIBUTE_VALUE.into(), value.to_owned()),
+            ],
+        )
+    }
+
     // ---- helpers --------------------------------------------------------------------------------------------------
 
     /// Gives every node without an `ID` a new one.
@@ -498,18 +605,13 @@ impl MindmapDocument {
     }
 }
 
-/// A new node's id: `ID_` and a ShortGuid, a version 4 GUID as 25 characters of base 36 (`persistence.ids`).
+/// A new node's id: `ID_` and 8 characters of `0-9a-z` (`persistence.ids`: `nanoid`, prefix `ID_`, `base36`, length 8;
+/// spec 089, FR-003).
 pub fn new_id() -> String {
-    format!("ID_{}", short_guid())
+    format!("ID_{}", adp_links::nanoid(adp_links::BASE36, 8))
 }
 
-fn short_guid() -> String {
-    const DIGITS: &[u8; 36] = b"0123456789abcdefghijklmnopqrstuvwxyz";
-    let mut value = uuid::Uuid::new_v4().as_u128();
-    let mut digits = [b'0'; 25];
-    for digit in digits.iter_mut().rev() {
-        *digit = DIGITS[(value % 36) as usize];
-        value /= 36;
-    }
-    String::from_utf8(digits.to_vec()).expect("base 36 digits")
+/// A new map's document id: 8 characters of `0-9a-z` (`persistence.documentId`).
+pub fn new_document_id() -> String {
+    adp_links::nanoid(adp_links::BASE36, 8)
 }

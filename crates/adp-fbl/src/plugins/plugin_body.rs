@@ -11,7 +11,10 @@ use crate::model::{FblModel, Finding, FindingSeverity, SourceLocation, codes};
 use crate::planning::{ModelChange, PlanResult, PlannedEdit};
 use crate::splice::Splice;
 
-use super::{PersistencePlugin, PluginFile, PluginPlanRequest, PluginPlanResult, PluginReadRequest, PluginReadResult};
+use super::{
+    DOCUMENT_ID_ATTRIBUTE, PersistencePlugin, PluginFile, PluginPlanRequest, PluginPlanResult, PluginReadRequest,
+    PluginReadResult,
+};
 
 /// One open file body whose binding names a plugin: its bytes, the plugin's last reading, and its one history.
 pub struct PluginBody {
@@ -67,6 +70,7 @@ impl PluginBody {
             elements: self.last.elements.clone(),
             findings: self.last.findings.clone(),
             unreadable: self.last.unreadable,
+            document_id: document_id_of(&self.last),
             ..FblModel::default()
         }
     }
@@ -218,4 +222,14 @@ fn record(splice: &Splice) -> String {
         "Splice {{ Operation = {:?}, Start = {}, End = {}, Text = {} }}",
         splice.operation, splice.start, splice.end, splice.text
     )
+}
+
+/// *(FBL 0.23)* The document id a plugin reads as the root's attribute `documentId` (FBL section 17.2): the first
+/// element without a parent; none when it holds no id, or an empty one.
+pub(crate) fn document_id_of(read: &PluginReadResult) -> Option<String> {
+    let root = read.elements.iter().find(|e| e.parent_id.is_none() && !e.is_relation)?;
+    match root.attributes.get(DOCUMENT_ID_ATTRIBUTE)? {
+        adp_cel::Value::String(id) if !id.is_empty() => Some(id.clone()),
+        _ => None,
+    }
 }
