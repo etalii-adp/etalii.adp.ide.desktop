@@ -1,13 +1,16 @@
-# The Marvel universe, key events
+# The Marvel universe at a glance
 
-51 key events of the Marvel universe on one time axis, from 1943 to 2027, with 8 relations: a selection from [`../marvel-universe/`](../marvel-universe/), which holds all 920. Open `marvel-universe-overview.adp`; nothing needs configuring first. Zoom in once and every label reads.
+A timeline of 47 key events of the Marvel Cinematic Universe's story, from Schmidt taking the Tesseract to the Fantastic Four's ship arriving, in story order, with 50 connections. Open `marvel-universe-overview.adp`; nothing needs configuring first. The full story, 428 events, is in [`../marvel-universe/`](../marvel-universe/).
 
-The rows fall in three bands, top to bottom, stated in the comment at the top of `marvel-universe-overview.tml` as well:
+## What it shows
 
-| Rows | Band | What an element is |
-| --- | --- | --- |
-| 0 to 12 | In-universe | Something that happens in the Marvel Cinematic Universe, at its in-universe date |
-| 14 to 23 | On screen | A film, a series, a phase of the films or a studio milestone, at its release |
-| 25 to 31 | In print | A comic, at its cover date |
+Only what happens inside the story world: the origins, the Infinity Stones, the Snap and its undoing, and the Multiverse. No release dates, castings or studio news.
 
-The relations labelled `adapted` lead from a comic to what adapted it, and `shows` from a film to an event it shows. The labels are shortened from the full timeline's, and its readme says how the events were gathered and how far to trust their dates.
+- **Each box is as long as its label needs.** The label's width was measured at the canvas's 12-unit text in the widest of the fonts a host may draw it with, plus room for the box's ends.
+- **Time runs left to right, but the dates mean nothing.** A box starts after the events it follows from and never before the event listed before it.
+- **Boxes that belong together share a row, end to end**, and the story continues in a new block of rows below when a group no longer fits across.
+- **A connection leads from an event to one that follows from it.** Here it skips the full story's steps in between, to the nearest key event.
+
+## How it was made
+
+The key events were picked from the full story in [`../marvel-universe/`](../marvel-universe/), and their connections follow its links. The labels are written in our own words; no text, image or logo is taken from any source. The order and links were written from the researchers' knowledge and were not checked one by one against a source.
