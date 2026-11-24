@@ -17,3 +17,11 @@ Every diagram type here is named from its origin, the `<vendor>/<type>` tag the 
 ## Tool descriptions
 
 Each type here also has a tool description in the ADP tool language ([ATD](../../specifications/atd/ATD-specification.md)): a root `<name>.atd` with its parts beside it, and a `<name>.trace.json` that traces what it carries back to the files it comes from. Its conformance cases, recorded from the type's module, are in `conformance/<type>/<case>/`. A person's document still opens on today's tool, read from the JSON files, and not on the description; the `atd` command line checks and validates the descriptions.
+
+## Worked examples
+
+A diagram type's worked examples, documents a person or an agent could have written, are in `examples/`, named for what they show and carrying the extension the type's specification names (`language.fileExtension`). Where the type has a file schema beside its specification (`<name>.schema.json`), `validate-examples.py` checks each example against it. The value stream map's (`generic/value-stream-map`, `.vsm`) are the first: `restore-service.vsm` and `request-fulfilment.vsm`, whose totals its companion works by hand.
+
+## Vendored documents
+
+Documents a diagram type's fixtures read that someone else published are in `vendored/<source>/`, byte for byte, with the source's licence beside them as `LICENSE.md`, verbatim, and a `README.md` naming the repository, the commit, each file's source path and what the corpus does not show. Only permissive licences are taken; a share-alike one is refused. OpenSLO's (`vendored/openslo/`, Apache License 2.0) are the first, read by the SLO map's (`openslo/slo`) fixtures under `specifications/fbl/fixtures/openslo-slo-read/`. They are here rather than beside the fixtures because `specifications/` holds this repository's licence alone (`licence-check.py`).

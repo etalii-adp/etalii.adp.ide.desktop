@@ -1,0 +1,79 @@
+{
+  "$schema": "https://etalii.net/adp/desl/schema/0.1/desl.schema.json#/$defs/Specification",
+  "desl": "0.4",
+  "doc": "DESL's smallest page of sections (DESL 0.4, section 7.8): a trip log, whose trip is a record part and whose stops are a list part ordered by time, with a time strip that emphasises the departure and the arrival, a figure for the travel time and a mark on a stop without a note. minimal-sections.md is a document of it.",
+  "language": { "id": "net.etalii.adp.example.trip-log", "version": "0.1.0", "origin": "example/trip-log", "label": "Trip log" },
+  "metamodel": {
+    "types": {
+      "Trip": {
+        "attributes": {
+          "title": { "type": "string", "required": true },
+          "traveller": { "type": "string" }
+        },
+        "labelAttribute": "title"
+      },
+      "Stop": {
+        "attributes": {
+          "at": { "type": "datetime", "timezone": "preserve", "doc": "When the stop was reached, RFC 3339 with its offset; a new stop has none until one is given." },
+          "kind": { "type": "StopKind" },
+          "place": { "type": "string", "required": true },
+          "note": { "type": "text" }
+        },
+        "labelAttribute": "place"
+      }
+    },
+    "enums": {
+      "StopKind": { "values": { "departure": { "value": "Departure" }, "arrival": { "value": "Arrival" } } }
+    }
+  },
+  "persistence": {
+    "format": "fbl",
+    "bindings": ["minimal-sections.fbl#markdown"],
+    "ids": {
+      "missing": "assign",
+      "types": {
+        "Trip": { "strategy": "derived", "expression": "'trip'", "ephemeral": true },
+        "Stop": { "strategy": "derived", "expression": "'stop/' + string(self.positionIn(document.elementsOfType('Stop')))", "ephemeral": true }
+      }
+    }
+  },
+  "surface": {
+    "kind": "sections",
+    "parts": [
+      {
+        "id": "trip",
+        "title": "Trip",
+        "kind": "record",
+        "type": "Trip",
+        "fields": [{ "attribute": "title", "label": "Title" }, { "attribute": "traveller", "label": "Traveller" }]
+      },
+      {
+        "id": "stops",
+        "title": "Stops",
+        "kind": "list",
+        "type": "Stop",
+        "fields": [{ "attribute": "at", "label": "Time" }, { "attribute": "kind", "label": "Kind" }, { "attribute": "place", "label": "Place" }, { "attribute": "note", "label": "Note", "widget": "text" }],
+        "order": "has(self.at) ? string(self.at) : '~'",
+        "add": "addStop",
+        "timeStrip": { "at": "at", "highlight": "has(self.kind)", "label": "self.place" },
+        "figures": {
+          "travelTime": {
+            "label": "Travel time",
+            "value": "document.elementsOfType('Stop').filter(s, has(s.kind) && s.kind == 'arrival')[0].at - document.elementsOfType('Stop').filter(s, has(s.kind) && s.kind == 'departure')[0].at",
+            "absentText": "No departure or arrival yet"
+          }
+        },
+        "marks": {
+          "noNote": { "when": "!has(self.note) || self.note == ''", "label": "No note", "style": "info" }
+        }
+      }
+    ]
+  },
+  "operations": {
+    "addStop": {
+      "label": "New stop",
+      "for": "document",
+      "actions": [{ "create": { "type": "'Stop'", "attributes": { "place": "'New stop'" } } }]
+    }
+  }
+}

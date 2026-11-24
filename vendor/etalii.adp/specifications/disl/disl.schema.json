@@ -1365,7 +1365,7 @@
         "disl": {
           "type": "string",
           "pattern": "^\\d+\\.\\d+$",
-          "description": "The DISL version the specification targets, as major.minor: 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9 or 0.10. A 0.10 runtime reads 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8 and 0.9 specifications with their meaning. See DISL 0.10, section 2.9."
+          "description": "The DISL version the specification targets, as major.minor: 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.10 or 0.11. A 0.11 runtime reads 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9 and 0.10 specifications with their meaning. See DISL 0.11, section 2.9."
         },
         "dedl": {
           "type": "string",
@@ -11665,7 +11665,7 @@
           }
         },
         "messages": {
-          "description": "Standard sentences the runtime otherwise words itself, by id: std.notApplicable (operation context plus operationId), std.readOnly (element context on the diagram), std.atStart and std.atEnd. See DISL 0.2, section 9.1.",
+          "description": "Standard sentences the runtime otherwise words itself, by id: std.notApplicable (operation context plus operationId), std.readOnly (element context on the diagram), std.atStart and std.atEnd, and (DISL 0.11) std.notAValue (form context plus value, a value no value of a row's enumeration). See DISL 0.2, section 9.1, and DISL 0.11, section 7.5.",
           "type": "object",
           "propertyNames": {
             "$ref": "#/$defs/QualifiedId"

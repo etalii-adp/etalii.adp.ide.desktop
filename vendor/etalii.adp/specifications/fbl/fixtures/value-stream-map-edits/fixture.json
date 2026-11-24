@@ -1,0 +1,126 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The edits of value-stream-map.md and spec 084 (SC-005) on a two-step stream: a step added, connected, its wait time set in hours, a flow removed, undone and redone. Every byte no edit concerns stays as it was.",
+  "binding": "../../../../definitions/diagrams/value-stream-map.fbl#vsm",
+  "input": "small-stream.vsm",
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "name: Small stream\nunit: hours\nactivities: []\npractices: []\ncurrent:\n  trigger:\n    id: t1\n    name: Call received\n  steps:\n    - id: s1\n      name: Log call\n      performer: service desk\n      processTime: PT5M\n      waitTime: PT10M\n    - id: s2\n      name: Resolve\n      performer: service desk\n      processTime: PT20M\n      waitTime: PT1H\n  outcome:\n    id: o1\n    name: Caller helped\n  flows:\n    - from: t1\n      to: s1\n    - from: s1\n      to: s2\n    - from: s2\n      to: o1\n"
+    },
+    {
+      "doc": "A new step of the shown state takes the next free id, s3, and goes after the last step, its keys in the binding's order.",
+      "edit": {
+        "add": {
+          "type": "Step",
+          "id": "s3",
+          "attributes": {
+            "name": "Review",
+            "state": "current",
+            "performer": "problem team",
+            "processTime": "PT30M",
+            "waitTime": "PT2H"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 343,
+          "end": 343,
+          "text": "    - id: s3\n      name: Review\n      performer: problem team\n      processTime: PT30M\n      waitTime: PT2H\n"
+        }
+      ],
+      "expect": "name: Small stream\nunit: hours\nactivities: []\npractices: []\ncurrent:\n  trigger:\n    id: t1\n    name: Call received\n  steps:\n    - id: s1\n      name: Log call\n      performer: service desk\n      processTime: PT5M\n      waitTime: PT10M\n    - id: s2\n      name: Resolve\n      performer: service desk\n      processTime: PT20M\n      waitTime: PT1H\n    - id: s3\n      name: Review\n      performer: problem team\n      processTime: PT30M\n      waitTime: PT2H\n  outcome:\n    id: o1\n    name: Caller helped\n  flows:\n    - from: t1\n      to: s1\n    - from: s1\n      to: s2\n    - from: s2\n      to: o1\n"
+    },
+    {
+      "doc": "Connecting it adds a flow after the last one; the flow has no id key, its id is formed from its ends.",
+      "edit": {
+        "add": {
+          "type": "Flow",
+          "id": "flow:s2->s3",
+          "attributes": {
+            "source": "s2",
+            "target": "s3"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 590,
+          "end": 590,
+          "text": "    - from: s2\n      to: s3\n"
+        }
+      ],
+      "expect": "name: Small stream\nunit: hours\nactivities: []\npractices: []\ncurrent:\n  trigger:\n    id: t1\n    name: Call received\n  steps:\n    - id: s1\n      name: Log call\n      performer: service desk\n      processTime: PT5M\n      waitTime: PT10M\n    - id: s2\n      name: Resolve\n      performer: service desk\n      processTime: PT20M\n      waitTime: PT1H\n    - id: s3\n      name: Review\n      performer: problem team\n      processTime: PT30M\n      waitTime: PT2H\n  outcome:\n    id: o1\n    name: Caller helped\n  flows:\n    - from: t1\n      to: s1\n    - from: s1\n      to: s2\n    - from: s2\n      to: o1\n    - from: s2\n      to: s3\n"
+    },
+    {
+      "doc": "A wait time set in hours replaces the value in place and nothing else (SC-005).",
+      "edit": {
+        "set": {
+          "element": "s3",
+          "attributes": {
+            "waitTime": "PT3H"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 446,
+          "end": 450,
+          "text": "PT3H"
+        }
+      ],
+      "expect": "name: Small stream\nunit: hours\nactivities: []\npractices: []\ncurrent:\n  trigger:\n    id: t1\n    name: Call received\n  steps:\n    - id: s1\n      name: Log call\n      performer: service desk\n      processTime: PT5M\n      waitTime: PT10M\n    - id: s2\n      name: Resolve\n      performer: service desk\n      processTime: PT20M\n      waitTime: PT1H\n    - id: s3\n      name: Review\n      performer: problem team\n      processTime: PT30M\n      waitTime: PT3H\n  outcome:\n    id: o1\n    name: Caller helped\n  flows:\n    - from: t1\n      to: s1\n    - from: s1\n      to: s2\n    - from: s2\n      to: o1\n    - from: s2\n      to: s3\n"
+    },
+    {
+      "doc": "Removing a flow removes its entry, with its two lines, and keeps the list.",
+      "edit": {
+        "remove": {
+          "element": "flow:s2->o1"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 562,
+          "end": 590,
+          "text": ""
+        }
+      ],
+      "expect": "name: Small stream\nunit: hours\nactivities: []\npractices: []\ncurrent:\n  trigger:\n    id: t1\n    name: Call received\n  steps:\n    - id: s1\n      name: Log call\n      performer: service desk\n      processTime: PT5M\n      waitTime: PT10M\n    - id: s2\n      name: Resolve\n      performer: service desk\n      processTime: PT20M\n      waitTime: PT1H\n    - id: s3\n      name: Review\n      performer: problem team\n      processTime: PT30M\n      waitTime: PT3H\n  outcome:\n    id: o1\n    name: Caller helped\n  flows:\n    - from: t1\n      to: s1\n    - from: s1\n      to: s2\n    - from: s2\n      to: s3\n"
+    },
+    {
+      "doc": "Undo gives the flow back, byte for byte.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 562,
+          "end": 562,
+          "text": "    - from: s2\n      to: o1\n"
+        }
+      ],
+      "expect": "name: Small stream\nunit: hours\nactivities: []\npractices: []\ncurrent:\n  trigger:\n    id: t1\n    name: Call received\n  steps:\n    - id: s1\n      name: Log call\n      performer: service desk\n      processTime: PT5M\n      waitTime: PT10M\n    - id: s2\n      name: Resolve\n      performer: service desk\n      processTime: PT20M\n      waitTime: PT1H\n    - id: s3\n      name: Review\n      performer: problem team\n      processTime: PT30M\n      waitTime: PT3H\n  outcome:\n    id: o1\n    name: Caller helped\n  flows:\n    - from: t1\n      to: s1\n    - from: s1\n      to: s2\n    - from: s2\n      to: o1\n    - from: s2\n      to: s3\n"
+    },
+    {
+      "doc": "Redo removes it again.",
+      "redo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 562,
+          "end": 590,
+          "text": ""
+        }
+      ],
+      "expect": "name: Small stream\nunit: hours\nactivities: []\npractices: []\ncurrent:\n  trigger:\n    id: t1\n    name: Call received\n  steps:\n    - id: s1\n      name: Log call\n      performer: service desk\n      processTime: PT5M\n      waitTime: PT10M\n    - id: s2\n      name: Resolve\n      performer: service desk\n      processTime: PT20M\n      waitTime: PT1H\n    - id: s3\n      name: Review\n      performer: problem team\n      processTime: PT30M\n      waitTime: PT3H\n  outcome:\n    id: o1\n    name: Caller helped\n  flows:\n    - from: t1\n      to: s1\n    - from: s1\n      to: s2\n    - from: s2\n      to: s3\n"
+    }
+  ]
+}

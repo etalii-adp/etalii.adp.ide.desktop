@@ -1,0 +1,154 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "Edits of a YAML stream read with body.stream documents (FBL 0.22, sections 4.3 and 6.2), on the body of ../yaml-stream-read/: a set in the second document, an insert of a new document at the root with its undo and redo, and removals of the middle, the last and the first document, each with the bytes it writes.",
+  "binding": "stream.fbl#stream",
+  "input": "stream.yaml",
+  "read": {
+    "elements": [
+      {
+        "id": "checkout",
+        "type": "Service",
+        "attributes": {
+          "owner": "payments"
+        }
+      },
+      {
+        "id": "latency",
+        "type": "Check",
+        "attributes": {
+          "service": "checkout",
+          "target": 0.99
+        }
+      },
+      {
+        "id": "errors",
+        "type": "Check",
+        "attributes": {
+          "service": "checkout",
+          "target": 0.995
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "A set of the second document's target replaces that value only; no other document's bytes change (section 6.4).",
+      "edit": {
+        "set": {
+          "element": "latency",
+          "attributes": {
+            "target": 0.999
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 271,
+          "end": 275,
+          "text": "0.999"
+        }
+      ],
+      "expect": "# A small stream: a service and two checks. The first document has no --- line.\nkind: Service\nname: checkout\nowner: payments\n# This comment stands before the next --- line, so it belongs to the service's document.\n\n---\nkind: Check\nname: latency\nservice: checkout\ntarget: 0.999\n...\n---\nkind: Check\nname: errors\nservice: checkout\ntarget: 0.995\n"
+    },
+    {
+      "doc": "An add of a check is an insert at the root: one insert-entry at the end of the body, a --- line and then the new document's keys at indentation 0, its constant kind first as keys names it, each line ended as the body's lines are (FBL 0.22, section 6.2).",
+      "edit": {
+        "add": {
+          "type": "Check",
+          "id": "saturation",
+          "attributes": {
+            "service": "checkout",
+            "target": 0.9
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 342,
+          "end": 342,
+          "text": "---\nkind: Check\nname: saturation\nservice: checkout\ntarget: 0.9\n"
+        }
+      ],
+      "expect": "# A small stream: a service and two checks. The first document has no --- line.\nkind: Service\nname: checkout\nowner: payments\n# This comment stands before the next --- line, so it belongs to the service's document.\n\n---\nkind: Check\nname: latency\nservice: checkout\ntarget: 0.999\n...\n---\nkind: Check\nname: errors\nservice: checkout\ntarget: 0.995\n---\nkind: Check\nname: saturation\nservice: checkout\ntarget: 0.9\n"
+    },
+    {
+      "doc": "The undo removes the new document with its --- line, and the body is the bytes it was; it is listed under the operation of the splice it inverts (section 15.3).",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 342,
+          "end": 405,
+          "text": ""
+        }
+      ],
+      "expect": "# A small stream: a service and two checks. The first document has no --- line.\nkind: Service\nname: checkout\nowner: payments\n# This comment stands before the next --- line, so it belongs to the service's document.\n\n---\nkind: Check\nname: latency\nservice: checkout\ntarget: 0.999\n...\n---\nkind: Check\nname: errors\nservice: checkout\ntarget: 0.995\n"
+    },
+    {
+      "doc": "The redo writes the same bytes again.",
+      "redo": true,
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 342,
+          "end": 342,
+          "text": "---\nkind: Check\nname: saturation\nservice: checkout\ntarget: 0.9\n"
+        }
+      ],
+      "expect": "# A small stream: a service and two checks. The first document has no --- line.\nkind: Service\nname: checkout\nowner: payments\n# This comment stands before the next --- line, so it belongs to the service's document.\n\n---\nkind: Check\nname: latency\nservice: checkout\ntarget: 0.999\n...\n---\nkind: Check\nname: errors\nservice: checkout\ntarget: 0.995\n---\nkind: Check\nname: saturation\nservice: checkout\ntarget: 0.9\n"
+    },
+    {
+      "doc": "A removal of the middle document removes its span: from its --- line to the last byte before the next document's --- line, its ... marker with it, so the third document's --- line follows the first document (FBL 0.22, section 6.2).",
+      "edit": {
+        "remove": {
+          "element": "latency"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 215,
+          "end": 281,
+          "text": ""
+        }
+      ],
+      "expect": "# A small stream: a service and two checks. The first document has no --- line.\nkind: Service\nname: checkout\nowner: payments\n# This comment stands before the next --- line, so it belongs to the service's document.\n\n---\nkind: Check\nname: errors\nservice: checkout\ntarget: 0.995\n---\nkind: Check\nname: saturation\nservice: checkout\ntarget: 0.9\n"
+    },
+    {
+      "doc": "A removal of the last document removes its --- line with it, and the line ending before that line stays where it is (section 6.2).",
+      "edit": {
+        "remove": {
+          "element": "saturation"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 276,
+          "end": 339,
+          "text": ""
+        }
+      ],
+      "expect": "# A small stream: a service and two checks. The first document has no --- line.\nkind: Service\nname: checkout\nowner: payments\n# This comment stands before the next --- line, so it belongs to the service's document.\n\n---\nkind: Check\nname: errors\nservice: checkout\ntarget: 0.995\n"
+    },
+    {
+      "doc": "A removal of the first document, which has no --- line, removes its span up to the next document's --- line, its comments with it; that --- line stays and opens the body, so the remaining document reads as before (section 6.2).",
+      "edit": {
+        "remove": {
+          "element": "checkout"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 0,
+          "end": 215,
+          "text": ""
+        }
+      ],
+      "expect": "---\nkind: Check\nname: errors\nservice: checkout\ntarget: 0.995\n"
+    }
+  ]
+}

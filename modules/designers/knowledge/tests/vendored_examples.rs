@@ -1,8 +1,8 @@
 //! Every example document vendored from etalii.adp under `definitions/designers/examples/`, opened as the desktop
 //! host opens it: its DED envelope says which designer type it is, and a knowledge file is read by this module with
-//! nothing to report, the same table in each of its three formats. The Markdown document is the Hierarchical
-//! Requirement Designer's, which the standalone host at 8b6ccfc has no module for; it is recognised and opens
-//! read-only, with the reason.
+//! nothing to report, the same table in each of its three formats. The Markdown documents are the Hierarchical
+//! Requirement Designer's and the post-incident review designer's, which the standalone host at 8b6ccfc has no module
+//! for; each is recognised and opens read-only, with the reason.
 
 mod common;
 
@@ -26,17 +26,18 @@ fn examples() -> Vec<PathBuf> {
 #[test]
 fn every_vendored_example_document_names_its_designer_type() {
     let all = examples();
-    assert_eq!(4, all.len(), "{all:?}");
+    assert_eq!(6, all.len(), "{all:?}");
     for path in all {
         let name = path.file_name().and_then(|n| n.to_str()).expect("a name").to_owned();
         let envelope = DedEnvelope::read(&std::fs::read(&path).expect("read"), &name).expect("an envelope");
         let installed = |origin: &str| origin == ORIGIN;
         match envelope.designer.as_str() {
             ORIGIN => assert_eq!(None, envelope.read_only_reason(installed), "{name}"),
-            "etalii/hierarchical-requirement" => {
+            // The Markdown designers the standalone host at 8b6ccfc has no module for: recognised, and read-only.
+            designer @ ("etalii/hierarchical-requirement" | "etalii/post-incident-review") => {
                 assert!(name.ends_with(".md"));
                 let reason = envelope.read_only_reason(installed).expect("read-only");
-                assert!(reason.contains("'etalii/hierarchical-requirement'"), "{reason}");
+                assert!(reason.contains(&format!("'{designer}'")), "{reason}");
             }
             other => panic!("{name} names {other}"),
         }

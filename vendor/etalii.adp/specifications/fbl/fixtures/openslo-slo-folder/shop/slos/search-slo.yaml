@@ -1,0 +1,21 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: search-slo
+  displayName: Searching time
+spec:
+  service: web-shop
+  indicatorRef: search-latency
+  timeWindow:
+    - duration: 28d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - displayName: Fast searches
+      op: lt
+      value: 0.5
+      target: 0.99
+    - displayName: Tolerable searches
+      op: lt
+      value: 2
+      target: 0.999

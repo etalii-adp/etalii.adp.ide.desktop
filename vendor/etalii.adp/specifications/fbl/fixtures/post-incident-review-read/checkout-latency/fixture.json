@@ -1,0 +1,212 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The agent-drafted worked review, definitions/designers/examples/checkout-latency.md, read through post-incident-review.fbl#markdown as the fixture beside this folder's parent reads the complete one. Eight entries and three proposed factors, all by:agent, and no actions: the mark line has no action number, so the document has no lastAction. E-0008, found after the first draft, is written last with the time 10:33, before E-0005's 10:41, and is read last (spec User Story 1, scenario 2); its detail is the line indented under it.",
+  "binding": "../../../../../definitions/designers/post-incident-review.fbl#markdown",
+  "input": "../../../../../definitions/designers/examples/checkout-latency.md",
+  "read": {
+    "document": {
+      "attributes": {
+        "lastEntry": "E-0008",
+        "lastFactor": "F-0003",
+        "timeZone": "Europe/Berlin",
+        "summary": "Checkout requests slowed to over 8 seconds after a configuration change lowered the payment gateway's connection pool. Rolling the change back ended the impact.",
+        "affected": "customers checking out on the web shop",
+        "effect": "38 % of checkouts abandoned",
+        "duration": "57 minutes, from start to mitigated"
+      }
+    },
+    "elements": [
+      {
+        "id": "E-0001",
+        "type": "Entry",
+        "attributes": {
+          "time": "2026-11-03T09:58+01:00",
+          "kind": "trigger",
+          "text": "Connection pool size lowered in a configuration change.",
+          "author": "agent",
+          "evidence": [
+            "https://example.org/changes/481"
+          ],
+          "detail": ""
+        }
+      },
+      {
+        "id": "E-0002",
+        "type": "Entry",
+        "attributes": {
+          "time": "2026-11-03T10:05+01:00",
+          "kind": "start",
+          "text": "p95 latency of checkout passes 2 s.",
+          "author": "agent",
+          "evidence": [
+            "https://example.org/dashboards/checkout"
+          ],
+          "detail": ""
+        }
+      },
+      {
+        "id": "E-0003",
+        "type": "Entry",
+        "attributes": {
+          "time": "2026-11-03T10:12+01:00",
+          "kind": "detection",
+          "text": "Latency alert fired.",
+          "author": "agent",
+          "evidence": [
+            "https://example.org/alerts/9312"
+          ],
+          "detail": ""
+        }
+      },
+      {
+        "id": "E-0004",
+        "type": "Entry",
+        "attributes": {
+          "time": "2026-11-03T10:20+01:00",
+          "kind": "engagement",
+          "text": "On-call engineer acknowledged the alert.",
+          "author": "agent",
+          "evidence": [],
+          "detail": ""
+        }
+      },
+      {
+        "id": "E-0005",
+        "type": "Entry",
+        "attributes": {
+          "time": "2026-11-03T10:41+01:00",
+          "kind": "mitigationStart",
+          "text": "Configuration change rolled back.",
+          "author": "agent",
+          "evidence": [
+            "https://example.org/changes/482"
+          ],
+          "detail": ""
+        }
+      },
+      {
+        "id": "E-0006",
+        "type": "Entry",
+        "attributes": {
+          "time": "2026-11-03T11:02+01:00",
+          "kind": "mitigated",
+          "text": "Latency back under 1 s.",
+          "author": "agent",
+          "evidence": [],
+          "detail": ""
+        }
+      },
+      {
+        "id": "E-0007",
+        "type": "Entry",
+        "attributes": {
+          "time": "2026-11-03T11:30+01:00",
+          "kind": "resolved",
+          "text": "Incident closed.",
+          "author": "agent",
+          "evidence": [],
+          "detail": ""
+        }
+      },
+      {
+        "id": "E-0008",
+        "type": "Entry",
+        "attributes": {
+          "time": "2026-11-03T10:33+01:00",
+          "text": "Connection errors to the payment gateway found in the logs.",
+          "author": "agent",
+          "evidence": [
+            "https://example.org/logs/q/77"
+          ],
+          "detail": "Found after the timeline was first drafted, so written last; the designer shows it in time order."
+        }
+      },
+      {
+        "id": "F-0001",
+        "type": "Factor",
+        "attributes": {
+          "category": "change",
+          "state": "proposed",
+          "author": "agent",
+          "tags": [],
+          "text": "Configuration changes skip the canary stage.",
+          "entries": [
+            "E-0001"
+          ],
+          "evidence": [],
+          "detail": ""
+        }
+      },
+      {
+        "id": "F-0002",
+        "type": "Factor",
+        "attributes": {
+          "category": "detection",
+          "state": "proposed",
+          "author": "agent",
+          "tags": [],
+          "text": "The alert threshold is above the customer-visible delay.",
+          "entries": [
+            "E-0002",
+            "E-0003"
+          ],
+          "evidence": [],
+          "detail": ""
+        }
+      },
+      {
+        "id": "F-0003",
+        "type": "Factor",
+        "attributes": {
+          "category": "capacity",
+          "state": "proposed",
+          "author": "agent",
+          "tags": [],
+          "text": "The configuration schema sets no lower bound for the connection pool.",
+          "entries": [
+            "E-0001",
+            "E-0008"
+          ],
+          "evidence": [],
+          "detail": ""
+        }
+      },
+      {
+        "id": "category/change",
+        "type": "Category",
+        "attributes": {
+          "name": "change"
+        }
+      },
+      {
+        "id": "category/detection",
+        "type": "Category",
+        "attributes": {
+          "name": "detection"
+        }
+      },
+      {
+        "id": "category/capacity",
+        "type": "Category",
+        "attributes": {
+          "name": "capacity"
+        }
+      },
+      {
+        "id": "category/dependency",
+        "type": "Category",
+        "attributes": {
+          "name": "dependency"
+        }
+      },
+      {
+        "id": "category/people",
+        "type": "Category",
+        "attributes": {
+          "name": "people"
+        }
+      }
+    ]
+  },
+  "steps": []
+}

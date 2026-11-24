@@ -104,6 +104,7 @@ const DEFS: &[(&str, &str)] = &[
     ("viewpoint", "Viewpoint"),
     ("tableSurface", "TableSurface"),
     ("hierarchySurface", "HierarchySurface"),
+    ("sectionsSurface", "SectionsSurface"),
     ("textSurface", "TextSurface"),
     ("binding", "Binding"),
     ("element", "Element"),

@@ -7,11 +7,11 @@ parent: desl
 ---
 # DESL — Designer Specification Language
 
-**Specification, version 0.3 (Draft)**
+**Specification, version 0.4 (Draft)**
 
 |   |   |
 |---|---|
-| Date | 2026-10-24 |
+| Date | 2026-11-23 |
 | Kind | designer |
 | Role | specification language |
 | File extension | `.des` |
@@ -25,7 +25,7 @@ parent: desl
 
 ## Status of this document
 
-This is a draft, version 0.3. It holds what the designer types defined so far need and nothing more (constitution principle V), and any construct may change before 1.0 (constitution principle IV). DESL 0.1 (2026-10-09, spec 013) holds what the Knowledge designer (`definitions/designers/knowledge.des`) needs. DESL 0.2 (2026-10-14, spec 028, for the Hierarchical Requirement Designer) adds five constructs: the surface kind `hierarchy` (section 7.7), the id strategy `counter` (section 5.3.5), the facet `mentions` with the built-in `std.mentions` (sections 4.3, 6.5), the action `move` (section 8.2), and `persistence.settings`, the part of the model a document's registration keeps (section 5.5); by the maintainer's ruling of 2026-10-24 it also gives a hierarchy the widths of its columns of levels, which the user changes by dragging (`widths`, section 7.7). Every valid 0.1 specification is a valid 0.2 specification with the same meaning. DESL defines every construct it uses; it takes nothing from the specification languages of the other kinds of tool. Sections and paragraphs marked *(informative)* explain intent; everything else is *normative*. DESL 0.3 (2026-11-06, Peter's answer to spec 076's question Q3) names an element read with a counter's placeholder `line/<line>` until it is numbered (section 5.3.5); every valid 0.2 specification is a valid 0.3 specification with the same meaning.
+This is a draft, version 0.4. It holds what the designer types defined so far need and nothing more (constitution principle V), and any construct may change before 1.0 (constitution principle IV). DESL 0.1 (2026-10-09, spec 013) holds what the Knowledge designer (`definitions/designers/knowledge.des`) needs. DESL 0.2 (2026-10-14, spec 028, for the Hierarchical Requirement Designer) adds five constructs: the surface kind `hierarchy` (section 7.7), the id strategy `counter` (section 5.3.5), the facet `mentions` with the built-in `std.mentions` (sections 4.3, 6.5), the action `move` (section 8.2), and `persistence.settings`, the part of the model a document's registration keeps (section 5.5); by the maintainer's ruling of 2026-10-24 it also gives a hierarchy the widths of its columns of levels, which the user changes by dragging (`widths`, section 7.7). Every valid 0.1 specification is a valid 0.2 specification with the same meaning. DESL defines every construct it uses; it takes nothing from the specification languages of the other kinds of tool. Sections and paragraphs marked *(informative)* explain intent; everything else is *normative*. DESL 0.3 (2026-11-06, Peter's answer to spec 076's question Q3) names an element read with a counter's placeholder `line/<line>` until it is numbered (section 5.3.5); every valid 0.2 specification is a valid 0.3 specification with the same meaning. DESL 0.4 (2026-11-23, Peter's approval of 2026-11-23 of the plan of spec 086, the post-incident review designer) adds the surface kind `sections` (section 7.8): one page of titled parts, each the fields of one element or a list of the elements of one type, with an order, groups, figures, marks and a read-only time strip, and selection shared across the parts. Neither the table nor the hierarchy shows a document that is a form, a timeline and lists on one page. Every valid 0.3 specification is a valid 0.4 specification with the same meaning.
 
 The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **MAY** and **OPTIONAL** are to be interpreted as described in RFC 2119 and RFC 8174 when, and only when, they appear in bold capitals.
 
@@ -144,7 +144,7 @@ Any object of a specification **MAY** contain properties whose names begin with 
 
 ### 2.7 Versioning
 
-`desl` (required) is the DESL version the specification is written in, as `"major.minor"`: `"0.1"` or `"0.2"`. Each is a superset of the one before, and a runtime **MUST** read a specification of an earlier minor version with its meaning. A runtime **MUST** refuse a specification of a higher major version than it supports, and **SHOULD** read one of a newer minor version, ignoring what it does not know, with a warning.
+`desl` (required) is the DESL version the specification is written in, as `"major.minor"`: `"0.1"`, `"0.2"`, `"0.3"` or `"0.4"`. Each is a superset of the one before, and a runtime **MUST** read a specification of an earlier minor version with its meaning. A runtime **MUST** refuse a specification of a higher major version than it supports, and **SHOULD** read one of a newer minor version, ignoring what it does not know, with a warning.
 
 `language.version` (required) is the version of the designer type, a SemVer 2.0.0 string. A change that can make existing documents invalid or change their meaning is a **major** change; adding optional constructs is a **minor** change; documentation and wording are **patch** changes.
 
@@ -503,9 +503,9 @@ A reader **MUST** report the reader's four as they occur, and **MUST NOT** fail 
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `kind`   | `"table"`, *(DESL 0.2)* `"hierarchy"` | **Required.** The layout: a table of rows and columns (7.2 to 7.6), or boxes that contain boxes (7.7). |
+| `kind`   | `"table"`, *(DESL 0.2)* `"hierarchy"`, *(DESL 0.4)* `"sections"` | **Required.** The layout: a table of rows and columns (7.2 to 7.6), boxes that contain boxes (7.7), or a page of titled parts (7.8). |
 
-The other properties of `surface` are those of its kind. Sections 7.2 to 7.6 define the `table` kind, and section 7.7 the `hierarchy` kind.
+The other properties of `surface` are those of its kind. Sections 7.2 to 7.6 define the `table` kind, section 7.7 the `hierarchy` kind, and section 7.8 the `sections` kind.
 
 ### 7.2 The table
 
@@ -626,6 +626,74 @@ Words of one kind are alternatives, and kinds combine. A level is shown when an 
 
 A host **SHOULD** complete a word as it is typed, offering the members of the label whose prefix the word starts with, and the prefixes themselves, so that a user need not remember either.
 
+### 7.8 The sections *(DESL 0.4)*
+
+A **sections** surface shows one page of titled **parts**, one below the other in the order the specification lists them. A part is a **record**, the fields of the one element of its type, such as a document's summary, or a **list**, the elements of its type as **rows**, each a row of named fields. A part may show **figures**, values computed over the model, beside its title; a list may order and group its rows, mark some of them, offer a gesture that adds one, and show a **time strip** above them. Nothing on the page is connected: a part shows elements and their attributes, never lines between them.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `parts`  | Part[] | **Required.** At least one part, in display order (7.8.1). |
+
+#### 7.8.1 Parts and fields
+
+| Part property | Type | Description |
+|---------------|------|-------------|
+| `id`        | SimpleId | **Required.** Unique among the parts. |
+| `title`     | Message | **Required.** The part's heading. |
+| `kind`      | `"record"`, `"list"` | **Required.** |
+| `type`      | TypeRef | **Required.** The element type the part shows. |
+| `fields`    | Field[] | **Required.** The attributes shown, in order: of the record's element, or of each row. |
+| `order`     | Expression | list: each row's sort key, over `self`; rows compare by it ascending, rows with equal keys in document order. Absent, document order. |
+| `group`     | Expression | list: each row's group key, over `self`, a string. Rows are shown under one sub-heading per key, in the order of each key's first row, with the count of its rows. |
+| `add`       | SimpleId | list: the operation (8.1) the part's add gesture runs; absent, the part has no add gesture. |
+| `timeStrip` | TimeStrip | list: a read-only band above the rows (7.8.3). |
+| `figures`   | map SimpleId → Figure | Values shown beside the title (7.8.4). |
+| `marks`     | map SimpleId → Mark | list: badges on rows (7.8.4). |
+
+`order`, `group`, `add`, `timeStrip` and `marks` **MUST NOT** be given on a record part.
+
+| Field property | Type | Description |
+|----------------|------|-------------|
+| `attribute` | SimpleId | **Required.** An attribute of the part's type. |
+| `label`     | Message | The field's label; absent, the attribute's name. |
+| `widget`    | `text`, `number`, `checkbox`, `date`, `dateTime`, `time`, `choice`, `choices` | The editor a host opens over the field, as a value type's `editor` (7.5); absent, the one its attribute's type implies (a `bool` a checkbox, a `datetime` a date and time, an enumeration a choice, and text otherwise). |
+
+#### 7.8.2 Records and lists
+
+- **A record part** shows the one element of its type in the document. With none, the part shows its fields empty, and the first value given creates the element; with several, it shows the first, and a host **MUST** report a finding on each other one. A record is the place of a document's summary: a host **MAY** let its type be the document's (`metamodel.document`), named by its type-map entry (5.2).
+- **A list part** shows every element of its type in the document as a row, in `order`, under its groups. The order and the groups shown **MUST NOT** change the document: the file keeps its own order, and a new row is written where the binding's insert puts it (FBL section 6.2). An empty list shows its title, its figures and its add gesture, if any.
+- **Selection** is one for the page: selecting a row or a record selects its element, in every part that shows it. When the selected element has an attribute with `mentions` (4.3), the rows and records of the elements it mentions are highlighted in their parts, and so are the rows and records of the elements whose `mentions` attributes name the selected element.
+
+#### 7.8.3 The time strip
+
+| TimeStrip property | Type | Description |
+|--------------------|------|-------------|
+| `at`        | attribute | **Required.** A `datetime` attribute of the part's type. |
+| `highlight` | Expression | Over `self`, a bool: the rows emphasised. |
+| `label`     | Expression | Over `self`, a string: the label of an emphasised row's mark. |
+
+The strip is a band above the part's rows with one horizontal axis, from the earliest to the latest value of `at` among the rows. Each row with a value stands as a mark at its time; the marks of the rows `highlight` selects are emphasised and labelled with `label`. Rows without a value are listed after the strip as having no time, and a finding is not reported for them. Selecting a mark selects its row. The strip is drawn and never edited: a time is changed in its row's field.
+
+#### 7.8.4 Figures and marks
+
+| Figure property | Type | Description |
+|-----------------|------|-------------|
+| `label`      | Message | **Required.** |
+| `value`      | Expression | **Required.** The figure's value, over `document`: a number, a string, a duration or a timestamp, shown in its written form (9.2). |
+| `absentText` | Message | What is shown when `value` gives no value (an absent optional, or an error): absent, nothing. |
+
+A part shows its figures beside its title, in the order the specification lists them.
+
+| Mark property | Type | Description |
+|---------------|------|-------------|
+| `when`  | Expression | **Required.** Over `self`, a bool. |
+| `label` | Message | **Required.** |
+| `style` | `"info"`, `"warning"` | How the badge is drawn. Default `info`. |
+
+A row for which `when` holds carries the mark's badge, labelled with `label`. A mark adds nothing to the document and is not a finding: a specification that wants the condition reported says so with a constraint (6.2) as well.
+
+How a host draws a part, a field, a badge or the strip is not DESL's: a designer type's companion document names the looks.
+
 ---
 
 ## 8. Operations
@@ -718,6 +786,7 @@ The context of an expression determines its variables. A validator type-checks e
 | `identity`   | the `expression` and `ephemeral` of an id rule (5.3.2) | `self`, `document`; `self.id` is not readable, and the ids readable are those of `self`'s ancestors |
 | `operation`  | an operation's `label`, `unavailable`, `confirm` and actions | `self` (for `for` naming types) or `selection` (for `"selection"`), `document`, `p` (not in `label` and `unavailable`), `count` in a confirmation, and the names `create … as`, `let` and `forEach … as` bind |
 | `function`   | a function's body | its parameters, and `document` when its `uses` lists it |
+| `surface`    | *(DESL 0.4)* a sections part's `order` and `group`, a time strip's `highlight` and `label`, a mark's `when` (7.8), and a figure's `value` | `self` (the row; not in a figure's `value`), `document` |
 
 ### 9.4 Function library
 
@@ -744,7 +813,7 @@ Expressions in the `constraint` and `identity` contexts **MUST** be deterministi
 1. **Parse** the JSON; reject duplicate keys.
 2. **Check the version**: `desl` major version supported.
 3. **Validate** against `desl.schema.json#/$defs/Specification`.
-4. **Resolve names**: every type, enumeration, operation and function named exists; every type the surface names is an element type of the metamodel, and every attribute it names is an attribute of the type it is named for; `columns.options.type` and `cells.items` are among the children of the columns' and the cells' types; each value type's `key` is an attribute of the cells' type, or of the items' type with `many`; every binding in `persistence.bindings` exists, and every rule `type` in it names an element type or a key of `typeMap`. *(DESL 0.2)* For a `hierarchy` surface: every type a role names is an element type and every attribute it names an attribute of that type, the levels' type contains itself and the entries' type, each label attribute is on every type of its `on`, and `collapsed` is on the levels' and the entries' types. Every type a `mentions` facet names is an element type. A `counter` rule's `mark` is a `string` attribute of the document. Every key of `persistence.settings` is a block every binding declares in `registration.blocks`, a list's `type`, `key` and `value` are a type and its attributes, and a state's `attribute` is an attribute of each type of its `of`.
+4. **Resolve names**: every type, enumeration, operation and function named exists; every type the surface names is an element type of the metamodel, and every attribute it names is an attribute of the type it is named for; `columns.options.type` and `cells.items` are among the children of the columns' and the cells' types; each value type's `key` is an attribute of the cells' type, or of the items' type with `many`; every binding in `persistence.bindings` exists, and every rule `type` in it names an element type or a key of `typeMap`. *(DESL 0.2)* For a `hierarchy` surface: every type a role names is an element type and every attribute it names an attribute of that type, the levels' type contains itself and the entries' type, each label attribute is on every type of its `on`, and `collapsed` is on the levels' and the entries' types. Every type a `mentions` facet names is an element type. A `counter` rule's `mark` is a `string` attribute of the document. Every key of `persistence.settings` is a block every binding declares in `registration.blocks`, a list's `type`, `key` and `value` are a type and its attributes, and a state's `attribute` is an attribute of each type of its `of`. *(DESL 0.4)* For a `sections` surface: part ids are unique; every part's `type` is an element type, or a key of `typeMap` mapped `as: "document"`, and every field's `attribute` is an attribute of it; `add` names an operation; and a time strip's `at` is a `datetime` attribute of its part's type.
 5. **Check** what the schema cannot: reserved attribute names (2.2), a positional create into an unordered parent (8.2), identity expressions that read other ids (5.3.2), functions that call themselves (3.3), and every other **MUST** of this document.
 6. **Compile CEL**: parse and type-check every expression in its context (9.3), and estimate its cost against `language.limits.celCost`.
 

@@ -54,7 +54,8 @@
             "0.18",
             "0.19",
             "0.20",
-            "0.21"
+            "0.21",
+            "0.22"
           ]
         },
         "doc": {
@@ -590,6 +591,13 @@
           "type": "integer",
           "minimum": 0
         },
+        "stream": {
+          "description": "(FBL 0.22) yaml: which documents of the YAML stream are bound. 'first' (the default) binds the first document only, as before 0.22; 'documents' makes the root of the reading a sequence whose items are the stream's documents, in order (section 4.3).",
+          "enum": [
+            "first",
+            "documents"
+          ]
+        },
         "prefixes": {
           "description": "(FBL 0.15) grammar: the directives a slot with expand reads a term through, and how a term is written (section 4.9).",
           "type": "object",
@@ -785,6 +793,24 @@
                   ]
                 }
               ]
+            }
+          }
+        },
+        {
+          "description": "(FBL 0.22) Only a body of the yaml family says which documents of its stream are bound (sections 3.2, 4.3, 14.1).",
+          "if": {
+            "required": [
+              "stream"
+            ]
+          },
+          "then": {
+            "required": [
+              "family"
+            ],
+            "properties": {
+              "family": {
+                "const": "yaml"
+              }
             }
           }
         }

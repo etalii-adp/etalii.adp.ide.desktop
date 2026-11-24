@@ -44,6 +44,8 @@ const PRIMITIVES: &[&str] = &[
     "map",
     "uint",
     "Element",
+    // DISL 0.12, §4.12: a link to an element of another document, as FBL §17.1 writes it.
+    "link",
 ];
 
 /// Names that stand for the document itself where a construct names types it applies to.
@@ -137,14 +139,17 @@ fn kinds(description: &Description, kind: &str, findings: &mut Vec<Finding>) {
                 ));
             }
             ("form", "editor") => findings.push(refuse("ATD3002", "forms", "diagrams and designers")),
-            ("tableSurface" | "hierarchySurface", "diagram" | "editor") => {
+            ("tableSurface" | "hierarchySurface" | "sectionsSurface", "diagram" | "editor") => {
                 findings.push(refuse("ATD3002", "form surface", "designers"))
             }
             ("textSurface", "diagram" | "designer") => findings.push(refuse("ATD3002", "text surface", "editors")),
             ("hook", "designer") => findings.push(refuse("ATD3001", "hooks", "diagrams and editors")),
             _ => {}
         }
-        if matches!(member_kind, "tableSurface" | "hierarchySurface" | "textSurface") {
+        if matches!(
+            member_kind,
+            "tableSurface" | "hierarchySurface" | "sectionsSurface" | "textSurface"
+        ) {
             surfaces += 1;
         }
         if member_kind == "model" && kind != "diagram" {
@@ -361,6 +366,11 @@ impl Checker<'_> {
         }
     }
 
+    /// Every element type the description declares.
+    fn symbol_types(&self) -> impl Iterator<Item = String> + '_ {
+        self.symbols.types.keys().cloned()
+    }
+
     fn attribute_of(&mut self, types: &[String], name: &str, at: &Json) {
         if types.is_empty() || BUILT_IN_FIELDS.contains(&name.split('.').next().unwrap_or(name)) {
             return;
@@ -374,6 +384,15 @@ impl Checker<'_> {
             known.extend(self.symbols.attributes_of(t).into_keys());
         }
         if known.contains(first) {
+            return;
+        }
+        // A field for a base type may name a subtype's attribute: it applies to the elements of that subtype, as the
+        // mind map's form shows a linked node's link (DISL 0.12, §4.12).
+        let of_subtype = self.symbol_types().any(|t| {
+            types.iter().any(|base| t != *base && self.symbols.is_a(&t, base))
+                && self.symbols.attributes_of(&t).contains_key(first)
+        });
+        if of_subtype {
             return;
         }
         let suggestions = closest(first, known.iter().map(String::as_str).collect::<Vec<_>>());
@@ -557,14 +576,28 @@ impl Checker<'_> {
                     }
                 }
             }
-            "tableSurface" | "hierarchySurface" => {
+            "tableSurface" | "hierarchySurface" | "sectionsSurface" => {
                 for item in member["members"].as_array().into_iter().flatten() {
+                    // A record part may show the document, named by the type-map entry that maps a binding type as it
+                    // (DESL §7.8.2, §5.2).
+                    let documents = member["kind"] == "sectionsSurface"
+                        && item.get("type").is_some_and(|type_ref| {
+                            self.type_map
+                                .get(text(&type_ref["name"]))
+                                .is_some_and(|entry| entry.as_ == "document")
+                        });
+                    if documents {
+                        continue;
+                    }
                     if let Some(type_ref) = item.get("type") {
                         self.type_ref(&type_ref["name"], false);
                     }
                 }
                 if member["kind"] == "hierarchySurface" {
                     self.hierarchy(member);
+                }
+                if member["kind"] == "sectionsSurface" {
+                    self.record_parts(member);
                 }
             }
             "textSurface" => {
@@ -913,6 +946,27 @@ impl Checker<'_> {
     }
 
     /// A hierarchy surface fits its types, as DESL \§10.1 requires of one (`ATD6002`, ATD \§14.7).
+    /// What only a list part has, refused on a record part (DESL §7.8.1): `order`, `group`, `add`, `timeStrip` and
+    /// `marks`. The schema says so in a condition the settings check does not read.
+    fn record_parts(&mut self, surface: &Json) {
+        const LISTS_ONLY: [&str; 5] = ["order", "group", "add", "timeStrip", "marks"];
+        for part in surface["members"].as_array().into_iter().flatten() {
+            if part["kind"] != "record" {
+                continue;
+            }
+            for setting in part["settings"].as_array().into_iter().flatten() {
+                let key = setting["key"].as_str().unwrap_or("");
+                if LISTS_ONLY.contains(&key) {
+                    self.findings.push(finding_at(
+                        "ATD5001",
+                        setting,
+                        format!("`{key}` is a list part's setting; a record part shows the one element of its type (DESL §7.8.1)."),
+                    ));
+                }
+            }
+        }
+    }
+
     fn hierarchy(&mut self, surface: &Json) {
         let members: Vec<&Json> = surface["members"].as_array().into_iter().flatten().collect();
         let role = |kind: &str| {

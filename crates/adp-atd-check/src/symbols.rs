@@ -85,6 +85,23 @@ impl Symbols {
         out
     }
 
+    /// Whether type `name` is `ancestor` or extends it, directly or through its supertypes.
+    pub fn is_a(&self, name: &str, ancestor: &str) -> bool {
+        let mut seen = BTreeSet::new();
+        let mut todo = vec![name.to_owned()];
+        while let Some(current) = todo.pop() {
+            if current == ancestor {
+                return true;
+            }
+            if seen.insert(current.clone())
+                && let Some(decl) = self.types.get(&current)
+            {
+                todo.extend(decl.extends.iter().cloned());
+            }
+        }
+        false
+    }
+
     /// The one type that contains `name`, when exactly one does: the type of its `parent`.
     pub fn container_of(&self, name: &str) -> Option<String> {
         let containers: Vec<&String> = self

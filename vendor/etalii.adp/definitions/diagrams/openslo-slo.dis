@@ -1,0 +1,2534 @@
+{
+  "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
+  "disl": "0.10",
+  "language": {
+    "id": "net.etalii.adp.openslo.slo",
+    "version": "0.1.0",
+    "origin": "openslo/slo",
+    "label": "SLO map",
+    "license": "Apache-2.0",
+    "authors": [
+      {
+        "name": "Peter Vrenken"
+      }
+    ],
+    "icon": "mdi-target",
+    "doc": {
+      "summary": "A service's objectives as one picture: the service, its SLOs with their targets, windows and error budgets, the SLIs they measure, the data sources behind them, and the alerting, drawn from the OpenSLO files where they are.",
+      "description": "The SLO map opens OpenSLO documents (openslo/v1), the vendor-neutral YAML in which reliability engineers write service level objectives as code, and draws every object as an element and every reference as a connection. Each objective states its target as a percentage, its window and its error budget in its budgeting method's own terms, with the equivalent time of complete failure, so that a service level manager reads the commitments without reading YAML. Edits from forms are byte-preserving splices into the files, which stay valid OpenSLO; a document the diagram does not draw is kept as written. What it does not do, and the format for agents, are in openslo-slo.md.",
+      "tags": [
+        "OpenSLO",
+        "service level objective",
+        "error budget",
+        "service management",
+        "reliability"
+      ],
+      "seeAlso": [
+        {
+          "title": "OpenSLO",
+          "href": "https://openslo.com"
+        },
+        {
+          "title": "The objects, the budgets and what this diagram does not do",
+          "href": "openslo-slo.md"
+        }
+      ]
+    }
+  },
+  "functions": {
+    "windowSeconds": {
+      "params": [
+        {
+          "name": "s",
+          "type": "string"
+        }
+      ],
+      "returns": "double",
+      "cel": "!s.matches('^[0-9]+[smhdwMQY]$') ? -1.0 : cel.bind(u, s.substring(size(s) - 1), double(int(s.substring(0, size(s) - 1))) * (u == 's' ? 1.0 : u == 'm' ? 60.0 : u == 'h' ? 3600.0 : u == 'd' ? 86400.0 : u == 'w' ? 604800.0 : u == 'M' ? 2419200.0 : u == 'Q' ? 7689600.0 : 31536000.0))",
+      "doc": "The seconds of an OpenSLO duration shorthand (5m, 4w, 1M, 1Q, 1Y). Calendar units have no fixed length and are taken at their shortest: a month of 28 days, a quarter of 89, a year of 365 (research R5). -1 when the text is not a shorthand."
+    },
+    "sliceSeconds": {
+      "params": [
+        {
+          "name": "s",
+          "type": "string"
+        }
+      ],
+      "returns": "double",
+      "cel": "s.matches('^[0-9]+$') ? double(int(s)) * 60.0 : windowSeconds(s)",
+      "doc": "The seconds of a time slice: a bare number is minutes, as OpenSLO says of timeSliceWindow; otherwise a duration shorthand."
+    },
+    "calendarUnit": {
+      "params": [
+        {
+          "name": "s",
+          "type": "string"
+        }
+      ],
+      "returns": "bool",
+      "cel": "s.matches('^[0-9]+[MQY]$')",
+      "doc": "Whether a duration is in months, quarters or years, whose budget is stated for the shortest such window and labelled at least."
+    },
+    "durationWords": {
+      "params": [
+        {
+          "name": "s",
+          "type": "string"
+        }
+      ],
+      "returns": "string",
+      "cel": "!s.matches('^[0-9]+[smhdwMQY]$') ? s : cel.bind(u, s.substring(size(s) - 1), cel.bind(n, s.substring(0, size(s) - 1), n + ' ' + (u == 's' ? 'second' : u == 'm' ? 'minute' : u == 'h' ? 'hour' : u == 'd' ? 'day' : u == 'w' ? 'week' : u == 'M' ? 'month' : u == 'Q' ? 'quarter' : 'year') + (n == '1' ? '' : 's')))",
+      "doc": "A duration shorthand in words: 28d is 28 days, 1M is 1 month."
+    },
+    "shownTime": {
+      "params": [
+        {
+          "name": "seconds",
+          "type": "double"
+        }
+      ],
+      "returns": "string",
+      "cel": "seconds < 0.0 ? '?' : cel.bind(t, int(seconds + 0.000001), cel.bind(p, [t / 86400 > 0 ? string(t / 86400) + ' d' : '', t % 86400 / 3600 > 0 ? string(t % 86400 / 3600) + ' h' : '', t % 3600 / 60 > 0 ? string(t % 3600 / 60) + ' min' : '', t % 60 > 0 ? string(t % 60) + ' s' : ''].filter(x, x != ''), p.size() == 0 ? '0 s' : p.join(' ')))",
+      "doc": "A number of seconds as days, hours, minutes and whole seconds, leaving out the parts that are zero: 2,419.2 seconds is 40 min 19 s (research R6)."
+    },
+    "targetShare": {
+      "params": [
+        {
+          "name": "o",
+          "type": "Objective"
+        }
+      ],
+      "returns": "double",
+      "cel": "has(o.targetRatio) ? o.targetRatio : has(o.targetPercent) ? o.targetPercent / 100.0 : -1.0",
+      "doc": "An objective's target as a share between 0 and 1: target, or targetPercent divided by 100; -1 when it has neither (openslo.target-twice)."
+    },
+    "targetText": {
+      "params": [
+        {
+          "name": "o",
+          "type": "Objective"
+        }
+      ],
+      "returns": "string",
+      "cel": "targetShare(o) < 0.0 ? 'no target' : formatNumber(targetShare(o) * 100.0, '0.###') + ' %'",
+      "doc": "An objective's target as a percentage, with up to three decimals: 0.999 is 99.9 %."
+    },
+    "windowText": {
+      "params": [
+        {
+          "name": "s",
+          "type": "SLO"
+        }
+      ],
+      "returns": "string",
+      "cel": "!has(s.duration) ? 'no time window' : durationWords(s.duration) + (has(s.isRolling) && s.isRolling ? ' rolling' : ' calendar-aligned')",
+      "doc": "An SLO's time window in words: 28 days rolling, 1 month calendar-aligned."
+    },
+    "budgetTime": {
+      "params": [
+        {
+          "name": "o",
+          "type": "Objective"
+        }
+      ],
+      "returns": "double",
+      "cel": "targetShare(o) < 0.0 || !has(o.parent.duration) || windowSeconds(o.parent.duration) < 0.0 ? -1.0 : (1.0 - targetShare(o)) * windowSeconds(o.parent.duration)",
+      "doc": "The error budget as time of complete failure, in seconds: (1 - target) × the window (research R6). For a calendar window it is the budget of the shortest such window."
+    },
+    "budgetSlices": {
+      "params": [
+        {
+          "name": "o",
+          "type": "Objective"
+        }
+      ],
+      "returns": "int",
+      "cel": "budgetTime(o) < 0.0 || !has(o.timeSliceWindow) || sliceSeconds(o.timeSliceWindow) <= 0.0 ? -1 : int(budgetTime(o) / sliceSeconds(o.timeSliceWindow) + 0.000001)",
+      "doc": "For Timeslices: how many slices may be bad, (1 - target) × window ÷ slice, rounded down; -1 when it cannot be computed."
+    },
+    "budgetText": {
+      "params": [
+        {
+          "name": "o",
+          "type": "Objective"
+        }
+      ],
+      "returns": "string",
+      "cel": "budgetTime(o) < 0.0 ? 'Error budget not computed: see the findings.' : cel.bind(least, calendarUnit(o.parent.duration) ? 'at least ' : '', cel.bind(time, least + shownTime(budgetTime(o)) + ' of failure allowed', o.parent.budgetingMethod == 'Timeslices' ? (budgetSlices(o) < 0 ? time : least + string(budgetSlices(o)) + ' bad slices of ' + durationWords(o.timeSliceWindow) + ' allowed; ' + time) : o.parent.budgetingMethod == 'RatioTimeslices' ? 'The average good ratio of the slices may fall to ' + targetText(o) + '; ' + time : formatNumber((1.0 - targetShare(o)) * 100.0, '0.###') + ' % of events may fail; ' + time))",
+      "doc": "The sentence an objective shows, in its budgeting method's own terms, with the equivalent time of complete failure for every method (research R6): Occurrences, the share of events that may fail; Timeslices, the number of slices that may be bad; RatioTimeslices, the average ratio the slices may fall to."
+    },
+    "found": {
+      "params": [
+        {
+          "name": "kind",
+          "type": "string"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "returns": "bool",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "diagram.nodesOfType(kind).exists(n, n.name == name && !n.inline)",
+      "doc": "Whether an object of a kind with a name is in the reading, as a document of its own: an inline object is not referable by name."
+    },
+    "resolve": {
+      "params": [
+        {
+          "name": "kind",
+          "type": "string"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "returns": "Element",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "cel.bind(f, diagram.nodesOfType(kind).filter(n, n.name == name && !n.inline), f.size() > 0 ? f[0] : diagram.nodesOfType('Missing').filter(m, m.id == 'missing:' + kind + ':' + name)[0])",
+      "doc": "The object a reference names, or the placeholder that stands for it when it is not in the reading (research R4)."
+    },
+    "references": {
+      "params": [
+        {
+          "name": "e",
+          "type": "Element"
+        }
+      ],
+      "returns": "list(list(string))",
+      "cel": "e.isA('SLO') ? (has(e.service) && e.service != '' ? [['Service', e.service]] : []) + (has(e.indicatorRef) && e.indicatorRef != '' ? [['SLI', e.indicatorRef]] : []) + e.alertPolicyRefs.map(n, ['AlertPolicy', n]) : e.isA('Objective') ? (has(e.indicatorRef) && e.indicatorRef != '' ? [['SLI', e.indicatorRef]] : []) : e.isA('SLI') ? e.sourceRefs.map(n, ['DataSource', n]) : e.isA('AlertPolicy') ? e.conditionRefs.map(n, ['AlertCondition', n]) + e.targetRefs.map(n, ['AlertNotificationTarget', n]) : []",
+      "doc": "Every reference an object makes, as a kind and a name: an SLO's service, indicatorRef and alertPolicyRef; an objective's indicatorRef; an SLI's metricSourceRef; an alert policy's conditionRef and targetRef (FR-001)."
+    },
+    "unresolved": {
+      "params": [
+        {
+          "name": "e",
+          "type": "Element"
+        }
+      ],
+      "returns": "list(list(string))",
+      "uses": [
+        "diagram"
+      ],
+      "cel": "references(e).filter(r, !found(r[0], r[1]))",
+      "doc": "The references of an object that name nothing in the reading."
+    },
+    "isOtherVersion": {
+      "params": [
+        {
+          "name": "u",
+          "type": "Unbound"
+        }
+      ],
+      "returns": "bool",
+      "cel": "u.apiVersion != 'openslo/v1' && u.apiVersion.startsWith('openslo')",
+      "doc": "Whether a document the diagram does not draw is OpenSLO of another version, such as openslo.com/v2alpha (research R7), rather than a kind it does not draw or not OpenSLO at all."
+    },
+    "isName": {
+      "params": [
+        {
+          "name": "s",
+          "type": "string"
+        }
+      ],
+      "returns": "bool",
+      "cel": "size(s) <= 63 && s.matches('^[a-z0-9]([-a-z0-9]*[a-z0-9])?$')",
+      "doc": "Whether a name is an RFC 1123 label, as OpenSLO requires of metadata.name: at most 63 lower-case letters, digits and hyphens, starting and ending with a letter or a digit."
+    }
+  },
+  "metamodel": {
+    "doc": "OpenSLO's kinds, one element type each (FR-001): a service, its SLOs with their objectives, the SLIs they measure, the data sources behind them, and the alert policies with their conditions and notification targets. Every reference between them is a relation, derived from the reference keys the documents hold, and an inline object is an element contained in the object it is written in. A reference to an object not in the reading ends at a Missing placeholder (research R4).",
+    "diagram": {
+      "doc": "The file, or the folder a registration names. It has nothing of its own: every document is an element.",
+      "attributes": {}
+    },
+    "enums": {
+      "BudgetingMethod": {
+        "doc": "OpenSLO's three budgeting methods (research R6).",
+        "values": {
+          "Occurrences": {
+            "label": "Occurrences",
+            "doc": "The share of good events among all events."
+          },
+          "Timeslices": {
+            "label": "Timeslices",
+            "doc": "The share of good time slices, a slice being good when its ratio meets timeSliceTarget."
+          },
+          "RatioTimeslices": {
+            "label": "Ratio timeslices",
+            "doc": "The average of the slices' good ratios."
+          }
+        }
+      },
+      "Operator": {
+        "doc": "The comparison of a threshold objective or an alert condition.",
+        "values": {
+          "lt": {
+            "label": "less than"
+          },
+          "lte": {
+            "label": "at most"
+          },
+          "gt": {
+            "label": "greater than"
+          },
+          "gte": {
+            "label": "at least"
+          }
+        }
+      },
+      "Severity": {
+        "doc": "An alert condition's severity, as OpenSLO writes it.",
+        "values": {
+          "page": {
+            "label": "Page"
+          },
+          "ticket": {
+            "label": "Ticket"
+          },
+          "info": {
+            "label": "Info"
+          }
+        }
+      }
+    },
+    "types": {
+      "OpenSloObject": {
+        "abstract": true,
+        "labelAttribute": "name",
+        "doc": "What every OpenSLO object has: metadata.name, metadata.displayName and a description. labels and annotations are kept as written and not shown (openslo-slo.md, Gaps).",
+        "attributes": {
+          "name": {
+            "type": "string",
+            "label": "Name",
+            "order": 1,
+            "doc": "metadata.name: the object's name, unique within its kind (openslo.name when it is not an RFC 1123 label).",
+            "required": true,
+            "group": "Identity"
+          },
+          "displayName": {
+            "type": "string",
+            "label": "Display name",
+            "order": 2,
+            "doc": "metadata.displayName: the name people read, shown in place of the name where it is set.",
+            "group": "Identity"
+          },
+          "description": {
+            "type": "text",
+            "label": "Description",
+            "order": 3,
+            "doc": "spec.description.",
+            "group": "Identity"
+          },
+          "inline": {
+            "type": "bool",
+            "default": false,
+            "readOnly": true,
+            "label": "Inline",
+            "group": "Identity",
+            "doc": "True for an object defined inside another rather than as a document of its own (research R3). Set by the rule that reads it, never written."
+          }
+        }
+      },
+      "Service": {
+        "extends": "OpenSloObject",
+        "label": "Service",
+        "icon": "mdi-server",
+        "doc": "What a set of objectives is about.",
+        "attributes": {}
+      },
+      "SLO": {
+        "extends": "OpenSloObject",
+        "label": "SLO",
+        "icon": "mdi-target",
+        "doc": "A service level objective: a target for an SLI over a time window, with a budgeting method, its objectives contained in it.",
+        "children": {
+          "allowed": [
+            "Objective",
+            "SLI",
+            "AlertPolicy"
+          ],
+          "slots": {
+            "objectives": {
+              "allowed": [
+                "Objective"
+              ]
+            },
+            "indicator": {
+              "allowed": [
+                "SLI"
+              ],
+              "max": 1
+            },
+            "alertPolicies": {
+              "allowed": [
+                "AlertPolicy"
+              ]
+            }
+          }
+        },
+        "attributes": {
+          "service": {
+            "type": "string",
+            "label": "Service",
+            "order": 4,
+            "doc": "spec.service: the name of the Service the SLO is about.",
+            "group": "References",
+            "required": true
+          },
+          "indicatorRef": {
+            "type": "string",
+            "label": "Indicator",
+            "order": 5,
+            "doc": "spec.indicatorRef: the name of the SLI the SLO measures, when it is not written inline (openslo.indicator-twice).",
+            "group": "References"
+          },
+          "alertPolicyRefs": {
+            "type": "string",
+            "label": "Alert policies",
+            "order": 6,
+            "doc": "The names in spec.alertPolicies[*].alertPolicyRef. An inline alert policy is a contained element instead.",
+            "group": "References",
+            "many": true,
+            "readOnly": true
+          },
+          "duration": {
+            "type": "string",
+            "label": "Window",
+            "order": 7,
+            "doc": "spec.timeWindow[0].duration, a duration shorthand such as 28d or 1M (research R5).",
+            "group": "Window",
+            "pattern": "^[0-9]+[smhdwMQY]$"
+          },
+          "isRolling": {
+            "type": "bool",
+            "label": "Rolling",
+            "order": 8,
+            "doc": "spec.timeWindow[0].isRolling: a rolling window, or one aligned to the calendar.",
+            "group": "Window",
+            "default": false
+          },
+          "calendarStart": {
+            "type": "string",
+            "label": "Calendar start",
+            "order": 9,
+            "doc": "spec.timeWindow[0].calendar.startTime, as written.",
+            "group": "Window"
+          },
+          "timeZone": {
+            "type": "string",
+            "label": "Time zone",
+            "order": 10,
+            "doc": "spec.timeWindow[0].calendar.timeZone, an IANA time zone.",
+            "group": "Window"
+          },
+          "windowCount": {
+            "type": "int",
+            "readOnly": true,
+            "default": 0,
+            "label": "Windows",
+            "doc": "How many items spec.timeWindow holds; OpenSLO allows one (openslo.window-count)."
+          },
+          "budgetingMethod": {
+            "type": "BudgetingMethod",
+            "label": "Budgeting method",
+            "order": 11,
+            "doc": "spec.budgetingMethod.",
+            "required": true,
+            "group": "Window"
+          },
+          "hasIndicator": {
+            "type": "bool",
+            "readOnly": true,
+            "default": false,
+            "label": "Inline indicator",
+            "doc": "Whether spec.indicator is written, for openslo.indicator-twice."
+          }
+        }
+      },
+      "Objective": {
+        "label": "Objective",
+        "icon": "mdi-bullseye-arrow",
+        "labelAttribute": "displayName",
+        "doc": "One entry of an SLO's spec.objectives, contained in it. Its sentence is its target, its window and its error budget (FR-004).",
+        "attributes": {
+          "displayName": {
+            "type": "string",
+            "label": "Display name",
+            "order": 1,
+            "doc": "displayName of the objective."
+          },
+          "op": {
+            "type": "Operator",
+            "label": "Operator",
+            "order": 2,
+            "doc": "op: the comparison of a threshold metric."
+          },
+          "threshold": {
+            "type": "number",
+            "label": "Threshold",
+            "order": 3,
+            "doc": "value: the threshold a threshold metric is compared with."
+          },
+          "targetRatio": {
+            "type": "number",
+            "label": "Target",
+            "order": 4,
+            "doc": "target, a share between 0 and 1 (0.999 is 99.9 %).",
+            "min": 0
+          },
+          "targetPercent": {
+            "type": "number",
+            "label": "Target percent",
+            "order": 5,
+            "doc": "targetPercent, the same target as a percentage; write target or targetPercent, not both (openslo.target-twice).",
+            "min": 0
+          },
+          "timeSliceTarget": {
+            "type": "number",
+            "label": "Slice target",
+            "order": 6,
+            "doc": "timeSliceTarget: the ratio a slice must meet to be good, for Timeslices."
+          },
+          "timeSliceWindow": {
+            "type": "string",
+            "label": "Slice",
+            "order": 7,
+            "doc": "timeSliceWindow: the length of a slice, a duration shorthand or a bare number of minutes."
+          },
+          "indicatorRef": {
+            "type": "string",
+            "label": "Indicator",
+            "order": 8,
+            "doc": "indicatorRef: the SLI of this objective, for a composite SLO.",
+            "group": "References"
+          },
+          "compositeWeight": {
+            "type": "number",
+            "label": "Composite weight",
+            "order": 9,
+            "doc": "compositeWeight, for a composite SLO."
+          },
+          "inline": {
+            "type": "bool",
+            "default": true,
+            "readOnly": true,
+            "doc": "An objective is always written inside its SLO."
+          }
+        }
+      },
+      "SLI": {
+        "extends": "OpenSloObject",
+        "label": "SLI",
+        "icon": "mdi-gauge",
+        "doc": "A service level indicator: a threshold metric or a ratio of good, bad or total events. Each metric names a DataSource with metricSourceRef or carries an inline metricSource.",
+        "attributes": {
+          "metric": {
+            "type": "string",
+            "readOnly": true,
+            "label": "Metric",
+            "doc": "threshold or ratio, from which of thresholdMetric and ratioMetric is written."
+          },
+          "sourceRefs": {
+            "type": "string",
+            "label": "Data sources",
+            "order": 4,
+            "doc": "The names in the metricSourceRef keys of its metrics.",
+            "group": "References",
+            "many": true,
+            "readOnly": true
+          },
+          "sourceTypes": {
+            "type": "string",
+            "label": "Inline sources",
+            "order": 5,
+            "doc": "The type of each inline metricSource, such as Prometheus.",
+            "many": true,
+            "readOnly": true
+          }
+        }
+      },
+      "DataSource": {
+        "extends": "OpenSloObject",
+        "label": "Data source",
+        "icon": "mdi-database",
+        "doc": "Where an SLI's metrics come from.",
+        "attributes": {
+          "sourceType": {
+            "type": "string",
+            "label": "Type",
+            "order": 4,
+            "doc": "spec.type, such as Prometheus or Datadog."
+          }
+        }
+      },
+      "AlertPolicy": {
+        "extends": "OpenSloObject",
+        "label": "Alert policy",
+        "icon": "mdi-bell-outline",
+        "doc": "When the consumption of an SLO's budget is told to someone: its conditions and notification targets, by reference or inline.",
+        "children": {
+          "allowed": [
+            "AlertCondition",
+            "AlertNotificationTarget"
+          ],
+          "slots": {
+            "conditions": {
+              "allowed": [
+                "AlertCondition"
+              ]
+            },
+            "notificationTargets": {
+              "allowed": [
+                "AlertNotificationTarget"
+              ]
+            }
+          }
+        },
+        "attributes": {
+          "alertWhenNoData": {
+            "type": "bool",
+            "label": "When no data",
+            "order": 4,
+            "doc": "spec.alertWhenNoData."
+          },
+          "alertWhenResolved": {
+            "type": "bool",
+            "label": "When resolved",
+            "order": 5,
+            "doc": "spec.alertWhenResolved."
+          },
+          "alertWhenBreaching": {
+            "type": "bool",
+            "label": "When breaching",
+            "order": 6,
+            "doc": "spec.alertWhenBreaching."
+          },
+          "conditionRefs": {
+            "type": "string",
+            "label": "Conditions",
+            "order": 7,
+            "doc": "The names in spec.conditions[*].conditionRef.",
+            "group": "References",
+            "many": true,
+            "readOnly": true
+          },
+          "targetRefs": {
+            "type": "string",
+            "label": "Notification targets",
+            "order": 8,
+            "doc": "The names in spec.notificationTargets[*].targetRef.",
+            "group": "References",
+            "many": true,
+            "readOnly": true
+          }
+        }
+      },
+      "AlertCondition": {
+        "extends": "OpenSloObject",
+        "label": "Alert condition",
+        "icon": "mdi-alert-outline",
+        "doc": "When an alert fires: a burn-rate condition with an operator, a threshold, a lookback window and how long it must hold.",
+        "attributes": {
+          "severity": {
+            "type": "string",
+            "label": "Severity",
+            "order": 4,
+            "doc": "spec.severity, as written (page, ticket or another word)."
+          },
+          "conditionKind": {
+            "type": "string",
+            "label": "Condition",
+            "order": 5,
+            "doc": "spec.condition.kind, such as burnrate."
+          },
+          "op": {
+            "type": "Operator",
+            "label": "Operator",
+            "order": 6,
+            "doc": "spec.condition.op."
+          },
+          "threshold": {
+            "type": "number",
+            "label": "Threshold",
+            "order": 7,
+            "doc": "spec.condition.threshold."
+          },
+          "lookbackWindow": {
+            "type": "string",
+            "label": "Lookback",
+            "order": 8,
+            "doc": "spec.condition.lookbackWindow, a duration shorthand."
+          },
+          "alertAfter": {
+            "type": "string",
+            "label": "Alert after",
+            "order": 9,
+            "doc": "spec.condition.alertAfter, a duration shorthand."
+          }
+        }
+      },
+      "AlertNotificationTarget": {
+        "extends": "OpenSloObject",
+        "label": "Notification target",
+        "icon": "mdi-send-outline",
+        "doc": "Who or what an alert is sent to.",
+        "attributes": {
+          "destination": {
+            "type": "string",
+            "label": "Target",
+            "order": 4,
+            "doc": "spec.target, such as slack or email."
+          }
+        }
+      },
+      "Unbound": {
+        "label": "Other document",
+        "icon": "mdi-file-question-outline",
+        "labelAttribute": "kindName",
+        "doc": "A document of a kind or a version the diagram does not draw: listed, kept as written, never changed (User Story 3, scenario 3; research R7).",
+        "attributes": {
+          "kindName": {
+            "type": "string",
+            "readOnly": true,
+            "label": "Kind",
+            "doc": "Its kind, as written, or empty."
+          },
+          "apiVersion": {
+            "type": "string",
+            "readOnly": true,
+            "label": "API version",
+            "doc": "Its apiVersion, as written, or empty."
+          },
+          "line": {
+            "type": "int",
+            "readOnly": true,
+            "label": "Line",
+            "doc": "The line its document starts on."
+          },
+          "inline": {
+            "type": "bool",
+            "default": false,
+            "readOnly": true
+          }
+        }
+      },
+      "Missing": {
+        "label": "Not in this file",
+        "icon": "mdi-help-circle-outline",
+        "labelAttribute": "name",
+        "doc": "The end of a reference whose target is not in the reading (research R4): drawn dashed and labelled not in this file. Derived, one per kind and name referred to.",
+        "attributes": {
+          "kindName": {
+            "type": "string",
+            "label": "Kind"
+          },
+          "name": {
+            "type": "string",
+            "label": "Name"
+          },
+          "inline": {
+            "type": "bool",
+            "default": false
+          }
+        },
+        "derived": {
+          "from": "diagram.nodes.filter(n, !n.derived).map(n, unresolved(n)).flatten().map(r, r[0] + ':' + r[1]).distinct()",
+          "id": "'missing:' + item",
+          "attributes": {
+            "kindName": "item.split(':')[0]",
+            "name": "item.substring(size(item.split(':')[0]) + 1)"
+          },
+          "sources": "diagram.nodes.filter(n, !n.derived && unresolved(n).exists(r, r[0] + ':' + r[1] == item))",
+          "reason": "This object is not in the file. Open the folder it belongs to through a registration to draw it, or add its document here."
+        }
+      }
+    },
+    "relations": {
+      "OfService": {
+        "label": "of service",
+        "doc": "An SLO is about its service: spec.service.",
+        "source": [
+          "SLO"
+        ],
+        "target": [
+          "Service",
+          "Missing"
+        ],
+        "directed": true,
+        "derived": {
+          "from": "diagram.nodesOfType('SLO').filter(s, has(s.service) && s.service != '').map(s, [s, resolve('Service', s.service)])",
+          "source": "item[0]",
+          "target": "item[1]",
+          "reason": "The line is the reference the document writes; change the reference in the form to change it."
+        }
+      },
+      "Measures": {
+        "label": "measures",
+        "doc": "An SLO or an objective measures an SLI: indicatorRef, or the SLI written inline in the SLO, which is joined to it and marked inline (User Story 1, scenario 3).",
+        "source": [
+          "SLO",
+          "Objective"
+        ],
+        "target": [
+          "SLI",
+          "Missing"
+        ],
+        "directed": true,
+        "derived": {
+          "from": "diagram.nodesOfType('SLO').filter(s, has(s.indicatorRef) && s.indicatorRef != '').map(s, [s, resolve('SLI', s.indicatorRef)]) + diagram.nodesOfType('Objective').filter(s, has(s.indicatorRef) && s.indicatorRef != '').map(s, [s, resolve('SLI', s.indicatorRef)]) + diagram.nodesOfType('SLI').filter(i, i.inline && i.parent != null).map(i, [i.parent, i])",
+          "source": "item[0]",
+          "target": "item[1]",
+          "reason": "The line is the reference the document writes; change the reference in the form to change it."
+        }
+      },
+      "ReadsFrom": {
+        "label": "reads from",
+        "doc": "An SLI reads a metric from a data source: metricSourceRef.",
+        "source": [
+          "SLI"
+        ],
+        "target": [
+          "DataSource",
+          "Missing"
+        ],
+        "directed": true,
+        "derived": {
+          "from": "diagram.nodesOfType('SLI').map(s, s.sourceRefs.map(n, [s, resolve('DataSource', n)])).flatten()",
+          "source": "item[0]",
+          "target": "item[1]",
+          "reason": "The line is the reference the document writes; change the reference in the form to change it."
+        }
+      },
+      "AlertsWith": {
+        "label": "alerts with",
+        "doc": "An SLO's budget is watched by an alert policy: alertPolicyRef, or an inline policy.",
+        "source": [
+          "SLO"
+        ],
+        "target": [
+          "AlertPolicy",
+          "Missing"
+        ],
+        "directed": true,
+        "derived": {
+          "from": "diagram.nodesOfType('SLO').map(s, s.alertPolicyRefs.map(n, [s, resolve('AlertPolicy', n)])).flatten() + diagram.nodesOfType('AlertPolicy').filter(p, p.inline && p.parent != null).map(p, [p.parent, p])",
+          "source": "item[0]",
+          "target": "item[1]",
+          "reason": "The line is the reference the document writes; change the reference in the form to change it."
+        }
+      },
+      "OnCondition": {
+        "label": "on",
+        "doc": "An alert policy fires on an alert condition: conditionRef, or an inline condition.",
+        "source": [
+          "AlertPolicy"
+        ],
+        "target": [
+          "AlertCondition",
+          "Missing"
+        ],
+        "directed": true,
+        "derived": {
+          "from": "diagram.nodesOfType('AlertPolicy').map(s, s.conditionRefs.map(n, [s, resolve('AlertCondition', n)])).flatten() + diagram.nodesOfType('AlertCondition').filter(c, c.inline && c.parent != null).map(c, [c.parent, c])",
+          "source": "item[0]",
+          "target": "item[1]",
+          "reason": "The line is the reference the document writes; change the reference in the form to change it."
+        }
+      },
+      "Notifies": {
+        "label": "notifies",
+        "doc": "An alert policy notifies a target: targetRef, or an inline target.",
+        "source": [
+          "AlertPolicy"
+        ],
+        "target": [
+          "AlertNotificationTarget",
+          "Missing"
+        ],
+        "directed": true,
+        "derived": {
+          "from": "diagram.nodesOfType('AlertPolicy').map(s, s.targetRefs.map(n, [s, resolve('AlertNotificationTarget', n)])).flatten() + diagram.nodesOfType('AlertNotificationTarget').filter(t, t.inline && t.parent != null).map(t, [t.parent, t])",
+          "source": "item[0]",
+          "target": "item[1]",
+          "reason": "The line is the reference the document writes; change the reference in the form to change it."
+        }
+      }
+    }
+  },
+  "notation": {
+    "doc": "One shape per kind; an SLO carries its objectives' sentences, an inline object is joined to its owner and marked, and a reference to an object that is not in the file ends at a dashed placeholder. The layout places the kinds in tiers (research R8).",
+    "theme": {
+      "tokens": {
+        "color.surface": {
+          "light": "#FFFFFF",
+          "dark": "#161B22"
+        },
+        "color.border": {
+          "light": "#8A8880",
+          "dark": "#8B949E"
+        },
+        "color.muted": {
+          "light": "#868E96",
+          "dark": "#6E7681"
+        },
+        "slo.service": {
+          "light": "#E7F5FF",
+          "dark": "#142638"
+        },
+        "slo.objective": {
+          "light": "#EBFBEE",
+          "dark": "#15291A"
+        },
+        "slo.indicator": {
+          "light": "#FFF9DB",
+          "dark": "#2E2A12"
+        },
+        "slo.source": {
+          "light": "#F1F3F5",
+          "dark": "#22262B"
+        },
+        "slo.alert": {
+          "light": "#FFF0F6",
+          "dark": "#33182A"
+        },
+        "slo.missing": {
+          "light": "#ADB5BD",
+          "dark": "#6E7681"
+        }
+      }
+    },
+    "styles": {
+      "service": {
+        "fill": {
+          "token": "slo.service"
+        },
+        "stroke": {
+          "color": {
+            "token": "color.border"
+          },
+          "width": 1.5
+        },
+        "cornerRadius": 8,
+        "font": {
+          "size": 13
+        }
+      },
+      "slo": {
+        "fill": {
+          "token": "color.surface"
+        },
+        "stroke": {
+          "color": {
+            "token": "color.border"
+          },
+          "width": 1.5
+        },
+        "cornerRadius": 6,
+        "font": {
+          "size": 12
+        }
+      },
+      "objective": {
+        "fill": {
+          "token": "slo.objective"
+        },
+        "stroke": {
+          "color": {
+            "token": "color.border"
+          },
+          "width": 1
+        },
+        "cornerRadius": 4,
+        "font": {
+          "size": 11
+        }
+      },
+      "indicator": {
+        "fill": {
+          "token": "slo.indicator"
+        },
+        "stroke": {
+          "color": {
+            "token": "color.border"
+          },
+          "width": 1
+        },
+        "cornerRadius": 4,
+        "font": {
+          "size": 12
+        }
+      },
+      "source": {
+        "fill": {
+          "token": "slo.source"
+        },
+        "stroke": {
+          "color": {
+            "token": "color.border"
+          },
+          "width": 1
+        },
+        "font": {
+          "size": 12
+        }
+      },
+      "alert": {
+        "fill": {
+          "token": "slo.alert"
+        },
+        "stroke": {
+          "color": {
+            "token": "color.border"
+          },
+          "width": 1
+        },
+        "cornerRadius": 4,
+        "font": {
+          "size": 12
+        }
+      },
+      "inline": {
+        "stroke": {
+          "color": {
+            "token": "color.border"
+          },
+          "width": 1,
+          "dash": [
+            4,
+            2
+          ]
+        },
+        "font": {
+          "size": 10
+        }
+      },
+      "missing": {
+        "fill": {
+          "token": "color.surface"
+        },
+        "stroke": {
+          "color": {
+            "token": "slo.missing"
+          },
+          "width": 1.5,
+          "dash": [
+            6,
+            4
+          ]
+        },
+        "font": {
+          "size": 11,
+          "color": {
+            "token": "color.muted"
+          }
+        }
+      },
+      "reference": {
+        "stroke": {
+          "color": {
+            "token": "color.border"
+          },
+          "width": 1.5
+        }
+      },
+      "toMissing": {
+        "stroke": {
+          "color": {
+            "token": "slo.missing"
+          },
+          "width": 1.5,
+          "dash": [
+            6,
+            4
+          ]
+        }
+      }
+    },
+    "nodes": {
+      "Service": {
+        "shape": "roundedRect",
+        "style": "service",
+        "size": {
+          "fixed": [
+            200,
+            64
+          ]
+        },
+        "labels": [
+          {
+            "id": "name",
+            "text": {
+              "cel": "has(self.displayName) && self.displayName != '' ? self.displayName : self.name"
+            },
+            "position": "center",
+            "wrap": "word",
+            "maxLines": 2,
+            "editable": "form"
+          }
+        ],
+        "conditions": [
+          {
+            "when": "self.inline",
+            "style": "inline"
+          }
+        ],
+        "badges": [
+          {
+            "id": "inline",
+            "text": "inline",
+            "visible": {
+              "cel": "self.inline"
+            },
+            "position": "top-right",
+            "style": "inline",
+            "tooltip": "Written inside the object it is joined to, not as a document of its own (research R3)."
+          }
+        ],
+        "tooltip": {
+          "cel": "has(self.description) && self.description != '' ? self.description : self.name"
+        }
+      },
+      "SLO": {
+        "shape": "roundedRect",
+        "style": "slo",
+        "size": {
+          "fixed": [
+            240,
+            96
+          ]
+        },
+        "labels": [
+          {
+            "id": "name",
+            "text": {
+              "cel": "has(self.displayName) && self.displayName != '' ? self.displayName : self.name"
+            },
+            "position": "center",
+            "wrap": "word",
+            "maxLines": 2,
+            "editable": "form"
+          },
+          {
+            "id": "window",
+            "text": {
+              "cel": "windowText(self) + ' · ' + (has(self.budgetingMethod) ? enumLabel('BudgetingMethod', self.budgetingMethod) : 'no budgeting method')"
+            },
+            "position": "bottom",
+            "style": {
+              "font": {
+                "size": 10
+              }
+            }
+          }
+        ],
+        "conditions": [
+          {
+            "when": "self.inline",
+            "style": "inline"
+          }
+        ],
+        "badges": [
+          {
+            "id": "inline",
+            "text": "inline",
+            "visible": {
+              "cel": "self.inline"
+            },
+            "position": "top-right",
+            "style": "inline",
+            "tooltip": "Written inside the object it is joined to, not as a document of its own (research R3)."
+          }
+        ],
+        "tooltip": {
+          "cel": "has(self.description) && self.description != '' ? self.description : self.name"
+        }
+      },
+      "Objective": {
+        "shape": "roundedRect",
+        "style": "objective",
+        "size": {
+          "fixed": [
+            260,
+            72
+          ]
+        },
+        "labels": [
+          {
+            "id": "target",
+            "text": {
+              "cel": "(has(self.displayName) && self.displayName != '' ? self.displayName + ': ' : '') + targetText(self) + ' over ' + windowText(self.parent)"
+            },
+            "position": "top",
+            "wrap": "word",
+            "maxLines": 2,
+            "editable": "form"
+          },
+          {
+            "id": "budget",
+            "text": {
+              "cel": "budgetText(self)"
+            },
+            "position": "bottom",
+            "wrap": "word",
+            "maxLines": 3,
+            "style": {
+              "font": {
+                "size": 10
+              }
+            }
+          }
+        ],
+        "tooltip": {
+          "cel": "budgetText(self)"
+        }
+      },
+      "SLI": {
+        "shape": "roundedRect",
+        "style": "indicator",
+        "size": {
+          "fixed": [
+            200,
+            64
+          ]
+        },
+        "labels": [
+          {
+            "id": "name",
+            "text": {
+              "cel": "has(self.displayName) && self.displayName != '' ? self.displayName : self.name"
+            },
+            "position": "center",
+            "wrap": "word",
+            "maxLines": 2,
+            "editable": "form"
+          },
+          {
+            "id": "metric",
+            "text": {
+              "cel": "has(self.metric) ? self.metric + ' metric' : ''"
+            },
+            "position": "bottom",
+            "style": {
+              "font": {
+                "size": 10
+              }
+            }
+          }
+        ],
+        "conditions": [
+          {
+            "when": "self.inline",
+            "style": "inline"
+          }
+        ],
+        "badges": [
+          {
+            "id": "inline",
+            "text": "inline",
+            "visible": {
+              "cel": "self.inline"
+            },
+            "position": "top-right",
+            "style": "inline",
+            "tooltip": "Written inside the object it is joined to, not as a document of its own (research R3)."
+          }
+        ],
+        "tooltip": {
+          "cel": "has(self.description) && self.description != '' ? self.description : self.name"
+        }
+      },
+      "DataSource": {
+        "shape": "cylinder",
+        "style": "source",
+        "size": {
+          "fixed": [
+            160,
+            72
+          ]
+        },
+        "labels": [
+          {
+            "id": "name",
+            "text": {
+              "cel": "has(self.displayName) && self.displayName != '' ? self.displayName : self.name"
+            },
+            "position": "center",
+            "wrap": "word",
+            "maxLines": 2,
+            "editable": "form"
+          },
+          {
+            "id": "type",
+            "text": {
+              "cel": "has(self.sourceType) ? self.sourceType : ''"
+            },
+            "position": "bottom",
+            "style": {
+              "font": {
+                "size": 10
+              }
+            }
+          }
+        ],
+        "conditions": [
+          {
+            "when": "self.inline",
+            "style": "inline"
+          }
+        ],
+        "badges": [
+          {
+            "id": "inline",
+            "text": "inline",
+            "visible": {
+              "cel": "self.inline"
+            },
+            "position": "top-right",
+            "style": "inline",
+            "tooltip": "Written inside the object it is joined to, not as a document of its own (research R3)."
+          }
+        ],
+        "tooltip": {
+          "cel": "has(self.description) && self.description != '' ? self.description : self.name"
+        }
+      },
+      "AlertPolicy": {
+        "shape": "roundedRect",
+        "style": "alert",
+        "size": {
+          "fixed": [
+            200,
+            64
+          ]
+        },
+        "labels": [
+          {
+            "id": "name",
+            "text": {
+              "cel": "has(self.displayName) && self.displayName != '' ? self.displayName : self.name"
+            },
+            "position": "center",
+            "wrap": "word",
+            "maxLines": 2,
+            "editable": "form"
+          }
+        ],
+        "conditions": [
+          {
+            "when": "self.inline",
+            "style": "inline"
+          }
+        ],
+        "badges": [
+          {
+            "id": "inline",
+            "text": "inline",
+            "visible": {
+              "cel": "self.inline"
+            },
+            "position": "top-right",
+            "style": "inline",
+            "tooltip": "Written inside the object it is joined to, not as a document of its own (research R3)."
+          }
+        ],
+        "tooltip": {
+          "cel": "has(self.description) && self.description != '' ? self.description : self.name"
+        }
+      },
+      "AlertCondition": {
+        "shape": "roundedRect",
+        "style": "alert",
+        "size": {
+          "fixed": [
+            200,
+            64
+          ]
+        },
+        "labels": [
+          {
+            "id": "name",
+            "text": {
+              "cel": "has(self.displayName) && self.displayName != '' ? self.displayName : self.name"
+            },
+            "position": "center",
+            "wrap": "word",
+            "maxLines": 2,
+            "editable": "form"
+          },
+          {
+            "id": "condition",
+            "text": {
+              "cel": "(has(self.conditionKind) ? self.conditionKind + ' ' : '') + (has(self.op) ? self.op + ' ' : '') + (has(self.threshold) ? string(self.threshold) : '') + (has(self.lookbackWindow) ? ' over ' + durationWords(self.lookbackWindow) : '')"
+            },
+            "position": "bottom",
+            "style": {
+              "font": {
+                "size": 10
+              }
+            }
+          }
+        ],
+        "conditions": [
+          {
+            "when": "self.inline",
+            "style": "inline"
+          }
+        ],
+        "badges": [
+          {
+            "id": "inline",
+            "text": "inline",
+            "visible": {
+              "cel": "self.inline"
+            },
+            "position": "top-right",
+            "style": "inline",
+            "tooltip": "Written inside the object it is joined to, not as a document of its own (research R3)."
+          }
+        ],
+        "tooltip": {
+          "cel": "has(self.description) && self.description != '' ? self.description : self.name"
+        }
+      },
+      "AlertNotificationTarget": {
+        "shape": "roundedRect",
+        "style": "alert",
+        "size": {
+          "fixed": [
+            180,
+            56
+          ]
+        },
+        "labels": [
+          {
+            "id": "name",
+            "text": {
+              "cel": "has(self.displayName) && self.displayName != '' ? self.displayName : self.name"
+            },
+            "position": "center",
+            "wrap": "word",
+            "maxLines": 2,
+            "editable": "form"
+          },
+          {
+            "id": "target",
+            "text": {
+              "cel": "has(self.destination) ? self.destination : ''"
+            },
+            "position": "bottom",
+            "style": {
+              "font": {
+                "size": 10
+              }
+            }
+          }
+        ],
+        "conditions": [
+          {
+            "when": "self.inline",
+            "style": "inline"
+          }
+        ],
+        "badges": [
+          {
+            "id": "inline",
+            "text": "inline",
+            "visible": {
+              "cel": "self.inline"
+            },
+            "position": "top-right",
+            "style": "inline",
+            "tooltip": "Written inside the object it is joined to, not as a document of its own (research R3)."
+          }
+        ],
+        "tooltip": {
+          "cel": "has(self.description) && self.description != '' ? self.description : self.name"
+        }
+      },
+      "Unbound": {
+        "shape": "rect",
+        "style": "missing",
+        "size": {
+          "fixed": [
+            200,
+            56
+          ]
+        },
+        "labels": [
+          {
+            "id": "kind",
+            "text": {
+              "cel": "(self.kindName != '' ? self.kindName : 'A document') + (self.apiVersion != '' ? ' (' + self.apiVersion + ')' : '') + ', kept as written'"
+            },
+            "position": "center",
+            "wrap": "word",
+            "maxLines": 2
+          }
+        ],
+        "deletable": false
+      },
+      "Missing": {
+        "shape": "roundedRect",
+        "style": "missing",
+        "size": {
+          "fixed": [
+            180,
+            56
+          ]
+        },
+        "labels": [
+          {
+            "id": "name",
+            "text": {
+              "attribute": "name"
+            },
+            "position": "center",
+            "maxLines": 1
+          },
+          {
+            "id": "note",
+            "text": {
+              "cel": "self.kindName + ', not in this file'"
+            },
+            "position": "bottom",
+            "style": {
+              "font": {
+                "size": 10
+              }
+            }
+          }
+        ],
+        "deletable": false
+      }
+    },
+    "edges": {
+      "OfService": {
+        "style": "reference",
+        "line": {
+          "routing": "rounded"
+        },
+        "targetMarker": "arrowFilled",
+        "conditions": [
+          {
+            "when": "self.target.isA('Missing')",
+            "style": "toMissing"
+          }
+        ],
+        "labels": [
+          {
+            "id": "label",
+            "text": "of",
+            "at": "middle",
+            "side": "above",
+            "distance": 4
+          }
+        ]
+      },
+      "Measures": {
+        "style": "reference",
+        "line": {
+          "routing": "rounded"
+        },
+        "targetMarker": "arrowFilled",
+        "conditions": [
+          {
+            "when": "self.target.isA('Missing')",
+            "style": "toMissing"
+          }
+        ],
+        "labels": [
+          {
+            "id": "label",
+            "text": "measures",
+            "at": "middle",
+            "side": "above",
+            "distance": 4
+          }
+        ]
+      },
+      "ReadsFrom": {
+        "style": "reference",
+        "line": {
+          "routing": "rounded"
+        },
+        "targetMarker": "arrowFilled",
+        "conditions": [
+          {
+            "when": "self.target.isA('Missing')",
+            "style": "toMissing"
+          }
+        ],
+        "labels": [
+          {
+            "id": "label",
+            "text": "reads",
+            "at": "middle",
+            "side": "above",
+            "distance": 4
+          }
+        ]
+      },
+      "AlertsWith": {
+        "style": "reference",
+        "line": {
+          "routing": "rounded"
+        },
+        "targetMarker": "arrowFilled",
+        "conditions": [
+          {
+            "when": "self.target.isA('Missing')",
+            "style": "toMissing"
+          }
+        ],
+        "labels": [
+          {
+            "id": "label",
+            "text": "alerts with",
+            "at": "middle",
+            "side": "above",
+            "distance": 4
+          }
+        ]
+      },
+      "OnCondition": {
+        "style": "reference",
+        "line": {
+          "routing": "rounded"
+        },
+        "targetMarker": "arrowFilled",
+        "conditions": [
+          {
+            "when": "self.target.isA('Missing')",
+            "style": "toMissing"
+          }
+        ],
+        "labels": [
+          {
+            "id": "label",
+            "text": "on",
+            "at": "middle",
+            "side": "above",
+            "distance": 4
+          }
+        ]
+      },
+      "Notifies": {
+        "style": "reference",
+        "line": {
+          "routing": "rounded"
+        },
+        "targetMarker": "arrowFilled",
+        "conditions": [
+          {
+            "when": "self.target.isA('Missing')",
+            "style": "toMissing"
+          }
+        ],
+        "labels": [
+          {
+            "id": "label",
+            "text": "notifies",
+            "at": "middle",
+            "side": "above",
+            "distance": 4
+          }
+        ]
+      }
+    },
+    "canvas": {
+      "empty": {
+        "text": "No OpenSLO objects yet. Add a service and an SLO from the toolbox."
+      }
+    }
+  },
+  "toolbox": {
+    "doc": "One tool per kind of document, and objectives added to an SLO from its menu. A new SLO is written with its service and an SLI referenced (User Story 2, scenario 2).",
+    "groups": [
+      {
+        "id": "objects",
+        "label": "OpenSLO",
+        "tools": [
+          {
+            "id": "service",
+            "kind": "create-node",
+            "creates": "Service",
+            "label": "Service",
+            "initial": {
+              "name": "new-service"
+            }
+          },
+          {
+            "id": "slo",
+            "kind": "operation",
+            "operation": "addSlo",
+            "label": "SLO"
+          },
+          {
+            "id": "sli",
+            "kind": "create-node",
+            "creates": "SLI",
+            "label": "SLI",
+            "initial": {
+              "name": "new-sli"
+            }
+          },
+          {
+            "id": "dataSource",
+            "kind": "create-node",
+            "creates": "DataSource",
+            "label": "Data source",
+            "initial": {
+              "name": "new-data-source"
+            }
+          },
+          {
+            "id": "alertPolicy",
+            "kind": "create-node",
+            "creates": "AlertPolicy",
+            "label": "Alert policy",
+            "initial": {
+              "name": "new-alert-policy"
+            }
+          },
+          {
+            "id": "alertCondition",
+            "kind": "create-node",
+            "creates": "AlertCondition",
+            "label": "Alert condition",
+            "initial": {
+              "name": "new-alert-condition"
+            }
+          },
+          {
+            "id": "notificationTarget",
+            "kind": "create-node",
+            "creates": "AlertNotificationTarget",
+            "label": "Notification target",
+            "initial": {
+              "name": "new-notification-target"
+            }
+          }
+        ]
+      }
+    ],
+    "contextMenus": [
+      {
+        "for": [
+          "SLO"
+        ],
+        "tools": [
+          {
+            "kind": "operation",
+            "operation": "addObjective"
+          }
+        ]
+      },
+      {
+        "for": [
+          "Service"
+        ],
+        "tools": [
+          {
+            "kind": "operation",
+            "operation": "addSloForService"
+          }
+        ]
+      }
+    ]
+  },
+  "forms": {
+    "service": {
+      "for": [
+        "Service"
+      ],
+      "items": [
+        {
+          "kind": "field",
+          "attribute": "name"
+        },
+        {
+          "kind": "field",
+          "attribute": "displayName"
+        },
+        {
+          "kind": "field",
+          "attribute": "description"
+        },
+        {
+          "kind": "findings"
+        }
+      ],
+      "doc": "A service's name and description."
+    },
+    "slo": {
+      "for": [
+        "SLO"
+      ],
+      "items": [
+        {
+          "kind": "field",
+          "attribute": "name"
+        },
+        {
+          "kind": "field",
+          "attribute": "displayName"
+        },
+        {
+          "kind": "field",
+          "attribute": "description"
+        },
+        {
+          "kind": "field",
+          "attribute": "service",
+          "options": {
+            "cel": "diagram.nodesOfType('Service').filter(n, !n.inline).map(n, n.name)"
+          }
+        },
+        {
+          "kind": "field",
+          "attribute": "indicatorRef",
+          "options": {
+            "cel": "diagram.nodesOfType('SLI').filter(n, !n.inline).map(n, n.name)"
+          }
+        },
+        {
+          "kind": "field",
+          "attribute": "duration"
+        },
+        {
+          "kind": "field",
+          "attribute": "isRolling"
+        },
+        {
+          "kind": "field",
+          "attribute": "calendarStart"
+        },
+        {
+          "kind": "field",
+          "attribute": "timeZone"
+        },
+        {
+          "kind": "field",
+          "attribute": "budgetingMethod"
+        },
+        {
+          "kind": "field",
+          "attribute": "alertPolicyRefs"
+        },
+        {
+          "kind": "findings"
+        }
+      ],
+      "doc": "User Story 2: an SLO's window, method and references in one form; its objectives each have their own."
+    },
+    "objective": {
+      "for": [
+        "Objective"
+      ],
+      "items": [
+        {
+          "kind": "field",
+          "attribute": "displayName"
+        },
+        {
+          "kind": "field",
+          "attribute": "targetRatio"
+        },
+        {
+          "kind": "field",
+          "attribute": "targetPercent"
+        },
+        {
+          "kind": "field",
+          "attribute": "op"
+        },
+        {
+          "kind": "field",
+          "attribute": "threshold"
+        },
+        {
+          "kind": "field",
+          "attribute": "timeSliceTarget"
+        },
+        {
+          "kind": "field",
+          "attribute": "timeSliceWindow"
+        },
+        {
+          "kind": "field",
+          "attribute": "indicatorRef",
+          "options": {
+            "cel": "diagram.nodesOfType('SLI').filter(n, !n.inline).map(n, n.name)"
+          }
+        },
+        {
+          "kind": "field",
+          "attribute": "compositeWeight"
+        },
+        {
+          "kind": "findings"
+        }
+      ],
+      "doc": "An objective's target, threshold and slices (User Story 2, scenario 1)."
+    },
+    "sli": {
+      "for": [
+        "SLI"
+      ],
+      "items": [
+        {
+          "kind": "field",
+          "attribute": "name"
+        },
+        {
+          "kind": "field",
+          "attribute": "displayName"
+        },
+        {
+          "kind": "field",
+          "attribute": "description"
+        },
+        {
+          "kind": "field",
+          "attribute": "metric"
+        },
+        {
+          "kind": "field",
+          "attribute": "sourceRefs"
+        },
+        {
+          "kind": "field",
+          "attribute": "sourceTypes"
+        },
+        {
+          "kind": "findings"
+        }
+      ],
+      "doc": "An SLI's names; its metric's query is the data source's own and is edited as text."
+    },
+    "dataSource": {
+      "for": [
+        "DataSource"
+      ],
+      "items": [
+        {
+          "kind": "field",
+          "attribute": "name"
+        },
+        {
+          "kind": "field",
+          "attribute": "displayName"
+        },
+        {
+          "kind": "field",
+          "attribute": "description"
+        },
+        {
+          "kind": "field",
+          "attribute": "sourceType"
+        },
+        {
+          "kind": "findings"
+        }
+      ]
+    },
+    "alertPolicy": {
+      "for": [
+        "AlertPolicy"
+      ],
+      "items": [
+        {
+          "kind": "field",
+          "attribute": "name"
+        },
+        {
+          "kind": "field",
+          "attribute": "displayName"
+        },
+        {
+          "kind": "field",
+          "attribute": "description"
+        },
+        {
+          "kind": "field",
+          "attribute": "alertWhenNoData"
+        },
+        {
+          "kind": "field",
+          "attribute": "alertWhenResolved"
+        },
+        {
+          "kind": "field",
+          "attribute": "alertWhenBreaching"
+        },
+        {
+          "kind": "field",
+          "attribute": "conditionRefs"
+        },
+        {
+          "kind": "field",
+          "attribute": "targetRefs"
+        },
+        {
+          "kind": "findings"
+        }
+      ]
+    },
+    "alertCondition": {
+      "for": [
+        "AlertCondition"
+      ],
+      "items": [
+        {
+          "kind": "field",
+          "attribute": "name"
+        },
+        {
+          "kind": "field",
+          "attribute": "displayName"
+        },
+        {
+          "kind": "field",
+          "attribute": "description"
+        },
+        {
+          "kind": "field",
+          "attribute": "severity"
+        },
+        {
+          "kind": "field",
+          "attribute": "conditionKind"
+        },
+        {
+          "kind": "field",
+          "attribute": "op"
+        },
+        {
+          "kind": "field",
+          "attribute": "threshold"
+        },
+        {
+          "kind": "field",
+          "attribute": "lookbackWindow"
+        },
+        {
+          "kind": "field",
+          "attribute": "alertAfter"
+        },
+        {
+          "kind": "findings"
+        }
+      ]
+    },
+    "notificationTarget": {
+      "for": [
+        "AlertNotificationTarget"
+      ],
+      "items": [
+        {
+          "kind": "field",
+          "attribute": "name"
+        },
+        {
+          "kind": "field",
+          "attribute": "displayName"
+        },
+        {
+          "kind": "field",
+          "attribute": "description"
+        },
+        {
+          "kind": "field",
+          "attribute": "destination"
+        },
+        {
+          "kind": "findings"
+        }
+      ]
+    }
+  },
+  "constraints": {
+    "doc": "The findings of User Story 3 (FR-005), each with its code and sentence. A file that breaks a rule still opens and draws: a finding never refuses, so nothing anyone wrote is lost.",
+    "blockSaveOn": "never",
+    "rules": [
+      {
+        "id": "missingReference",
+        "code": "openslo.missing-reference",
+        "label": "Reference not in the file",
+        "severity": "info",
+        "scope": [
+          "SLO",
+          "Objective",
+          "SLI",
+          "AlertPolicy"
+        ],
+        "rule": "unresolved(self).size() == 0",
+        "message": {
+          "cel": "cel.bind(r, unresolved(self)[0], 'The ' + r[0] + ' \"' + r[1] + '\" is not in this file' + (unresolved(self).size() > 1 ? ', nor ' + string(unresolved(self).size() - 1) + ' more' : '') + '; it is drawn as a placeholder.')"
+        },
+        "doc": "A reference that names no object of its kind in the reading. Info in a bare file, where the object may well be in another file; a folder reading draws it in full (research R4; openslo-slo.md, Gaps)."
+      },
+      {
+        "id": "noAlerting",
+        "code": "openslo.no-alerting",
+        "label": "No alert policy",
+        "severity": "info",
+        "scope": [
+          "SLO"
+        ],
+        "rule": "self.alertPolicyRefs.size() > 0 || self.childrenOfType('AlertPolicy').size() > 0",
+        "message": {
+          "cel": "'The SLO \"' + self.name + '\" has no alert policy; nobody is told when its budget burns.'"
+        }
+      },
+      {
+        "id": "targetRange",
+        "code": "openslo.target-range",
+        "label": "Target out of range",
+        "severity": "error",
+        "scope": [
+          "Objective"
+        ],
+        "rule": "(!has(self.targetRatio) || (self.targetRatio >= 0.0 && self.targetRatio < 1.0)) && (!has(self.targetPercent) || (self.targetPercent >= 0.0 && self.targetPercent < 100.0))",
+        "message": {
+          "cel": "'The target ' + (has(self.targetRatio) ? string(self.targetRatio) : string(self.targetPercent) + ' %') + ' is outside what OpenSLO allows: target from 0 up to 1, targetPercent from 0 up to 100.'"
+        }
+      },
+      {
+        "id": "targetTwice",
+        "code": "openslo.target-twice",
+        "label": "Target written twice or not at all",
+        "severity": "error",
+        "scope": [
+          "Objective"
+        ],
+        "rule": "has(self.targetRatio) != has(self.targetPercent)",
+        "message": {
+          "cel": "has(self.targetRatio) ? 'The objective has both target and targetPercent; write one of them.' : 'The objective has no target; write target or targetPercent.'"
+        }
+      },
+      {
+        "id": "indicatorTwice",
+        "code": "openslo.indicator-twice",
+        "label": "Indicator written twice or not at all",
+        "severity": "error",
+        "scope": [
+          "SLO"
+        ],
+        "rule": "(has(self.indicatorRef) && self.indicatorRef != '') != self.hasIndicator || (!self.hasIndicator && !(has(self.indicatorRef) && self.indicatorRef != '') && self.childrenOfType('Objective').all(o, has(o.indicatorRef) && o.indicatorRef != ''))",
+        "message": {
+          "cel": "self.hasIndicator ? 'The SLO has both an inline indicator and indicatorRef; write one of them.' : 'The SLO has no indicator; write indicatorRef or an inline indicator.'"
+        },
+        "doc": "One of indicator and indicatorRef, unless every objective names its own SLI, as a composite SLO does."
+      },
+      {
+        "id": "windowCount",
+        "code": "openslo.window-count",
+        "label": "More than one time window",
+        "severity": "warning",
+        "scope": [
+          "SLO"
+        ],
+        "rule": "self.windowCount <= 1",
+        "message": {
+          "cel": "'The SLO has ' + string(self.windowCount) + ' time windows; OpenSLO allows one, and the diagram reads the first.'"
+        }
+      },
+      {
+        "id": "timesliceFields",
+        "code": "openslo.timeslice-fields",
+        "label": "Slice target or window missing",
+        "severity": "error",
+        "scope": [
+          "Objective"
+        ],
+        "rule": "self.parent.budgetingMethod != 'Timeslices' || (has(self.timeSliceTarget) && has(self.timeSliceWindow))",
+        "message": {
+          "cel": "'A Timeslices objective needs timeSliceTarget and timeSliceWindow; this one lacks ' + (has(self.timeSliceTarget) ? 'timeSliceWindow' : has(self.timeSliceWindow) ? 'timeSliceTarget' : 'both') + '.'"
+        }
+      },
+      {
+        "id": "conflictingWindows",
+        "code": "openslo.conflicting-windows",
+        "label": "SLOs on one SLI with different windows",
+        "severity": "warning",
+        "scope": [
+          "SLI"
+        ],
+        "rule": "diagram.relationsOfType('Measures').filter(m, m.target == self && m.source.isA('SLO') && has(m.source.duration)).map(m, m.source.duration + (m.source.isRolling ? ' rolling' : '')).distinct().size() <= 1",
+        "message": {
+          "cel": "'The SLI \"' + self.name + '\" is measured by SLOs with different windows: ' + diagram.relationsOfType('Measures').filter(m, m.target == self && m.source.isA('SLO') && has(m.source.duration)).map(m, m.source.name + ' ' + windowText(m.source)).join(', ') + '.'"
+        }
+      },
+      {
+        "id": "unknownKind",
+        "code": "openslo.unknown-kind",
+        "label": "Document not drawn",
+        "severity": "info",
+        "scope": [
+          "Unbound"
+        ],
+        "rule": "isOtherVersion(self)",
+        "message": {
+          "cel": "'A document of kind \"' + (self.kindName != '' ? self.kindName : 'none') + '\" is not drawn; it is kept as written and listed.'"
+        }
+      },
+      {
+        "id": "version",
+        "code": "openslo.version",
+        "label": "Another OpenSLO version",
+        "severity": "warning",
+        "scope": [
+          "Unbound"
+        ],
+        "rule": "!isOtherVersion(self)",
+        "message": {
+          "cel": "'A document of ' + self.apiVersion + ' is kept as written and not drawn; this diagram reads openslo/v1. Edit this file in a tool for that version.'"
+        },
+        "doc": "Research R7. DISL and FBL cannot make a reading read-only on a condition, so the documents of openslo/v1 stay editable and this one is never touched (openslo-slo.md, Gaps)."
+      },
+      {
+        "id": "name",
+        "code": "openslo.name",
+        "label": "Name is not an RFC 1123 label",
+        "severity": "error",
+        "scope": [
+          "Service",
+          "SLO",
+          "SLI",
+          "DataSource",
+          "AlertPolicy",
+          "AlertCondition",
+          "AlertNotificationTarget"
+        ],
+        "rule": "isName(self.name)",
+        "message": {
+          "cel": "'\"' + self.name + '\" is not a valid OpenSLO name: at most 63 lower-case letters, digits and hyphens, starting and ending with a letter or a digit.'"
+        },
+        "attribute": "name"
+      }
+    ]
+  },
+  "behavior": {
+    "doc": "Every edit is one undoable step. A new SLO is written with its service and an SLI referenced; deleting an object others refer to asks first and names them (User Story 2).",
+    "operations": {
+      "addSlo": {
+        "label": "SLO",
+        "icon": "mdi-target",
+        "for": "diagram",
+        "actions": [
+          {
+            "let": {
+              "service": "diagram.nodesOfType('Service').filter(n, !n.inline).map(n, n.name).first().orValue('')",
+              "sli": "diagram.nodesOfType('SLI').filter(n, !n.inline).map(n, n.name).first().orValue('')"
+            }
+          },
+          {
+            "create": {
+              "type": "'SLO'",
+              "attributes": {
+                "name": "'new-slo'",
+                "service": "service",
+                "indicatorRef": "sli",
+                "budgetingMethod": "'Occurrences'"
+              }
+            },
+            "as": "slo"
+          },
+          {
+            "create": {
+              "type": "'Objective'",
+              "parent": "slo",
+              "slot": "'objectives'",
+              "attributes": {
+                "displayName": "'Objective'",
+                "targetRatio": "0.99"
+              }
+            }
+          }
+        ],
+        "doc": "User Story 2, scenario 2: a new SLO document with the first service and the first SLI of the file referenced, a 28-day rolling window, the Occurrences method and one objective of 99 %. Without a service or an SLI the reference is left empty and openslo.missing-reference says so."
+      },
+      "addSloForService": {
+        "label": "Add an SLO",
+        "icon": "mdi-target",
+        "for": [
+          "Service"
+        ],
+        "actions": [
+          {
+            "let": {
+              "sli": "diagram.nodesOfType('SLI').filter(n, !n.inline).map(n, n.name).first().orValue('')"
+            }
+          },
+          {
+            "create": {
+              "type": "'SLO'",
+              "attributes": {
+                "name": "self.name + '-slo'",
+                "service": "self.name",
+                "indicatorRef": "sli",
+                "budgetingMethod": "'Occurrences'"
+              }
+            },
+            "as": "slo"
+          },
+          {
+            "create": {
+              "type": "'Objective'",
+              "parent": "slo",
+              "slot": "'objectives'",
+              "attributes": {
+                "displayName": "'Objective'",
+                "targetRatio": "0.99"
+              }
+            }
+          }
+        ],
+        "doc": "The same, for the service it is invoked on."
+      },
+      "addObjective": {
+        "label": "Add an objective",
+        "icon": "mdi-bullseye-arrow",
+        "for": [
+          "SLO"
+        ],
+        "actions": [
+          {
+            "create": {
+              "type": "'Objective'",
+              "parent": "self",
+              "slot": "'objectives'",
+              "attributes": {
+                "displayName": "'Objective ' + string(self.childrenOfType('Objective').size() + 1)",
+                "targetRatio": "0.99"
+              }
+            }
+          }
+        ],
+        "doc": "A new entry at the end of spec.objectives."
+      }
+    },
+    "deletion": {
+      "Service": {
+        "children": "delete",
+        "relations": "delete",
+        "confirm": {
+          "message": {
+            "cel": "'Delete \"' + self.name + '\"? ' + string(diagram.nodes.filter(n, !n.derived && references(n).exists(r, r[0] == 'Service' && r[1] == self.name)).size()) + ' object(s) refer to it: ' + diagram.nodes.filter(n, !n.derived && references(n).exists(r, r[0] == 'Service' && r[1] == self.name)).map(n, n.name).join(', ') + '. Their references stay and will point at nothing.'"
+          },
+          "when": "!self.inline && diagram.nodes.exists(n, !n.derived && references(n).exists(r, r[0] == 'Service' && r[1] == self.name))",
+          "danger": true
+        }
+      },
+      "SLI": {
+        "children": "delete",
+        "relations": "delete",
+        "confirm": {
+          "message": {
+            "cel": "'Delete \"' + self.name + '\"? ' + string(diagram.nodes.filter(n, !n.derived && references(n).exists(r, r[0] == 'SLI' && r[1] == self.name)).size()) + ' object(s) refer to it: ' + diagram.nodes.filter(n, !n.derived && references(n).exists(r, r[0] == 'SLI' && r[1] == self.name)).map(n, n.name).join(', ') + '. Their references stay and will point at nothing.'"
+          },
+          "when": "!self.inline && diagram.nodes.exists(n, !n.derived && references(n).exists(r, r[0] == 'SLI' && r[1] == self.name))",
+          "danger": true
+        }
+      },
+      "DataSource": {
+        "children": "delete",
+        "relations": "delete",
+        "confirm": {
+          "message": {
+            "cel": "'Delete \"' + self.name + '\"? ' + string(diagram.nodes.filter(n, !n.derived && references(n).exists(r, r[0] == 'DataSource' && r[1] == self.name)).size()) + ' object(s) refer to it: ' + diagram.nodes.filter(n, !n.derived && references(n).exists(r, r[0] == 'DataSource' && r[1] == self.name)).map(n, n.name).join(', ') + '. Their references stay and will point at nothing.'"
+          },
+          "when": "!self.inline && diagram.nodes.exists(n, !n.derived && references(n).exists(r, r[0] == 'DataSource' && r[1] == self.name))",
+          "danger": true
+        }
+      },
+      "AlertPolicy": {
+        "children": "delete",
+        "relations": "delete",
+        "confirm": {
+          "message": {
+            "cel": "'Delete \"' + self.name + '\"? ' + string(diagram.nodes.filter(n, !n.derived && references(n).exists(r, r[0] == 'AlertPolicy' && r[1] == self.name)).size()) + ' object(s) refer to it: ' + diagram.nodes.filter(n, !n.derived && references(n).exists(r, r[0] == 'AlertPolicy' && r[1] == self.name)).map(n, n.name).join(', ') + '. Their references stay and will point at nothing.'"
+          },
+          "when": "!self.inline && diagram.nodes.exists(n, !n.derived && references(n).exists(r, r[0] == 'AlertPolicy' && r[1] == self.name))",
+          "danger": true
+        }
+      },
+      "AlertCondition": {
+        "children": "delete",
+        "relations": "delete",
+        "confirm": {
+          "message": {
+            "cel": "'Delete \"' + self.name + '\"? ' + string(diagram.nodes.filter(n, !n.derived && references(n).exists(r, r[0] == 'AlertCondition' && r[1] == self.name)).size()) + ' object(s) refer to it: ' + diagram.nodes.filter(n, !n.derived && references(n).exists(r, r[0] == 'AlertCondition' && r[1] == self.name)).map(n, n.name).join(', ') + '. Their references stay and will point at nothing.'"
+          },
+          "when": "!self.inline && diagram.nodes.exists(n, !n.derived && references(n).exists(r, r[0] == 'AlertCondition' && r[1] == self.name))",
+          "danger": true
+        }
+      },
+      "AlertNotificationTarget": {
+        "children": "delete",
+        "relations": "delete",
+        "confirm": {
+          "message": {
+            "cel": "'Delete \"' + self.name + '\"? ' + string(diagram.nodes.filter(n, !n.derived && references(n).exists(r, r[0] == 'AlertNotificationTarget' && r[1] == self.name)).size()) + ' object(s) refer to it: ' + diagram.nodes.filter(n, !n.derived && references(n).exists(r, r[0] == 'AlertNotificationTarget' && r[1] == self.name)).map(n, n.name).join(', ') + '. Their references stay and will point at nothing.'"
+          },
+          "when": "!self.inline && diagram.nodes.exists(n, !n.derived && references(n).exists(r, r[0] == 'AlertNotificationTarget' && r[1] == self.name))",
+          "danger": true
+        }
+      }
+    }
+  },
+  "layout": {
+    "doc": "Research R8: the force layout in tiers, the service in the middle, then its SLOs, then their objectives and SLIs, the data sources outermost, and the alerting on the ring of the SLOs. A position a user pins is kept in the registration's layout block (FBL 8.3), never in the OpenSLO file (FR-008).",
+    "algorithms": {
+      "tiers": {
+        "algorithm": "force",
+        "force": {
+          "tiers": [
+            "Service",
+            [
+              "SLO",
+              "AlertPolicy",
+              "Missing"
+            ],
+            [
+              "Objective",
+              "SLI",
+              "AlertCondition",
+              "AlertNotificationTarget"
+            ],
+            [
+              "DataSource",
+              "Unbound"
+            ]
+          ],
+          "gap": 28
+        },
+        "doc": "openslo-slo.md, Layout, gives the reference algorithm."
+      }
+    },
+    "default": "tiers",
+    "trigger": "onChange",
+    "respect": "pinned",
+    "animate": {
+      "durationMs": 250
+    }
+  },
+  "viewpoints": {
+    "objectives": {
+      "label": "Objectives",
+      "default": true,
+      "doc": "Every kind is drawn."
+    }
+  },
+  "persistence": {
+    "format": "fbl",
+    "binding": "openslo-slo.fbl#openslo",
+    "ids": {
+      "strategy": "derived",
+      "expression": "self.type + ':' + self.name",
+      "pattern": "^.+$",
+      "doc": "An OpenSLO name is unique within its kind, not across kinds (a Service and an SLI are often named alike), so an id is the kind and the name; an inline object's id adds it to its owner's, and an objective's is its owner's with its position (research R3). Pinned positions are keyed by these ids in the registration.",
+      "types": {
+        "Service": {
+          "strategy": "derived",
+          "expression": "self.inline && self.parent != null ? self.parent.id + '/Service:' + self.name : 'Service:' + self.name"
+        },
+        "SLO": {
+          "strategy": "derived",
+          "expression": "self.inline && self.parent != null ? self.parent.id + '/SLO:' + self.name : 'SLO:' + self.name"
+        },
+        "SLI": {
+          "strategy": "derived",
+          "expression": "self.inline && self.parent != null ? self.parent.id + '/SLI:' + self.name : 'SLI:' + self.name"
+        },
+        "DataSource": {
+          "strategy": "derived",
+          "expression": "self.inline && self.parent != null ? self.parent.id + '/DataSource:' + self.name : 'DataSource:' + self.name"
+        },
+        "AlertPolicy": {
+          "strategy": "derived",
+          "expression": "self.inline && self.parent != null ? self.parent.id + '/AlertPolicy:' + self.name : 'AlertPolicy:' + self.name"
+        },
+        "AlertCondition": {
+          "strategy": "derived",
+          "expression": "self.inline && self.parent != null ? self.parent.id + '/AlertCondition:' + self.name : 'AlertCondition:' + self.name"
+        },
+        "AlertNotificationTarget": {
+          "strategy": "derived",
+          "expression": "self.inline && self.parent != null ? self.parent.id + '/AlertNotificationTarget:' + self.name : 'AlertNotificationTarget:' + self.name"
+        },
+        "Objective": {
+          "strategy": "derived",
+          "expression": "self.parent.id + '/objective:' + string(self.positionIn(self.parent.childrenOfType('Objective')) + 1)"
+        },
+        "Unbound": {
+          "strategy": "derived",
+          "expression": "'document@' + string(self.line)",
+          "ephemeral": true,
+          "reason": "A document the diagram does not draw is known only by the line it starts on, which an edit above it changes."
+        }
+      }
+    },
+    "typeMap": {
+      "Service": {
+        "as": "Service"
+      },
+      "SLO": {
+        "as": "SLO"
+      },
+      "SLI": {
+        "as": "SLI"
+      },
+      "DataSource": {
+        "as": "DataSource"
+      },
+      "AlertPolicy": {
+        "as": "AlertPolicy"
+      },
+      "AlertCondition": {
+        "as": "AlertCondition"
+      },
+      "AlertNotificationTarget": {
+        "as": "AlertNotificationTarget",
+        "attributes": {
+          "target": "destination"
+        },
+        "doc": "spec.target is the attribute destination, since DISL reserves target."
+      },
+      "Unbound": {
+        "as": "Unbound"
+      },
+      "Objective": {
+        "as": "Objective",
+        "attributes": {
+          "target": "targetRatio",
+          "value": "threshold"
+        },
+        "doc": "DISL reserves target and value (DISL 2.2), so the objective's target and value keys are the attributes targetRatio and threshold (research R11)."
+      }
+    },
+    "view": {
+      "store": [
+        "bounds"
+      ],
+      "viewer": [
+        "selection",
+        "viewport"
+      ],
+      "styleOverrides": "none",
+      "doc": "Only the positions a user pins are stored, in the registration's layout block (FBL 8.3), never in the OpenSLO file (FR-008, research R8)."
+    },
+    "doc": "OpenSLO's own YAML, openslo/v1, read and written through openslo-slo.fbl#openslo with byte-preserving splices, every document of a stream bound (FBL 0.22). A folder is read through openslo-slo.fbl#folder from a registration whose body is the folder."
+  },
+  "x-adp": {
+    "kind": "Diagram",
+    "companion": "openslo-slo.md"
+  }
+}

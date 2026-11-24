@@ -42,14 +42,12 @@ coordinates {
   default canvas
 }
 
-/// The look is the host's shared canvas theme in its light and dark values; this type adds only the arrowhead and the
-/// loop a dependency draws when it points backwards. The dark values are the standalone host's dark surface and text,
-/// and for a node's outline the dark border the other notations give one, since the dark theme's own border all but
-/// vanishes on the dark surface.
+/// The look is the host's shared canvas theme in its light and dark values, as the standalone host draws it (its
+/// `index.css`); this type adds only the arrowhead and the loop a dependency draws when it points backwards.
 notation {
   theme {
-    tokens: { color.surface: "#FFFFFF", color.border: "#8892A6", color.text: "#1C2333", color.text.muted: "#5A6376" }
-    modes: { dark: { color.surface: "#1E293B", color.border: "#64748B", color.text: "#F1F5F9", color.text.muted: "#94A3B8" } }
+    tokens: { color.surface: "#FFFFFF", color.border: "#E2E8F0", color.text: "#0F172A", color.text.muted: "#64748B" }
+    modes: { dark: { color.surface: "#1E293B", color.border: "#334155", color.text: "#F1F5F9", color.text.muted: "#94A3B8" } }
     defaultMode: light
     followSystem: true
   }
@@ -61,7 +59,10 @@ notation {
     textAlign: center
     verticalAlign: middle
   }
-  style dependency { stroke: { color: $color.text.muted, width: 1.5 } }
+  style dependency {
+    stroke: { color: $color.text.muted, width: 1.5 }
+    font: { size: 11, color: $color.text.muted }
+  }
 
   node Node {
     shape: { type: roundedRect, params: { radius: 6 } }
@@ -202,6 +203,17 @@ form node for Node {
   }
 }
 
+/// The label a node added with no point is asked for; left empty, the node is called "New node".
+form addNode "Add node" {
+  icon: mdi-plus
+  usage: [popover]
+  submitLabel: "Add"
+  field label "Label" {
+    widget: text
+    initial: ('New node')
+  }
+}
+
 form dependency for DependsOn {
   usage: [inspector]
   section {
@@ -210,13 +222,13 @@ form dependency for DependsOn {
     /// The dependent, by the id the file names, whether or not a node holds it.
     item from "Depends on (from)" {
       kind: computed
-      value: (self.source.id)
+      value: (writtenEnd(self, 'source'))
       readOnlyReasons: ["Reconnecting is done on the canvas, by dragging the dependency's end to another node."]
     }
     /// The dependency, by the id the file names, whether or not a node holds it.
     item to "Depended on (to)" {
       kind: computed
-      value: (self.target.id)
+      value: (writtenEnd(self, 'target'))
       readOnlyReasons: ["Reconnecting is done on the canvas, by dragging the dependency's end to another node."]
     }
   }

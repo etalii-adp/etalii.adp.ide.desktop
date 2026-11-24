@@ -1,0 +1,53 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A Kubernetes ConfigMap stands in the stream: a document the diagram does not draw, listed as Unbound with openslo.unknown-kind, info, kept as written and never edited. The findings are the definition's (openslo-slo.dis, constraints), stated with their element and severity for a host to replay; FBL itself reports nothing on this stream, and the validator's reading check compares the elements.",
+  "binding": "../../../../../definitions/diagrams/openslo-slo.fbl#openslo",
+  "input": "stream.yaml",
+  "read": {
+    "elements": [
+      {
+        "id": "Service:checkout",
+        "type": "Service"
+      },
+      {
+        "id": "SLO:checkout-availability",
+        "type": "SLO"
+      },
+      {
+        "id": "SLO:checkout-availability/SLI:checkout-errors",
+        "type": "SLI",
+        "parent": "SLO:checkout-availability"
+      },
+      {
+        "id": "SLO:checkout-availability/objective:1",
+        "type": "Objective",
+        "parent": "SLO:checkout-availability"
+      },
+      {
+        "id": "AlertPolicy:page-on-call",
+        "type": "AlertPolicy"
+      },
+      {
+        "id": "AlertCondition:fast-burn",
+        "type": "AlertCondition"
+      },
+      {
+        "id": "AlertNotificationTarget:on-call",
+        "type": "AlertNotificationTarget"
+      },
+      {
+        "id": "document@68",
+        "type": "Unbound"
+      }
+    ],
+    "findings": [
+      {
+        "rule": "openslo.unknown-kind",
+        "line": 68,
+        "x-severity": "info",
+        "x-element": "document@68"
+      }
+    ]
+  },
+  "steps": []
+}

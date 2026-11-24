@@ -1,0 +1,53 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "OpenSLO's examples/budgeting-method/occurences-slo.yaml, byte for byte, vendored in definitions/diagrams/vendored/openslo/ with OpenSLO's licence: one SLO with an inline SLI on a threshold metric and the Occurrences budgeting method. Its alertPolicies key has no value, which reads as no alert policy; its service, web-shop, has no Service document in the file, so the diagram shows it as missing (User Story 3).",
+  "binding": "../../../../../definitions/diagrams/openslo-slo.fbl#openslo",
+  "input": "../../../../../definitions/diagrams/vendored/openslo/examples/budgeting-method/occurences-slo.yaml",
+  "read": {
+    "elements": [
+      {
+        "id": "SLO:search-slo",
+        "type": "SLO",
+        "attributes": {
+          "name": "search-slo",
+          "displayName": "Searching time",
+          "description": "Regardless of the number of paraller searches it never should be more than 500ms.",
+          "service": "web-shop",
+          "alertPolicyRefs": [],
+          "duration": "2w",
+          "isRolling": true,
+          "windowCount": 1,
+          "budgetingMethod": "Occurrences",
+          "hasIndicator": true
+        }
+      },
+      {
+        "id": "SLO:search-slo/SLI:search-latency",
+        "type": "SLI",
+        "parent": "SLO:search-slo",
+        "attributes": {
+          "name": "search-latency",
+          "displayName": "Latency of user searches",
+          "metric": "threshold",
+          "sourceRefs": [],
+          "sourceTypes": [
+            "Any"
+          ],
+          "inline": true
+        }
+      },
+      {
+        "id": "SLO:search-slo/objective:1",
+        "type": "Objective",
+        "parent": "SLO:search-slo",
+        "attributes": {
+          "displayName": "Good experience",
+          "op": "lt",
+          "value": 500,
+          "target": 0.99
+        }
+      }
+    ]
+  },
+  "steps": []
+}

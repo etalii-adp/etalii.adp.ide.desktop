@@ -1,0 +1,267 @@
+atd 0.1
+part of generic/value-stream-map
+
+// The value stream map's .vsm body, in a part of its own (ATD 5.2, 11).
+
+/// The file of the value stream map (value-stream-map.dis, value-stream-map.md): ADP's own YAML, written by people,
+/// agents and ADP. The stream's name, unit and vocabularies at the root; under current and an optional future, each
+/// state's trigger, steps, outcome and flows. Every element of a state is read by a rule of its own state, which
+/// writes the attribute state (research R2). A flow with share is an alternative and one with rework is rework; one
+/// with both is read by no rule and kept as written, and the file schema refuses it. The user's part is view.state,
+/// the shown state.
+binding vsm family yaml {
+  label "Value stream map"
+  claims { extensions: [".vsm"], origins: ["generic/value-stream-map"] }
+  text { newline: "lf", indent: 2, sequenceIndent: "indented", finalNewline: true, quote: "double" }
+  registration { createOnFirstPlacement: false }
+
+  /// The root mapping: the stream's name and unit, and the shown state under view. Setting the shown state in a file
+  /// without view creates view at the end of the file with state as its only key (FBL 0.4, section 5.2).
+  element Diagram as diagram at "/" {
+    attribute name from key "name" { empty: "refuse" }
+    attribute unit from key "unit" { default: "hours", empty: "remove" }
+    attribute shownState from key "state" { child: "view", default: "current", create: { at: "end" } }
+    attribute unknownKeys from value (entry.filter(k, !(k in ['name', 'unit', 'activities', 'practices', 'current', 'future', 'view'])) + (has(entry.view) && type(entry.view) == map ? entry.view.filter(k, k != 'state').map(k, 'view.' + k) : []))
+  }
+
+  /// An entry of the activity vocabulary: a name and an optional colour.
+  element Activity as activity at "/activities/*" {
+    when type(entry) == map
+    attribute name from key "name" { empty: "refuse" }
+    attribute color from key "color" { empty: "remove" }
+    insert {
+      place: "after-last"
+      container: "/activities"
+      create: { at: { before: "current" } }
+      keys: ["name", "color"]
+    }
+    remove { container: "keep" }
+  }
+
+  /// An entry of the practice list: a name.
+  element Practice as practice at "/practices/*" {
+    when type(entry) == map
+    attribute name from key "name" { empty: "refuse" }
+    insert {
+      place: "after-last"
+      container: "/practices"
+      create: { at: { before: "current" } }
+      keys: ["name"]
+    }
+    remove { container: "keep" }
+  }
+
+  /// The trigger of the current state: the mapping under current.trigger.
+  element Trigger as currentTrigger at "/current/{role}" {
+    when path.role == 'trigger' && type(entry) == map
+    id from key "id"
+    attribute role from capture "role" { readOnly: "A trigger is always written under the key trigger." }
+    attribute name from key "name" { empty: "refuse" }
+    attribute state from value ('current')
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'name', 'basedOn'])))
+    insert {
+      place: "start"
+      container: "/current"
+      create: { at: "end" }
+      keys: ["id", "name"]
+      refusals: { duplicate: "The current state already has a trigger; a stream starts once." }
+      when: (!has(attributes.state) || attributes.state == 'current')
+    }
+    remove { cascade: ["currentFlow", "currentAlternative", "currentRework"], container: "keep" }
+  }
+
+  /// The outcome of the current state: the mapping under current.outcome.
+  element Outcome as currentOutcome at "/current/{role}" {
+    when path.role == 'outcome' && type(entry) == map
+    id from key "id"
+    attribute role from capture "role" { readOnly: "An outcome is always written under the key outcome." }
+    attribute name from key "name" { empty: "refuse" }
+    attribute state from value ('current')
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'name', 'basedOn'])))
+    insert {
+      place: "end"
+      container: "/current"
+      create: { at: "end" }
+      keys: ["id", "name"]
+      refusals: { duplicate: "The current state already has a outcome; a stream ends once." }
+      when: (!has(attributes.state) || attributes.state == 'current')
+    }
+    remove { cascade: ["currentFlow", "currentAlternative", "currentRework"], container: "keep" }
+  }
+
+  /// A step of the current state: an entry of current.steps.
+  element Step as currentStep at "/current/steps/*" {
+    when type(entry) == map
+    id from key "id"
+    attribute name from key "name" { empty: "refuse" }
+    attribute activity from key "activity" { empty: "remove" }
+    attribute practices from key "practices" { empty: "remove", style: "flow" }
+    attribute performer from key "performer" { empty: "remove" }
+    attribute processTime from key "processTime" { read: "text", empty: "remove" }
+    attribute waitTime from key "waitTime" { read: "text", empty: "remove" }
+    attribute note from key "note" { empty: "remove" }
+    attribute state from value ('current')
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'name', 'activity', 'practices', 'performer', 'processTime', 'waitTime', 'note', 'basedOn'])))
+    insert {
+      place: "after-last"
+      container: "/current/steps"
+      create: { at: "end" }
+      keys: ["id", "name", "activity", "practices", "performer", "processTime", "waitTime", "note"]
+      when: (!has(attributes.state) || attributes.state == 'current')
+    }
+    remove { cascade: ["currentFlow", "currentAlternative", "currentRework"], container: "keep" }
+  }
+
+  /// The trigger of the future state: the mapping under future.trigger.
+  element Trigger as futureTrigger at "/future/{role}" {
+    when path.role == 'trigger' && type(entry) == map
+    id from key "id"
+    attribute role from capture "role" { readOnly: "A trigger is always written under the key trigger." }
+    attribute name from key "name" { empty: "refuse" }
+    attribute basedOn from key "basedOn" {
+      empty: "remove"
+      readOnly: "basedOn is written by Create future state and names the current element a future one was copied from."
+    }
+    attribute state from value ('future')
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'name', 'basedOn'])))
+    insert {
+      place: "start"
+      container: "/future"
+      create: { at: "end" }
+      keys: ["id", "name", "basedOn"]
+      refusals: { duplicate: "The future state already has a trigger; a stream starts once." }
+      when: (!has(attributes.state) || attributes.state == 'future')
+    }
+    remove { cascade: ["futureFlow", "futureAlternative", "futureRework"], container: "keep" }
+  }
+
+  /// The outcome of the future state: the mapping under future.outcome.
+  element Outcome as futureOutcome at "/future/{role}" {
+    when path.role == 'outcome' && type(entry) == map
+    id from key "id"
+    attribute role from capture "role" { readOnly: "An outcome is always written under the key outcome." }
+    attribute name from key "name" { empty: "refuse" }
+    attribute basedOn from key "basedOn" {
+      empty: "remove"
+      readOnly: "basedOn is written by Create future state and names the current element a future one was copied from."
+    }
+    attribute state from value ('future')
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'name', 'basedOn'])))
+    insert {
+      place: "end"
+      container: "/future"
+      create: { at: "end" }
+      keys: ["id", "name", "basedOn"]
+      refusals: { duplicate: "The future state already has a outcome; a stream ends once." }
+      when: (!has(attributes.state) || attributes.state == 'future')
+    }
+    remove { cascade: ["futureFlow", "futureAlternative", "futureRework"], container: "keep" }
+  }
+
+  /// A step of the future state: an entry of future.steps.
+  element Step as futureStep at "/future/steps/*" {
+    when type(entry) == map
+    id from key "id"
+    attribute name from key "name" { empty: "refuse" }
+    attribute activity from key "activity" { empty: "remove" }
+    attribute practices from key "practices" { empty: "remove", style: "flow" }
+    attribute performer from key "performer" { empty: "remove" }
+    attribute processTime from key "processTime" { read: "text", empty: "remove" }
+    attribute waitTime from key "waitTime" { read: "text", empty: "remove" }
+    attribute note from key "note" { empty: "remove" }
+    attribute basedOn from key "basedOn" {
+      empty: "remove"
+      readOnly: "basedOn is written by Create future state and names the current element a future one was copied from."
+    }
+    attribute state from value ('future')
+    attribute unknownKeys from value (entry.filter(k, !(k in ['id', 'name', 'activity', 'practices', 'performer', 'processTime', 'waitTime', 'note', 'basedOn'])))
+    insert {
+      place: "after-last"
+      container: "/future/steps"
+      create: { at: "end" }
+      keys: ["id", "name", "activity", "practices", "performer", "processTime", "waitTime", "basedOn", "note"]
+      when: (!has(attributes.state) || attributes.state == 'future')
+    }
+    remove { cascade: ["futureFlow", "futureAlternative", "futureRework"], container: "keep" }
+  }
+
+  /// A forward flow of the current state: an entry of current.flows with neither share nor rework.
+  relation Flow as currentFlow at "/current/flows/*" {
+    when type(entry) == map && !has(entry.share) && !has(entry.rework)
+    source from key "from"
+    target from key "to"
+    insert { place: "after-last", container: "/current/flows", create: { at: "end" }, keys: ["from", "to"] }
+    remove { container: "keep" }
+  }
+
+  /// An alternative of the current state: a flow with share and without rework.
+  relation Alternative as currentAlternative at "/current/flows/*" {
+    when type(entry) == map && has(entry.share) && !has(entry.rework)
+    source from key "from"
+    target from key "to"
+    attribute share from key "share" { empty: "refuse", number: "shortest" }
+    insert {
+      place: "after-last"
+      container: "/current/flows"
+      create: { at: "end" }
+      keys: ["from", "to", "share"]
+    }
+    remove { container: "keep" }
+  }
+
+  /// Rework of the current state: a flow with rework and without share. Its rate is the key rework.
+  relation Rework as currentRework at "/current/flows/*" {
+    when type(entry) == map && has(entry.rework) && !has(entry.share)
+    source from key "from"
+    target from key "to"
+    attribute rate from key "rework" { empty: "refuse", number: "shortest" }
+    insert {
+      place: "after-last"
+      container: "/current/flows"
+      create: { at: "end" }
+      keys: ["from", "to", "rework"]
+    }
+    remove { container: "keep" }
+  }
+
+  /// A forward flow of the future state: an entry of future.flows with neither share nor rework.
+  relation Flow as futureFlow at "/future/flows/*" {
+    when type(entry) == map && !has(entry.share) && !has(entry.rework)
+    source from key "from"
+    target from key "to"
+    insert { place: "after-last", container: "/future/flows", create: { at: "end" }, keys: ["from", "to"] }
+    remove { container: "keep" }
+  }
+
+  /// An alternative of the future state: a flow with share and without rework.
+  relation Alternative as futureAlternative at "/future/flows/*" {
+    when type(entry) == map && has(entry.share) && !has(entry.rework)
+    source from key "from"
+    target from key "to"
+    attribute share from key "share" { empty: "refuse", number: "shortest" }
+    insert {
+      place: "after-last"
+      container: "/future/flows"
+      create: { at: "end" }
+      keys: ["from", "to", "share"]
+    }
+    remove { container: "keep" }
+  }
+
+  /// Rework of the future state: a flow with rework and without share. Its rate is the key rework.
+  relation Rework as futureRework at "/future/flows/*" {
+    when type(entry) == map && has(entry.rework) && !has(entry.share)
+    source from key "from"
+    target from key "to"
+    attribute rate from key "rework" { empty: "refuse", number: "shortest" }
+    insert {
+      place: "after-last"
+      container: "/future/flows"
+      create: { at: "end" }
+      keys: ["from", "to", "rework"]
+    }
+    remove { container: "keep" }
+  }
+
+  template "name: {base}\nunit: hours\nactivities: []\npractices: []\ncurrent:\n  trigger:\n    id: t1\n    name: Demand arrives\n  steps: []\n  outcome:\n    id: o1\n    name: Value delivered\n  flows: []\n"
+}

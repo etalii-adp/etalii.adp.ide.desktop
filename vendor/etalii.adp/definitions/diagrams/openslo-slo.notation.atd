@@ -1,0 +1,391 @@
+atd 0.1
+part of openslo/slo
+
+// The SLO map's notation, layout, toolbox and forms, in a part of their own (ATD 5.2).
+
+/// One shape per kind; an SLO carries its objectives' sentences, an inline object is joined to its owner and
+/// marked, and a reference to an object that is not in the file ends at a dashed placeholder. The layout places the
+/// kinds in tiers (research R8).
+notation {
+  theme {
+    tokens: {
+      color.surface: { light: "#FFFFFF", dark: "#161B22" }
+      color.border: { light: "#8A8880", dark: "#8B949E" }
+      color.muted: { light: "#868E96", dark: "#6E7681" }
+      slo.service: { light: "#E7F5FF", dark: "#142638" }
+      slo.objective: { light: "#EBFBEE", dark: "#15291A" }
+      slo.indicator: { light: "#FFF9DB", dark: "#2E2A12" }
+      slo.source: { light: "#F1F3F5", dark: "#22262B" }
+      slo.alert: { light: "#FFF0F6", dark: "#33182A" }
+      slo.missing: { light: "#ADB5BD", dark: "#6E7681" }
+    }
+  }
+  style service {
+    fill: $slo.service
+    stroke: { color: $color.border, width: 1.5 }
+    cornerRadius: 8
+    font: { size: 13 }
+  }
+  style slo {
+    fill: $color.surface
+    stroke: { color: $color.border, width: 1.5 }
+    cornerRadius: 6
+    font: { size: 12 }
+  }
+  style objective {
+    fill: $slo.objective
+    stroke: { color: $color.border, width: 1 }
+    cornerRadius: 4
+    font: { size: 11 }
+  }
+  style indicator {
+    fill: $slo.indicator
+    stroke: { color: $color.border, width: 1 }
+    cornerRadius: 4
+    font: { size: 12 }
+  }
+  style source { fill: $slo.source, stroke: { color: $color.border, width: 1 }, font: { size: 12 } }
+  style alert {
+    fill: $slo.alert
+    stroke: { color: $color.border, width: 1 }
+    cornerRadius: 4
+    font: { size: 12 }
+  }
+  style inline { stroke: { color: $color.border, width: 1, dash: [4, 2] }, font: { size: 10 } }
+  style missing {
+    fill: $color.surface
+    stroke: { color: $slo.missing, width: 1.5, dash: [6, 4] }
+    font: { size: 11, color: $color.muted }
+  }
+  style reference { stroke: { color: $color.border, width: 1.5 } }
+  style toMissing { stroke: { color: $slo.missing, width: 1.5, dash: [6, 4] } }
+  canvas { empty: { text: "No OpenSLO objects yet. Add a service and an SLO from the toolbox." } }
+
+  node Service {
+    shape roundedRect
+    label (has(self.displayName) && self.displayName != '' ? self.displayName : self.name) as name { position: "center", wrap: "word", maxLines: 2, editable: "form" }
+    badge inline {
+      text: "inline"
+      visible: (self.inline)
+      position: "top-right"
+      style: "inline"
+      tooltip: "Written inside the object it is joined to, not as a document of its own (research R3)."
+    }
+    style: "service"
+    size: { fixed: [200, 64] }
+    conditions: [{ when: (self.inline), style: "inline" }]
+    tooltip: (has(self.description) && self.description != '' ? self.description : self.name)
+  }
+
+  node SLO {
+    shape roundedRect
+    label (has(self.displayName) && self.displayName != '' ? self.displayName : self.name) as name { position: "center", wrap: "word", maxLines: 2, editable: "form" }
+    label (windowText(self) + ' · ' + (has(self.budgetingMethod) ? enumLabel('BudgetingMethod', self.budgetingMethod) : 'no budgeting method')) as window { position: "bottom", style: { font: { size: 10 } } }
+    badge inline {
+      text: "inline"
+      visible: (self.inline)
+      position: "top-right"
+      style: "inline"
+      tooltip: "Written inside the object it is joined to, not as a document of its own (research R3)."
+    }
+    style: "slo"
+    size: { fixed: [240, 96] }
+    conditions: [{ when: (self.inline), style: "inline" }]
+    tooltip: (has(self.description) && self.description != '' ? self.description : self.name)
+  }
+
+  node Objective {
+    shape roundedRect
+    label ((has(self.displayName) && self.displayName != '' ? self.displayName + ': ' : '') + targetText(self) + ' over ' + windowText(self.parent)) as target { position: "top", wrap: "word", maxLines: 2, editable: "form" }
+    label (budgetText(self)) as budget { position: "bottom", wrap: "word", maxLines: 3, style: { font: { size: 10 } } }
+    style: "objective"
+    size: { fixed: [260, 72] }
+    tooltip: (budgetText(self))
+  }
+
+  node SLI {
+    shape roundedRect
+    label (has(self.displayName) && self.displayName != '' ? self.displayName : self.name) as name { position: "center", wrap: "word", maxLines: 2, editable: "form" }
+    label (has(self.metric) ? self.metric + ' metric' : '') as metric { position: "bottom", style: { font: { size: 10 } } }
+    badge inline {
+      text: "inline"
+      visible: (self.inline)
+      position: "top-right"
+      style: "inline"
+      tooltip: "Written inside the object it is joined to, not as a document of its own (research R3)."
+    }
+    style: "indicator"
+    size: { fixed: [200, 64] }
+    conditions: [{ when: (self.inline), style: "inline" }]
+    tooltip: (has(self.description) && self.description != '' ? self.description : self.name)
+  }
+
+  node DataSource {
+    shape cylinder
+    label (has(self.displayName) && self.displayName != '' ? self.displayName : self.name) as name { position: "center", wrap: "word", maxLines: 2, editable: "form" }
+    label (has(self.sourceType) ? self.sourceType : '') as type { position: "bottom", style: { font: { size: 10 } } }
+    badge inline {
+      text: "inline"
+      visible: (self.inline)
+      position: "top-right"
+      style: "inline"
+      tooltip: "Written inside the object it is joined to, not as a document of its own (research R3)."
+    }
+    style: "source"
+    size: { fixed: [160, 72] }
+    conditions: [{ when: (self.inline), style: "inline" }]
+    tooltip: (has(self.description) && self.description != '' ? self.description : self.name)
+  }
+
+  node AlertPolicy {
+    shape roundedRect
+    label (has(self.displayName) && self.displayName != '' ? self.displayName : self.name) as name { position: "center", wrap: "word", maxLines: 2, editable: "form" }
+    badge inline {
+      text: "inline"
+      visible: (self.inline)
+      position: "top-right"
+      style: "inline"
+      tooltip: "Written inside the object it is joined to, not as a document of its own (research R3)."
+    }
+    style: "alert"
+    size: { fixed: [200, 64] }
+    conditions: [{ when: (self.inline), style: "inline" }]
+    tooltip: (has(self.description) && self.description != '' ? self.description : self.name)
+  }
+
+  node AlertCondition {
+    shape roundedRect
+    label (has(self.displayName) && self.displayName != '' ? self.displayName : self.name) as name { position: "center", wrap: "word", maxLines: 2, editable: "form" }
+    label ((has(self.conditionKind) ? self.conditionKind + ' ' : '') + (has(self.op) ? self.op + ' ' : '') + (has(self.threshold) ? string(self.threshold) : '') + (has(self.lookbackWindow) ? ' over ' + durationWords(self.lookbackWindow) : '')) as condition { position: "bottom", style: { font: { size: 10 } } }
+    badge inline {
+      text: "inline"
+      visible: (self.inline)
+      position: "top-right"
+      style: "inline"
+      tooltip: "Written inside the object it is joined to, not as a document of its own (research R3)."
+    }
+    style: "alert"
+    size: { fixed: [200, 64] }
+    conditions: [{ when: (self.inline), style: "inline" }]
+    tooltip: (has(self.description) && self.description != '' ? self.description : self.name)
+  }
+
+  node AlertNotificationTarget {
+    shape roundedRect
+    label (has(self.displayName) && self.displayName != '' ? self.displayName : self.name) as name { position: "center", wrap: "word", maxLines: 2, editable: "form" }
+    label (has(self.destination) ? self.destination : '') as target { position: "bottom", style: { font: { size: 10 } } }
+    badge inline {
+      text: "inline"
+      visible: (self.inline)
+      position: "top-right"
+      style: "inline"
+      tooltip: "Written inside the object it is joined to, not as a document of its own (research R3)."
+    }
+    style: "alert"
+    size: { fixed: [180, 56] }
+    conditions: [{ when: (self.inline), style: "inline" }]
+    tooltip: (has(self.description) && self.description != '' ? self.description : self.name)
+  }
+
+  node Unbound {
+    shape rect
+    label ((self.kindName != '' ? self.kindName : 'A document') + (self.apiVersion != '' ? ' (' + self.apiVersion + ')' : '') + ', kept as written') as kind { position: "center", wrap: "word", maxLines: 2 }
+    style: "missing"
+    size: { fixed: [200, 56] }
+    deletable: false
+  }
+
+  node Missing {
+    shape roundedRect
+    label @name as name { position: "center", maxLines: 1 }
+    label (self.kindName + ', not in this file') as note { position: "bottom", style: { font: { size: 10 } } }
+    style: "missing"
+    size: { fixed: [180, 56] }
+    deletable: false
+  }
+
+  edge OfService {
+    line { routing: "rounded" }
+    marker target arrowFilled
+    label "of" as label { at: "middle", side: "above", distance: 4 }
+    style: "reference"
+    conditions: [{ when: (self.target.isA('Missing')), style: "toMissing" }]
+  }
+
+  edge Measures {
+    line { routing: "rounded" }
+    marker target arrowFilled
+    label "measures" as label { at: "middle", side: "above", distance: 4 }
+    style: "reference"
+    conditions: [{ when: (self.target.isA('Missing')), style: "toMissing" }]
+  }
+
+  edge ReadsFrom {
+    line { routing: "rounded" }
+    marker target arrowFilled
+    label "reads" as label { at: "middle", side: "above", distance: 4 }
+    style: "reference"
+    conditions: [{ when: (self.target.isA('Missing')), style: "toMissing" }]
+  }
+
+  edge AlertsWith {
+    line { routing: "rounded" }
+    marker target arrowFilled
+    label "alerts with" as label { at: "middle", side: "above", distance: 4 }
+    style: "reference"
+    conditions: [{ when: (self.target.isA('Missing')), style: "toMissing" }]
+  }
+
+  edge OnCondition {
+    line { routing: "rounded" }
+    marker target arrowFilled
+    label "on" as label { at: "middle", side: "above", distance: 4 }
+    style: "reference"
+    conditions: [{ when: (self.target.isA('Missing')), style: "toMissing" }]
+  }
+
+  edge Notifies {
+    line { routing: "rounded" }
+    marker target arrowFilled
+    label "notifies" as label { at: "middle", side: "above", distance: 4 }
+    style: "reference"
+    conditions: [{ when: (self.target.isA('Missing')), style: "toMissing" }]
+  }
+}
+
+/// Research R8: the force layout in tiers, the service in the middle, then its SLOs, then their objectives and
+/// SLIs, the data sources outermost, and the alerting on the ring of the SLOs. A position a user pins is kept in
+/// the registration's layout block (FBL 8.3), never in the OpenSLO file (FR-008).
+layout {
+  default tiers
+  /// openslo-slo.md, Layout, gives the reference algorithm.
+  algorithm tiers {
+    algorithm: "force"
+    force: {
+      tiers: [
+        "Service",
+        ["SLO", "AlertPolicy", "Missing"],
+        ["Objective", "SLI", "AlertCondition", "AlertNotificationTarget"],
+        ["DataSource", "Unbound"]
+      ]
+      gap: 28
+    }
+  }
+  trigger: "onChange"
+  respect: "pinned"
+  animate: { durationMs: 250 }
+}
+
+/// One tool per kind of document, and objectives added to an SLO from its menu. A new SLO is written with its
+/// service and an SLI referenced (User Story 2, scenario 2).
+toolbox {
+  group objects "OpenSLO" {
+    tool service "Service" { kind: "create-node", creates: "Service", initial: { name: "new-service" } }
+    tool slo "SLO" { kind: "operation", operation: "addSlo" }
+    tool sli "SLI" { kind: "create-node", creates: "SLI", initial: { name: "new-sli" } }
+    tool dataSource "Data source" { kind: "create-node", creates: "DataSource", initial: { name: "new-data-source" } }
+    tool alertPolicy "Alert policy" { kind: "create-node", creates: "AlertPolicy", initial: { name: "new-alert-policy" } }
+    tool alertCondition "Alert condition" { kind: "create-node", creates: "AlertCondition", initial: { name: "new-alert-condition" } }
+    tool notificationTarget "Notification target" {
+      kind: "create-node"
+      creates: "AlertNotificationTarget"
+      initial: { name: "new-notification-target" }
+    }
+  }
+  context for SLO {
+    tool { kind: "operation", operation: "addObjective" }
+  }
+  context for Service {
+    tool { kind: "operation", operation: "addSloForService" }
+  }
+}
+
+/// A service's name and description.
+form service for Service {
+  field name
+  field displayName
+  field description
+  item { kind: "findings" }
+}
+
+/// User Story 2: an SLO's window, method and references in one form; its objectives each have their own.
+form slo for SLO {
+  field name
+  field displayName
+  field description
+  field service { options: (diagram.nodesOfType('Service').filter(n, !n.inline).map(n, n.name)) }
+  field indicatorRef { options: (diagram.nodesOfType('SLI').filter(n, !n.inline).map(n, n.name)) }
+  field duration
+  field isRolling
+  field calendarStart
+  field timeZone
+  field budgetingMethod
+  field alertPolicyRefs
+  item { kind: "findings" }
+}
+
+/// An objective's target, threshold and slices (User Story 2, scenario 1).
+form objective for Objective {
+  field displayName
+  field targetRatio
+  field targetPercent
+  field op
+  field threshold
+  field timeSliceTarget
+  field timeSliceWindow
+  field indicatorRef { options: (diagram.nodesOfType('SLI').filter(n, !n.inline).map(n, n.name)) }
+  field compositeWeight
+  item { kind: "findings" }
+}
+
+/// An SLI's names; its metric's query is the data source's own and is edited as text.
+form sli for SLI {
+  field name
+  field displayName
+  field description
+  field metric
+  field sourceRefs
+  field sourceTypes
+  item { kind: "findings" }
+}
+
+form dataSource for DataSource {
+  field name
+  field displayName
+  field description
+  field sourceType
+  item { kind: "findings" }
+}
+
+form alertPolicy for AlertPolicy {
+  field name
+  field displayName
+  field description
+  field alertWhenNoData
+  field alertWhenResolved
+  field alertWhenBreaching
+  field conditionRefs
+  field targetRefs
+  item { kind: "findings" }
+}
+
+form alertCondition for AlertCondition {
+  field name
+  field displayName
+  field description
+  field severity
+  field conditionKind
+  field op
+  field threshold
+  field lookbackWindow
+  field alertAfter
+  item { kind: "findings" }
+}
+
+form notificationTarget for AlertNotificationTarget {
+  field name
+  field displayName
+  field description
+  field destination
+  item { kind: "findings" }
+}

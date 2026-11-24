@@ -1,0 +1,53 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "OpenSLO's examples/budgeting-method/ratio-timeslices.yaml, byte for byte, vendored in definitions/diagrams/vendored/openslo/ with OpenSLO's licence: an SLO on a ratio metric with the RatioTimeslices budgeting method, its time window indented by one space less than the rest of the file, and no alertPolicies key at all.",
+  "binding": "../../../../../definitions/diagrams/openslo-slo.fbl#openslo",
+  "input": "../../../../../definitions/diagrams/vendored/openslo/examples/budgeting-method/ratio-timeslices.yaml",
+  "read": {
+    "elements": [
+      {
+        "id": "SLO:main-page",
+        "type": "SLO",
+        "attributes": {
+          "name": "main-page",
+          "displayName": "Main page availability",
+          "description": "Our main page should be available always",
+          "service": "web-shop",
+          "alertPolicyRefs": [],
+          "duration": "2w",
+          "isRolling": true,
+          "windowCount": 1,
+          "budgetingMethod": "RatioTimeslices",
+          "hasIndicator": true
+        }
+      },
+      {
+        "id": "SLO:main-page/SLI:response-code",
+        "type": "SLI",
+        "parent": "SLO:main-page",
+        "attributes": {
+          "name": "response-code",
+          "displayName": "Response codes of requests to main page",
+          "metric": "ratio",
+          "sourceRefs": [],
+          "sourceTypes": [
+            "Any"
+          ],
+          "inline": true
+        }
+      },
+      {
+        "id": "SLO:main-page/objective:1",
+        "type": "Objective",
+        "parent": "SLO:main-page",
+        "attributes": {
+          "displayName": "Good",
+          "op": "gt",
+          "target": 0.99,
+          "timeSliceWindow": "1m"
+        }
+      }
+    ]
+  },
+  "steps": []
+}

@@ -1,0 +1,133 @@
+# An invented example of the value stream map (value-stream-map.md, "Worked examples"): restoring a service after an
+# alert, with three hand-offs today and a future state that removes one hand-off and shortens two waits.
+name: Restore service
+unit: hours
+activities:
+  - name: engage
+    color: "#4C6EF5"
+  - name: deliver and support
+    color: "#12B886"
+  - name: design and transition
+    color: "#F59F00"
+practices:
+  - name: monitoring and event management
+  - name: incident management
+  - name: change enablement
+current:
+  trigger: { id: t1, name: Alert raised }
+  steps:
+    - id: s1
+      name: Triage alert
+      activity: deliver and support
+      practices: [monitoring and event management]
+      performer: operations
+      processTime: PT10M
+      waitTime: PT0M
+    - id: s2
+      name: Log incident
+      activity: engage
+      practices: [incident management]
+      performer: service desk
+      processTime: PT5M
+      waitTime: PT15M
+    - id: s3
+      name: Diagnose
+      activity: deliver and support
+      practices: [incident management]
+      performer: service desk
+      processTime: PT20M
+      waitTime: PT1H
+    - id: s4
+      name: Fix configuration
+      activity: design and transition
+      practices: [change enablement]
+      performer: platform team
+      processTime: PT30M
+      waitTime: PT2H
+    - id: s5
+      name: Verify fix
+      activity: deliver and support
+      practices: [monitoring and event management]
+      performer: platform team
+      processTime: PT15M
+      waitTime: PT30M
+    - id: s6
+      name: Close incident
+      activity: engage
+      practices: [incident management]
+      performer: service desk
+      processTime: PT5M
+      waitTime: PT45M
+      note: The desk confirms with the reporter before closing.
+  outcome: { id: o1, name: Service restored }
+  flows:
+    - { from: t1, to: s1 }
+    - { from: s1, to: s2 }
+    - { from: s2, to: s3 }
+    - { from: s3, to: s4 }
+    - { from: s4, to: s5 }
+    - { from: s5, to: s6 }
+    - { from: s6, to: o1 }
+future:
+  trigger: { id: t2, name: Alert raised, basedOn: t1 }
+  steps:
+    - id: s7
+      name: Triage alert
+      activity: deliver and support
+      practices: [monitoring and event management]
+      performer: operations
+      processTime: PT10M
+      waitTime: PT0M
+      basedOn: s1
+    - id: s8
+      name: Log incident
+      activity: engage
+      practices: [incident management]
+      performer: service desk
+      processTime: PT5M
+      waitTime: PT15M
+      basedOn: s2
+    - id: s9
+      name: Diagnose
+      activity: deliver and support
+      practices: [incident management]
+      performer: service desk
+      processTime: PT20M
+      waitTime: PT20M
+      basedOn: s3
+    - id: s10
+      name: Fix configuration
+      activity: design and transition
+      practices: [change enablement]
+      performer: platform team
+      processTime: PT30M
+      waitTime: PT30M
+      basedOn: s4
+    - id: s11
+      name: Verify fix
+      activity: deliver and support
+      practices: [monitoring and event management]
+      performer: platform team
+      processTime: PT15M
+      waitTime: PT30M
+      basedOn: s5
+    - id: s12
+      name: Close incident
+      activity: engage
+      practices: [incident management]
+      performer: platform team
+      processTime: PT5M
+      waitTime: PT45M
+      note: The platform team closes the incident once its check passes.
+      basedOn: s6
+  outcome: { id: o2, name: Service restored, basedOn: o1 }
+  flows:
+    - { from: t2, to: s7 }
+    - { from: s7, to: s8 }
+    - { from: s8, to: s9 }
+    - { from: s9, to: s10 }
+    - { from: s10, to: s11 }
+    - { from: s11, to: s12 }
+    - { from: s12, to: o2 }
+view:
+  state: current

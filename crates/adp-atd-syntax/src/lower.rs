@@ -647,10 +647,11 @@ impl Lowerer<'_> {
                 o.insert("members".into(), self.generic_members(node));
                 self.with_doc(node, o, None)
             }
-            "table_surface" | "hierarchy_surface" | "text_surface" => {
+            "table_surface" | "hierarchy_surface" | "sections_surface" | "text_surface" => {
                 let kind = match node.kind() {
                     "table_surface" => "tableSurface",
                     "hierarchy_surface" => "hierarchySurface",
+                    "sections_surface" => "sectionsSurface",
                     _ => "textSurface",
                 };
                 let mut o = self.object(kind, node);
@@ -1122,6 +1123,7 @@ impl Lowerer<'_> {
             "layout_action" => "layout",
             "call_action" => "call",
             "plugin_action" => "plugin",
+            "lookup_action" => "lookup",
             _ => "fail",
         };
         o.insert("kind".into(), json!(kind));
@@ -1238,6 +1240,25 @@ impl Lowerer<'_> {
             "retype" => {
                 o.insert("target".into(), self.expr(exprs[0]));
                 o.insert("to".into(), self.type_ref(self.find(node, "type_ref").expect("a type")));
+            }
+            // `lookup <Type> child | at [from [...]] [as <name>]` (ATD §12.3, DISL 0.12 §9.4).
+            "lookup" => {
+                o.insert(
+                    "type".into(),
+                    self.type_ref(self.find(node, "type_ref").expect("a type")),
+                );
+                let place = if self.find(node, "at_pointer").is_some() {
+                    "at"
+                } else {
+                    "child"
+                };
+                o.insert("place".into(), json!(place));
+                if let Some(origins) = self.value_child(node) {
+                    o.insert("value".into(), self.value(origins));
+                }
+                if let Some(name) = names.last() {
+                    o.insert("as".into(), self.name(name));
+                }
             }
             "reparent" => {
                 o.insert("target".into(), self.expr(exprs[0]));
@@ -1369,6 +1390,8 @@ impl Lowerer<'_> {
             "context_tool" => "tool",
             "form_item" => "item",
             "value_type" => "valueType",
+            "record_part" => "record",
+            "list_part" => "list",
             "token_class" => "token",
             "doc_member" => "doc",
             other => other,

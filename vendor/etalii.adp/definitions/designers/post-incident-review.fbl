@@ -1,0 +1,469 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Document",
+  "fbl": "0.7",
+  "doc": {
+    "summary": "The Markdown binding of the post-incident review designer (post-incident-review.des), in the bullets family (FBL section 4.8).",
+    "description": "A review is one Markdown file (post-incident-review.md, The file). Line 1 is DED's envelope, the binding's required header and its claim's marker (DED section 2). Line 2 is the mark line, a statement read by the rule marks into the document's last numbers. The parts are the list items under six headings, each found as the first heading with its text at any level and in any case: Summary, Impact, Timeline, Contributing factors, Actions and Categories. Everything else (the title, the legend under How to read this file, any other section, every fenced block) is unbound and kept byte for byte; the title is therefore not part of the model, and a host shows the file's name. An item in no known form under Impact, Timeline, Contributing factors or Actions is read by a catch-all rule whose type the specification maps as unreadable, so std.unreadableEntry stands at it and its bytes are kept.",
+    "seeAlso": [
+      {
+        "title": "The companion: the file format in full",
+        "href": "post-incident-review.md"
+      },
+      {
+        "title": "The designer type's specification",
+        "href": "post-incident-review.des"
+      }
+    ]
+  },
+  "bindings": {
+    "markdown": {
+      "title": "Post-incident review, Markdown",
+      "claims": {
+        "extensions": [
+          ".md"
+        ],
+        "shared": true,
+        "marker": {
+          "pattern": "^<!--[ \\t]+ded:[ \\t]+[^ \\t]+[ \\t]+designer:[ \\t]+etalii/post-incident-review[ \\t]+-->[ \\t]*$",
+          "lines": 1
+        },
+        "origins": [
+          "etalii/post-incident-review"
+        ]
+      },
+      "body": {
+        "kind": "file",
+        "family": "bullets"
+      },
+      "reader": "declared",
+      "text": {
+        "newline": "lf",
+        "indent": 2,
+        "finalNewline": true
+      },
+      "header": {
+        "line": "^<!--[ \\t]+ded:[ \\t]+[^ \\t]+[ \\t]+designer:[ \\t]+[^ \\t]+[ \\t]+-->[ \\t]*$",
+        "required": true
+      },
+      "sections": [
+        {
+          "name": "summary",
+          "doc": "The summary: the lines after the first heading whose text is Summary, at any level and in any case, up to the next heading with as many # or fewer.",
+          "heading": "^Summary$",
+          "caseInsensitive": true
+        },
+        {
+          "name": "impact",
+          "doc": "The impact, by the same rule.",
+          "heading": "^Impact$",
+          "caseInsensitive": true
+        },
+        {
+          "name": "timeline",
+          "doc": "The timeline, by the same rule.",
+          "heading": "^Timeline$",
+          "caseInsensitive": true
+        },
+        {
+          "name": "factors",
+          "doc": "The contributing factors, by the same rule.",
+          "heading": "^Contributing factors$",
+          "caseInsensitive": true
+        },
+        {
+          "name": "actions",
+          "doc": "The actions, by the same rule.",
+          "heading": "^Actions$",
+          "caseInsensitive": true
+        },
+        {
+          "name": "categories",
+          "doc": "The categories of factor, by the same rule.",
+          "heading": "^Categories$",
+          "caseInsensitive": true
+        }
+      ],
+      "elements": [
+        {
+          "name": "marks",
+          "type": "Marks",
+          "doc": "The mark line, `<!-- last: E-0008 F-0003 A-0001 -->`: the last number each counter gave, entries first, then factors, then actions (DESL section 5.3.5). The specification maps the type as the document, so the groups are the document's attributes lastEntry, lastFactor and lastAction. A body without it reads as having no mark, and the line is written again right after the envelope with the next numbering.",
+          "line": "^<!--[ \\t]+last:(?:[ \\t]+(?<lastEntry>E-\\d+))?(?:[ \\t]+(?<lastFactor>F-\\d+))?(?:[ \\t]+(?<lastAction>A-\\d+))?[ \\t]+-->[ \\t]*$",
+          "attributes": {
+            "lastEntry": {
+              "group": "lastEntry"
+            },
+            "lastFactor": {
+              "group": "lastFactor"
+            },
+            "lastAction": {
+              "group": "lastAction"
+            }
+          },
+          "insert": {
+            "place": "after-header",
+            "emit": "<!-- last:[ {lastEntry}][ {lastFactor}][ {lastAction}] -->"
+          }
+        },
+        {
+          "name": "time-zone",
+          "type": "Summary",
+          "doc": "`Time zone: Europe/Berlin` under Summary, in any case: the IANA name of the zone the review's times are shown in. The specification maps the type as the document, so it is the document's attribute timeZone. A time keeps the offset it is written with; the zone only says how it is shown.",
+          "within": [
+            "summary"
+          ],
+          "line": "^Time zone:[ \\t]*(?<timeZone>\\S+)[ \\t]*$",
+          "caseInsensitive": true,
+          "attributes": {
+            "timeZone": {
+              "group": "timeZone",
+              "empty": "refuse"
+            }
+          },
+          "insert": {
+            "place": "start",
+            "container": "summary",
+            "create": {
+              "at": "end-of-document",
+              "text": "## Summary"
+            },
+            "emit": "Time zone: {timeZone}"
+          }
+        },
+        {
+          "name": "summary",
+          "type": "Summary",
+          "doc": "Any other item under Summary: the summary, the document's attribute summary, with the lines indented under it. Of several, the first is read, and the others are kept and not read.",
+          "within": [
+            "summary"
+          ],
+          "line": "^(?<summary>.*?)[ \\t]*$",
+          "attributes": {
+            "summary": {
+              "group": "summary",
+              "empty": "keep"
+            }
+          },
+          "insert": {
+            "place": "end",
+            "container": "summary",
+            "create": {
+              "at": "end-of-document",
+              "text": "## Summary"
+            },
+            "emit": "{summary}"
+          }
+        },
+        {
+          "name": "affected",
+          "type": "Impact",
+          "doc": "`Affected: <who or what>` under Impact: the document's attribute affected, through the type Impact, which the specification maps as the document.",
+          "within": [
+            "impact"
+          ],
+          "line": "^Affected:[ \\t]*(?<affected>.*?)[ \\t]*$",
+          "caseInsensitive": true,
+          "attributes": {
+            "affected": {
+              "group": "affected",
+              "empty": "keep"
+            }
+          },
+          "insert": {
+            "place": "end",
+            "container": "impact",
+            "create": {
+              "at": "end-of-document",
+              "text": "## Impact"
+            },
+            "emit": "Affected: {affected}"
+          }
+        },
+        {
+          "name": "effect",
+          "type": "Impact",
+          "doc": "`Effect: <what they could not do>`: the document's attribute effect.",
+          "within": [
+            "impact"
+          ],
+          "line": "^Effect:[ \\t]*(?<effect>.*?)[ \\t]*$",
+          "caseInsensitive": true,
+          "attributes": {
+            "effect": {
+              "group": "effect",
+              "empty": "keep"
+            }
+          },
+          "insert": {
+            "place": "end",
+            "container": "impact",
+            "create": {
+              "at": "end-of-document",
+              "text": "## Impact"
+            },
+            "emit": "Effect: {effect}"
+          }
+        },
+        {
+          "name": "duration",
+          "type": "Impact",
+          "doc": "`Duration: <how long>`: the document's attribute duration, as written; the designer computes the intervals from the timeline, not from this line.",
+          "within": [
+            "impact"
+          ],
+          "line": "^Duration:[ \\t]*(?<duration>.*?)[ \\t]*$",
+          "caseInsensitive": true,
+          "attributes": {
+            "duration": {
+              "group": "duration",
+              "empty": "keep"
+            }
+          },
+          "insert": {
+            "place": "end",
+            "container": "impact",
+            "create": {
+              "at": "end-of-document",
+              "text": "## Impact"
+            },
+            "emit": "Duration: {duration}"
+          }
+        },
+        {
+          "name": "unreadable-impact",
+          "type": "Unreadable",
+          "doc": "Any other item under Impact: the specification maps the type as unreadable, so it is reported by std.unreadableEntry at the item and kept as written, with everything nested in it (the data model's pir.unread).",
+          "within": [
+            "impact"
+          ],
+          "line": "^.*$"
+        },
+        {
+          "name": "entry",
+          "type": "Entry",
+          "doc": "A timeline entry: `E-` and its number (or the placeholder NEW), its time when it has one (RFC 3339, the seconds optional, with Z or an offset), its milestone before a colon when it is one (any case), its text, and its trailing words in any order: its author (`by:agent`, `by:person`) and its evidence, Markdown links whose text has no whitespace. Lines indented under it are its detail. An entry without a time is read, and reported by pir.no-time.",
+          "within": [
+            "timeline"
+          ],
+          "line": "^(?<id>E-(?:\\d+|NEW))(?:[ \\t]+(?<time>\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(?::\\d{2})?(?:Z|[+-]\\d{2}:\\d{2})))?(?:[ \\t]+(?<kind>trigger|start|detection|engagement|mitigation start|mitigated|resolved):)?(?:[ \\t]+|$)(?<text>.*?)(?<words>(?:[ \\t]+(?:by:\\S+|\\[[^\\]\\s]*\\]\\([^)\\s]+\\)))*)[ \\t]*$",
+          "caseInsensitive": true,
+          "id": {
+            "from": {
+              "group": "id"
+            }
+          },
+          "attributes": {
+            "time": {
+              "group": "time"
+            },
+            "kind": {
+              "group": "kind"
+            },
+            "text": {
+              "group": "text",
+              "empty": "refuse"
+            },
+            "author": {
+              "group": "words",
+              "word": "^by:(?<value>\\S+)$",
+              "empty": "remove"
+            },
+            "evidence": {
+              "group": "words",
+              "word": "^\\[[^\\]\\s]*\\]\\((?<value>[^)\\s]+)\\)$",
+              "empty": "remove"
+            },
+            "detail": {
+              "continuation": true,
+              "empty": "remove"
+            }
+          },
+          "insert": {
+            "place": "end",
+            "container": "timeline",
+            "create": {
+              "at": "end-of-document",
+              "text": "## Timeline"
+            },
+            "emit": "{id}[ {time}][ {kind}:] {text}[ by:{author}]"
+          },
+          "remove": {}
+        },
+        {
+          "name": "unreadable-entry",
+          "type": "Unreadable",
+          "doc": "Any other item under Timeline: the specification maps the type as unreadable, so it is reported by std.unreadableEntry at the item and kept as written, with everything nested in it (the data model's pir.unread).",
+          "within": [
+            "timeline"
+          ],
+          "line": "^.*$"
+        },
+        {
+          "name": "factor",
+          "type": "Factor",
+          "doc": "A contributing factor: `F-` and its number (or NEW), its leading words in any order (`category:<name>`, `state:<state>`, `by:<author>`, `#tag`), its text, and its trailing words: the entries it rests on (`[E-0003]`) and its evidence. Of several category, state or author words the first is read and the others stay as written. Lines indented under it are its detail; a rejected factor gives its reason there, and is kept.",
+          "within": [
+            "factors"
+          ],
+          "line": "^(?<id>F-(?:\\d+|NEW))(?<lead>(?:[ \\t]+(?:category:\\S+|state:\\S+|by:\\S+|#[^\\s#]+))*)(?:[ \\t]+|$)(?<text>.*?)(?<trail>(?:[ \\t]+(?:\\[E-(?:\\d+|NEW)\\]|\\[[^\\]\\s]*\\]\\([^)\\s]+\\)))*)[ \\t]*$",
+          "id": {
+            "from": {
+              "group": "id"
+            }
+          },
+          "attributes": {
+            "category": {
+              "group": "lead",
+              "word": "^category:(?<value>\\S+)$",
+              "empty": "remove"
+            },
+            "state": {
+              "group": "lead",
+              "word": "^state:(?<value>\\S+)$",
+              "empty": "remove"
+            },
+            "author": {
+              "group": "lead",
+              "word": "^by:(?<value>\\S+)$",
+              "empty": "remove"
+            },
+            "tags": {
+              "group": "lead",
+              "word": "^#(?<value>[^\\s#]+)$",
+              "empty": "remove"
+            },
+            "text": {
+              "group": "text",
+              "empty": "refuse"
+            },
+            "entries": {
+              "group": "trail",
+              "word": "^\\[(?<value>E-(?:\\d+|NEW))\\]$",
+              "empty": "remove"
+            },
+            "evidence": {
+              "group": "trail",
+              "word": "^\\[[^\\]\\s]*\\]\\((?<value>[^)\\s]+)\\)$",
+              "empty": "remove"
+            },
+            "detail": {
+              "continuation": true,
+              "empty": "remove"
+            }
+          },
+          "insert": {
+            "place": "end",
+            "container": "factors",
+            "create": {
+              "at": "end-of-document",
+              "text": "## Contributing factors"
+            },
+            "emit": "{id}[ category:{category}][ state:{state}][ by:{author}] {text}"
+          },
+          "remove": {}
+        },
+        {
+          "name": "unreadable-factor",
+          "type": "Unreadable",
+          "doc": "Any other item under Contributing factors: the specification maps the type as unreadable, so it is reported by std.unreadableEntry at the item and kept as written, with everything nested in it (the data model's pir.unread).",
+          "within": [
+            "factors"
+          ],
+          "line": "^.*$"
+        },
+        {
+          "name": "action",
+          "type": "Action",
+          "doc": "An action, a task list item: `[ ]` open or `[x]` done, `A-` and its number (or NEW), its text, and its trailing words in any order: `owner:<who>`, `due:<YYYY-MM-DD>` and `addresses:[F-0001]`, once per factor. The owner names who carries the action, not who caused anything. The checkbox is written from the attribute resolved through its map, so a re-emitted action keeps whether it is done.",
+          "within": [
+            "actions"
+          ],
+          "line": "^\\[(?<done>[ xX])\\][ \\t]+(?<id>A-(?:\\d+|NEW))(?:[ \\t]+|$)(?<text>.*?)(?<words>(?:[ \\t]+(?:owner:\\S+|due:\\S+|addresses:\\[F-(?:\\d+|NEW)\\]))*)[ \\t]*$",
+          "id": {
+            "from": {
+              "group": "id"
+            }
+          },
+          "attributes": {
+            "done": {
+              "group": "done",
+              "map": {
+                " ": "false",
+                "x": "true",
+                "X": "true"
+              },
+              "default": false
+            },
+            "text": {
+              "group": "text",
+              "empty": "refuse"
+            },
+            "owner": {
+              "group": "words",
+              "word": "^owner:(?<value>\\S+)$",
+              "empty": "remove"
+            },
+            "due": {
+              "group": "words",
+              "word": "^due:(?<value>\\S+)$",
+              "empty": "remove"
+            },
+            "addresses": {
+              "group": "words",
+              "word": "^addresses:\\[(?<value>F-(?:\\d+|NEW))\\]$",
+              "empty": "remove"
+            }
+          },
+          "insert": {
+            "place": "end",
+            "container": "actions",
+            "create": {
+              "at": "end-of-document",
+              "text": "## Actions"
+            },
+            "emit": "\\[{done}\\] {id} {text}[ owner:{owner}][ due:{due}][ addresses:\\[{addresses}\\]]"
+          },
+          "remove": {}
+        },
+        {
+          "name": "unreadable-action",
+          "type": "Unreadable",
+          "doc": "Any other item under Actions: the specification maps the type as unreadable, so it is reported by std.unreadableEntry at the item and kept as written, with everything nested in it (the data model's pir.unread).",
+          "within": [
+            "actions"
+          ],
+          "line": "^.*$"
+        },
+        {
+          "name": "category",
+          "type": "Category",
+          "doc": "A category of factor, one name per item. The list is the user's: one can be added, renamed or removed, and a factor whose category is not in it is kept and reported by pir.unknown-category.",
+          "within": [
+            "categories"
+          ],
+          "line": "^(?<name>\\S.*?)[ \\t]*$",
+          "attributes": {
+            "name": {
+              "group": "name",
+              "empty": "refuse"
+            }
+          },
+          "insert": {
+            "place": "end",
+            "container": "categories",
+            "create": {
+              "at": "end-of-document",
+              "text": "## Categories"
+            },
+            "emit": "{name}"
+          },
+          "remove": {}
+        }
+      ],
+      "template": {
+        "text": "<!-- ded: 0.2 designer: etalii/post-incident-review -->\n<!-- last: -->\n# {base}\n\n## How to read this file\n\nThis file is one post-incident review, kept by people and agents together. It records the conditions that let an incident happen and what is changed so that it does not happen again; no line names a person's fault. Leave its first two lines as they are.\n\n- Under `Summary`, `- Time zone: <IANA name>` names the zone the review is read in, and the other item is the summary. Under `Impact`, the items are `- Affected:`, `- Effect:` and `- Duration:`.\n- Under `Timeline` each item is one entry: its number, its time (RFC 3339 with its offset, such as `2026-11-03T10:12+01:00`), a milestone before a colon when it is one (`trigger`, `start`, `detection`, `engagement`, `mitigation start`, `mitigated` or `resolved`), its text, its author (`by:agent` or `by:person`) and its evidence as links whose text has no spaces.\n- Under `Contributing factors` each item is one factor: its number, `category:<name>`, `state:proposed`, `state:accepted` or `state:rejected`, its author and tags (`#name`), its text, then the entries it rests on (`[E-0003]`) and its evidence. An agent proposes; a person accepts or rejects. A rejected factor stays, with the reason indented under it.\n- Under `Actions` each item is one action: `[ ]` open or `[x]` done, its number, its text, `owner:<who carries it>`, `due:<YYYY-MM-DD>` and `addresses:[F-0001]`, once for each factor it addresses.\n- Under `Categories` each item is one category of factor; others can be added.\n- A number is never changed and never used again. Add an entry, factor or action with `E-NEW`, `F-NEW` or `A-NEW` in place of a number: the designer numbers it. Lines indented under an item are its detail.\n\n```markdown\n- E-NEW 2026-11-03T10:12+01:00 detection: Latency alert fired. by:agent [alert](https://example.org/alerts/1)\n- F-NEW category:detection state:proposed by:agent The alert threshold is above the customer-visible delay. [E-0003]\n- [ ] A-NEW Lower the alert threshold to 1 s. owner:@platform due:2026-12-01 addresses:[F-0002]\n```\n\n## Summary\n\n- Time zone: UTC\n- What happened, in two or three sentences.\n\n## Impact\n\n- Affected: who or what was affected\n- Effect: what they could not do\n- Duration: from start to mitigated\n\n## Timeline\n\n## Contributing factors\n\n## Actions\n\n## Categories\n\n- change\n- detection\n- capacity\n- dependency\n- people\n",
+        "doc": "A new review, with LF: the envelope, an empty mark line, the title, the legend for agents with its examples in a fenced block, a summary and an impact to fill in, the empty Timeline, Contributing factors and Actions, and the starting categories (FR-008)."
+      }
+    }
+  }
+}

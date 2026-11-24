@@ -1,0 +1,29 @@
+name: Two steps
+unit: hours
+activities: []
+practices: []
+current:
+  trigger:
+    id: t1
+    name: Call received
+  steps:
+    - id: s1
+      name: Log call
+      performer: service desk
+      processTime: PT5M
+      waitTime: PT10M
+    - id: s2
+      name: Resolve
+      performer: second line
+      processTime: PT20M
+      waitTime: PT1H
+  outcome:
+    id: o1
+    name: Caller helped
+  flows:
+    - from: t1
+      to: s1
+    - from: s1
+      to: s2
+    - from: s2
+      to: o1

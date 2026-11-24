@@ -1,0 +1,179 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The edits of spec 085 (User Story 2, SC-002) on a stream of three documents with three comments: a target changed, a window changed, an objective added, an SLO added, and an SLI removed and the removal undone. Every byte no edit concerns stays as it was, every comment included.",
+  "binding": "../../../../definitions/diagrams/openslo-slo.fbl#openslo",
+  "input": "checkout.yaml",
+  "read": {
+    "elements": [
+      {
+        "id": "Service:checkout",
+        "type": "Service",
+        "attributes": {
+          "name": "checkout",
+          "displayName": "Checkout"
+        }
+      },
+      {
+        "id": "SLI:checkout-errors",
+        "type": "SLI",
+        "attributes": {
+          "name": "checkout-errors",
+          "metric": "ratio",
+          "sourceTypes": [
+            "Prometheus"
+          ]
+        }
+      },
+      {
+        "id": "SLO:checkout-availability",
+        "type": "SLO",
+        "attributes": {
+          "name": "checkout-availability",
+          "service": "checkout",
+          "indicatorRef": "checkout-errors",
+          "duration": "28d",
+          "isRolling": true,
+          "budgetingMethod": "Occurrences",
+          "hasIndicator": false
+        }
+      },
+      {
+        "id": "SLO:checkout-availability/objective:1",
+        "type": "Objective",
+        "parent": "SLO:checkout-availability",
+        "attributes": {
+          "displayName": "Available",
+          "target": 0.99
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read: three documents, their --- lines and the three comments.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "# Checkout's service level objectives, kept beside its code.\napiVersion: openslo/v1\nkind: Service\nmetadata:\n  name: checkout\n  displayName: Checkout\n---\n# Errors seen at the load balancer.\napiVersion: openslo/v1\nkind: SLI\nmetadata:\n  name: checkout-errors\nspec:\n  ratioMetric:\n    good:\n      metricSource:\n        type: Prometheus\n        spec:\n          query: sum(rate(lb_requests_total{code!~\"5..\"}[5m]))\n    total:\n      metricSource:\n        type: Prometheus\n        spec:\n          query: sum(rate(lb_requests_total[5m]))\n---\napiVersion: openslo/v1\nkind: SLO\nmetadata:\n  name: checkout-availability\n  displayName: Checkout availability\nspec:\n  service: checkout\n  indicatorRef: checkout-errors\n  timeWindow:\n    - duration: 28d # four weeks, rolling\n      isRolling: true\n  budgetingMethod: Occurrences\n  objectives:\n    - displayName: Available\n      target: 0.99 # agreed with the product owner\n"
+    },
+    {
+      "doc": "A set of the objective's target (the model's targetRatio, persistence.typeMap) replaces the number alone, written as the shortest form that reads back as it (number: shortest); the comment after it on the line stays.",
+      "edit": {
+        "set": {
+          "element": "SLO:checkout-availability/objective:1",
+          "attributes": {
+            "target": 0.995
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 867,
+          "end": 871,
+          "text": "0.995"
+        }
+      ],
+      "expect": "# Checkout's service level objectives, kept beside its code.\napiVersion: openslo/v1\nkind: Service\nmetadata:\n  name: checkout\n  displayName: Checkout\n---\n# Errors seen at the load balancer.\napiVersion: openslo/v1\nkind: SLI\nmetadata:\n  name: checkout-errors\nspec:\n  ratioMetric:\n    good:\n      metricSource:\n        type: Prometheus\n        spec:\n          query: sum(rate(lb_requests_total{code!~\"5..\"}[5m]))\n    total:\n      metricSource:\n        type: Prometheus\n        spec:\n          query: sum(rate(lb_requests_total[5m]))\n---\napiVersion: openslo/v1\nkind: SLO\nmetadata:\n  name: checkout-availability\n  displayName: Checkout availability\nspec:\n  service: checkout\n  indicatorRef: checkout-errors\n  timeWindow:\n    - duration: 28d # four weeks, rolling\n      isRolling: true\n  budgetingMethod: Occurrences\n  objectives:\n    - displayName: Available\n      target: 0.995 # agreed with the product owner\n"
+    },
+    {
+      "doc": "A set of the SLO's window, its first timeWindow item's duration, replaces 28d with 7d; isRolling and the comment stay, so the window reads 7d rolling and the budget the diagram shows follows (openslo-slo.md, Budget). The comment still says four weeks: no edit rewrites a comment.",
+      "edit": {
+        "set": {
+          "element": "SLO:checkout-availability",
+          "attributes": {
+            "duration": "7d"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "replace-value",
+          "start": 731,
+          "end": 734,
+          "text": "7d"
+        }
+      ],
+      "expect": "# Checkout's service level objectives, kept beside its code.\napiVersion: openslo/v1\nkind: Service\nmetadata:\n  name: checkout\n  displayName: Checkout\n---\n# Errors seen at the load balancer.\napiVersion: openslo/v1\nkind: SLI\nmetadata:\n  name: checkout-errors\nspec:\n  ratioMetric:\n    good:\n      metricSource:\n        type: Prometheus\n        spec:\n          query: sum(rate(lb_requests_total{code!~\"5..\"}[5m]))\n    total:\n      metricSource:\n        type: Prometheus\n        spec:\n          query: sum(rate(lb_requests_total[5m]))\n---\napiVersion: openslo/v1\nkind: SLO\nmetadata:\n  name: checkout-availability\n  displayName: Checkout availability\nspec:\n  service: checkout\n  indicatorRef: checkout-errors\n  timeWindow:\n    - duration: 7d # four weeks, rolling\n      isRolling: true\n  budgetingMethod: Occurrences\n  objectives:\n    - displayName: Available\n      target: 0.995 # agreed with the product owner\n"
+    },
+    {
+      "doc": "An add of an objective to the SLO is an insert after its last objective, the line span of that item, which ends the body: a new sequence item at that item's indentation, its keys in the binding's order (displayName, then target).",
+      "edit": {
+        "add": {
+          "type": "Objective",
+          "id": "SLO:checkout-availability/objective:2",
+          "parent": "SLO:checkout-availability",
+          "slot": "objectives",
+          "attributes": {
+            "displayName": "Most requests",
+            "target": 0.95
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 904,
+          "end": 904,
+          "text": "    - displayName: Most requests\n      target: 0.95\n"
+        }
+      ],
+      "expect": "# Checkout's service level objectives, kept beside its code.\napiVersion: openslo/v1\nkind: Service\nmetadata:\n  name: checkout\n  displayName: Checkout\n---\n# Errors seen at the load balancer.\napiVersion: openslo/v1\nkind: SLI\nmetadata:\n  name: checkout-errors\nspec:\n  ratioMetric:\n    good:\n      metricSource:\n        type: Prometheus\n        spec:\n          query: sum(rate(lb_requests_total{code!~\"5..\"}[5m]))\n    total:\n      metricSource:\n        type: Prometheus\n        spec:\n          query: sum(rate(lb_requests_total[5m]))\n---\napiVersion: openslo/v1\nkind: SLO\nmetadata:\n  name: checkout-availability\n  displayName: Checkout availability\nspec:\n  service: checkout\n  indicatorRef: checkout-errors\n  timeWindow:\n    - duration: 7d # four weeks, rolling\n      isRolling: true\n  budgetingMethod: Occurrences\n  objectives:\n    - displayName: Available\n      target: 0.995 # agreed with the product owner\n    - displayName: Most requests\n      target: 0.95\n"
+    },
+    {
+      "doc": "An add of an SLO is an insert at the root (FBL 0.22, section 6.2): one insert-entry at the end of the body, a --- line and the document at indentation 0, apiVersion and kind its constants in the places keys gives them, metadata holding the name and spec the attributes the add gives in the order of their bindings (service, indicatorRef, budgetingMethod), then the rule's skeleton, a 28-day rolling window. The diagram's tool adds its first objective as a second step (behavior, addSlo).",
+      "edit": {
+        "add": {
+          "type": "SLO",
+          "id": "SLO:checkout-latency",
+          "attributes": {
+            "name": "checkout-latency",
+            "service": "checkout",
+            "indicatorRef": "checkout-errors",
+            "budgetingMethod": "Occurrences"
+          }
+        }
+      },
+      "splices": [
+        {
+          "operation": "insert-entry",
+          "start": 956,
+          "end": 956,
+          "text": "---\napiVersion: openslo/v1\nkind: SLO\nmetadata:\n  name: checkout-latency\nspec:\n  service: checkout\n  indicatorRef: checkout-errors\n  budgetingMethod: Occurrences\n  timeWindow:\n    - duration: 28d\n      isRolling: true\n"
+        }
+      ],
+      "expect": "# Checkout's service level objectives, kept beside its code.\napiVersion: openslo/v1\nkind: Service\nmetadata:\n  name: checkout\n  displayName: Checkout\n---\n# Errors seen at the load balancer.\napiVersion: openslo/v1\nkind: SLI\nmetadata:\n  name: checkout-errors\nspec:\n  ratioMetric:\n    good:\n      metricSource:\n        type: Prometheus\n        spec:\n          query: sum(rate(lb_requests_total{code!~\"5..\"}[5m]))\n    total:\n      metricSource:\n        type: Prometheus\n        spec:\n          query: sum(rate(lb_requests_total[5m]))\n---\napiVersion: openslo/v1\nkind: SLO\nmetadata:\n  name: checkout-availability\n  displayName: Checkout availability\nspec:\n  service: checkout\n  indicatorRef: checkout-errors\n  timeWindow:\n    - duration: 7d # four weeks, rolling\n      isRolling: true\n  budgetingMethod: Occurrences\n  objectives:\n    - displayName: Available\n      target: 0.995 # agreed with the product owner\n    - displayName: Most requests\n      target: 0.95\n---\napiVersion: openslo/v1\nkind: SLO\nmetadata:\n  name: checkout-latency\nspec:\n  service: checkout\n  indicatorRef: checkout-errors\n  budgetingMethod: Occurrences\n  timeWindow:\n    - duration: 28d\n      isRolling: true\n"
+    },
+    {
+      "doc": "A removal of the SLI removes its document's span, from its --- line to the last byte before the next document's --- line, its comment with it; the comment of the first document stays. Both SLOs still name checkout-errors, which the diagram now draws as missing, and the deletion confirmation named them before the removal (behavior.deletion).",
+      "edit": {
+        "remove": {
+          "element": "SLI:checkout-errors"
+        }
+      },
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 149,
+          "end": 529,
+          "text": ""
+        }
+      ],
+      "expect": "# Checkout's service level objectives, kept beside its code.\napiVersion: openslo/v1\nkind: Service\nmetadata:\n  name: checkout\n  displayName: Checkout\n---\napiVersion: openslo/v1\nkind: SLO\nmetadata:\n  name: checkout-availability\n  displayName: Checkout availability\nspec:\n  service: checkout\n  indicatorRef: checkout-errors\n  timeWindow:\n    - duration: 7d # four weeks, rolling\n      isRolling: true\n  budgetingMethod: Occurrences\n  objectives:\n    - displayName: Available\n      target: 0.995 # agreed with the product owner\n    - displayName: Most requests\n      target: 0.95\n---\napiVersion: openslo/v1\nkind: SLO\nmetadata:\n  name: checkout-latency\nspec:\n  service: checkout\n  indicatorRef: checkout-errors\n  budgetingMethod: Occurrences\n  timeWindow:\n    - duration: 28d\n      isRolling: true\n"
+    },
+    {
+      "doc": "The undo writes the SLI's document back where it was, byte for byte; it is listed under the operation of the splice it inverts (FBL section 15.3).",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "remove-entry",
+          "start": 149,
+          "end": 149,
+          "text": "---\n# Errors seen at the load balancer.\napiVersion: openslo/v1\nkind: SLI\nmetadata:\n  name: checkout-errors\nspec:\n  ratioMetric:\n    good:\n      metricSource:\n        type: Prometheus\n        spec:\n          query: sum(rate(lb_requests_total{code!~\"5..\"}[5m]))\n    total:\n      metricSource:\n        type: Prometheus\n        spec:\n          query: sum(rate(lb_requests_total[5m]))\n"
+        }
+      ],
+      "expect": "# Checkout's service level objectives, kept beside its code.\napiVersion: openslo/v1\nkind: Service\nmetadata:\n  name: checkout\n  displayName: Checkout\n---\n# Errors seen at the load balancer.\napiVersion: openslo/v1\nkind: SLI\nmetadata:\n  name: checkout-errors\nspec:\n  ratioMetric:\n    good:\n      metricSource:\n        type: Prometheus\n        spec:\n          query: sum(rate(lb_requests_total{code!~\"5..\"}[5m]))\n    total:\n      metricSource:\n        type: Prometheus\n        spec:\n          query: sum(rate(lb_requests_total[5m]))\n---\napiVersion: openslo/v1\nkind: SLO\nmetadata:\n  name: checkout-availability\n  displayName: Checkout availability\nspec:\n  service: checkout\n  indicatorRef: checkout-errors\n  timeWindow:\n    - duration: 7d # four weeks, rolling\n      isRolling: true\n  budgetingMethod: Occurrences\n  objectives:\n    - displayName: Available\n      target: 0.995 # agreed with the product owner\n    - displayName: Most requests\n      target: 0.95\n---\napiVersion: openslo/v1\nkind: SLO\nmetadata:\n  name: checkout-latency\nspec:\n  service: checkout\n  indicatorRef: checkout-errors\n  budgetingMethod: Occurrences\n  timeWindow:\n    - duration: 28d\n      isRolling: true\n"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+# A small stream: a service and two checks. The first document has no --- line.
+kind: Service
+name: checkout
+owner: payments
+# This comment stands before the next --- line, so it belongs to the service's document.
+
+---
+kind: Check
+name: latency
+service: checkout
+target: 0.99
+...
+---
+kind: Check
+name: errors
+service: checkout
+target: 0.995

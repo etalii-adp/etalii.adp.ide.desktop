@@ -54,9 +54,12 @@ fn every_vendored_specification_joins_the_tool_type_of_its_origin() {
     ] {
         assert!(specified.contains(&origin), "{origin} has its specification");
     }
-    assert!(
-        catalogue.unlisted.is_empty(),
-        "every vendored specification is a tool type the standalone host lists: {:?}",
+    // The tool types etalii.adp's specs 084 to 086 specify, which the standalone host's list does not have yet.
+    let unlisted: Vec<&str> = catalogue.unlisted.iter().map(|u| u.origin.as_str()).collect();
+    assert_eq!(
+        unlisted,
+        ["openslo/slo", "generic/value-stream-map", "etalii/post-incident-review"],
+        "every other vendored specification is a tool type the standalone host lists: {:?}",
         catalogue.unlisted
     );
 }

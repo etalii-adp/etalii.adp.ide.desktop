@@ -1,0 +1,90 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: foo-slo
+  displayName: Foo SLO
+spec:
+  service: foo
+  indicator:
+    metadata:
+      name: foo-error
+      displayName: Foo Error
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            metricSourceRef: datadog-datasource
+            type: Datadog
+            spec:
+              query: sum:trace.http.request.hits.by_http_status{http.status_code:200}.as_count()
+        total:
+          metricSource:
+            metricSourceRef: datadog-datasource
+            type: Datadog
+            spec:
+              query: sum:trace.http.request.hits.by_http_status{*}.as_count()
+  timeWindow:
+    - duration: 4w
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - displayName: Foo Total Errors
+      target: 0.98
+---
+apiVersion: openslo/v1
+kind: AlertPolicy
+metadata:
+  name: alert-policy
+  displayName: Alert Policy
+spec:
+  description: Alert policy for cpu usage breaches, notifies on-call devops via email
+  alertWhenBreaching: true
+  alertWhenResolved: false
+  conditions:
+    - kind: AlertCondition
+      metadata:
+        name: cpu-usage-breach
+        displayName: CPU Usage breaching
+      spec:
+        description: SLO burn rate for cpu-usage-breach exceeds 2
+        severity: page
+        condition:
+          kind: burnrate
+          op: gt
+          threshold: 2
+          lookbackWindow: 1h
+          alertAfter: 5m
+  notificationTargets:
+    - targetRef: on-call-devops-mail-notification
+---
+apiVersion: openslo/v1
+kind: AlertCondition
+metadata:
+  name: cpu-usage-breach
+  displayName: CPU usage breach
+spec:
+  description: SLO burn rate for cpu-usage-breach exceeds 2
+  severity: page
+  condition:
+    kind: burnrate
+    op: gt
+    threshold: 2
+    lookbackWindow: 1h
+    alertAfter: 5m
+---
+apiVersion: openslo/v1
+kind: AlertNotificationTarget
+metadata:
+  name: on-call-devops-mail-notification
+spec:
+  description: Notifies by a mail message to the on-call devops mailing group
+  target: email
+---
+apiVersion: openslo/v1
+kind: AlertNotificationTarget
+metadata:
+  name: on-call-devops-slack-notification
+spec:
+  description: "Sends P1 alert notifications to the slack channel"
+  target: slack

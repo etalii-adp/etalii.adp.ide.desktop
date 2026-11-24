@@ -313,9 +313,8 @@ impl Builder<'_> {
                     doc,
                 );
             }
-            "notation" | "toolbox" | "layout" | "coordinates" | "tableSurface" | "hierarchySurface" | "textSurface" => {
-                self.generic(member)
-            }
+            "notation" | "toolbox" | "layout" | "coordinates" | "tableSurface" | "hierarchySurface"
+            | "sectionsSurface" | "textSurface" => self.generic(member),
             "binding" => self.binding(member),
             "setting" => self.value(&member["setting"]["value"]),
             _ => {}
@@ -427,7 +426,8 @@ impl Builder<'_> {
                         item.get("doc"),
                     );
                 }
-                "rows" | "columns" | "cells" | "views" | "levels" | "entries" | "notes" | "filters" => {
+                "rows" | "columns" | "cells" | "views" | "levels" | "entries" | "notes" | "filters" | "record"
+                | "list" => {
                     if let Some(type_ref) = item.get("type") {
                         self.type_ref(&type_ref["name"]);
                     }

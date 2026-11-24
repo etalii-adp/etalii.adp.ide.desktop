@@ -1,0 +1,173 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A map with every key the binding reads: the vocabularies, both states with block and flow style steps, a flow, two alternatives, rework, basedOn, view.state and a root key the diagram does not read. Every element of a state carries that state, read from the key it stands under (research R2); a flow's id is formed from its ends. The flow with both share and rework is read by no rule and kept as written (the file schema refuses it); the owner key is kept and listed in unknownKeys. FBL reports nothing. Opening and saving without an edit writes the bytes that were read.",
+  "binding": "../../../../definitions/diagrams/value-stream-map.fbl#vsm",
+  "input": "restore-service.vsm",
+  "read": {
+    "elements": [
+      {
+        "id": "diagram",
+        "type": "Diagram",
+        "attributes": {
+          "name": "Restore service",
+          "unit": "minutes",
+          "shownState": "future",
+          "unknownKeys": [
+            "owner"
+          ]
+        }
+      },
+      {
+        "id": "activity:deliver and support",
+        "type": "Activity",
+        "attributes": {
+          "name": "deliver and support",
+          "color": "#12B886"
+        }
+      },
+      {
+        "id": "practice:incident management",
+        "type": "Practice",
+        "attributes": {
+          "name": "incident management"
+        }
+      },
+      {
+        "id": "t1",
+        "type": "Trigger",
+        "attributes": {
+          "name": "Alert raised",
+          "state": "current",
+          "role": "trigger"
+        }
+      },
+      {
+        "id": "s1",
+        "type": "Step",
+        "attributes": {
+          "name": "Diagnose",
+          "state": "current",
+          "activity": "deliver and support",
+          "practices": [
+            "incident management"
+          ],
+          "performer": "service desk",
+          "processTime": "PT20M",
+          "waitTime": "PT1H",
+          "note": "The desk reproduces the alert first."
+        }
+      },
+      {
+        "id": "s2",
+        "type": "Step",
+        "attributes": {
+          "name": "Fix",
+          "state": "current",
+          "performer": "platform team",
+          "processTime": "PT30M",
+          "waitTime": "PT2H"
+        }
+      },
+      {
+        "id": "s3",
+        "type": "Step",
+        "attributes": {
+          "name": "Review",
+          "state": "current",
+          "performer": "platform team",
+          "processTime": "PT10M",
+          "waitTime": "PT15M"
+        }
+      },
+      {
+        "id": "o1",
+        "type": "Outcome",
+        "attributes": {
+          "name": "Service restored",
+          "state": "current",
+          "role": "outcome"
+        }
+      },
+      {
+        "id": "flow:t1->s1",
+        "type": "Flow"
+      },
+      {
+        "id": "flow:s1->s2",
+        "type": "Alternative",
+        "attributes": {
+          "share": 0.75
+        }
+      },
+      {
+        "id": "flow:s1->s3",
+        "type": "Alternative",
+        "attributes": {
+          "share": 0.25
+        }
+      },
+      {
+        "id": "rework:s3->s1",
+        "type": "Rework",
+        "attributes": {
+          "rate": 0.2
+        }
+      },
+      {
+        "id": "flow:s2->o1",
+        "type": "Flow"
+      },
+      {
+        "id": "flow:s3->o1",
+        "type": "Flow"
+      },
+      {
+        "id": "t2",
+        "type": "Trigger",
+        "attributes": {
+          "name": "Alert raised",
+          "state": "future",
+          "basedOn": "t1"
+        }
+      },
+      {
+        "id": "s4",
+        "type": "Step",
+        "attributes": {
+          "name": "Diagnose",
+          "state": "future",
+          "basedOn": "s1",
+          "waitTime": "PT20M"
+        }
+      },
+      {
+        "id": "o2",
+        "type": "Outcome",
+        "attributes": {
+          "name": "Service restored",
+          "state": "future",
+          "basedOn": "o1"
+        }
+      },
+      {
+        "id": "flow:t2->s4",
+        "type": "Flow"
+      },
+      {
+        "id": "flow:s4->o2",
+        "type": "Flow"
+      }
+    ],
+    "findings": []
+  },
+  "steps": [
+    {
+      "doc": "Opening and saving without an edit writes the bytes that were read.",
+      "edit": {
+        "save": true
+      },
+      "splices": [],
+      "expect": "# Every key the value stream map reads (value-stream-map.md), and one it does not.\nname: Restore service\nunit: minutes\nowner: service owner   # not read by the diagram, kept\nactivities:\n  - name: deliver and support\n    color: \"#12B886\"\npractices:\n  - name: incident management\ncurrent:\n  trigger: { id: t1, name: Alert raised }\n  steps:\n    - id: s1\n      name: Diagnose\n      activity: deliver and support\n      practices: [incident management]\n      performer: service desk\n      processTime: PT20M\n      waitTime: PT1H\n      note: The desk reproduces the alert first.\n    - { id: s2, name: Fix, performer: platform team, processTime: PT30M, waitTime: PT2H }\n    - { id: s3, name: Review, performer: platform team, processTime: PT10M, waitTime: PT15M }\n  outcome: { id: o1, name: Service restored }\n  flows:\n    - { from: t1, to: s1 }\n    - { from: s1, to: s2, share: 0.75 }\n    - { from: s1, to: s3, share: 0.25 }\n    - { from: s3, to: s1, rework: 0.2 }\n    - { from: s2, to: o1 }\n    - { from: s3, to: o1 }\n    - { from: s2, to: s3, share: 0.5, rework: 0.5 }\nfuture:\n  trigger: { id: t2, name: Alert raised, basedOn: t1 }\n  steps:\n    - { id: s4, name: Diagnose, performer: service desk, processTime: PT20M, waitTime: PT20M, basedOn: s1 }\n  outcome: { id: o2, name: Service restored, basedOn: o1 }\n  flows:\n    - { from: t2, to: s4 }\n    - { from: s4, to: o2 }\nview:\n  state: future\n"
+    }
+  ]
+}

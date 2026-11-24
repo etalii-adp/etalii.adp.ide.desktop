@@ -1,0 +1,115 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "The five concrete samples of OpenSLO's website/docs/specification.md (its 8th, 14th, 16th, 18th and 19th yaml blocks), joined by --- into one stream in the order they appear: an SLO with an inline SLI reading from a data source by reference, an alert policy with an inline condition and a notification target by reference, a condition of the same name as a document of its own, and two notification targets. Two of the SLI's sources name the same data source, which is read once. The inline condition and the document condition share a name and keep apart, the inline one's id being its policy's with its own. The SLO names a service and a data source with no document in the stream, and nothing names the policy from an SLO: the diagram shows the first two as missing and reports the SLO as not alerting (User Story 3).",
+  "binding": "../../../../../definitions/diagrams/openslo-slo.fbl#openslo",
+  "input": "../../../../../definitions/diagrams/vendored/openslo/specification-samples.yaml",
+  "read": {
+    "elements": [
+      {
+        "id": "SLO:foo-slo",
+        "type": "SLO",
+        "attributes": {
+          "name": "foo-slo",
+          "displayName": "Foo SLO",
+          "service": "foo",
+          "alertPolicyRefs": [],
+          "duration": "4w",
+          "isRolling": true,
+          "windowCount": 1,
+          "budgetingMethod": "Occurrences",
+          "hasIndicator": true
+        }
+      },
+      {
+        "id": "SLO:foo-slo/SLI:foo-error",
+        "type": "SLI",
+        "parent": "SLO:foo-slo",
+        "attributes": {
+          "name": "foo-error",
+          "displayName": "Foo Error",
+          "metric": "ratio",
+          "sourceRefs": [
+            "datadog-datasource"
+          ],
+          "sourceTypes": [],
+          "inline": true
+        }
+      },
+      {
+        "id": "SLO:foo-slo/objective:1",
+        "type": "Objective",
+        "parent": "SLO:foo-slo",
+        "attributes": {
+          "displayName": "Foo Total Errors",
+          "target": 0.98
+        }
+      },
+      {
+        "id": "AlertPolicy:alert-policy",
+        "type": "AlertPolicy",
+        "attributes": {
+          "name": "alert-policy",
+          "displayName": "Alert Policy",
+          "description": "Alert policy for cpu usage breaches, notifies on-call devops via email",
+          "alertWhenBreaching": true,
+          "alertWhenResolved": false,
+          "alertWhenNoData": null,
+          "conditionRefs": [],
+          "targetRefs": [
+            "on-call-devops-mail-notification"
+          ]
+        }
+      },
+      {
+        "id": "AlertPolicy:alert-policy/AlertCondition:cpu-usage-breach",
+        "type": "AlertCondition",
+        "parent": "AlertPolicy:alert-policy",
+        "attributes": {
+          "name": "cpu-usage-breach",
+          "displayName": "CPU Usage breaching",
+          "severity": "page",
+          "conditionKind": "burnrate",
+          "op": "gt",
+          "threshold": 2,
+          "lookbackWindow": "1h",
+          "alertAfter": "5m",
+          "inline": true
+        }
+      },
+      {
+        "id": "AlertCondition:cpu-usage-breach",
+        "type": "AlertCondition",
+        "attributes": {
+          "name": "cpu-usage-breach",
+          "displayName": "CPU usage breach",
+          "description": "SLO burn rate for cpu-usage-breach exceeds 2",
+          "severity": "page",
+          "conditionKind": "burnrate",
+          "op": "gt",
+          "threshold": 2,
+          "lookbackWindow": "1h",
+          "alertAfter": "5m"
+        }
+      },
+      {
+        "id": "AlertNotificationTarget:on-call-devops-mail-notification",
+        "type": "AlertNotificationTarget",
+        "attributes": {
+          "name": "on-call-devops-mail-notification",
+          "description": "Notifies by a mail message to the on-call devops mailing group",
+          "target": "email"
+        }
+      },
+      {
+        "id": "AlertNotificationTarget:on-call-devops-slack-notification",
+        "type": "AlertNotificationTarget",
+        "attributes": {
+          "name": "on-call-devops-slack-notification",
+          "description": "Sends P1 alert notifications to the slack channel",
+          "target": "slack"
+        }
+      }
+    ]
+  },
+  "steps": []
+}

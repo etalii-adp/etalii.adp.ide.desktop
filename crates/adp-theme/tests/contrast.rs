@@ -774,25 +774,22 @@ fn a_causal_loops_caption_reads_on_the_canvas_in_both_themes() {
 
 #[test]
 fn the_notation_drawn_tools_without_a_dark_mode_get_one_from_their_module() {
-    for (spec, module) in [
-        ("dependency-graph.dis", "dependency-graph"),
-        ("timeline.dis", "timeline"),
-    ] {
-        let declared = notation(spec);
-        assert!(
-            declared["notation"]["theme"]["modes"]["dark"].is_null(),
-            "{spec} declares a dark mode of its own: its module need not"
-        );
-        let added = module_tokens(module, Kind::Dark);
-        assert!(
-            added.contains_key("color.surface"),
-            "{module} gives the dark theme a surface"
-        );
-        assert!(
-            module_tokens(module, Kind::Light).is_empty(),
-            "{module} leaves the light theme to its notation"
-        );
-    }
+    // The dependency graph's definition gives its own dark mode since etalii.adp spec 088 (#787).
+    let (spec, module) = ("timeline.dis", "timeline");
+    let declared = notation(spec);
+    assert!(
+        declared["notation"]["theme"]["modes"]["dark"].is_null(),
+        "{spec} declares a dark mode of its own: its module need not"
+    );
+    let added = module_tokens(module, Kind::Dark);
+    assert!(
+        added.contains_key("color.surface"),
+        "{module} gives the dark theme a surface"
+    );
+    assert!(
+        module_tokens(module, Kind::Light).is_empty(),
+        "{module} leaves the light theme to its notation"
+    );
     let graph = notation("dependency-graph.dis");
     for kind in KINDS {
         let back = drawn_token(&graph, "dependency-graph", kind, "color.surface");

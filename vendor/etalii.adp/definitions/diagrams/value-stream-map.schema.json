@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://etalii.net/adp/definitions/diagrams/value-stream-map.schema.json",
+  "title": "Value stream map",
+  "description": "The file of the value stream map (generic/value-stream-map), .vsm: YAML, read and written through value-stream-map.fbl#vsm and described for people and agents in value-stream-map.md. A file this schema refuses may still open: ADP keeps keys it does not know and values it cannot read, and reports them as findings. What the schema cannot check (that a flow names elements of its own state, that ids are unique, that shares add up, that rework goes back) are findings of value-stream-map.dis.",
+  "type": "object",
+  "required": [
+    "name",
+    "current"
+  ],
+  "properties": {
+    "name": {
+      "description": "What the stream is called.",
+      "type": "string",
+      "minLength": 1
+    },
+    "unit": {
+      "description": "The unit totals are shown in. Default hours.",
+      "enum": [
+        "minutes",
+        "hours",
+        "days"
+      ]
+    },
+    "activities": {
+      "description": "The activity vocabulary: the names a step's activity is chosen from.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "color": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          }
+        }
+      }
+    },
+    "practices": {
+      "description": "The practice list: the names a step's practices are chosen from.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "current": {
+      "$ref": "#/$defs/State"
+    },
+    "future": {
+      "$ref": "#/$defs/State"
+    },
+    "view": {
+      "description": "Written by the diagram only: the state the canvas shows. May be deleted without losing anything but that choice.",
+      "type": "object",
+      "properties": {
+        "state": {
+          "enum": [
+            "current",
+            "future"
+          ]
+        }
+      }
+    }
+  },
+  "$defs": {
+    "State": {
+      "description": "One state of the stream: its trigger, steps, outcome and flows.",
+      "type": "object",
+      "required": [
+        "trigger",
+        "steps",
+        "outcome",
+        "flows"
+      ],
+      "properties": {
+        "trigger": {
+          "type": "object",
+          "required": [
+            "id",
+            "name"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[^\\s]+$"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "basedOn": {
+              "description": "Future state only: the id of the current element this one was copied from.",
+              "type": "string"
+            }
+          }
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Step"
+          }
+        },
+        "outcome": {
+          "type": "object",
+          "required": [
+            "id",
+            "name"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[^\\s]+$"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "basedOn": {
+              "description": "Future state only: the id of the current element this one was copied from.",
+              "type": "string"
+            }
+          }
+        },
+        "flows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Flow"
+          }
+        }
+      }
+    },
+    "Step": {
+      "type": "object",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\s]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "activity": {
+          "type": "string"
+        },
+        "practices": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "performer": {
+          "type": "string"
+        },
+        "processTime": {
+          "description": "An ISO 8601 duration without years or months: days, hours, minutes and seconds (PT20M, PT3H, P2D, P1DT4H). Working-day calendars are out of scope, so P1M is refused.",
+          "type": "string",
+          "pattern": "^P(?!$)(\\d+(\\.\\d+)?D)?(T(?=\\d)(\\d+(\\.\\d+)?H)?(\\d+(\\.\\d+)?M)?(\\d+(\\.\\d+)?S)?)?$"
+        },
+        "waitTime": {
+          "description": "An ISO 8601 duration without years or months: days, hours, minutes and seconds (PT20M, PT3H, P2D, P1DT4H). Working-day calendars are out of scope, so P1M is refused.",
+          "type": "string",
+          "pattern": "^P(?!$)(\\d+(\\.\\d+)?D)?(T(?=\\d)(\\d+(\\.\\d+)?H)?(\\d+(\\.\\d+)?M)?(\\d+(\\.\\d+)?S)?)?$"
+        },
+        "note": {
+          "type": "string"
+        },
+        "basedOn": {
+          "description": "Future state only: the id of the current step this one was copied from.",
+          "type": "string"
+        }
+      }
+    },
+    "Flow": {
+      "description": "A flow from one element to another of the same state. With share it is an alternative, with rework it is rework; a flow with both is refused.",
+      "type": "object",
+      "required": [
+        "from",
+        "to"
+      ],
+      "properties": {
+        "from": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\s]+$"
+        },
+        "to": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\s]+$"
+        },
+        "share": {
+          "description": "Alternative: the part of the source's work that goes this way.",
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "rework": {
+          "description": "Rework: the part of the source's work that goes back to the target.",
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        }
+      },
+      "not": {
+        "required": [
+          "share",
+          "rework"
+        ]
+      }
+    }
+  }
+}

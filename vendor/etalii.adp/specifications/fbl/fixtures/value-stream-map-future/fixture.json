@@ -1,0 +1,243 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "Create future state (research R3) on a two-step stream, as the one transaction the operation makes: future: is created at the end of the file with its trigger first and its outcome after its steps, every copy carries basedOn, the id of what it copies, each new element takes the next free id of its kind across the file, and the flows are copied between the copies. The shown state is set to future, which creates view: after it. One undo takes all of it back.",
+  "binding": "../../../../definitions/diagrams/value-stream-map.fbl#vsm",
+  "input": "two-steps.vsm",
+  "steps": [
+    {
+      "doc": "The operation's edits, planned as one edit.",
+      "edit": [
+        {
+          "add": {
+            "type": "Trigger",
+            "id": "t2",
+            "attributes": {
+              "name": "Call received",
+              "state": "future",
+              "basedOn": "t1"
+            }
+          }
+        },
+        {
+          "add": {
+            "type": "Step",
+            "id": "s3",
+            "attributes": {
+              "name": "Log call",
+              "state": "future",
+              "basedOn": "s1",
+              "performer": "service desk",
+              "processTime": "PT5M",
+              "waitTime": "PT10M"
+            }
+          }
+        },
+        {
+          "add": {
+            "type": "Step",
+            "id": "s4",
+            "attributes": {
+              "name": "Resolve",
+              "state": "future",
+              "basedOn": "s2",
+              "performer": "second line",
+              "processTime": "PT20M",
+              "waitTime": "PT1H"
+            }
+          }
+        },
+        {
+          "add": {
+            "type": "Outcome",
+            "id": "o2",
+            "attributes": {
+              "name": "Caller helped",
+              "state": "future",
+              "basedOn": "o1"
+            }
+          }
+        },
+        {
+          "add": {
+            "type": "Flow",
+            "id": "flow:t2->s3",
+            "attributes": {
+              "source": "t2",
+              "target": "s3"
+            }
+          }
+        },
+        {
+          "add": {
+            "type": "Flow",
+            "id": "flow:s3->s4",
+            "attributes": {
+              "source": "s3",
+              "target": "s4"
+            }
+          }
+        },
+        {
+          "add": {
+            "type": "Flow",
+            "id": "flow:s4->o2",
+            "attributes": {
+              "source": "s4",
+              "target": "o2"
+            }
+          }
+        },
+        {
+          "set": {
+            "element": "diagram",
+            "attributes": {
+              "shownState": "future"
+            }
+          }
+        }
+      ],
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 478,
+          "end": 478,
+          "text": "future:\n"
+        },
+        {
+          "operation": "insert-key",
+          "start": 478,
+          "end": 478,
+          "text": "  trigger:\n    id: t2\n    name: Call received\n    basedOn: t1\n"
+        },
+        {
+          "operation": "ensure-container",
+          "start": 478,
+          "end": 478,
+          "text": "  steps:\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 478,
+          "end": 478,
+          "text": "    - id: s3\n      name: Log call\n      performer: service desk\n      processTime: PT5M\n      waitTime: PT10M\n      basedOn: s1\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 478,
+          "end": 478,
+          "text": "    - id: s4\n      name: Resolve\n      performer: second line\n      processTime: PT20M\n      waitTime: PT1H\n      basedOn: s2\n"
+        },
+        {
+          "operation": "insert-key",
+          "start": 478,
+          "end": 478,
+          "text": "  outcome:\n    id: o2\n    name: Caller helped\n    basedOn: o1\n"
+        },
+        {
+          "operation": "ensure-container",
+          "start": 478,
+          "end": 478,
+          "text": "  flows:\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 478,
+          "end": 478,
+          "text": "    - from: t2\n      to: s3\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 478,
+          "end": 478,
+          "text": "    - from: s3\n      to: s4\n"
+        },
+        {
+          "operation": "insert-entry",
+          "start": 478,
+          "end": 478,
+          "text": "    - from: s4\n      to: o2\n"
+        },
+        {
+          "operation": "insert-key",
+          "start": 478,
+          "end": 478,
+          "text": "view:\n  state: future\n"
+        }
+      ],
+      "expect": "name: Two steps\nunit: hours\nactivities: []\npractices: []\ncurrent:\n  trigger:\n    id: t1\n    name: Call received\n  steps:\n    - id: s1\n      name: Log call\n      performer: service desk\n      processTime: PT5M\n      waitTime: PT10M\n    - id: s2\n      name: Resolve\n      performer: second line\n      processTime: PT20M\n      waitTime: PT1H\n  outcome:\n    id: o1\n    name: Caller helped\n  flows:\n    - from: t1\n      to: s1\n    - from: s1\n      to: s2\n    - from: s2\n      to: o1\nfuture:\n  trigger:\n    id: t2\n    name: Call received\n    basedOn: t1\n  steps:\n    - id: s3\n      name: Log call\n      performer: service desk\n      processTime: PT5M\n      waitTime: PT10M\n      basedOn: s1\n    - id: s4\n      name: Resolve\n      performer: second line\n      processTime: PT20M\n      waitTime: PT1H\n      basedOn: s2\n  outcome:\n    id: o2\n    name: Caller helped\n    basedOn: o1\n  flows:\n    - from: t2\n      to: s3\n    - from: s3\n      to: s4\n    - from: s4\n      to: o2\nview:\n  state: future\n"
+    },
+    {
+      "doc": "One undo removes the future state and view: together.",
+      "undo": true,
+      "splices": [
+        {
+          "operation": "ensure-container",
+          "start": 478,
+          "end": 486,
+          "text": ""
+        },
+        {
+          "operation": "insert-key",
+          "start": 486,
+          "end": 548,
+          "text": ""
+        },
+        {
+          "operation": "ensure-container",
+          "start": 548,
+          "end": 557,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 557,
+          "end": 685,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 685,
+          "end": 811,
+          "text": ""
+        },
+        {
+          "operation": "insert-key",
+          "start": 811,
+          "end": 873,
+          "text": ""
+        },
+        {
+          "operation": "ensure-container",
+          "start": 873,
+          "end": 882,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 882,
+          "end": 910,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 910,
+          "end": 938,
+          "text": ""
+        },
+        {
+          "operation": "insert-entry",
+          "start": 938,
+          "end": 966,
+          "text": ""
+        },
+        {
+          "operation": "insert-key",
+          "start": 966,
+          "end": 988,
+          "text": ""
+        }
+      ],
+      "expect": "name: Two steps\nunit: hours\nactivities: []\npractices: []\ncurrent:\n  trigger:\n    id: t1\n    name: Call received\n  steps:\n    - id: s1\n      name: Log call\n      performer: service desk\n      processTime: PT5M\n      waitTime: PT10M\n    - id: s2\n      name: Resolve\n      performer: second line\n      processTime: PT20M\n      waitTime: PT1H\n  outcome:\n    id: o1\n    name: Caller helped\n  flows:\n    - from: t1\n      to: s1\n    - from: s1\n      to: s2\n    - from: s2\n      to: o1\n"
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "A folder of OpenSLO files, one object per file, read through the registration in it with openslo-slo.fbl#folder (FBL section 10; spec 085, research R4): a Service, an SLI and an SLO in three folders of their own, read file by file in the ordinal order of their relative paths (services/, slis/, slos/), and a README.md that no file rule selects. The SLO names its service and its indicator by name, from another file, so the diagram draws both references in full: only the SLI's data source, shop-metrics, has no document and is drawn as missing. The folder is read-only.",
+  "binding": "../../../../definitions/diagrams/openslo-slo.fbl#folder",
+  "input": "shop/openslo.adp",
+  "read": {
+    "elements": [
+      {
+        "id": "Service:web-shop",
+        "type": "Service",
+        "attributes": {
+          "name": "web-shop",
+          "displayName": "Web shop",
+          "description": "The storefront customers search and buy in."
+        }
+      },
+      {
+        "id": "SLI:search-latency",
+        "type": "SLI",
+        "attributes": {
+          "name": "search-latency",
+          "displayName": "Latency of user searches",
+          "metric": "threshold",
+          "sourceRefs": ["shop-metrics"],
+          "sourceTypes": []
+        }
+      },
+      {
+        "id": "SLO:search-slo",
+        "type": "SLO",
+        "attributes": {
+          "name": "search-slo",
+          "displayName": "Searching time",
+          "service": "web-shop",
+          "indicatorRef": "search-latency",
+          "duration": "28d",
+          "isRolling": true,
+          "windowCount": 1,
+          "budgetingMethod": "Occurrences",
+          "hasIndicator": false
+        }
+      },
+      {
+        "id": "SLO:search-slo/objective:1",
+        "type": "Objective",
+        "parent": "SLO:search-slo",
+        "attributes": {
+          "displayName": "Fast searches",
+          "op": "lt",
+          "value": 0.5,
+          "target": 0.99
+        }
+      },
+      {
+        "id": "SLO:search-slo/objective:2",
+        "type": "Objective",
+        "parent": "SLO:search-slo",
+        "attributes": {
+          "displayName": "Tolerable searches",
+          "op": "lt",
+          "value": 2,
+          "target": 0.999
+        }
+      }
+    ]
+  },
+  "steps": []
+}

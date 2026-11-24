@@ -1,0 +1,54 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "OpenSLO's examples/treat-low-traffic-as-equally-important/timeslices-slo.yaml, byte for byte, vendored in definitions/diagrams/vendored/openslo/ with OpenSLO's licence: a one-week calendar window with a 99.95% target over one-minute slices, which leave five slices of budget (the companion's budget table).",
+  "binding": "../../../../../definitions/diagrams/openslo-slo.fbl#openslo",
+  "input": "../../../../../definitions/diagrams/vendored/openslo/examples/treat-low-traffic-as-equally-important/timeslices-slo.yaml",
+  "read": {
+    "elements": [
+      {
+        "id": "SLO:service-availability",
+        "type": "SLO",
+        "attributes": {
+          "name": "service-availability",
+          "displayName": "SLO for this important service",
+          "description": null,
+          "service": "web-availability",
+          "alertPolicyRefs": [],
+          "duration": "1w",
+          "isRolling": false,
+          "calendarStart": "2022-01-01 12:00:00",
+          "timeZone": "America/New_York",
+          "windowCount": 1,
+          "budgetingMethod": "Timeslices",
+          "hasIndicator": true
+        }
+      },
+      {
+        "id": "SLO:service-availability/SLI:web-availability",
+        "type": "SLI",
+        "parent": "SLO:service-availability",
+        "attributes": {
+          "name": "web-availability",
+          "metric": "ratio",
+          "sourceTypes": [
+            "Any"
+          ],
+          "inline": true
+        }
+      },
+      {
+        "id": "SLO:service-availability/objective:1",
+        "type": "Objective",
+        "parent": "SLO:service-availability",
+        "attributes": {
+          "displayName": "Objective",
+          "op": "gt",
+          "target": 0.9995,
+          "timeSliceTarget": 0.95,
+          "timeSliceWindow": "1m"
+        }
+      }
+    ]
+  },
+  "steps": []
+}

@@ -128,7 +128,11 @@ fn properties(
     }
     for key in ["then", "else"] {
         if let Some(branch) = schema.get(key) {
-            properties(branch, &format!("{pointer}/{key}"), document, out, open, depth + 1);
+            // A consequence that only forbids keys (`not`) admits none of its own (DESL's record part, §7.8.1).
+            let forbids_only = branch.as_object().is_some_and(|o| o.keys().all(|k| k == "not"));
+            if !forbids_only {
+                properties(branch, &format!("{pointer}/{key}"), document, out, open, depth + 1);
+            }
         }
     }
 }
@@ -413,6 +417,7 @@ impl SettingsChecker<'_> {
             "layout" => self.layout(member),
             "tableSurface" => self.generic(member, &[Def(DESL, "Table")], &table_def),
             "hierarchySurface" => self.generic(member, &[Def(DESL, "Hierarchy")], &hierarchy_def),
+            "sectionsSurface" => self.generic(member, &[Def(DESL, "Sections")], &sections_def),
             "binding" => self.binding(member),
             _ => {}
         }
@@ -629,6 +634,15 @@ fn hierarchy_def(kind: &str, _: &Json) -> Vec<Def> {
         "filters" => vec![Def(DESL, "Filters")],
         "widths" => vec![Def(DESL, "Widths")],
         "labels" => vec![Def(DESL, "Labels")],
+        _ => Vec::new(),
+    }
+}
+
+/// A part of a sections surface (DESL §7.8): a record or a list, whose `id`, `title`, `kind` and `type` the construct
+/// states.
+fn sections_def(kind: &str, _: &Json) -> Vec<Def> {
+    match kind {
+        "record" | "list" => vec![Def(DESL, "SectionPart")],
         _ => Vec::new(),
     }
 }

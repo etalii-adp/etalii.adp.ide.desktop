@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://etalii.net/adp/definitions/designers/post-incident-review.schema.json",
+  "title": "Post-incident review",
+  "description": "A review of the post-incident review designer (etalii/post-incident-review), a DED 0.2 definition in Markdown, in the JSON form it is read into (post-incident-review.md, The JSON form): the envelope's two values from line 1, the marks from line 2, the time zone and summary under Summary, the impact, and the items of Timeline, Contributing factors, Actions and Categories in the order of the file. The file itself is Markdown; this is what it means. An item that cannot be read is left out of this form, and a finding reports it.",
+  "type": "object",
+  "properties": {
+    "ded": {
+      "description": "The version of DED the file is written in, from line 1.",
+      "const": "0.2"
+    },
+    "designer": {
+      "description": "The designer type whose document this is, from line 1.",
+      "const": "etalii/post-incident-review"
+    },
+    "lastEntry": {
+      "$ref": "#/$defs/EntryNumber"
+    },
+    "lastFactor": {
+      "$ref": "#/$defs/FactorNumber"
+    },
+    "lastAction": {
+      "$ref": "#/$defs/ActionNumber"
+    },
+    "timeZone": {
+      "description": "The IANA name of the zone the times are shown in, from `- Time zone:`.",
+      "type": "string",
+      "pattern": "^\\S+$"
+    },
+    "summary": {
+      "description": "The other item under Summary.",
+      "type": "string"
+    },
+    "affected": {
+      "type": "string"
+    },
+    "effect": {
+      "type": "string"
+    },
+    "duration": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Entry"
+      }
+    },
+    "factors": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Factor"
+      }
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Action"
+      }
+    },
+    "categories": {
+      "description": "The category list, in its order.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^\\S+$"
+      }
+    }
+  },
+  "required": [
+    "ded",
+    "designer",
+    "entries",
+    "factors",
+    "actions",
+    "categories"
+  ],
+  "allOf": [
+    {
+      "$ref": "https://etalii.net/adp/ded/schema/0.1/ded.schema.json#/$defs/Definition"
+    }
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "EntryNumber": {
+      "description": "An entry's number: `E-` and digits; the designer writes four or more.",
+      "type": "string",
+      "pattern": "^E-[0-9]+$"
+    },
+    "FactorNumber": {
+      "description": "A factor's number.",
+      "type": "string",
+      "pattern": "^F-[0-9]+$"
+    },
+    "ActionNumber": {
+      "description": "An action's number.",
+      "type": "string",
+      "pattern": "^A-[0-9]+$"
+    },
+    "Placeholder": {
+      "description": "An item written with the placeholder NEW, named by its line until it is numbered (DESL section 5.3.5).",
+      "type": "string",
+      "pattern": "^line/[0-9]+$"
+    },
+    "Entry": {
+      "description": "One timeline entry (FR-002).",
+      "type": "object",
+      "properties": {
+        "id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EntryNumber"
+            },
+            {
+              "$ref": "#/$defs/Placeholder"
+            }
+          ]
+        },
+        "time": {
+          "description": "RFC 3339, the seconds optional, with Z or an offset, as written.",
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2})?(Z|[+-]\\d{2}:\\d{2})$"
+        },
+        "kind": {
+          "description": "The milestone, by its key.",
+          "enum": [
+            "trigger",
+            "start",
+            "detection",
+            "engagement",
+            "mitigationStart",
+            "mitigated",
+            "resolved"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\r\\n]*$"
+        },
+        "author": {
+          "enum": [
+            "agent",
+            "person"
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "description": "A link to what shows it: the target of a Markdown link whose text has no whitespace.",
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "detail": {
+          "description": "The lines indented under the item, joined by LF, with their indentation up to the item's content column taken off (FBL section 4.8). Absent when it has none.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "id",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "Factor": {
+      "description": "One contributing factor (FR-004). There is no field for a person's fault (FR-009).",
+      "type": "object",
+      "properties": {
+        "id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FactorNumber"
+            },
+            {
+              "$ref": "#/$defs/Placeholder"
+            }
+          ]
+        },
+        "category": {
+          "type": "string",
+          "pattern": "^\\S+$"
+        },
+        "state": {
+          "enum": [
+            "proposed",
+            "accepted",
+            "rejected"
+          ]
+        },
+        "author": {
+          "enum": [
+            "agent",
+            "person"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\r\\n]*$"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[^\\s#]+$"
+          }
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EntryNumber"
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "description": "A link to what shows it: the target of a Markdown link whose text has no whitespace.",
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "detail": {
+          "description": "The lines indented under the item, joined by LF, with their indentation up to the item's content column taken off (FBL section 4.8). Absent when it has none.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "id",
+        "state",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "Action": {
+      "description": "One action (FR-005).",
+      "type": "object",
+      "properties": {
+        "id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ActionNumber"
+            },
+            {
+              "$ref": "#/$defs/Placeholder"
+            }
+          ]
+        },
+        "done": {
+          "type": "boolean"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\r\\n]*$"
+        },
+        "owner": {
+          "type": "string",
+          "pattern": "^\\S+$"
+        },
+        "due": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "addresses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FactorNumber"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "done",
+        "text"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

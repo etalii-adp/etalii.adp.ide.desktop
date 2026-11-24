@@ -244,6 +244,26 @@ diagram etalii/agent-activity-diagram version "0.1.0" {
     }
   }
 
+  /// The sentence a pair no relation type joins is refused with: what the first can be joined to instead, each type
+  /// in words with its article, the partners in the order of the relation types.
+  fn joinRefusal(from: string, to: string) -> string {
+    let words = {'Project': 'a project', 'Specification': 'a specification', 'Agent': 'an agent', 'Location': 'a location', 'Environment': 'an environment'}
+    let partners = {'Project': ['Specification'], 'Specification': ['Project', 'Agent'], 'Agent': ['Specification', 'Location'], 'Location': ['Agent', 'Environment'], 'Environment': ['Location']}
+    let own = words[from].substring(0, 1).upperAscii() + words[from].substring(1)
+    return own + ' cannot be joined to ' + words[to] + '. ' + own + ' is joined to ' + partners[from].map(p, words[p]).join(' or ') + '.'
+  }
+
+  /// The tasks of a specification with the status `status`.
+  fn tasksIn(specification: Specification, status: string) -> int {
+    return size(specification.children.filter(t, t.isA('Task') && t.status == status))
+  }
+
+  /// The height a group of `rows` rows adds to its card: none without rows, else its heading of 22 and, unfolded, 18 per
+  /// row, as the module draws it.
+  fn groupHeight(rows: int, folded: bool) -> int {
+    return rows == 0 ? 0 : 22 + (folded ? 0 : 18 * rows)
+  }
+
   // ---------------------------------------------------------------- Constraints
 
   /// A file an agent wrote that breaks a rule still opens and draws; each breach is a finding where it is, and nothing
@@ -252,12 +272,18 @@ diagram etalii/agent-activity-diagram version "0.1.0" {
   constraints {
     blockSaveOn: never
 
+    /// A pair of elements no relation type joins is refused with what the first of them is joined to instead, in the
+    /// module's words: "A project cannot be joined to an environment. A project is joined to a specification."
+    builtin std.endpoints {
+      refusal: (source == target ? 'An element cannot be joined to itself.' : joinRefusal(source.type, target.type))
+    }
+
     /// Requirement 3.2 (Q6): a second specification is refused, with the reason.
     constraint secondSpecification {
       label "Agent already on a specification"
       when relationType == 'SpecificationAgent'
       rule target.specification == null
-      message ('"' + target.name + '" already works on "' + target.specification.name + '". Remove that line first: an agent works on one specification at a time.')
+      message ('"' + target.name + '" is already joined to "' + target.specification.name + '". Remove that line first: each agent has one specification.')
       code: "aad.second-specification"
       kind: connect
     }
@@ -353,6 +379,9 @@ diagram etalii/agent-activity-diagram version "0.1.0" {
     phase: after
     set updated = env.now
   }
+
+  /// A status, kind or other choice given a value it does not have is refused in the module's words (DISL 0.11, 7.5).
+  message std.notAValue ('\'' + value + '\' is not one of the values this can have.')
 
   // ---------------------------------------------------------------- Operations
 
@@ -485,6 +514,10 @@ diagram etalii/agent-activity-diagram version "0.1.0" {
   }
 
   x-aad: {
+    /// The module's view element, its gestures on group headings and the archive switch (ATD §2.3, spec 087).
+    elements: { diagram: "diagram view" }
+    headings: { collapse: collapse-group, expand: expand-group }
+    filters: { show-archived: { archived: true }, hide-archived: { archived: false } }
     tools: {
       project: { drop: add-project }
       specification: { drop: add-specification }

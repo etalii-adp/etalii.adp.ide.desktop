@@ -603,7 +603,7 @@ impl Server {
                 (named(&format!("{kind} "))?, 6)
             }
             "notation" | "toolbox" | "layout" | "coordinates" | "constraints" => (kind.to_owned(), 3),
-            "tableSurface" | "hierarchySurface" | "textSurface" => ("surface".to_owned(), 3),
+            "tableSurface" | "hierarchySurface" | "sectionsSurface" | "textSurface" => ("surface".to_owned(), 3),
             "node" | "edge" => {
                 let names: Vec<&str> = node["names"]
                     .as_array()?

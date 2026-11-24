@@ -1,0 +1,68 @@
+{
+  "$schema": "https://etalii.net/adp/fbl/schema/0.1/fbl.schema.json#/$defs/Fixture",
+  "doc": "OpenSLO's examples/budgeting-method/timeslices-slo.yaml, byte for byte, vendored in definitions/diagrams/vendored/openslo/ with OpenSLO's licence: a calendar-aligned SLO with two objectives on the Timeslices budgeting method. Its startTime is read as written, not as a timestamp. Its duration is 1m, which OpenSLO's duration shorthand reads as one minute, although the comment beside it says a month: the window and the budget the diagram shows follow the value, not the comment.",
+  "binding": "../../../../../definitions/diagrams/openslo-slo.fbl#openslo",
+  "input": "../../../../../definitions/diagrams/vendored/openslo/examples/budgeting-method/timeslices-slo.yaml",
+  "read": {
+    "elements": [
+      {
+        "id": "SLO:service-availability",
+        "type": "SLO",
+        "attributes": {
+          "name": "service-availability",
+          "displayName": "Reflaction of out availability SLA",
+          "description": "SLO to see if we are above our SLA and to react before.",
+          "service": "web-availability",
+          "alertPolicyRefs": [],
+          "duration": "1m",
+          "isRolling": false,
+          "calendarStart": "2022-01-01 12:00:00",
+          "timeZone": "America/New_York",
+          "windowCount": 1,
+          "budgetingMethod": "Timeslices",
+          "hasIndicator": true
+        }
+      },
+      {
+        "id": "SLO:service-availability/SLI:web-availability",
+        "type": "SLI",
+        "parent": "SLO:service-availability",
+        "attributes": {
+          "name": "web-availability",
+          "displayName": "Time when our service was running.",
+          "metric": "ratio",
+          "sourceRefs": [],
+          "sourceTypes": [
+            "Any"
+          ],
+          "inline": true
+        }
+      },
+      {
+        "id": "SLO:service-availability/objective:1",
+        "type": "Objective",
+        "parent": "SLO:service-availability",
+        "attributes": {
+          "displayName": "Internal objective",
+          "op": "gt",
+          "target": 0.995,
+          "timeSliceTarget": 0.99,
+          "timeSliceWindow": "1m"
+        }
+      },
+      {
+        "id": "SLO:service-availability/objective:2",
+        "type": "Objective",
+        "parent": "SLO:service-availability",
+        "attributes": {
+          "displayName": "SLA",
+          "op": null,
+          "target": 0.99,
+          "timeSliceTarget": 0.99,
+          "timeSliceWindow": "1m"
+        }
+      }
+    ]
+  },
+  "steps": []
+}

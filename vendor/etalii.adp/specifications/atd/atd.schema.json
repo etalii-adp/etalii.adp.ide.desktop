@@ -641,6 +641,9 @@
           "$ref": "#/$defs/HierarchySurface"
         },
         {
+          "$ref": "#/$defs/SectionsSurface"
+        },
+        {
           "$ref": "#/$defs/TextSurface"
         },
         {
@@ -2222,6 +2225,47 @@
       "properties": {
         "kind": {
           "const": "hierarchySurface"
+        },
+        "span": {
+          "$ref": "#/$defs/Span"
+        },
+        "doc": {
+          "description": "The documentation of the construct: its `///` comments, joined, and its `doc` member.",
+          "type": "string"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "description": "A member of the construct, by its `kind`: a construct of its own, or a `setting`, `doc` or `label` member.",
+            "type": "object",
+            "required": [
+              "kind",
+              "span"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "span": {
+                "$ref": "#/$defs/Span"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "span",
+        "members"
+      ]
+    },
+    "SectionsSurface": {
+      "description": "`surface sections { … }` (DESL §7.8). Its members are the constructs ATD's section names, each with `kind` the construct's keyword (`system`, `node`, `edge`, `variant`, `group`, `tool`, `algorithm`, `rows`, `valueType`, `outline`, …), `name` or `names`, its own fields and its `settings`.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "sectionsSurface"
         },
         "span": {
           "$ref": "#/$defs/Span"

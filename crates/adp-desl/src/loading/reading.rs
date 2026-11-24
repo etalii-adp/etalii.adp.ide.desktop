@@ -47,8 +47,11 @@ const RESERVED: &[&str] = &[
     "null",
 ];
 
-/// The primitive types of DESL section 4.2.
-const PRIMITIVES: &[&str] = &["string", "text", "int", "number", "bool", "date", "datetime", "time"];
+/// The primitive types (DESL section 4.3), and DESL 0.5's `link`, a link to an element of another document as FBL
+/// section 17.1 writes it.
+const PRIMITIVES: &[&str] = &[
+    "string", "text", "int", "number", "bool", "date", "datetime", "time", "link",
+];
 
 /// Whether `name` may not be the name of an attribute (DESL section 2.2).
 pub(crate) fn is_reserved(name: &str) -> bool {
@@ -315,6 +318,13 @@ pub(crate) fn surface(
         Some("hierarchy") => {
             hierarchy(surface, metamodel, diagnostics);
             Some(DeslSurface::Hierarchy(surface.clone()))
+        }
+        Some("sections") => {
+            diagnostics.push(DeslDiagnostic::warning(
+                "/surface/kind",
+                "The surface's kind is 'sections' (DESL 0.4, §7.8), which this runtime does not lay out yet; it is kept as written.",
+            ));
+            Some(DeslSurface::Sections(surface.clone()))
         }
         other => {
             diagnostics.push(DeslDiagnostic::error(

@@ -58,7 +58,9 @@ fn an_is_a_guard_lets_what_follows_it_read_the_subtypes_attributes() {
 
 #[test]
 fn a_subtypes_attribute_read_without_the_guard_is_still_found() {
-    let found = findings(&description("has(self.environment) && self.isA('DeploymentJob')"));
+    // `has(self.environment)` asks whether `self` has it, so it is a guard of its own (DISL 0.12's linked nodes); a
+    // plain read before the guard is not.
+    let found = findings(&description("self.environment != '' && self.isA('DeploymentJob')"));
     assert!(
         found
             .iter()
@@ -76,4 +78,9 @@ fn a_guard_in_a_disjunction_proves_nothing() {
             .any(|f| f.starts_with("ATD2001") && f.contains("`environment`")),
         "{found:?}"
     );
+}
+
+#[test]
+fn has_alone_may_test_a_subtypes_attribute() {
+    assert_eq!(findings(&description("has(self.environment)")), Vec::<String>::new());
 }

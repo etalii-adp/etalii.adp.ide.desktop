@@ -78,7 +78,7 @@ Today a tool engineer specifies a tool type in up to three JSON files, each in a
 
 ### 1.3 Relation to the other specifications
 
-DISL, DID, DESL, DED, EDSL, EDD and FBL remain specifications of this repository. ATD carries every construct of DISL 0.10, DESL 0.3 and FBL 0.19 (Appendix C maps each of their properties to the ATD construct that carries it), and the constructs an editor needs, which EDSL, a placeholder, does not yet have (section 10). ATD reuses their schemas: a setting of an ATD construct is checked against the `$defs` entry of DISL, DESL or FBL for the same thing (section 14.6), and a binding in ATD is an FBL binding written as text. Tools keep storing their documents in DID, DED or a body a binding reads; a tool description replaces none of them.
+DISL, DID, DESL, DED, EDSL, EDD and FBL remain specifications of this repository. ATD carries every construct of DISL 0.11, DESL 0.4 and FBL 0.19 (Appendix C maps each of their properties to the ATD construct that carries it), and the constructs an editor needs, which EDSL, a placeholder, does not yet have (section 10). ATD reuses their schemas: a setting of an ATD construct is checked against the `$defs` entry of DISL, DESL or FBL for the same thing (section 14.6), and a binding in ATD is an FBL binding written as text. Tools keep storing their documents in DID, DED or a body a binding reads; a tool description replaces none of them.
 
 ### 1.4 How to read this document
 
@@ -118,7 +118,7 @@ A **conformance fixture** is one case of one tool type: input files, the gesture
 - An `undo` **MUST** give back the bytes before the step it undoes exactly, and a `redo` the bytes after it.
 - `provenance` names, for each part (`bytes`, `reading`, `findings`, `drawing`), the host and repository that produced it, `commit`, the reference commit whose behaviour it records, `recordedWith`, for a recorded part the commit of the recorder, and `source`, a standalone host's golden or `atd record`. The reference host differs by part: the standalone host for bytes, as the desktop host's parity goldens record them, and the desktop host at its reference commit for readings, findings and drawings (spec 035, Q5). A tool type the desktop host did not have at its reference commit (the Hierarchical Requirement Designer, added by spec 036) takes its readings and findings from the desktop host at the commit that records them, which `commit` and `recordedWith` then both name. A designer's page has no recording painter, so a designer's case states no drawing.
 - A fixture changes only by recording it again, never by hand. A runtime passes a fixture when every part of every step equals what the fixture states, bytes byte for byte, a reading and a drawing recorded from a module as the next paragraph and section 2.4 compare them; a difference is reported with its step, its part, the expected and the actual value (for bytes, the first line that differs) and the construct of the description that produced the value (section 15.1, `ATD9001`).
-- A case whose `recordedFrom` is `module` states its reading in the module's own terms, so its `read.elements` and `read.relations` **MUST** be compared by what they mean, in place of exactly (spec 067, FR-012). Each is keyed by `id`. An element or relation the case states **MUST** be in the reading, with the same `parent`, `source` and `target`, unless the case's own drawing does not draw it and the reading does not have it: that is the module's own presentation, such as an element that stands for a view or a boundary. One the reading has and the case does not **MUST** be one the description's drawing does not draw, since a module reads the view it shows and a description the whole body. Values **MUST** be compared for the attributes both sides can state: those the description's model declares on the element's type, not derived, that the case states on some element or relation of its reading; an absent value is the empty text on either side, so neither side can drop a value unnoticed. A list of the reading whose case states attributes and has none of them in common with the description is a difference, counting only what an element or relation states beyond the names DISL §2.2 reserves and the painted values, the values a module writes for its own drawing: `role`, `label`, `badges`, `width` and `height`. A painted value the description does declare is compared like any other. Where the module records an attribute under a name of its own, the description's trace **MAY** map it, with `recordedNames` (`$defs/Trace`): by type, each attribute of the description to the name the case states it under (Peter's choice of 2026-11-23, spec 035, T132). An attribute so mapped for its element's type, or for a type that type extends, is stated by the case under the mapped name and compared with the value under it, and one mapped to the empty name is one the module records no value for and is not compared; every other attribute is stated under its own. `type`, and every other attribute, **MUST NOT** be compared. `splices`, bytes, `findings` and `refused` are compared exactly in every case, and a case recorded from a declared tool is compared exactly in every part.
+- A case whose `recordedFrom` is `module` states its reading in the module's own terms, so its `read.elements` and `read.relations` **MUST** be compared by what they mean, in place of exactly (spec 067, FR-012). Each is keyed by `id`. An element or relation the case states **MUST** be in the reading, with the same `parent`, `source` and `target`, unless the case's own drawing does not draw it and the reading does not have it: that is the module's own presentation, such as an element that stands for a view or a boundary. One the reading has and the case does not **MUST** be one the description's drawing does not draw, since a module reads the view it shows and a description the whole body. Values **MUST** be compared for the attributes both sides can state: those the description's model declares on the element's type, not derived, that the case states on some element or relation of its reading; an absent value is the empty text on either side, so neither side can drop a value unnoticed. A list of the reading whose case states attributes and has none of them in common with the description is a difference, counting only what an element or relation states beyond the names DISL §2.2 reserves and the painted values, the values a module writes for its own drawing: `role`, `label`, `badges`, `width` and `height`. A painted value the description does declare is compared like any other. Where the module records an attribute under a name of its own, the description's trace **MAY** map it, with `recordedNames` (`$defs/Trace`): by type, each attribute of the description to the name the case states it under (Peter's choice of 2026-11-23, spec 035, T132). An attribute so mapped for its element's type, or for a type that type extends, is stated by the case under the mapped name and compared with the value under it, and one mapped to the empty name is one the module records no value for and is not compared; every other attribute is stated under its own. `type`, and every other attribute, **MUST NOT** be compared. Where the description's wire-id block (a top-level `x-<prefix>` settings map whose `elements` names, for a piece of chrome, the id a module sends it under, such as `x-sparql`'s `elements: { header: "header:query" }`) names an id, the element of that id the case states stands for that chrome: it is not compared in the reading, nor in a drawing recorded from a module, and a gesture on it that the case refuses counts as refused by the description whatever its sentence (Peter's choice of 2026-11-23, spec 035, T132). The same block **MAY** name, for such a case, the module's gestures on a group heading and on the diagram as a whole (spec 087, by Peter's choice of 2026-11-23): `headings: { collapse: "<id>", expand: "<id>" }` are the module's ids of the gestures that fold and unfold a group, made on a selection `<element>#<key>`, the heading of the group `<key>` of `<element>` (DISL 6.9), which a runtime replays as activating that heading; and `elements.diagram` is the id of the element the module sends for the diagram, on which `filters: { "<gesture>": { "<filter>": <value> } }` names each gesture that sets a canvas filter (DISL 6.13.1) and the value it sets, which a runtime replays by setting that filter, kept as the description keeps it. A heading id that names no group of that element is refused as a selection that names nothing. `splices`, bytes, `findings` and `refused` are compared exactly in every case, and a case recorded from a declared tool is compared exactly in every part, except that in a case recorded from a module a finding the case states at a line and one the description gives at an element written on that line, otherwise equal, are the same finding (Peter's choice of 2026-11-23, spec 035, T132): a module may say every finding at its line, and the place is the same.
 
 `fixtures/mindmap/basic/` beside this document is a worked example, written by hand for the example `mindmap.atd`: a read, one action and its undo.
 
@@ -578,6 +578,21 @@ The surface of a designer (`grammar/form.lark`): which element types and attribu
 ### 9.3 The hierarchy
 
 `surface hierarchy { … }` (DESL §7.7) holds `levels <Type> { … }`, `entries <Type> { … }`, `notes <Type> { … }`, `filters <Type> { … }`, `widths <Type> { … }` and `labels <attribute> { … }`, each with the attributes that play its parts as settings (DESL's `HierarchyMembers`, `Notes`, `Filters`, `Widths` and `Labels`), and settings of DESL's `Hierarchy` (`collapsed`, `ids`). `widths` names the element type that keeps the widths of the columns of levels, which the user changes by dragging (DESL §7.7.1): its settings `level` and `width` name the attributes of a column's depth and of its width in pixels.
+
+### 9.4 The sections
+
+`surface sections { … }` (DESL §7.8) holds its parts, in display order: `record <id> ["<title>"] <Type> { … }` is a record part, the fields of the one element of its type, and `list <id> ["<title>"] <Type> { … }` a list part, the elements of its type as rows. Each takes the settings of DESL's `SectionPart` apart from `id`, `title`, `kind` and `type`, which it states: `fields` always, and on a list `order`, `group`, `add`, `timeStrip` and `marks`; `figures` on either. A part's title is its `title`, else its id. The surface takes DESL's `Sections` settings apart from `parts`.
+
+```atd
+surface sections {
+  record trip "Trip" Trip { fields: [{ attribute: title, label: "Title" }] }
+  list stops "Stops" Stop {
+    fields: [{ attribute: at, label: "Time" }, { attribute: place, label: "Place" }]
+    order: (has(self.at) ? string(self.at) : '~')
+    add: addStop
+  }
+}
+```
 
 ---
 
@@ -1366,6 +1381,10 @@ An agent writing a description is given `grammar/atd.flat.lark`, with which a mo
 - **0.1, amendment of 2026-11-08, `for selection`** (spec 076, by Peter's ruling of 2026-11-07, its Q9): an operation may be written `for selection`, an operation of the selected elements bound as `selection`, as DISL §9.3 and DESL §8.1 allow, and the checker no longer refuses it with `ATD2002` (§7.10); `reading-list.atd` shows it in `removeBooks`. With it §2.3 states `hierarchy.add`, the explorer's add of a document written as its binding's template (Q7). No grammar changes: `selection` was already a name. Every description and case that checked before still checks, with the same meaning.
 - **0.1, amendment of 2026-11-05, DISL 0.9** (spec 075, by Peter's approval of 2026-11-02): ATD carries DISL 0.9 (§1.3), whose macro `groupBy` groups a list by a key, with the grouping's methods `get` and `keys` (DISL §12.4); `groupBy` is a macro of §6.3, a call marked `macro` in the abstract tree, with no change under `grammar/`, and a description that uses it declares `cel.groupBy` among the `features` it requires (DISL B.8). Every description that checked before still checks, with the same meaning.
 - **0.1, amendment of 2026-11-23, DISL 0.10** (spec 035, T132, by Peter's choice of 2026-11-23): ATD carries DISL 0.10 (§1.3), whose `persistence.writtenId` names the host attribute that holds the id an element is written with, which findings and `self.id` then read (DISL §11.5.4).
+- **0.1, amendment of 2026-11-23, a finding's place** (spec 035, T132, by Peter's choice of 2026-11-23): in a case recorded from a module, §2.3 counts a finding at an element and one at the line that element is written on as the same place, as the agent activity diagram's module says every finding at its line. Every case that passed before still passes.
+- **0.1, amendment of 2026-11-23, chrome a module sends as an element** (spec 035, T132, by Peter's choice of 2026-11-23): in a case recorded from a module, §2.3 lets an element whose id the description's wire-id block names for a piece of chrome stand for that chrome, as the SPARQL module sends its header band as `header:query`: it is not compared in the reading or the drawing, and a gesture on it the case refuses counts as refused. Every case that passed before still passes.
+- **0.1, amendment of 2026-11-23, the sections surface** (spec 086, T018): ATD carries DESL 0.4 (§1.3), whose `sections` surface a designer states as `surface sections { … }` with `record` and `list` parts (§9.4, `grammar/form.lark`). Every description that checked before still checks, with the same meaning.
+- **0.1, amendment of 2026-11-23, headings and filters a module sends** (spec 087, by Peter's choice of 2026-11-23): ATD carries DISL 0.11 (§1.3), whose `self.view.groups` and `std.notAValue` a description states as settings with no new construct; and §2.3 lets a description's wire-id block name, for a case recorded from a module, the module's fold and unfold gestures on a group heading `<element>#<key>` and its gestures that set a canvas filter through its view element. Every case that passed before still passes.
 
 
 ---
@@ -1610,9 +1629,12 @@ Every keyword of ATD 0.1, by the module that defines it, with the documentation 
 | `hierarchy` | `surface hierarchy { … }`: a designer's surface of boxes that contain boxes (§9.3, DESL §7.7). |
 | `labels` | In `surface hierarchy`: `labels <attribute> { … }`, an attribute whose values name members of a list (DESL §7.7). |
 | `levels` | In `surface hierarchy`: `levels <Type> { … }`, the levels' element type (DESL §7.7). |
+| `list` | In `surface sections`: `list <id> ["<title>"] <Type> { … }`, a part that shows the elements of its type as rows (§9.4, DESL §7.8). |
 | `notes` | In `surface hierarchy`: `notes <Type> { … }`, the notes' element type (DESL §7.7). |
+| `record` | In `surface sections`: `record <id> ["<title>"] <Type> { … }`, a part that shows the fields of the one element of its type (§9.4, DESL §7.8). |
 | `rows` | In `surface table`: `rows <Type> { … }`, the rows' element type (DESL §7.2). |
-| `surface` | `surface table|hierarchy|text { … }`: a designer's or editor's surface (§9, §10). |
+| `sections` | `surface sections { … }`: a designer's page of titled parts, each a record or a list (§9.4, DESL §7.8). |
+| `surface` | `surface table|hierarchy|sections|text { … }`: a designer's or editor's surface (§9, §10). |
 | `table` | `surface table { … }`: a designer's surface of rows and columns (§9.1, DESL §7.2). |
 | `valueType` | In `surface table`: `valueType <key> ["<label>"] { … }`, a value type (DESL §7.5). |
 | `views` | In `surface table`: `views <Type> { … }`, the views' element type (DESL §7.4). |
@@ -3192,9 +3214,9 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `disl.schema.json#/$defs/ViewBind/properties/values` | the key `values` in a value of ViewBind (a settings map, §6.4) | §6.4 |
 | `disl.schema.json#/$defs/ViewBind/properties/doc` | the key `doc` in a value of ViewBind (a settings map, §6.4) | §6.4 |
 
-### C.2 DESL 0.3
+### C.2 DESL 0.4
 
-223 properties.
+242 properties.
 
 | JSON pointer | ATD | Section |
 |---|---|---|
@@ -3362,6 +3384,25 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `desl.schema.json#/$defs/HierarchyMembers/properties/title` | the key `title` in a value of HierarchyMembers (a settings map, §6.4) | §6.4 |
 | `desl.schema.json#/$defs/HierarchyMembers/properties/description` | the key `description` in a value of HierarchyMembers (a settings map, §6.4) | §6.4 |
 | `desl.schema.json#/$defs/HierarchyMembers/properties/doc` | the key `doc` in a value of HierarchyMembers (a settings map, §6.4) | §6.4 |
+| `desl.schema.json#/$defs/Sections/properties/kind` | `surface sections` | §9.4 |
+| `desl.schema.json#/$defs/Sections/properties/parts` | `record <id> Type { … }` and `list <id> Type { … }` | §9.4 |
+| `desl.schema.json#/$defs/Sections/properties/doc` | `///` comments | §9.4 |
+| `desl.schema.json#/$defs/SectionPart/properties/id` | the part's name | §9.4 |
+| `desl.schema.json#/$defs/SectionPart/properties/title` | the part's title | §9.4 |
+| `desl.schema.json#/$defs/SectionPart/properties/kind` | `record` or `list` | §9.4 |
+| `desl.schema.json#/$defs/SectionPart/properties/type` | the part's Type | §9.4 |
+| `desl.schema.json#/$defs/SectionPart/properties/fields` | setting `fields` | §9.4 |
+| `desl.schema.json#/$defs/SectionPart/properties/order` | setting `order` | §9.4 |
+| `desl.schema.json#/$defs/SectionPart/properties/group` | setting `group` | §9.4 |
+| `desl.schema.json#/$defs/SectionPart/properties/add` | setting `add` | §9.4 |
+| `desl.schema.json#/$defs/SectionPart/properties/timeStrip` | setting `timeStrip` | §9.4 |
+| `desl.schema.json#/$defs/SectionPart/properties/figures` | setting `figures` | §9.4 |
+| `desl.schema.json#/$defs/SectionPart/properties/marks` | setting `marks` | §9.4 |
+| `desl.schema.json#/$defs/SectionPart/properties/doc` | `///` comments | §9.4 |
+| `desl.schema.json#/$defs/SectionField/properties/attribute` | a key of a `fields` entry | §9.4 |
+| `desl.schema.json#/$defs/SectionField/properties/label` | a key of a `fields` entry | §9.4 |
+| `desl.schema.json#/$defs/SectionField/properties/widget` | a key of a `fields` entry | §9.4 |
+| `desl.schema.json#/$defs/SectionField/properties/doc` | a key of a `fields` entry | §9.4 |
 | `desl.schema.json#/$defs/Labels/properties/on` | the key `on` in a value of Labels (a settings map, §6.4) | §6.4 |
 | `desl.schema.json#/$defs/Labels/properties/options` | the key `options` in a value of Labels (a settings map, §6.4) | §6.4 |
 | `desl.schema.json#/$defs/Labels/properties/prefix` | the key `prefix` in a value of Labels (a settings map, §6.4) | §6.4 |
@@ -3479,6 +3520,7 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `fbl.schema.json#/$defs/Body/properties/files` | the setting `files` of `body` | §11.2 |
 | `fbl.schema.json#/$defs/Body/properties/ignore` | the setting `ignore` of `body` | §11.2 |
 | `fbl.schema.json#/$defs/Body/properties/settle` | the setting `settle` of `body` | §11.2 |
+| `fbl.schema.json#/$defs/Body/properties/stream` | *(FBL 0.22)* the setting `stream` of `body` | §11.2 |
 | `fbl.schema.json#/$defs/FileRule/properties/name` | the key `name` in a value of FileRule (a settings map, §6.4) | §6.4 |
 | `fbl.schema.json#/$defs/FileRule/properties/glob` | the key `glob` in a value of FileRule (a settings map, §6.4) | §6.4 |
 | `fbl.schema.json#/$defs/FileRule/properties/family` | the key `family` in a value of FileRule (a settings map, §6.4) | §6.4 |
