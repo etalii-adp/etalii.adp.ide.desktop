@@ -1,6 +1,6 @@
 # Timeline diagram
 
-[timeline.dis](timeline.dis) specifies ADP's **Timeline diagram** (`generic/timeline`) in DISL 0.3. The specification holds everything DISL 0.3 can state: the metamodel, the time axis and the row axis, the notation, the toolbox, the context menus, the forms with their checks, the constraints with the tool's own codes and sentences, the operations, the removal's confirmation and the persistence. Reading and comparing times is done by the CEL functions of the plugin `net.etalii.adp.generic.timelineTimes`, because DISL's CEL has no timestamps, and the row arrangement is the layout plugin `net.etalii.adp.generic.timelineRowArrange`. The wire ids are declared under `x-timeline`. This page holds the rest, so that an IDE implementing the tool from the specification ends up with the tool that exists today, and says, in [What DISL 0.3 cannot express](#what-disl-03-cannot-express), where the specification stops. Each aspect names the code or document that shows it.
+[timeline.dis](timeline.dis) specifies ADP's **Timeline diagram** (`generic/timeline`) in DISL 0.12 (written for 0.3; it uses 0.12 for links between tools, spec 089). The specification holds everything DISL 0.3 can state: the metamodel, the time axis and the row axis, the notation, the toolbox, the context menus, the forms with their checks, the constraints with the tool's own codes and sentences, the operations, the removal's confirmation and the persistence. Reading and comparing times is done by the CEL functions of the plugin `net.etalii.adp.generic.timelineTimes`, because DISL's CEL has no timestamps, and the row arrangement is the layout plugin `net.etalii.adp.generic.timelineRowArrange`. The wire ids are declared under `x-timeline`. This page holds the rest, so that an IDE implementing the tool from the specification ends up with the tool that exists today, and says, in [What DISL 0.3 cannot express](#what-disl-03-cannot-express), where the specification stops. Each aspect names the code or document that shows it.
 
 The reference implementation is the standalone module [`src/diagrams/timeline/`](https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/timeline) in etalii.adp.ide.standalone, which bundles this specification, derives its toolbox, context menus, property rows, findings, placement additions and removal confirmation from it (`backend/EtAlii.Adp.Diagram.Timeline/TimelineDefinition.cs`), and reads and writes its body through its own FBL binding (`backend/EtAlii.Adp.Diagram.Timeline/timeline.fbl`, `TimelineBody.cs`). The conversion that brought the module onto the binding is the standalone repository's spec-workflow specification `timeline-disl-fbl` (`.spec-workflow/specs/timeline-disl-fbl/`); finding numbers below (B1, B11 and so on) are those of its requirements and design documents, and its parity transcript, `backend/EtAlii.Adp.Diagram.Timeline.Tests/Parity/timeline.transcript.json`, records what the tool does over the fixtures beside it. Its original requirements live in that repository's history (`.spec-workflow/archive/specs/timeline-diagram/`, removed in `ece03c36`); requirement numbers below (R3.4 and so on) refer to that document. The Notion "Tools" row for the tool says: kind Diagram, focus areas *Planning and roadmapping* and *Technology assessment*, "Time is the axis that matters; a dedicated timeline tool snaps elements to rows and dates, which a generic canvas leaves to the eye." The project's conversations contain no further decisions about this tool, apart from the owner's ruling for this definition that the code wins: where the specification and the code disagreed, the specification was changed to say what the code does.
 
@@ -80,6 +80,36 @@ connections:
 - A new document is exactly `timeline: 1\r\nelements: []\r\n`: CRLF, a trailing newline, no title and no sample content (the binding's `template.text`, and the empty document `backend/EtAlii.Adp.Diagram.Timeline/ServiceCollection.AddTimeline.cs` registers, R1.3). The first element opens `elements: []` into a block sequence (fixture `findings/first-element.tml`, finding B4).
 - An empty file, or one whose root is not a mapping, is an empty timeline, not an error: the binding's selectors match nothing in it.
 
+**Links between tools (spec 089).** A timeline takes part in links (FBL section 17) as follows:
+
+```yaml
+timeline: 1
+id: t5h8w1rz
+elements:
+  - id: launch
+    label: Launch
+    begin: 2026-12-04
+    row: 2
+  - id: l1
+    link: $k3f9x2ma@provinces.yaml#nh.Name=Noord-Holland
+    begin: 2026-05-01
+    end: 2026-06-30
+    row: 3
+  - id: l2
+    link: $d7n2k4qp@services.dgr#api.label=API gateway
+    begin: 2026-07-01
+    row: 4
+```
+
+- The top-level key `id`, beside `timeline: 1`, is the document id: 8 characters of `0-9a-z` (`persistence.documentId`; the binding's `document.id`, FBL 17.2). A timeline without one is given one when it is loaded, in one edit that is one step of the history (FBL 17.4), inserted right after the `timeline:` line; a new timeline is written with one (`template`: `timeline: 1\r\nid: {newid:document}\r\nelements: []\r\n`).
+- Every element can be linked to, by its id and its label (`linkable: { nameProperty: "label" }`): `$t5h8w1rz@release.tml#launch.label=Launch`.
+- An entry of `elements` with a `link` key is a **linked element**: a `LinkedPeriod` when it has an `end`, a `LinkedMoment` when it has not. Its `begin`, `end` and `row` are its own and placed as any element's; it has no `label` key, because its label is its target's current name, drawn with a link mark, and with a broken mark and the cached name when the link does not resolve (DISL 4.12, FBL 17.6). Relations go to and from it as to any element. Its keys are written in the order `id`, `link`, `begin`, `end`, `row`.
+- Load-time validation rewrites a `link` whose target resolves under another id or name, or whose cached name is stale, in place (FBL 17.4).
+- **A broken linked element** (its link does not resolve, FBL 17.6) is drawn at its own place with the name the link caches and the broken mark ↪⚠; the finding stands at the element. Activating a resolving link mark opens the target with it selected (FBL 17.5).
+- **Linked from.** The links that resolve to an element, from any document of the workspace (a mind map node, a timeline element, a dependency graph node or a knowledge file's relation cell), are its backlinks (FBL 17.5), computed and never stored. The element's context menu lists them as **Linked from (N)**, each with the consuming document's name and the name of the element that holds it; activating one opens that document with that element selected. Removing an element that has backlinks first says how many links the removal breaks, beside the relations the confirmation already counts; they are then reported where they are held (`link.broken-element`) and are not removed.
+- **Add from another document…** on the canvas menu opens the host's lookup and adds a linked moment for the picked element at the start of the day that was clicked, on the nearest row (`addLinkedHere`, DISL `lookup` with `as: "at"`). Give it an end and remove its end turn a linked moment into a linked period and back. Rename is not offered on a linked element.
+- The fixture `specifications/fbl/fixtures/links-workspace/plan/release.tml` holds linked elements and the cases of a link that resolves, is stale, is malformed, is broken, is ambiguous and is resolved by name; `conformance.json` beside it lists what each resolves to.
+
 **Only the affected bytes change (R2.1, R2.2).** Nothing ever serializes a model back to the file. Every edit is a model change that the binding plans as splices (FBL 6), run in one place (`backend/EtAlii.Adp.Diagram.Timeline/Commands/TimelineEdits.cs`), and undoing it puts back the text before it byte for byte, through the host's shared restore. Consequences an implementation must reproduce:
 
 - A document opened and saved with no edit is byte-identical: line endings (LF or CRLF), indentation, key order, comments, blank lines, quoting style and a missing final newline all survive.
@@ -91,7 +121,7 @@ connections:
 - Removing an element removes the relations that name its written id, in the same undo step (the binding's `remove.cascade`); a removed entry takes its own comment lines with it.
 - The fixture corpus in `backend/EtAlii.Adp.Diagram.Timeline.Tests/Fixtures/` (comments, CRLF/LF pair, no trailing newline, odd indentation, quoting, shared rows, unmodelled keys) is the test of all this; `*.tml -text` in `.gitattributes` keeps git from rewriting it.
 
-**The binding.** The module's binding is `backend/EtAlii.Adp.Diagram.Timeline/timeline.fbl` in the standalone repository, binding `timeline`, at FBL 0.5. It starts from the example `specifications/fbl/timeline.fbl` of this repository, which is not changed, because the conformance fixtures `timeline-edits`, `timeline-bom-lf` and `timeline-written-text` rest on its relation rule and its header. It differs from the example in these ways:
+**The binding.** The module's binding is `backend/EtAlii.Adp.Diagram.Timeline/timeline.fbl` in the standalone repository, binding `timeline`, at FBL 0.5. It starts from the example `specifications/fbl/timeline.fbl` of this repository, which is changed only by spec 089 (its document id, its two linked rules, the condition `!has(entry.link)` on the period and moment rules, and the id in its template), because the conformance fixtures `timeline-edits`, `timeline-bom-lf` and `timeline-written-text` rest on its relation rule and its header. It differs from the example in these ways:
 
 | Difference | Why |
 | --- | --- |
@@ -106,7 +136,7 @@ connections:
 
 `label`, `from`, `to` and `storedId` need no `read`: under FBL 0.5 a string attribute, a reference and a host attribute read their written text unasked. `begin` and `end` keep `"read": "text"` and `time: "keep-precision"` as the example has them, and the period rule's `end` keeps `empty: "remove"`.
 
-**Ids.** Ids live in the file because the schema is ADP's own, and they are unique across elements and relations together. New ids are ShortGuids: a version 4 GUID written as 25 lowercase characters of base 36 (`src/backend/EtAlii.Adp/ShortGuid.cs`), for example `467lu0vgaiudevamnkpl6k052`, which `persistence.ids` states as `uuid-v4` with `encoding: "base36"`. Hand-written ids (`discovery`, `c1`) are equally valid. A command that creates an element generates its ids once, when the gesture happens, so a redo re-creates the element under the same ids.
+**Ids.** Ids live in the file because the schema is ADP's own, and they are unique across elements and relations together. New ids are 8 random characters of `0-9a-z`, for example `k3f9x2ma`, which `persistence.ids` states as `nanoid` with `alphabet: "base36"` and `length: 8` (spec 089, FR-003). Ids written before are kept: the standalone tool has written ShortGuids, a version 4 GUID as 25 lowercase characters of base 36 (`src/backend/EtAlii.Adp/ShortGuid.cs`), for example `467lu0vgaiudevamnkpl6k052`, and does until it builds spec 089. Hand-written ids (`discovery`, `c1`) are equally valid. A command that creates an element generates its ids once, when the gesture happens, so a redo re-creates the element under the same ids.
 
 **An unreadable file** (not YAML) opens in the unavailable state naming YamlDotNet's message and line, and no edit is accepted until it is fixed, so a broken file is never made worse (R2.4). The module asks YamlDotNet first, through its stand-in `backend/EtAlii.Adp.Diagram.Timeline/TimelineYamlSyntax.cs`, so that the sentence, the line and which files are refused stay what they were ([gap 7](#7-fbl-the-wording-and-the-acceptance-of-an-unreadable-body)); a body it accepts is read by the binding alone. The store keeps the last good document across a reload that cannot read, and a deleted body closes rather than lingering (the host's shared document lifecycle, `TimelineDocumentStore.cs`). Changes made to the file outside ADP are picked up and pushed to every open view.
 

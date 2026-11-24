@@ -78,7 +78,7 @@ Today a tool engineer specifies a tool type in up to three JSON files, each in a
 
 ### 1.3 Relation to the other specifications
 
-DISL, DID, DESL, DED, EDSL, EDD and FBL remain specifications of this repository. ATD carries every construct of DISL 0.11, DESL 0.4 and FBL 0.19 (Appendix C maps each of their properties to the ATD construct that carries it), and the constructs an editor needs, which EDSL, a placeholder, does not yet have (section 10). ATD reuses their schemas: a setting of an ATD construct is checked against the `$defs` entry of DISL, DESL or FBL for the same thing (section 14.6), and a binding in ATD is an FBL binding written as text. Tools keep storing their documents in DID, DED or a body a binding reads; a tool description replaces none of them.
+DISL, DID, DESL, DED, EDSL, EDD and FBL remain specifications of this repository. ATD carries every construct of DISL 0.12, DESL 0.5 and FBL 0.19 (Appendix C maps each of their properties to the ATD construct that carries it), and the constructs an editor needs, which EDSL, a placeholder, does not yet have (section 10). ATD reuses their schemas: a setting of an ATD construct is checked against the `$defs` entry of DISL, DESL or FBL for the same thing (section 14.6), and a binding in ATD is an FBL binding written as text. Tools keep storing their documents in DID, DED or a body a binding reads; a tool description replaces none of them.
 
 ### 1.4 How to read this document
 
@@ -448,14 +448,14 @@ A construct's documentation is its `///` comments (section 3.2) and its `doc <va
 
 ### 7.5 Element types, relation types and ports
 
-- `element <Name> [extends <Types>] { … }` is an element type: DISL's node type, DESL's element type. Its members are `attribute`, `contains`, `port`, `label`, `doc` and settings of DISL's `NodeType` (`abstract`, `icon`, `labelAttribute`, `multiplicity`, `bounds`, `tags`, `viewOnly`, `derived`).
+- `element <Name> [extends <Types>] { … }` is an element type: DISL's node type, DESL's element type. Its members are `attribute`, `contains`, `port`, `label`, `doc` and settings of DISL's `NodeType` (`abstract`, `icon`, `labelAttribute`, `multiplicity`, `bounds`, `tags`, `viewOnly`, `derived`, and *(DISL 0.12, DESL 0.5)* `linkable: { nameProperty: <attribute> }` or `linkable: true`, and `linked: { attribute: <attribute>, shows: [{ attribute: …, label: … }] }`, links to elements of other documents, FBL §17).
 - `relation <Name> [extends <Types>] [from <Types> to <Types>] { … }` is a relation type (DISL §4.9), admitted in diagrams only. Its members are those of an element type; its settings are DISL's `RelationType` (`directed`, `allowSelfLoops`, `allowParallel`, `acyclic`, `derived`, `connectsRelations`), and `source` and `target` settings give the rest of each end (DISL's `RelationEnd`).
 - `port <name> { … }` is a port type of an element type (DISL §4.10).
 - Inheritance is C3, as DISL §4.7 says, for element types and relation types alike.
 
 ### 7.6 Attributes
 
-`attribute <name>: <Type> [required] [many] [readonly] [default <value>] { … }` is an attribute (DISL §4.3, DESL §4.3). The type is one of DISL's or DESL's primitive types, an enum, a data type, an element type (a reference), or a CEL parameterised type (`list<Concept>`). Its settings are DISL's `Attribute` (`label`, `min`, `max`, `pattern`, `markup`, `group`, `order`, `unit`, `readOnlyReasons` and the others) and DESL's (`mentions`, `timezone`).
+`attribute <name>: <Type> [required] [many] [readonly] [default <value>] { … }` is an attribute (DISL §4.3, DESL §4.3). The type is one of DISL's or DESL's primitive types, an enum, a data type, an element type (a reference), or a CEL parameterised type (`list<Concept>`). Its settings are DISL's `Attribute` (`label`, `min`, `max`, `pattern`, `markup`, `group`, `order`, `unit`, `readOnlyReasons` and the others) and DESL's (`mentions`, `timezone`). *(DISL 0.12, DESL 0.5)* The primitive type `link` is a link to an element of another document (FBL §17.1); its settings are `origins` (`["<vendor>/<type>", …]`) and `document` (`true` for a link to a document without an element).
 
 ### 7.7 Enums and data types
 
@@ -489,7 +489,7 @@ A construct's documentation is its `///` comments (section 3.2) and its `doc <va
 
 ### 7.13 Persistence and ids
 
-`persistence { … }` holds DISL's and DESL's `Persistence` as settings, ids and id strategies among them (`ids: { strategy: …, prefix: …, types: { … } }`, DISL §11.5, DESL §5.3, the `counter` strategy with its `mark` among them), the part of the model a registration keeps (`settings`, DESL §5.5), and the type map, view data and migrations. The type map (`typeMap`) names the binding types that are not types of the model, as DESL §5.2 does: a binding rule may name a key of it as its type (section 14.7). A binding is a `binding` of the description (section 11), never a reference to a file.
+`persistence { … }` holds DISL's and DESL's `Persistence` as settings, ids and id strategies among them (`ids: { strategy: …, prefix: …, types: { … } }`, DISL §11.5, DESL §5.3, the `counter` strategy with its `mark` among them, and *(DISL 0.12, DESL 0.5)* the `nanoid` strategy with `alphabet` and `length`), the document's own id (`documentId: { strategy: nanoid, alphabet: base36, length: 8 }`, FBL §17.2), the part of the model a registration keeps (`settings`, DESL §5.5), and the type map, view data and migrations. The type map (`typeMap`) names the binding types that are not types of the model, as DESL §5.2 does: a binding rule may name a key of it as its type (section 14.7). A binding is a `binding` of the description (section 11), never a reference to a file.
 
 ### 7.14 Plugins
 
@@ -573,7 +573,7 @@ The surface of a designer (`grammar/form.lark`): which element types and attribu
 
 ### 9.2 Value types and conversions
 
-`valueType <key> ["<label>"] { … }` is a value type (DESL §7.5): settings of DESL's `ValueType` (`key`, `many`, `editor`, `comparisons`, `sort`), and `convert <type> <conversion>` for each conversion to another value type (DESL §7.6: `written-form`, `parse`, `match-option`, `wrap`, `unwrap`, or a settings map).
+`valueType <key> ["<label>"] { … }` is a value type (DESL §7.5): settings of DESL's `ValueType` (`key`, `many`, `editor`, `comparisons`, `sort`, and *(DESL 0.5)* `link: { target: …, limit: …, backlinkName: … }`, a relation's link to another document and its picker), and `convert <type> <conversion>` for each conversion to another value type (DESL §7.6: `written-form`, `parse`, `match-option`, `wrap`, `unwrap`, or a settings map).
 
 ### 9.3 The hierarchy
 
@@ -763,6 +763,7 @@ The actions of DISL §9.4 and DESL §8.2 are statements, each allowed only where
 | `unset <path>` | `unset` |
 | `create <Type> [{ <attr>: <CEL> … }] [in <CEL>] [after <CEL> \| before <CEL>] [slot <name>] [at <CEL>] [size <CEL>] [place <name>] [as <name>]` | `create` |
 | `connect <Type> from <CEL> to <CEL> [{ … }] [as <name>]` | `connect` |
+| `lookup <Type> child \| at [from ["<origin>", …]] [as <name>]` | `lookup` (DISL 0.12): `create`, `as: "child"` or `"at"`, `origins` |
 | `delete <CEL>` | `delete` |
 | `move <CEL> [to <CEL>, <CEL>] [into <CEL>] [slot <name>] [after <CEL> \| before <CEL>]` | `move` (DISL), and DESL §8.2's `move` |
 | `resize <CEL> to <CEL>, <CEL>` | `resize` |
@@ -1385,6 +1386,7 @@ An agent writing a description is given `grammar/atd.flat.lark`, with which a mo
 - **0.1, amendment of 2026-11-23, chrome a module sends as an element** (spec 035, T132, by Peter's choice of 2026-11-23): in a case recorded from a module, §2.3 lets an element whose id the description's wire-id block names for a piece of chrome stand for that chrome, as the SPARQL module sends its header band as `header:query`: it is not compared in the reading or the drawing, and a gesture on it the case refuses counts as refused. Every case that passed before still passes.
 - **0.1, amendment of 2026-11-23, the sections surface** (spec 086, T018): ATD carries DESL 0.4 (§1.3), whose `sections` surface a designer states as `surface sections { … }` with `record` and `list` parts (§9.4, `grammar/form.lark`). Every description that checked before still checks, with the same meaning.
 - **0.1, amendment of 2026-11-23, headings and filters a module sends** (spec 087, by Peter's choice of 2026-11-23): ATD carries DISL 0.11 (§1.3), whose `self.view.groups` and `std.notAValue` a description states as settings with no new construct; and §2.3 lets a description's wire-id block name, for a case recorded from a module, the module's fold and unfold gestures on a group heading `<element>#<key>` and its gestures that set a canvas filter through its view element. Every case that passed before still passes.
+- **0.1, amendment of 2026-11-23, links between documents** (spec 089, T031 to T034, approved by Peter on 2026-11-23): ATD carries DISL 0.12 and DESL 0.5 (§1.3). The statement `lookup <Type> child | at [from ["<origin>", …]] [as <name>]` is DISL's action `lookup` (§12.3), with the keywords `lookup` and `child` (Appendix B); the attribute type `link`, `linkable`, `linked` and `documentId` are settings of the constructs that already carry their neighbours (§7.5, §7.6, §7.13), so a description writes them with no new construct. Every description that checked before still checks, with the same meaning.
 
 
 ---
@@ -1539,10 +1541,11 @@ Every keyword of ATD 0.1, by the module that defines it, with the documentation 
 | Keyword | Documentation |
 |---|---|
 | `after` | In `create`, `move`, `reparent` and `reorder`: the sibling the element is placed directly after (DISL §9.4, positional create; DESL §8.2). |
-| `at` | In a binding rule: `at "<selector>"`, where the entries are (FBL §4.2). In `create`: the point the element is placed at. |
+| `at` | In a binding rule: `at "<selector>"`, where the entries are (FBL §4.2). In `create`: the point the element is placed at. In `lookup`: at the pointer (DISL 0.12, §9.4). |
 | `before` | In `create`, `move`, `reparent` and `reorder`: the sibling the element is placed directly before. |
 | `break` | Leaves the nearest loop (§12.2). A CEL reserved word. |
 | `by` | In `reorder`: the number of places to move by. In `outline`: the attribute that nests the outline. In `references`: the attribute that names the referenced entry, or `id`. |
+| `child` | In `lookup`: the created element is the last child of `self` (DISL 0.12, §9.4). |
 | `call` | `call <operation>(<args>)` runs another operation; `call plugin <name>(<args>)` delegates to a plugin action (§12.3). |
 | `connect` | `connect <Type> from <CEL> to <CEL> { … } [as <name>]`: creates a relation (§12.3, DISL §9.4). |
 | `continue` | Continues the nearest loop with its next iteration (§12.2). A CEL reserved word. |
@@ -1557,6 +1560,7 @@ Every keyword of ATD 0.1, by the module that defines it, with the documentation 
 | `into` | In `move`: the new parent, `null` for the document's own elements. |
 | `layout` | `layout { … }`: a diagram's layouts (§8.8). As a statement, `layout <name> [on <CEL>]`: runs a layout (§12.3). |
 | `let` | `let <name> [: <Type>] = <CEL>`: an immutable local (§12.2). A CEL reserved word. |
+| `lookup` | `lookup <Type> child\|at [from ["<origin>", …]] [as <name>]`: lets the person pick an element of the workspace and creates a linked element for it (§12.3, DISL 0.12 §9.4). |
 | `limit` | In a loop: `limit <n>`, the most iterations it may take; reaching it stops the call (§12.2). |
 | `move` | `move <CEL> [to <x>, <y>] [into <parent>] [slot <name>] [after <CEL> \| before <CEL>]`: changes an element's placement, its parent and its place among its siblings (§12.3, DESL §8.2). |
 | `notify` | `notify <CEL> [severity <name>]`: shows a message (§12.3). |
@@ -3213,6 +3217,16 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `disl.schema.json#/$defs/ViewBind/properties/collapsed` | the key `collapsed` in a value of ViewBind (a settings map, §6.4) | §6.4 |
 | `disl.schema.json#/$defs/ViewBind/properties/values` | the key `values` in a value of ViewBind (a settings map, §6.4) | §6.4 |
 | `disl.schema.json#/$defs/ViewBind/properties/doc` | the key `doc` in a value of ViewBind (a settings map, §6.4) | §6.4 |
+| `disl.schema.json#/$defs/Attribute/properties/origins` | the setting `origins` of a `link` attribute (DISL 0.12) | §7.6 |
+| `disl.schema.json#/$defs/Attribute/properties/document` | the setting `document` of a `link` attribute (DISL 0.12) | §7.6 |
+| `disl.schema.json#/$defs/NodeType/properties/linkable` | the setting `linkable` of `element` (DISL 0.12) | §7.5 |
+| `disl.schema.json#/$defs/NodeType/properties/linked` | the setting `linked` of `element` (DISL 0.12) | §7.5 |
+| `disl.schema.json#/$defs/Linked/properties/attribute` | the key `attribute` of `linked` | §7.5 |
+| `disl.schema.json#/$defs/Linked/properties/shows` | the key `shows` of `linked` | §7.5 |
+| `disl.schema.json#/$defs/Action/properties/lookup` | `lookup <Type> child \| at [from [...]] [as <name>]` (DISL 0.12) | §12.3 |
+| `disl.schema.json#/$defs/IdStrategy/properties/alphabet` | the key `alphabet` of `ids` in `persistence` (DISL 0.12) | §7.13 |
+| `disl.schema.json#/$defs/IdStrategy/properties/length` | the key `length` of `ids` in `persistence` (DISL 0.12) | §7.13 |
+| `disl.schema.json#/$defs/Persistence/properties/documentId` | the setting `documentId` of `persistence` (DISL 0.12) | §7.13 |
 
 ### C.2 DESL 0.4
 
@@ -3462,6 +3476,13 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `desl.schema.json#/$defs/CelValue/properties/cel` | the key `cel` in a value of CelValue (a settings map, §6.4) | §6.4 |
 | `desl.schema.json#/$defs/CelValue/properties/resultType` | the key `resultType` in a value of CelValue (a settings map, §6.4) | §6.4 |
 | `desl.schema.json#/$defs/CelValue/properties/doc` | the key `doc` in a value of CelValue (a settings map, §6.4) | §6.4 |
+| `desl.schema.json#/$defs/Attribute/properties/origins` | the setting `origins` of a `link` attribute (DESL 0.5) | §7.6 |
+| `desl.schema.json#/$defs/Attribute/properties/document` | the setting `document` of a `link` attribute (DESL 0.5) | §7.6 |
+| `desl.schema.json#/$defs/ElementType/properties/linkable` | the setting `linkable` of `element` (DESL 0.5) | §7.5 |
+| `desl.schema.json#/$defs/IdStrategy/properties/alphabet` | the key `alphabet` of `ids` in `persistence` (DESL 0.5) | §7.13 |
+| `desl.schema.json#/$defs/IdStrategy/properties/length` | the key `length` of `ids` in `persistence` (DESL 0.5) | §7.13 |
+| `desl.schema.json#/$defs/Persistence/properties/documentId` | the setting `documentId` of `persistence` (DESL 0.5) | §7.13 |
+| `desl.schema.json#/$defs/ValueType/properties/link` | the key `link` of a value type (DESL 0.5) | §9.2 |
 
 ### C.3 FBL 0.19
 

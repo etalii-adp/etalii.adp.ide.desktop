@@ -14,6 +14,7 @@ binding xml family xml {
   }
   text { newline: crlf, indent: 2, finalNewline: true }
   header { line: "^<ded(?:\\s|/|>)", required: true }
+  document: { id: { attribute: id } }
 
   /// The root element: the table's own settings.
   element Table as table at "/ded" {
@@ -28,6 +29,9 @@ binding xml family xml {
       empty: "remove"
       references view by id
     }
+    attribute documentId from attribute "id" {
+      readOnly: "The document id is written once, by the load-time validation of FBL section 17.4 or the template, and changed by nobody."
+    }
   }
 
   element Property as property at "/ded/properties/property" {
@@ -37,13 +41,14 @@ binding xml family xml {
     attribute title from attribute "title" { empty: "remove", default: false }
     attribute targetFile from attribute "target" { empty: "remove" }
     attribute limit from attribute "limit" { empty: "remove", default: none }
+    attribute backlinkName from attribute "backlinkName" { empty: "remove" }
     attribute counterpart from attribute "counterpart" { empty: "remove" }
     attribute computed from attribute "computed" { empty: "remove", default: false }
     attribute isParent from attribute "parent" { empty: "remove", default: false }
     insert {
       place: after-last,
       container: "/ded/properties",
-      emit: "<property id=\"{id}\" name=\"{name}\" type=\"{valueType}\"[ title=\"{title}\"][ target=\"{targetFile}\"][ limit=\"{limit}\"][ counterpart=\"{counterpart}\"][ computed=\"{computed}\"][ parent=\"{isParent}\"]/>"
+      emit: "<property id=\"{id}\" name=\"{name}\" type=\"{valueType}\"[ title=\"{title}\"][ target=\"{targetFile}\"][ limit=\"{limit}\"][ backlinkName=\"{backlinkName}\"][ parent=\"{isParent}\"]/>"
     }
     remove { cascade: [cell, column, sort, condition1, condition2, condition3] }
   }
@@ -273,7 +278,7 @@ binding xml family xml {
     remove {}
   }
 
-  /// A related row, by its id in the target file. Not a reference: the target is another file, which the designer resolves (L5).
+  /// A related row, as a link to it (FBL section 17.1), or, in a file made before links, by its id in the target file, which the conversion on load replaces (knowledge.md, section 9). Not a reference: the target is another file, which the host resolves.
   element CellItem as cellRow at "/ded/rows/row/cell/item" {
     when has(entry.row)
     parent cell slot items
@@ -283,5 +288,5 @@ binding xml family xml {
   }
 
   registration { createOnFirstPlacement: false }
-  template "<ded version=\"0.1\" designer=\"etalii/knowledge\" name=\"{base}\">\r\n  <properties>\r\n    <property id=\"{newid:property}\" name=\"Name\" type=\"text\" title=\"true\"/>\r\n  </properties>\r\n  <views>\r\n    <view id=\"{newid:view}\" name=\"Table\"/>\r\n  </views>\r\n  <rows/>\r\n</ded>\r\n"
+  template "<ded version=\"0.3\" designer=\"etalii/knowledge\" id=\"{newid:document}\" name=\"{base}\">\r\n  <properties>\r\n    <property id=\"{newid:property}\" name=\"Name\" type=\"text\" title=\"true\"/>\r\n  </properties>\r\n  <views>\r\n    <view id=\"{newid:view}\" name=\"Table\"/>\r\n  </views>\r\n  <rows/>\r\n</ded>\r\n"
 }

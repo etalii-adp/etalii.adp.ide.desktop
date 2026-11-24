@@ -22,19 +22,19 @@ fn every_vendored_definition_has_its_envelope_and_the_schema_accepts_it() {
         (
             "definitions/designers/examples/cities.yaml",
             DedFormat::Yaml,
-            "0.1",
+            "0.3",
             "etalii/knowledge",
         ),
         (
             "definitions/designers/examples/cities.json",
             DedFormat::Json,
-            "0.1",
+            "0.3",
             "etalii/knowledge",
         ),
         (
             "definitions/designers/examples/cities.xml",
             DedFormat::Xml,
-            "0.1",
+            "0.3",
             "etalii/knowledge",
         ),
         (

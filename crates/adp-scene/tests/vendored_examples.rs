@@ -51,7 +51,8 @@ fn read(definition: &DiagramDefinition, fbl: &str, binding: &str, body: &str) ->
     let (problems, document) = adp_fbl::documents::load(
         &std::fs::read(format!("{VENDOR}/specifications/fbl/{fbl}")).expect("the binding is there"),
     );
-    assert!(problems.is_empty(), "{problems:?}");
+    // A binding written in a newer FBL than this library knows is read, and says so at `/fbl`; nothing else is reported.
+    assert!(problems.iter().all(|p| p.pointer == "/fbl"), "{problems:?}");
     let binding = Rc::new(
         document
             .expect("the binding loads")

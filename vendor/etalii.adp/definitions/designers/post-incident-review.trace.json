@@ -1,0 +1,47 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/Trace",
+  "tool": "etalii/post-incident-review",
+  "description": "post-incident-review.atd",
+  "companion": {
+    "file": "post-incident-review.md",
+    "sections": [
+      "Gaps",
+      "What stays with the host"
+    ]
+  },
+  "items": [
+    {
+      "id": "gaps/1",
+      "text": "**The title** is a `#` heading, which the bullets family does not bind (FBL section 4.8), so it is kept as text and is not in the model. A host shows the file name.",
+      "statedBy": "binding markdown"
+    },
+    {
+      "id": "gaps/2",
+      "text": "**A many attribute in an emit.** FBL 6.2 does not say how the placeholder of a `many` attribute is written. The action's emit writes `addresses:[{addresses}]` for the one factor the designer's add gives; a second factor is added by a set, which writes a word for each item (FBL 6.3).",
+      "statedBy": "binding markdown element action"
+    },
+    {
+      "id": "gaps/3",
+      "text": "**The tool description** (`post-incident-review.atd` with `post-incident-review.markdown.atd`) states the page through ATD's `sections` surface (ATD §9.4), added for it by the ADP tool language's own work (Peter's choice of 2026-11-23); its trace is `post-incident-review.trace.json`.",
+      "statedBy": "record summary"
+    },
+    {
+      "id": "what-stays-with-the-host/1",
+      "text": "Showing times in the review's time zone, and the axis and labels of the time strip.",
+      "hostConcern": "rendering",
+      "reason": "How a time and the strip are drawn is rendering; the description names the zone (the document's timeZone) and the strip's at, highlight and label."
+    },
+    {
+      "id": "what-stays-with-the-host/2",
+      "text": "Evaluating the constraints and drawing their findings beside their rows.",
+      "statedBy": "constraints"
+    },
+    {
+      "id": "what-stays-with-the-host/3",
+      "text": "The looks of parts, marks and figures.",
+      "hostConcern": "rendering",
+      "reason": "How a part, a mark and a figure are drawn, in the host's theme, is rendering; the description names the parts, the marks with their styles and the figures."
+    }
+  ],
+  "hostCode": []
+}

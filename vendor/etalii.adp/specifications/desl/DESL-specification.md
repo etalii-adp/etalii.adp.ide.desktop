@@ -7,7 +7,7 @@ parent: desl
 ---
 # DESL — Designer Specification Language
 
-**Specification, version 0.4 (Draft)**
+**Specification, version 0.5 (Draft)**
 
 |   |   |
 |---|---|
@@ -17,7 +17,7 @@ parent: desl
 | File extension | `.des` |
 | Paired language | DED, the Designer Definition Language (`.ded`) |
 | Document schema | `desl.schema.json` (JSON Schema, draft 2020-12), `$defs/Specification` |
-| Builds on | [FBL](../fbl/FBL-specification.md) 0.7 for storage |
+| Builds on | [FBL](../fbl/FBL-specification.md) 0.7 for storage, 0.23 for links between documents |
 | Expression language | CEL — Common Expression Language (https://cel.dev) |
 | Licence | [Apache License 2.0](https://github.com/etalii-adp/etalii.adp/blob/develop/LICENSE) (`Apache-2.0`) |
 
@@ -25,7 +25,7 @@ parent: desl
 
 ## Status of this document
 
-This is a draft, version 0.4. It holds what the designer types defined so far need and nothing more (constitution principle V), and any construct may change before 1.0 (constitution principle IV). DESL 0.1 (2026-10-09, spec 013) holds what the Knowledge designer (`definitions/designers/knowledge.des`) needs. DESL 0.2 (2026-10-14, spec 028, for the Hierarchical Requirement Designer) adds five constructs: the surface kind `hierarchy` (section 7.7), the id strategy `counter` (section 5.3.5), the facet `mentions` with the built-in `std.mentions` (sections 4.3, 6.5), the action `move` (section 8.2), and `persistence.settings`, the part of the model a document's registration keeps (section 5.5); by the maintainer's ruling of 2026-10-24 it also gives a hierarchy the widths of its columns of levels, which the user changes by dragging (`widths`, section 7.7). Every valid 0.1 specification is a valid 0.2 specification with the same meaning. DESL defines every construct it uses; it takes nothing from the specification languages of the other kinds of tool. Sections and paragraphs marked *(informative)* explain intent; everything else is *normative*. DESL 0.3 (2026-11-06, Peter's answer to spec 076's question Q3) names an element read with a counter's placeholder `line/<line>` until it is numbered (section 5.3.5); every valid 0.2 specification is a valid 0.3 specification with the same meaning. DESL 0.4 (2026-11-23, Peter's approval of 2026-11-23 of the plan of spec 086, the post-incident review designer) adds the surface kind `sections` (section 7.8): one page of titled parts, each the fields of one element or a list of the elements of one type, with an order, groups, figures, marks and a read-only time strip, and selection shared across the parts. Neither the table nor the hierarchy shows a document that is a form, a timeline and lists on one page. Every valid 0.3 specification is a valid 0.4 specification with the same meaning.
+This is a draft, version 0.5. It holds what the designer types defined so far need and nothing more (constitution principle V), and any construct may change before 1.0 (constitution principle IV). DESL 0.1 (2026-10-09, spec 013) holds what the Knowledge designer (`definitions/designers/knowledge.des`) needs. DESL 0.2 (2026-10-14, spec 028, for the Hierarchical Requirement Designer) adds five constructs: the surface kind `hierarchy` (section 7.7), the id strategy `counter` (section 5.3.5), the facet `mentions` with the built-in `std.mentions` (sections 4.3, 6.5), the action `move` (section 8.2), and `persistence.settings`, the part of the model a document's registration keeps (section 5.5); by the maintainer's ruling of 2026-10-24 it also gives a hierarchy the widths of its columns of levels, which the user changes by dragging (`widths`, section 7.7). Every valid 0.1 specification is a valid 0.2 specification with the same meaning. DESL defines every construct it uses; it takes nothing from the specification languages of the other kinds of tool. Sections and paragraphs marked *(informative)* explain intent; everything else is *normative*. DESL 0.3 (2026-11-06, Peter's answer to spec 076's question Q3) names an element read with a counter's placeholder `line/<line>` until it is numbered (section 5.3.5); every valid 0.2 specification is a valid 0.3 specification with the same meaning. DESL 0.4 (2026-11-23, Peter's approval of 2026-11-23 of the plan of spec 086, the post-incident review designer) adds the surface kind `sections` (section 7.8): one page of titled parts, each the fields of one element or a list of the elements of one type, with an order, groups, figures, marks and a read-only time strip, and selection shared across the parts. Neither the table nor the hierarchy shows a document that is a form, a timeline and lists on one page. Every valid 0.3 specification is a valid 0.4 specification with the same meaning. DESL 0.5 (2026-11-23, spec 089, cross-tool links, approved by the maintainer on 2026-11-23) adds links to elements of other documents, written, resolved and checked as FBL section 17 says: the primitive type `link` (section 4.2), element types whose elements can be linked to (`linkable`, section 4.5), a value type whose cells hold links into one document, with the standard relation picker and backlinks (`link`, section 7.5.1), and an 8-character id (`nanoid` with `alphabet` and `length`, and `persistence.documentId`, section 5.3). Every valid 0.4 specification is a valid 0.5 specification with the same meaning.
 
 The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **MAY** and **OPTIONAL** are to be interpreted as described in RFC 2119 and RFC 8174 when, and only when, they appear in bold capitals.
 
@@ -144,7 +144,7 @@ Any object of a specification **MAY** contain properties whose names begin with 
 
 ### 2.7 Versioning
 
-`desl` (required) is the DESL version the specification is written in, as `"major.minor"`: `"0.1"`, `"0.2"`, `"0.3"` or `"0.4"`. Each is a superset of the one before, and a runtime **MUST** read a specification of an earlier minor version with its meaning. A runtime **MUST** refuse a specification of a higher major version than it supports, and **SHOULD** read one of a newer minor version, ignoring what it does not know, with a warning.
+`desl` (required) is the DESL version the specification is written in, as `"major.minor"`: `"0.1"`, `"0.2"`, `"0.3"`, `"0.4"` or `"0.5"`. Each is a superset of the one before, and a runtime **MUST** read a specification of an earlier minor version with its meaning. A runtime **MUST** refuse a specification of a higher major version than it supports, and **SHOULD** read one of a newer minor version, ignoring what it does not know, with a warning.
 
 `language.version` (required) is the version of the designer type, a SemVer 2.0.0 string. A change that can make existing documents invalid or change their meaning is a **major** change; adding optional constructs is a **minor** change; documentation and wording are **patch** changes.
 
@@ -159,7 +159,7 @@ A DESL document is validated by `desl.schema.json#/$defs/Specification`:
 | Property      | Type | Req. | Description |
 |---------------|------|------|-------------|
 | `$schema`     | URI | – | The schema's `$id` with `#/$defs/Specification`. |
-| `desl`        | `"0.1"`, `"0.2"` | ✓ | The DESL version (2.7). |
+| `desl`        | `"0.1"` to `"0.5"` | ✓ | The DESL version (2.7). |
 | `language`    | Language | ✓ | The designer type's identity (3.2). |
 | `functions`   | map SimpleId → Function | – | Reusable CEL functions (3.3). |
 | `metamodel`   | Metamodel | ✓ | What a document holds (section 4). |
@@ -218,6 +218,7 @@ The metamodel says what a document of the designer type can hold: the kinds of e
 | `date`     | `timestamp` | `"YYYY-MM-DD"` | – |
 | `datetime` | `timestamp` | an RFC 3339 string | `timezone`: `"utc"`, or `"preserve"`, which keeps the offset each value was written with |
 | `time`     | `duration` since midnight | `"HH:MM[:SS]"` | – |
+| `link`     | `string` | a link, as FBL section 17.1 writes it | *(DESL 0.5)* `origins` (the tool types, as `<vendor>/<type>`, whose documents it may point into), `document` (bool: a link to a document, without an element) |
 
 How a value is written in a body (a YAML scalar's style, a JSON number's form, an XML attribute) is the binding's (FBL section 6.2).
 
@@ -237,6 +238,7 @@ An **Attribute** (`$defs/Attribute`) is one named value of an element, of the do
 | `minLength`, `maxLength`, `pattern` | | Facets of a `string` or `text`; checked by `std.facets`. |
 | `timezone`                | `"utc"`, `"preserve"` | How a `datetime` keeps its zone (4.2). |
 | `mentions`                | `{pattern, types}` | *(DESL 0.2)* A `string` or `text` attribute whose value names elements by id (below). |
+| `origins`, `document`     | | *(DESL 0.5)* Facets of a `link` (4.2). |
 
 **Mentions** *(DESL 0.2)*. A `mentions` facet makes the text of a `string` or `text` attribute name elements of the same document where it is written. `pattern` is a regular expression in FBL's common subset (FBL section 2.5) with a named group `id`; `types` (TypeRefs, **required**) are the element types a mention may name.
 
@@ -261,6 +263,7 @@ An **ElementType** (`$defs/ElementType`) is one kind of element a document holds
 | `attributes`     | map → Attribute | Its attributes. |
 | `children`       | Containment | What its elements contain (4.6). |
 | `labelAttribute` | attribute name | The attribute that names one of its elements in lists, findings and pickers. Default: the first required `string` attribute, else the first `string` attribute. |
+| `linkable`       | `true` or `{ nameProperty, doc }` | *(DESL 0.5)* Its elements can be linked to from other documents (FBL section 17): a host lists them in its pickers and lookup, keeps them in its index (FBL 17.3) and shows their backlinks (FBL 17.5). `nameProperty` is the attribute that names an element in a link (FBL 17.1, `name-prop`); default: the type's `labelAttribute`. `true` takes the default. |
 
 An element has one type. `isA(t)` (9.2) is true for an element of type `t`.
 
@@ -281,7 +284,7 @@ An element type without `children` contains nothing. Elements without a parent a
 
 A **reference** is an attribute whose type is an element type. It stores the target's id, is resolved to the element in CEL, and is not containment. A reference that names no element is kept as written and reported by `std.references` (6.5); in CEL it reads `null`. Deleting an element **MUST** unset, in the same transaction, every reference to it that the specification's operations do not delete or change themselves.
 
-A reference to an element of another document, such as a knowledge file's relation to the rows of another file, is not a reference in this sense: it is a value that names the other document and an id in it, resolved by the host (section 5.4).
+A reference to an element of another document, such as a knowledge file's relation to the rows of another file, is not a reference in this sense: it is a value that names the other document and an id in it, resolved by the host. *(DESL 0.5)* Such a value is a `link` (4.2), written, resolved within the workspace, checked when the document is loaded and reported as FBL section 17 says; a step that changes the other document as well is one step (5.4).
 
 ---
 
@@ -294,6 +297,7 @@ A reference to an element of another document, such as a knowledge file's relati
 | `typeMap`  | map binding type → TypeMapEntry | How the bindings' types and attributes map onto the metamodel (5.2). |
 | `ids`      | IdStrategy | How elements get their ids (5.3). |
 | `settings` | map block name → Setting | *(DESL 0.2)* The part of the model a document's registration keeps, by the name of the block each part is kept in (5.5). |
+| `documentId` | IdRule | *(DESL 0.5)* The rule of the document's own id (FBL section 17.2), made once when the document is created or first loaded without one (5.3.6). |
 | `doc`      | Doc | |
 
 ### 5.1 Bindings
@@ -325,14 +329,16 @@ A binding may name its types and attributes as its format does rather than as th
 
 | Property     | Type | Description |
 |--------------|------|-------------|
-| `strategy`   | `"uuid-v4"`, `"uuid-v7"` (default), `"derived"` | How ids are made: a random UUID, a time-ordered UUID, or computed from the model (5.3.2). A rule in `types` may also be *(DESL 0.2)* `"counter"`, counted up per type (5.3.5). |
+| `strategy`   | `"uuid-v4"`, `"uuid-v7"` (default), `"derived"`, *(DESL 0.5)* `"nanoid"` | How ids are made: a random UUID, a time-ordered UUID, computed from the model (5.3.2), or random characters (5.3.6). A rule in `types` may also be *(DESL 0.2)* `"counter"`, counted up per type (5.3.5). |
 | `encoding`   | `"hex"` (default), `"base36"` | The text form of a UUID (5.3.1). |
+| `alphabet`   | `"nanoid"` (default), `"base36"` | *(DESL 0.5)* The characters of a `nanoid` id: nanoid's 64 (`A-Za-z0-9_-`), or `0-9a-z` (5.3.6). |
+| `length`     | int, 2 to 64 | *(DESL 0.5)* The number of characters of a `nanoid` id. Default 21 (5.3.6). |
 | `stable`     | bool | An id never changes once it is made. Default `true`. No effect on derived ids. |
 | `missing`    | `"assign"` (default), `"ephemeral"` | What happens to an element read without a usable id (5.3.4). Top level only. |
 | `types`      | map TypeRef → IdRule | Per-type rules (5.3.2). Top level only. |
 | `doc`        | Doc | |
 
-An **IdRule** (`$defs/IdRule`) has `strategy`, `expression` (**required** for `derived`), `ephemeral` (bool or Expression), `reason` (a Reason) and `doc`, and *(DESL 0.2)* for `counter` the properties of section 5.3.5.
+An **IdRule** (`$defs/IdRule`) has `strategy`, `expression` (**required** for `derived`), `ephemeral` (bool or Expression), `reason` (a Reason) and `doc`, and *(DESL 0.2)* for `counter` the properties of section 5.3.5, and *(DESL 0.5)* `alphabet` and `length` for `nanoid` (5.3.6).
 
 #### 5.3.1 Generation
 
@@ -388,6 +394,11 @@ With `strategy: "counter"`, given per type in `types`, a type's ids are a prefix
 - **A hand-written number** is accepted when no other element has the id (5.3.1), and the count continues past it.
 - **Duplicates** follow section 5.3.4 unchanged. On an element that `std.duplicateId` reports, a runtime **SHOULD** offer to give it a new id; that is the user's action section 5.3.4 asks for, and writes the new id in place of the old one, which no reference can name (5.3.4).
 - Counted ids are stable: a runtime **MUST NOT** change one for any other reason.
+
+#### 5.3.6 Random ids and the document id *(DESL 0.5)*
+
+- With `strategy: "nanoid"`, an id is `length` characters drawn from `alphabet`, each independently and uniformly from a cryptographically secure random source. `{ "strategy": "nanoid", "alphabet": "base36", "length": 8 }` makes the 8-character ids of the tool types that hold links. A new id that another element of the document already has **MUST** be drawn again.
+- `persistence.documentId` is the rule of the document's own id (FBL section 17.2), whose `strategy` is `nanoid`. A specification with `documentId` **MUST** list only bindings that declare `document.id` (FBL section 17.2). A document read without an id is given one by the rule: it **MUST NOT** be written when the document is opened or validated, and **MUST** be written with the next edit that writes the document, as a missing element id is (5.3.4). A document id is never changed once written, except by the user's action on a duplicate (FBL section 17.3).
 
 ### 5.4 Steps that change two documents
 
@@ -562,6 +573,28 @@ A **value type** says what a column's cells hold and how the surface treats it:
 | `comparisons` | string[] | **Required.** The comparisons a filter condition on this type offers, by the operator stored in the condition. `is-empty` and `is-not-empty` are offered for every type and **MUST NOT** be listed. |
 | `sort`        | `text`, `number`, `false-first`, `chronological`, `option-order`, `title` | **Required.** How values compare when sorted: by text ignoring case, numerically, unchecked first, by time, by the options' order (of the first value, for several), or by the first related row's title. Empty values sort last in both directions. |
 | `converts`    | map value type → conversion | What a value becomes when its column's type changes to another (7.6). |
+| `link`        | `{ target, limit, backlinkName }` | *(DESL 0.5)* The cells hold links (4.2) into one document, chosen with the relation picker; each property names an attribute of the columns' type (7.5.1). |
+
+#### 7.5.1 Links and the relation picker *(DESL 0.5)*
+
+A value type with `link` holds, in each cell, links to rows of one other document, or of the same one, as Notion's relation does. Its `key` is an attribute of type `link`, its `editor` is `rows`, and its properties name attributes of the columns' type (7.3):
+
+| Property       | Type | Description |
+|----------------|------|-------------|
+| `target`       | attribute | **Required.** A `link` attribute with `document: true`: the document the column's cells link into, as a link without its element part (FBL section 17.1). |
+| `limit`        | attribute | An attribute whose value `one` lets a cell hold one link at most; any other value, or none, holds any number. |
+| `backlinkName` | attribute | A `string` attribute: the name of the column that shows the column's backlinks in the target document (below). Without a value, the backlinks are not shown as a column. |
+
+- **The relation picker.** The `rows` editor of such a column is a search over the target document's rows of linkable types (4.5), by their name property, as the person types; each is shown with that name, and the rows the cell already links to are shown as chips that a click removes. Picking a row adds a link to it with its name as the cached name (FBL section 17.1); with `limit: one` it replaces the link the cell holds. When no row matches, the picker offers to create a row named by the typed text: one step over the two documents (5.4), which adds the row with a new id to the target and the link to the cell. A target that does not resolve (FBL section 17.6) opens the picker with the finding and nothing to pick.
+- **What a cell shows.** Each link is shown by the target row's current name and opens the target row; one that does not resolve is shown with its cached name and the finding. The cached name is checked and rewritten when the document is loaded (FBL section 17.4), never in the target.
+- **Backlinks.** A column whose `backlinkName` has a value shows, in the target document, a column of that name, read-only, whose cell for each row lists the rows of this document that link to it (FBL section 17.5). It is computed from the workspace's index and **MUST NOT** be written into either document. Removing a backlink removes the link from the cell that holds it, as one step over the two documents (5.4).
+- **Limit.** A cell that holds more links than its column's `limit` allows keeps them all and is reported, never trimmed.
+
+```json
+"valueTypes": { "relation": { "label": "Relation", "key": "row", "many": true, "editor": "rows",
+  "comparisons": ["contains", "does-not-contain"], "sort": "title",
+  "link": { "target": "target", "limit": "limit", "backlinkName": "backlinkName" } } }
+```
 
 ### 7.6 Conversions
 
@@ -813,7 +846,7 @@ Expressions in the `constraint` and `identity` contexts **MUST** be deterministi
 1. **Parse** the JSON; reject duplicate keys.
 2. **Check the version**: `desl` major version supported.
 3. **Validate** against `desl.schema.json#/$defs/Specification`.
-4. **Resolve names**: every type, enumeration, operation and function named exists; every type the surface names is an element type of the metamodel, and every attribute it names is an attribute of the type it is named for; `columns.options.type` and `cells.items` are among the children of the columns' and the cells' types; each value type's `key` is an attribute of the cells' type, or of the items' type with `many`; every binding in `persistence.bindings` exists, and every rule `type` in it names an element type or a key of `typeMap`. *(DESL 0.2)* For a `hierarchy` surface: every type a role names is an element type and every attribute it names an attribute of that type, the levels' type contains itself and the entries' type, each label attribute is on every type of its `on`, and `collapsed` is on the levels' and the entries' types. Every type a `mentions` facet names is an element type. A `counter` rule's `mark` is a `string` attribute of the document. Every key of `persistence.settings` is a block every binding declares in `registration.blocks`, a list's `type`, `key` and `value` are a type and its attributes, and a state's `attribute` is an attribute of each type of its `of`. *(DESL 0.4)* For a `sections` surface: part ids are unique; every part's `type` is an element type, or a key of `typeMap` mapped `as: "document"`, and every field's `attribute` is an attribute of it; `add` names an operation; and a time strip's `at` is a `datetime` attribute of its part's type.
+4. **Resolve names**: every type, enumeration, operation and function named exists; every type the surface names is an element type of the metamodel, and every attribute it names is an attribute of the type it is named for; `columns.options.type` and `cells.items` are among the children of the columns' and the cells' types; each value type's `key` is an attribute of the cells' type, or of the items' type with `many`; every binding in `persistence.bindings` exists, and every rule `type` in it names an element type or a key of `typeMap`. *(DESL 0.5)* A value type's `link.target`, `link.limit` and `link.backlinkName` are attributes of the columns' type, `target` of type `link`, and its `key` an attribute of type `link`; a linkable type's `nameProperty` is one of its attributes. *(DESL 0.2)* For a `hierarchy` surface: every type a role names is an element type and every attribute it names an attribute of that type, the levels' type contains itself and the entries' type, each label attribute is on every type of its `on`, and `collapsed` is on the levels' and the entries' types. Every type a `mentions` facet names is an element type. A `counter` rule's `mark` is a `string` attribute of the document. Every key of `persistence.settings` is a block every binding declares in `registration.blocks`, a list's `type`, `key` and `value` are a type and its attributes, and a state's `attribute` is an attribute of each type of its `of`. *(DESL 0.4)* For a `sections` surface: part ids are unique; every part's `type` is an element type, or a key of `typeMap` mapped `as: "document"`, and every field's `attribute` is an attribute of it; `add` names an operation; and a time strip's `at` is a `datetime` attribute of its part's type.
 5. **Check** what the schema cannot: reserved attribute names (2.2), a positional create into an unordered parent (8.2), identity expressions that read other ids (5.3.2), functions that call themselves (3.3), and every other **MUST** of this document.
 6. **Compile CEL**: parse and type-check every expression in its context (9.3), and estimate its cost against `language.limits.celCost`.
 
@@ -860,4 +893,4 @@ A body is written by FBL's splices (FBL section 6.6), keeping every byte the tra
 
 ## Appendix A — JSON Schema
 
-The normative schema is [`desl.schema.json`](desl.schema.json) beside this document (JSON Schema draft 2020-12, `$id` `https://etalii.net/adp/desl/schema/0.1/desl.schema.json`, kept at the address 0.1 gave it while DESL is a draft; it accepts `"desl": "0.1"` and `"0.2"`). It defines every construct DESL uses in its own `$defs`: `Specification`, `Language`, `Function`, `Metamodel`, `ElementType`, `Containment`, `Attribute`, `Enum`, `EnumValue`, `Persistence`, `TypeMapEntry`, `IdStrategy`, `IdRule`, `Constraints`, `Constraint`, `Operation`, `Confirmation`, `Action`, `Surface` (one shape per `kind`: *(DESL 0.2)* `Table` or `Hierarchy`), `Columns`, `Cells`, `Views`, `ValueType`, `Conversion`, *(DESL 0.2)* `Mentions`, `Setting`, `HierarchyMembers`, `Labels`, `Notes`, `Filters`, `SimpleId`, `QualifiedId`, `TypeRef`, `TypeRefs`, `SemVer`, `LocalizedText`, `Message`, `Reason`, `Doc`, `Expression`, `CelValue` and `CelSource`. The one schema it references is FBL's, for `BindingRef`. `python .github/scripts/validate-examples.py` validates every `*.des` against it and performs the name checks of section 10.1, step 4.
+The normative schema is [`desl.schema.json`](desl.schema.json) beside this document (JSON Schema draft 2020-12, `$id` `https://etalii.net/adp/desl/schema/0.1/desl.schema.json`, kept at the address 0.1 gave it while DESL is a draft; it accepts `"desl": "0.1"` to `"0.5"`). It defines every construct DESL uses in its own `$defs`: `Specification`, `Language`, `Function`, `Metamodel`, `ElementType`, `Containment`, `Attribute`, `Enum`, `EnumValue`, `Persistence`, `TypeMapEntry`, `IdStrategy`, `IdRule`, `Constraints`, `Constraint`, `Operation`, `Confirmation`, `Action`, `Surface` (one shape per `kind`: *(DESL 0.2)* `Table` or `Hierarchy`), `Columns`, `Cells`, `Views`, `ValueType`, `Conversion`, *(DESL 0.2)* `Mentions`, `Setting`, `HierarchyMembers`, `Labels`, `Notes`, `Filters`, `SimpleId`, `QualifiedId`, `TypeRef`, `TypeRefs`, `SemVer`, `LocalizedText`, `Message`, `Reason`, `Doc`, `Expression`, `CelValue` and `CelSource`. The one schema it references is FBL's, for `BindingRef`. `python .github/scripts/validate-examples.py` validates every `*.des` against it and performs the name checks of section 10.1, step 4.

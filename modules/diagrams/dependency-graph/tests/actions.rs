@@ -31,9 +31,13 @@ fn a_dependency_offers_relabel_and_disconnect() {
 }
 
 #[test]
-fn empty_canvas_offers_one_add() {
+fn empty_canvas_offers_an_add_and_an_add_from_another_document() {
     let graph = open(GRAPH);
-    assert_eq!(graph.action_ids(&canvas(700.0, 180.0)), ["dependencies.add-element"]);
+    // The second is spec 089's linked node, picked with the host's lookup.
+    assert_eq!(
+        graph.action_ids(&canvas(700.0, 180.0)),
+        ["dependencies.add-element", "dependencies.add-linked"]
+    );
 }
 
 #[test]

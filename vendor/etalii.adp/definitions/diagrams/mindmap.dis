@@ -1,9 +1,9 @@
 {
   "$schema": "https://etalii.net/adp/disl/schema/0.2/disl.schema.json#/$defs/Specification",
-  "disl": "0.3",
+  "disl": "0.12",
   "language": {
     "id": "net.etalii.adp.freeplane.mindmap",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "origin": "freeplane/mindmap",
     "label": "Mind map",
     "doc": {
@@ -59,8 +59,8 @@
         }
       ],
       "returns": "string",
-      "cel": "[n.notes != '' ? '\u2022' : '', n.link != '' ? '\u2197' : '', n.view.collapsed && n.children.size() > 0 ? '\u2295' : ''].join(' ').trim()",
-      "doc": "The corner glyphs of a node: \u2022 it has notes, \u2197 it links somewhere (an empty link draws none), \u2295 its branch is collapsed for this viewer. The three are joined by single spaces before the ends are trimmed, so a node with notes and a collapsed branch but no link reads `\u2022  \u2295`, two spaces apart, as the canvas has always drawn it."
+      "cel": "[n.notes != '' ? '\u2022' : '', n.link != '' ? '\u2197' : '', has(n.linkedElement) ? (has(n.linked) ? '\u21aa' : '\u21aa\u26a0') : '', n.view.collapsed && n.children.size() > 0 ? '\u2295' : ''].join(' ').trim()",
+      "doc": "The corner glyphs of a node: \u2022 it has notes, \u2197 it links somewhere (an empty link draws none), \u21aa it is a linked node and \u21aa\u26a0 its link does not resolve, \u2295 its branch is collapsed for this viewer. The glyphs are joined by single spaces before the ends are trimmed, so a node with notes and a collapsed branch but no link reads `\u2022  \u2295`, two spaces apart, as the canvas has always drawn it."
     },
     "fileBase": {
       "params": [
@@ -75,7 +75,7 @@
     }
   },
   "metamodel": {
-    "doc": "One node type, nested to any depth. The tree is containment: every node but the central topic has exactly one parent node, and the order of a node's children is meaningful and stored.",
+    "doc": "Two node types, nested to any depth: a node, and a linked node that stands for an element of another document (DISL 4.12). The tree is containment: every node but the central topic has exactly one parent node, and the order of a node's children is meaningful and stored.",
     "enums": {
       "Side": {
         "doc": "Freeplane's `POSITION` attribute on a first-level node: which side of the central topic the branch is drawn on. Freeplane 1.11 wrote `left`/`right`; 1.12 writes `top_or_left`/`bottom_or_right`. Both vocabularies are read; ADP never writes the attribute.",
@@ -161,7 +161,36 @@
           ],
           "ordered": true
         },
-        "labelAttribute": "text"
+        "labelAttribute": "text",
+        "linkable": {
+          "nameProperty": "text",
+          "doc": "A node can be linked to from other documents, named by its text (FBL 17.1)."
+        }
+      },
+      "LinkedNode": {
+        "extends": "Node",
+        "label": "Linked node",
+        "icon": "mdi-link-box-variant-outline",
+        "doc": {
+          "summary": "A node that stands for an element of another document, or of this map.",
+          "description": "Stored as an ordinary Freeplane `<node>` whose `TEXT` is the name the link caches and which has an `<attribute NAME=\"adp-link\">` holding the link (FBL 17.1), so Freeplane shows it as a node with one attribute. Its label is the target's current name; while the link does not resolve, the cached name with a broken mark. It is placed, moved, nested and deleted as any node, and deleting it deletes the link and nothing of the target. It is added with Add from another document."
+        },
+        "attributes": {
+          "linkedElement": {
+            "type": "link",
+            "required": true,
+            "label": "Linked element",
+            "doc": {
+              "summary": "The element this node stands for.",
+              "description": "Stored in the node's Freeplane attribute `adp-link`. Its cached name is checked and rewritten when the map is loaded (FBL 17.4), and `TEXT` is written with it."
+            },
+            "order": 0
+          }
+        },
+        "linked": {
+          "attribute": "linkedElement",
+          "doc": "The label is the target's current name, read through the link's name property."
+        }
       }
     },
     "relations": {
@@ -430,6 +459,98 @@
         },
         "doubleClick": "none",
         "doc": "A box with rounded corners sized to its text, the text centred and the corner glyphs top right. A double-click does nothing of its own; the text is edited in place through Rename (F2). A branch leaves and reaches a node at the middle of its left or right side."
+      },
+      "LinkedNode": {
+        "shape": "topicBox",
+        "style": "node",
+        "size": {
+          "min": [
+            32,
+            31.6
+          ],
+          "autoSize": "fitContent",
+          "resizable": false
+        },
+        "placement": {
+          "x": {
+            "layout": true
+          },
+          "y": {
+            "layout": true
+          },
+          "anchor": "center",
+          "movable": true,
+          "resizable": false,
+          "doc": "Positions come from the layout. A node can be dragged: dropping it on another node makes it that node's last child, and dropping it on empty canvas does nothing. The drag never writes a position."
+        },
+        "labels": [
+          {
+            "id": "text",
+            "text": {
+              "attribute": "text"
+            },
+            "editable": false,
+            "position": "center",
+            "wrap": "none"
+          },
+          {
+            "id": "indicators",
+            "text": {
+              "cel": "indicators(self)"
+            },
+            "visible": {
+              "cel": "indicators(self) != ''"
+            },
+            "position": {
+              "anchor": [
+                1,
+                0
+              ],
+              "offset": [
+                -4,
+                12
+              ],
+              "align": "end"
+            },
+            "doc": "The corner glyphs (`indicators`), right-aligned 4 inside the right edge, 12 below the top."
+          }
+        ],
+        "anchors": {
+          "mode": "sides",
+          "sides": [
+            "left",
+            "right"
+          ]
+        },
+        "container": {
+          "layout": "layout:mindmap",
+          "clip": false,
+          "collapsible": true,
+          "highlightOnDrop": true
+        },
+        "states": {
+          "dragging": {
+            "opacity": 0.65
+          },
+          "dropTarget": {
+            "stroke": {
+              "color": {
+                "token": "color.primary"
+              },
+              "width": 2.5,
+              "dash": [
+                6,
+                3
+              ],
+              "dashScale": "absolute"
+            }
+          }
+        },
+        "deletable": {
+          "cel": "self.parent != null"
+        },
+        "doubleClick": "none",
+        "doc": "As a node, with the target's current name as its text and the link mark among the corner glyphs (`indicators`); the text is not edited in place, because it is the target's name. A link that does not resolve shows the cached name and the broken mark."
       }
     },
     "edges": {
@@ -521,11 +642,19 @@
             "visible": "self.parent != null"
           },
           {
+            "kind": "operation",
+            "operation": "addLinked",
+            "group": "structure",
+            "label": "Add from another document\u2026",
+            "icon": "mdi-link-plus"
+          },
+          {
             "kind": "editLabel",
             "group": "structure",
             "label": "Rename\u2026",
             "icon": "mdi-pencil-outline",
-            "shortcut": "F2"
+            "shortcut": "F2",
+            "visible": "!has(self.linkedElement)"
           },
           {
             "kind": "delete",
@@ -580,7 +709,7 @@
             "visible": "self.children.size() > 0 && !self.view.collapsed"
           }
         ],
-        "doc": "Three groups: the structure (add, rename, delete), the content (notes and link) and the view (expand or collapse). An entry that does not apply is left out rather than greyed: the central topic has no sibling and cannot be deleted, an unlinked node has nothing to unlink, a leaf has nothing to collapse. Expand and Collapse are one operation with two faces; which one shows follows this viewer's collapsed state."
+        "doc": "Three groups: the structure (add, add from another document, rename, delete), the content (notes and link) and the view (expand or collapse). An entry that does not apply is left out rather than greyed: the central topic has no sibling and cannot be deleted, an unlinked node has nothing to unlink, a linked node is named by its target and is not renamed, a leaf has nothing to collapse. Expand and Collapse are one operation with two faces; which one shows follows this viewer's collapsed state."
       }
     ]
   },
@@ -593,8 +722,20 @@
       "label": "Mind map node",
       "items": [
         {
+          "attribute": "linkedElement",
+          "widget": "lookup",
+          "visible": "has(self.linkedElement)",
+          "doc": "The linked element, shown by its name; a click opens it."
+        },
+        {
           "attribute": "text",
-          "widget": "text"
+          "widget": "text",
+          "readOnly": {
+            "cel": "has(self.linkedElement)"
+          },
+          "readOnlyReasons": [
+            "A linked node shows its target's name; rename the target in its own document."
+          ]
         },
         {
           "attribute": "notes",
@@ -784,6 +925,26 @@
           }
         ]
       },
+      "addLinked": {
+        "label": "Add from another document\u2026",
+        "for": [
+          "Node"
+        ],
+        "icon": "mdi-link-plus",
+        "doc": "Opens the host's lookup over the linkable elements of the workspace (DISL 9.4) and adds a linked node for the picked one as the last child.",
+        "actions": [
+          {
+            "lookup": {
+              "create": "LinkedNode",
+              "as": "child"
+            },
+            "as": "added"
+          },
+          {
+            "select": "added"
+          }
+        ]
+      },
       "editNotes": {
         "label": "Notes",
         "for": [
@@ -900,11 +1061,12 @@
     "format": "fbl",
     "binding": "https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/src/diagrams/mindmap/backend/EtAlii.Adp.Diagram.Mindmap/mindmap.fbl#mindmap",
     "ids": {
-      "strategy": "uuid-v4",
+      "strategy": "nanoid",
       "prefix": "ID_",
-      "encoding": "base36",
+      "alphabet": "base36",
+      "length": 8,
       "stable": true,
-      "doc": "A node ADP creates gets `ID_` and a ShortGuid (a version 4 GUID as 25 characters of base 36). Freeplane's own ids (`ID_` and digits) are kept as written. A node read without an `ID` is given one in memory and written on the next save."
+      "doc": "A node ADP creates gets `ID_` and 8 random characters of `0-9a-z` (spec 089, FR-003; `ID_` is Freeplane's own form of a node id, which its arrow links name). Ids written before, Freeplane's own (`ID_` and digits) and ADP's ShortGuids, are kept as written. A node read without an `ID` is given one in memory and written on the next save."
     },
     "view": {
       "store": [],
@@ -926,18 +1088,31 @@
           "storedId"
         ],
         "doc": "The plugin reads a `<node>` as a Node. A later holder of an id the file gives twice is read under an ephemeral id; `storedId` keeps what the file writes, which findings name it by."
+      },
+      "LinkedNode": {
+        "as": "LinkedNode",
+        "hostAttributes": [
+          "storedId"
+        ],
+        "doc": "The plugin reads a `<node>` with an `adp-link` attribute as a LinkedNode."
       }
     },
-    "doc": "Stored as a Freeplane `.mm` file, not as JSON: the XML the map was read from is the single source of truth, edits change it in place, and an unchanged map is written back byte for byte. The binding `mindmap.fbl#mindmap` names the persistence plugin `net.etalii.adp.freeplane.mm` as its reader. The format is in mindmap.md."
+    "doc": "Stored as a Freeplane `.mm` file, not as JSON: the XML the map was read from is the single source of truth, edits change it in place, and an unchanged map is written back byte for byte. The binding `mindmap.fbl#mindmap` names the persistence plugin `net.etalii.adp.freeplane.mm` as its reader. The map's document id is the root node's `adp-id` attribute and a linked node's link its `adp-link` attribute. The format is in mindmap.md.",
+    "documentId": {
+      "strategy": "nanoid",
+      "alphabet": "base36",
+      "length": 8,
+      "doc": "Kept in the Freeplane attribute `adp-id` of the root node (FBL 17.2), written by the load-time step when a map has none."
+    }
   },
   "plugins": {
     "net.etalii.adp.freeplane.mm": {
-      "version": "^0.1.0",
+      "version": "^0.2.0",
       "provides": [
         "persistenceFormat"
       ],
       "required": true,
-      "doc": "Reads Freeplane `.mm` XML into nodes, for the binding `mindmap.fbl#mindmap`. Edits are made in place on the XML the map was read from, so everything the map does not change is written back byte for byte."
+      "doc": "Reads Freeplane `.mm` XML into nodes, for the binding `mindmap.fbl#mindmap`. Edits are made in place on the XML the map was read from, so everything the map does not change is written back byte for byte. From 0.2.0 it also reads and writes the root node's `adp-id` and a node's `adp-link` (mindmap.md)."
     },
     "net.etalii.adp.freeplane.mindmapLayout": {
       "version": "^0.1.0",
@@ -964,7 +1139,8 @@
     "doc": "Today's wire ids, which the standalone client and backend share, mapped from this specification's names, as x-abm and x-ghg do. A tool is keyed by its id; an action by its entry's operation, else its kind; a property row by its form item's id, else its attribute.",
     "types": {
       "Node": "node",
-      "Branch": "branch"
+      "Branch": "branch",
+      "LinkedNode": "linked-node"
     },
     "tools": {
       "node": {
@@ -980,14 +1156,16 @@
       "editNotes": "mindmap.edit-notes",
       "link": "mindmap.link",
       "unlink": "mindmap.unlink",
-      "toggleFold": "mindmap.toggle-fold"
+      "toggleFold": "mindmap.toggle-fold",
+      "addLinked": "mindmap.add-linked"
     },
     "properties": {
       "text": "mindmap.text",
       "notes": "mindmap.notes",
       "link": "mindmap.link",
       "folded": "mindmap.folded",
-      "identifier": "mindmap.identifier"
+      "identifier": "mindmap.identifier",
+      "linkedElement": "mindmap.linked-element"
     }
   }
 }

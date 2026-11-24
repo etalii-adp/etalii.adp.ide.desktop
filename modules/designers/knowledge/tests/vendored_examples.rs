@@ -26,7 +26,7 @@ fn examples() -> Vec<PathBuf> {
 #[test]
 fn every_vendored_example_document_names_its_designer_type() {
     let all = examples();
-    assert_eq!(6, all.len(), "{all:?}");
+    assert_eq!(7, all.len(), "{all:?}");
     for path in all {
         let name = path.file_name().and_then(|n| n.to_str()).expect("a name").to_owned();
         let envelope = DedEnvelope::read(&std::fs::read(&path).expect("read"), &name).expect("an envelope");
@@ -47,9 +47,11 @@ fn every_vendored_example_document_names_its_designer_type() {
 #[test]
 fn every_vendored_knowledge_file_reads_with_nothing_to_report_and_is_one_table() {
     let mut tables = Vec::new();
+    // The cities in each of the three formats; provinces.yaml is the table their relation names (spec 089).
     for path in examples()
         .into_iter()
         .filter(|p| p.extension().is_some_and(|e| e != "md"))
+        .filter(|p| p.file_stem().is_some_and(|s| s == "cities"))
     {
         let bytes = std::fs::read(&path).expect("read");
         let body = KnowledgeBody::read(bytes.clone(), &path.to_string_lossy());

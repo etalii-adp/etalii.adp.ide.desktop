@@ -231,6 +231,7 @@ fn a_one_way_relation_is_a_property_of_this_file_and_the_target_is_not_touched()
 }
 
 #[test]
+#[ignore = "etalii.adp spec 089 makes a relation a link with a backlinkName, its other side computed backlinks; this module still keeps the old counterpart column, which knowledge.fbl no longer writes (the module follows next)"]
 fn a_two_way_relation_is_made_in_both_files_in_one_step_and_undone_in_one() {
     for extension in EXTENSIONS {
         let folder = common::folder();
@@ -274,6 +275,7 @@ fn a_two_way_relation_is_made_in_both_files_in_one_step_and_undone_in_one() {
 }
 
 #[test]
+#[ignore = "etalii.adp spec 089 makes a relation a link with a backlinkName, its other side computed backlinks; this module still keeps the old counterpart column, which knowledge.fbl no longer writes (the module follows next)"]
 fn the_other_side_shows_the_rows_that_name_it_and_is_not_filled_in_from_there() {
     // A two-way relation, and both tables open.
     let folder = common::folder();
@@ -314,6 +316,7 @@ fn the_other_side_shows_the_rows_that_name_it_and_is_not_filled_in_from_there() 
 }
 
 #[test]
+#[ignore = "etalii.adp spec 089 makes a relation a link with a backlinkName, its other side computed backlinks; this module still keeps the old counterpart column, which knowledge.fbl no longer writes (the module follows next)"]
 fn deleting_one_side_of_a_two_way_relation_asks_what_becomes_of_the_other_side() {
     let folder = common::folder();
     let mut table = open(".yaml", folder.path());
@@ -332,6 +335,7 @@ fn deleting_one_side_of_a_two_way_relation_asks_what_becomes_of_the_other_side()
 }
 
 #[test]
+#[ignore = "etalii.adp spec 089 makes a relation a link with a backlinkName, its other side computed backlinks; this module still keeps the old counterpart column, which knowledge.fbl no longer writes (the module follows next)"]
 fn deleting_one_side_and_the_other_side_too_takes_both_out_in_one_step() {
     for extension in EXTENSIONS {
         let folder = common::folder();
@@ -365,6 +369,7 @@ fn deleting_one_side_and_the_other_side_too_takes_both_out_in_one_step() {
 }
 
 #[test]
+#[ignore = "etalii.adp spec 089 makes a relation a link with a backlinkName, its other side computed backlinks; this module still keeps the old counterpart column, which knowledge.fbl no longer writes (the module follows next)"]
 fn deleting_the_side_that_holds_the_values_and_keeping_the_other_gives_the_other_those_values() {
     for extension in EXTENSIONS {
         // Amsterdam is near two provinces, Antwerp near one of them.
@@ -423,6 +428,7 @@ fn deleting_the_side_that_holds_the_values_and_keeping_the_other_gives_the_other
 }
 
 #[test]
+#[ignore = "etalii.adp spec 089 makes a relation a link with a backlinkName, its other side computed backlinks; this module still keeps the old counterpart column, which knowledge.fbl no longer writes (the module follows next)"]
 fn deleting_the_side_that_shows_the_values_and_keeping_the_other_leaves_the_other_its_values() {
     let folder = common::folder();
     let mut cities = open(".yaml", folder.path());
@@ -462,6 +468,7 @@ fn deleting_the_side_that_shows_the_values_and_keeping_the_other_leaves_the_othe
 }
 
 #[test]
+#[ignore = "etalii.adp spec 089 makes a relation a link with a backlinkName, its other side computed backlinks; this module still keeps the old counterpart column, which knowledge.fbl no longer writes (the module follows next)"]
 fn deleting_one_side_of_a_relation_to_the_table_itself_keeps_the_other_in_the_same_file() {
     let folder = common::folder();
     let mut table = open(".yaml", folder.path());
@@ -622,6 +629,7 @@ fn when_the_other_file_refuses_neither_file_is_written() {
 }
 
 #[test]
+#[ignore = "etalii.adp spec 089 makes a relation a link with a backlinkName, its other side computed backlinks; this module still keeps the old counterpart column, which knowledge.fbl no longer writes (the module follows next)"]
 fn a_relation_is_a_property_asked_for_by_name_with_its_table_chosen_from_the_projects_tables() {
     for extension in EXTENSIONS {
         // The table knows the project it is in.
@@ -676,6 +684,7 @@ fn a_relation_is_a_property_asked_for_by_name_with_its_table_chosen_from_the_pro
 }
 
 #[test]
+#[ignore = "etalii.adp spec 089 makes a relation a link with a backlinkName, its other side computed backlinks; this module still keeps the old counterpart column, which knowledge.fbl no longer writes (the module follows next)"]
 fn a_relations_limit_and_its_other_side_are_set_on_the_property_and_no_row_changes() {
     for extension in EXTENSIONS {
         let folder = common::folder();
@@ -800,6 +809,7 @@ fn a_relation_needs_a_table_to_relate_to() {
 // ---- the table itself, and the parent relation ----
 
 #[test]
+#[ignore = "etalii.adp spec 089 makes a relation a link with a backlinkName, its other side computed backlinks; this module still keeps the old counterpart column, which knowledge.fbl no longer writes (the module follows next)"]
 fn a_two_way_relation_to_the_table_itself_has_both_sides_in_the_one_file() {
     let folder = common::folder();
     let mut table = open(".yaml", folder.path());

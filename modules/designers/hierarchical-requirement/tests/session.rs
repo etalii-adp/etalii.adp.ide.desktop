@@ -148,7 +148,7 @@ fn an_entry_without_a_number_is_not_collapsed_in_the_document() {
 #[test]
 fn a_document_of_a_later_version_opens_read_only_with_the_reason() {
     let folder = tempfile::tempdir().unwrap();
-    let body = copy_body(folder.path(), |text| text.replace("<!-- ded: 0.2 ", "<!-- ded: 0.3 "));
+    let body = copy_body(folder.path(), |text| text.replace("<!-- ded: 0.2 ", "<!-- ded: 0.9 "));
     let mut session = RequirementSession::open(&body, None);
 
     let model = session.model();
@@ -157,7 +157,7 @@ fn a_document_of_a_later_version_opens_read_only_with_the_reason() {
     // Shown, with the reason, and nothing it asks is done.
     // The standalone host's sentence, found different by the walk of etalii.adp spec 036 T059.
     assert_eq!(
-        "This document is written in DED 0.3, and this application reads DED 0.2 and earlier. It is left exactly as it is and cannot be changed here.",
+        "This document is written in DED 0.9, and this application reads DED 0.3 and earlier. It is left exactly as it is and cannot be changed here.",
         model.read_only_reason
     );
     assert!(!model.nodes.is_empty());

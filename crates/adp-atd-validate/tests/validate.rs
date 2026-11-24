@@ -119,7 +119,7 @@ fn a_seeded_difference_is_reported_at_its_part_with_what_was_expected_and_given(
         findings[0].actual
     );
     // The constraint `unnamedCentralTopic`, whose message the finding is.
-    assert_eq!(short(findings[0]), "mindmap.atd:237");
+    assert_eq!(short(findings[0]), "mindmap.atd:259");
 }
 
 /// Each difference names the construct of the description that produced its value (ATD §2.3, `ATD9001`).
@@ -150,16 +150,16 @@ fn each_difference_is_attributed_to_the_construct_that_produced_it() {
     assert!(unattributed.is_empty(), "{unattributed:?}");
     for (place, at) in [
         // The reading, to the binding's rule for the type of the first element that differs.
-        ("duplicate-id read:reading", "mindmap.freeplane.atd:67"),
+        ("duplicate-id read:reading", "mindmap.freeplane.atd:69"),
         // A finding, to the constraint that has its code: here the built-in `std.unparseable`.
-        ("not-a-map read:findings", "mindmap.atd:226"),
+        ("not-a-map read:findings", "mindmap.atd:248"),
         // A refusal, to the constraint of the gesture's kind: `keepCentralTopic` for a deletion,
         // `reparentWithinTree` for a move.
-        ("refusals 1:refused", "mindmap.atd:261"),
-        ("refusals 3:refused", "mindmap.atd:269"),
+        ("refusals 1:refused", "mindmap.atd:283"),
+        ("refusals 3:refused", "mindmap.atd:291"),
         // A gesture, to its operation (`link`).
-        ("example-1 20:refused", "mindmap.atd:306"),
-        ("example-1 20:bytes", "mindmap.atd:306"),
+        ("example-1 20:refused", "mindmap.atd:336"),
+        ("example-1 20:bytes", "mindmap.atd:336"),
         // A drawing, to the notation's entry for the type of the element drawn differently.
         ("fold 1:drawing", "mindmap.notation.atd:58"),
     ] {
@@ -265,7 +265,7 @@ fn a_steps_splices_are_compared_and_attributed_to_its_gesture() {
     assert_eq!(differences.len(), 1);
     assert_eq!(differences[0].step, Some(1));
     // The operation `addChild`.
-    assert_eq!(short(&differences[0]), "mindmap.atd:280");
+    assert_eq!(short(&differences[0]), "mindmap.atd:302");
 }
 
 /// A refusal is compared exactly, unless the case's is one of the "not offered" sentences (ATD §2.3, spec 067, FR-011):
@@ -463,7 +463,7 @@ fn a_create_and_a_connect_are_attributed_to_what_they_run() {
     let differences = validate(&tool, &description, &held);
     let bytes = differences.iter().find(|d| d.part == "bytes").unwrap();
     // The operation `addNodeHere`.
-    assert_eq!(short(bytes), "dependency-graph.atd:223");
+    assert_eq!(short(bytes), "dependency-graph.atd:239");
 }
 
 // ---- seeded differences in a designer's description (etalii.adp spec 076, T051) ------------------------------------

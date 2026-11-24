@@ -1,0 +1,54 @@
+dependencies: 1
+id: d7n2k4qp
+elements:
+  - id: api
+    label: API gateway
+    x: 270
+    row: 4
+  - id: auth
+    label: Identity service
+    x: 800
+    row: 4
+  - id: db
+    label: Orders database
+    x: 1300
+    row: 4
+  - id: db
+    label: Orders database (second holder)
+    x: 1300
+    row: 6
+  - id: l1
+    link: $t5h8w1rz@release.tml#launch.label=Go live
+    x: 1700
+    row: 4
+  - id: l2
+    link: $k3f9x2ma@provinces.yaml#nh.Name=Noord-Holland
+    x: 1700
+    row: 6
+  - id: l3
+    link: $m8c1u4wa@ideas.mm#ID_5.text=Identity service
+    x: 1700
+    row: 8
+  - id: l4
+    link: not a link
+    x: 2000
+    row: 4
+  - id: l5
+    link: $xxxxxxxx@gone.dgr#a1=Gone
+    x: 2000
+    row: 6
+  - id: l6
+    link: $d7n2k4qp@services.dgr#nope=Nothing
+    x: 2000
+    row: 8
+  - id: l7
+    link: $r0a6m3xy@roadmap.tml#q1=First quarter
+    x: 2000
+    row: 10
+relations:
+  - id: r1
+    from: api
+    to: auth
+  - id: r2
+    from: db
+    to: l1
