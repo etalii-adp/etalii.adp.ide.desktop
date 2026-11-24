@@ -60,6 +60,8 @@ pub(crate) struct ElementState {
     pub(crate) line: Option<i32>,
     pub(crate) file: Option<String>,
     pub(crate) view: Option<Map>,
+    /// What `self.linked` reads (section 4.12): the target's `shows` values while the link resolves.
+    pub(crate) linked: Option<Map>,
 }
 
 /// What a new element is made of, for [`DislDiagram::add`]: a node beneath its parent, or a relation at its ends,
@@ -189,6 +191,7 @@ impl DislElement {
                 line: new.line,
                 file: new.file.clone(),
                 view: None,
+                linked: None,
             }),
         })))
     }
@@ -375,6 +378,16 @@ impl DislElement {
 
     pub fn set_view(&self, view: Option<Map>) {
         self.0.state.borrow_mut().view = view;
+    }
+
+    /// What `self.linked` reads (section 4.12): for an element of a `linked` type whose link resolves, a map from
+    /// each `shows` attribute to the target's current value; none while it does not, or before a host resolved it.
+    pub fn linked(&self) -> Option<Map> {
+        self.0.state.borrow().linked.clone()
+    }
+
+    pub fn set_linked(&self, linked: Option<Map>) {
+        self.0.state.borrow_mut().linked = linked;
     }
 
     /// Whether the element's type is `type_name` or one of its subtypes (section 2.7).
@@ -701,6 +714,7 @@ impl DislElement {
             "source" if is_relation => element_or_null(self.source()),
             "target" if is_relation => element_or_null(self.target()),
             "view" => Value::map(self.view()?),
+            "linked" if !is_relation => Value::map(self.linked()?),
             _ => return None,
         })
     }

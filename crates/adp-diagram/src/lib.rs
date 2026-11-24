@@ -32,6 +32,7 @@ pub mod definition;
 pub mod disl_definition;
 pub mod document;
 pub mod element;
+pub mod links;
 pub mod memo;
 pub mod module;
 pub mod problems;

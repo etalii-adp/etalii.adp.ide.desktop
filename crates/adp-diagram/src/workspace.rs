@@ -45,7 +45,15 @@ pub struct DiagramWorkspace {
     history: History<DiagramDocuments>,
     /// The edits run since [`DiagramWorkspace::take_executed`] was last asked, in order.
     executed: Vec<DocumentEdit>,
+    /// What reads the documents of other kinds of tool for the links index (FBL section 17.3): a designer's.
+    indexers: Vec<LinkIndexer>,
+    /// The open diagrams whose load-time validation has changes to write, with their first edit.
+    unchecked: std::collections::HashSet<PathBuf>,
 }
+
+/// What reads a file of another kind of tool than a diagram for the workspace's links index: the document as the
+/// index holds it, or none when the file is not one it reads.
+pub type LinkIndexer = Rc<dyn Fn(&Path) -> Option<adp_links::IndexedDocument>>;
 
 impl DiagramWorkspace {
     /// The diagrams of the project at `root`, none open yet.
@@ -55,6 +63,8 @@ impl DiagramWorkspace {
             documents: DiagramDocuments::default(),
             history: History::default(),
             executed: Vec::new(),
+            indexers: Vec::new(),
+            unchecked: std::collections::HashSet::new(),
         }
     }
 
@@ -66,6 +76,8 @@ impl DiagramWorkspace {
             documents: DiagramDocuments::in_memory(),
             history: History::default(),
             executed: Vec::new(),
+            indexers: Vec::new(),
+            unchecked: std::collections::HashSet::new(),
         }
     }
 
@@ -117,6 +129,111 @@ impl DiagramWorkspace {
 
     pub fn root(&self) -> &Path {
         &self.root
+    }
+
+    /// Adds a reader of another kind of tool's documents to the links index.
+    pub fn add_link_indexer(&mut self, indexer: LinkIndexer) {
+        self.indexers.push(indexer);
+    }
+
+    /// Reads the workspace's links index again (FBL section 17.3): every document under the root whose tool type
+    /// takes part in links, the open ones as they are now, and gives it to the open documents.
+    pub fn index_links(&mut self, tools: &mut DiagramTools) {
+        let mut found = Vec::new();
+        let mut scratch = DiagramDocuments::default();
+        for path in files_under(&normalise(&self.root)) {
+            if self.documents.get(&path).is_some() {
+                continue;
+            }
+            let name = file_name(&path);
+            let mut indexed = None;
+            for origin in tools.for_file(&name) {
+                let Ok(tool) = tools.get(&origin) else { continue };
+                if crate::links::document_id_rule(tool.definition.specification()).is_none() {
+                    continue;
+                }
+                if let Ok(document) = scratch.open(tool, &path, None) {
+                    indexed = crate::links::indexed(document);
+                }
+                scratch.close(&path);
+                if indexed.is_some() {
+                    break;
+                }
+            }
+            if indexed.is_none() {
+                indexed = self.indexers.iter().find_map(|read| read(&path));
+            }
+            found.extend(indexed);
+        }
+        self.documents
+            .set_link_index(adp_links::Workspace::new(self.root.clone(), found));
+    }
+
+    /// The load-time validation of the open diagram at `body_path` (FBL section 17.4): the links index read again, and
+    /// what it changes, a document id when the diagram has none and every link that resolved rewritten where it
+    /// differs, held for the diagram's first edit, which writes it in the same step of the history. Opening alone
+    /// writes nothing, as it never has; nothing is held when nothing differs, nor for a diagram that cannot be
+    /// written, whose links are still resolved and shown.
+    pub fn check_links(&mut self, tools: &mut DiagramTools, body_path: &Path) -> Result<(), String> {
+        let Some(document) = self.documents.get(body_path) else {
+            return Err(crate::document::NOT_OPEN.to_owned());
+        };
+        if !crate::links::takes_part(document) {
+            return Ok(());
+        }
+        self.index_links(tools);
+        let document = self.documents.get(body_path).expect("still open");
+        if document.refusal().is_some() {
+            return Ok(());
+        }
+        let index = document.link_index().cloned().expect("just indexed");
+        if !crate::links::load_changes(document, &index).is_empty() {
+            self.unchecked.insert(body_path.to_path_buf());
+        }
+        Ok(())
+    }
+
+    /// Whether the open diagram at `body_path` has load-time changes its first edit will write.
+    pub fn holds_link_changes(&self, body_path: &Path) -> bool {
+        self.unchecked.contains(body_path)
+    }
+
+    /// The edit of what load-time validation changes in the diagram `edit` is made to, planned against the bytes
+    /// `edit` leaves: none when nothing differs then.
+    fn load_edit_after(&self, edit: &DocumentEdit) -> Option<DocumentEdit> {
+        let document = self.documents.get(&edit.body_path)?;
+        let mut body = document.body_bytes().to_vec();
+        let mut registration = document.registration_bytes().map(<[u8]>::to_vec);
+        for step in &edit.steps {
+            match step.file {
+                crate::document::EditedFile::Body => {
+                    body = adp_fbl::history::apply_in_order(&body, &step.splices).ok()?;
+                }
+                crate::document::EditedFile::Registration => {
+                    registration =
+                        Some(adp_fbl::history::apply_in_order(registration.as_deref()?, &step.splices).ok()?);
+                }
+                _ => {}
+            }
+        }
+        let mut scratch = DiagramDocuments::in_memory();
+        if let Some(index) = document.link_index() {
+            scratch.set_link_index((**index).clone());
+        }
+        let after = scratch.open_bytes_beside(
+            document.tool().clone(),
+            &edit.body_path,
+            document.registration_path(),
+            body,
+            registration,
+            &|_| None,
+        );
+        let index = after.link_index()?.clone();
+        let changes = crate::links::load_changes(after, &index);
+        if changes.is_empty() {
+            return None;
+        }
+        after.plan(crate::links::CHECK_LINKS, &changes).ok()
     }
 
     pub fn documents(&self) -> &DiagramDocuments {
@@ -223,6 +340,7 @@ impl DiagramWorkspace {
 
     /// Closes the document of the body at `body_path`, once no view shows it.
     pub fn close(&mut self, body_path: &Path) {
+        self.unchecked.remove(body_path);
         self.documents.close(body_path);
     }
 
@@ -231,9 +349,31 @@ impl DiagramWorkspace {
         if edit.is_empty() {
             return Ok(());
         }
-        match self.history.execute(&mut self.documents, &edit) {
+        // The first edit of a diagram whose links load-time validation changes writes those changes too, in the same
+        // step of the history (FBL section 17.4).
+        let load = self
+            .unchecked
+            .contains(&edit.body_path)
+            .then(|| self.load_edit_after(&edit))
+            .flatten();
+        let outcome = match &load {
+            Some(load) => self.history.execute(
+                &mut self.documents,
+                &adp_history::Composite::new(
+                    edit.label.clone(),
+                    vec![
+                        Box::new(edit.clone()) as Box<dyn Command<DiagramDocuments>>,
+                        Box::new(load.clone()),
+                    ],
+                ),
+            ),
+            None => self.history.execute(&mut self.documents, &edit),
+        };
+        match outcome {
             Outcome::Done { .. } => {
+                self.unchecked.remove(&edit.body_path);
                 self.executed.push(edit);
+                self.executed.extend(load);
                 Ok(())
             }
             Outcome::Refused(refusal) => Err(refusal.0),
@@ -298,6 +438,29 @@ impl DiagramWorkspace {
     pub fn take_changed(&mut self) -> Vec<PathBuf> {
         self.documents.take_changed()
     }
+}
+
+/// Every file under `root`, in path order, but those in a folder the links index skips.
+fn files_under(root: &Path) -> Vec<PathBuf> {
+    let mut found = Vec::new();
+    let mut folders = vec![root.to_path_buf()];
+    while let Some(folder) = folders.pop() {
+        let Ok(entries) = fs::read_dir(&folder) else { continue };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            match entry.file_type() {
+                Ok(kind) if kind.is_dir() => {
+                    if crate::links::is_indexed_folder(&path) {
+                        folders.push(path);
+                    }
+                }
+                Ok(kind) if kind.is_file() => found.push(path),
+                _ => {}
+            }
+        }
+    }
+    found.sort();
+    found
 }
 
 fn file_name(path: &Path) -> String {

@@ -152,7 +152,7 @@ impl DiagramHost {
     pub fn workspace(&mut self, root: &Path) -> &mut DiagramWorkspace {
         self.workspaces
             .entry(root.to_path_buf())
-            .or_insert_with(|| DiagramWorkspace::new(root))
+            .or_insert_with(|| linked_workspace(root))
     }
 
     /// Whether a usable diagram tool type claims the file at `path`: a body by its extension, or a registration by
@@ -178,8 +178,11 @@ impl DiagramHost {
         let workspace = self
             .workspaces
             .entry(root.to_path_buf())
-            .or_insert_with(|| DiagramWorkspace::new(root));
+            .or_insert_with(|| linked_workspace(root));
         let (opened, session) = workspace.open(&mut self.tools, path)?;
+        // Opening checks the diagram's links (FBL section 17.4); a check that cannot be written leaves the diagram
+        // open as it is, and its links are shown as they resolve.
+        workspace.check_links(&mut self.tools, &opened.body_path).ok();
         DiagramTab::new(root, path, opened, session)
     }
 
@@ -198,6 +201,14 @@ impl DiagramHost {
             .flat_map(DiagramWorkspace::take_changed)
             .collect()
     }
+}
+
+/// The diagrams of the project at `root`, whose links index holds its knowledge files too (FBL section 17.3): a
+/// linked node may stand for a row.
+fn linked_workspace(root: &Path) -> DiagramWorkspace {
+    let mut workspace = DiagramWorkspace::new(root);
+    workspace.add_link_indexer(std::rc::Rc::new(adp_designer_knowledge::links::index_file));
+    workspace
 }
 
 /// What a toolbox entry dragged onto a canvas carries.

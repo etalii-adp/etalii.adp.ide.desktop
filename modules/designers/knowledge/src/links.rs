@@ -47,6 +47,18 @@ pub fn read_files(folder: &Path, read: &dyn Fn(&Path) -> KnowledgeRead) -> Vec<K
         .collect()
 }
 
+/// The knowledge file at `path` as the index of links of another kind of tool sees it (FBL section 17.3): a mind
+/// map's, say, whose linked node stands for a row; none when the file is not a knowledge file that reads.
+pub fn index_file(path: &Path) -> Option<IndexedDocument> {
+    if !project::says_knowledge(path) {
+        return None;
+    }
+    let body = crate::store::read(path).body?;
+    body.unreadable()
+        .is_empty()
+        .then(|| indexed(&relations::full_path(path), body.table()))
+}
+
 /// What a row's link names it by: the text of the title property, or nothing.
 fn title_text(table: &KnowledgeTable, row: &ContentRow) -> String {
     table

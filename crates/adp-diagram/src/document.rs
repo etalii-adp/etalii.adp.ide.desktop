@@ -197,6 +197,8 @@ pub struct DiagramDocument {
     beside: Beside,
     reading: Rc<Reading>,
     deleted: bool,
+    /// The workspace's links index this document's links resolve in (FBL section 17.3), once the host has built one.
+    link_index: Option<Rc<adp_links::Workspace>>,
 }
 
 impl DiagramDocument {
@@ -332,12 +334,18 @@ impl DiagramDocument {
     /// Binds every node's `self.view` to the viewer's state the tool type's module keeps of it (DISL section 12.2),
     /// so a menu and a label read the viewer's folds; nothing for a tool type that keeps none.
     pub fn bind_views(&self) {
+        crate::links::bind_linked(self, self.link_index.as_deref());
         let Some(module) = &self.tool.module else { return };
         for node in self.reading.model.diagram.nodes() {
             if let Some(view) = module.view_of(self, &node) {
                 node.set_view(Some(view));
             }
         }
+    }
+
+    /// The workspace's links index, once the host has built one (FBL section 17.3).
+    pub fn link_index(&self) -> Option<&Rc<adp_links::Workspace>> {
+        self.link_index.as_ref()
     }
 
     /// Whether a drag of `element` proposes a new parent rather than a place: its notation's placement leaves both
@@ -1296,6 +1304,8 @@ pub struct DiagramDocuments {
     modules: HashMap<String, Box<dyn ModuleDocuments>>,
     /// Whether the documents are working copies held in memory: an edit changes their bytes and writes nothing.
     in_memory: bool,
+    /// The workspace's links index (FBL section 17.3), once the host has built one.
+    link_index: Option<Rc<adp_links::Workspace>>,
 }
 
 /// What a module that reads its documents itself keeps of them in the project's documents
@@ -1539,6 +1549,7 @@ impl DiagramDocuments {
             beside,
             reading,
             deleted: false,
+            link_index: self.link_index.clone(),
         }
     }
 
@@ -1550,7 +1561,43 @@ impl DiagramDocuments {
         let mut document = self.read(tool, body_path.clone(), registration_path, body, registration, beside);
         document.deleted = deleted;
         self.documents[index] = document;
+        self.reindex(index);
         self.mark_changed(&body_path);
+    }
+
+    /// The workspace's links index the documents resolve their links in (FBL section 17.3), with the open documents
+    /// as they are now in place of what it read of their files; every open document is given it.
+    pub fn set_link_index(&mut self, mut index: adp_links::Workspace) {
+        for document in &self.documents {
+            if let Some(indexed) = crate::links::indexed(document) {
+                index.put(indexed);
+            }
+        }
+        let index = Rc::new(index);
+        self.link_index = Some(index.clone());
+        for document in &mut self.documents {
+            document.link_index = Some(index.clone());
+        }
+    }
+
+    pub fn link_index(&self) -> Option<&Rc<adp_links::Workspace>> {
+        self.link_index.as_ref()
+    }
+
+    /// Puts the document at `index`, as it is now, in the links index, when there is one.
+    fn reindex(&mut self, index: usize) {
+        let Some(current) = self.link_index.as_ref() else {
+            return;
+        };
+        let Some(indexed) = crate::links::indexed(&self.documents[index]) else {
+            return;
+        };
+        if current.document(&indexed.path) == Some(&indexed) {
+            return;
+        }
+        let mut updated = (**current).clone();
+        updated.put(indexed);
+        self.set_link_index(updated);
     }
 
     /// Applies `edit` to its document and writes what changed to disk; the edit that reverses it, or the refusal

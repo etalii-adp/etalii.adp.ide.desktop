@@ -16,6 +16,13 @@ fn says(file: &Path) -> bool {
     std::fs::read(file).is_ok_and(|bytes| String::from_utf8_lossy(&bytes).contains(MARK))
 }
 
+/// Whether the file at `path` is one [`files`] lists: of a knowledge file's extension, and saying it is one.
+pub fn says_knowledge(path: &Path) -> bool {
+    path.extension()
+        .is_some_and(|e| EXTENSIONS.contains(&e.to_string_lossy().to_lowercase().as_str()))
+        && says(path)
+}
+
 /// The files under a folder that say they are knowledge files, folders of tools' own left out.
 pub fn files(folder: &Path) -> Vec<PathBuf> {
     let Ok(entries) = std::fs::read_dir(folder) else {

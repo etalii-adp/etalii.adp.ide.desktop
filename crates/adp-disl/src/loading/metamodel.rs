@@ -205,6 +205,57 @@ impl DislMetamodel {
     pub fn is_data_type(&self, name: &str) -> bool {
         self.data_types.iter().any(|d| d == name)
     }
+
+    /// *(DISL 0.12)* The declaration of `property` nearest in the linearisation of the node type `type_name`.
+    fn nearest(&self, type_name: &str, property: &str) -> Option<&Json> {
+        let known = self.types.get(type_name)?;
+        known
+            .linearisation
+            .iter()
+            .filter_map(|t| self.types.get(t))
+            .find_map(|t| json::get(&t.json, property).filter(|v| !v.is_null() && v.as_bool() != Some(false)))
+    }
+
+    /// *(DISL 0.12, section 4.12)* Whether elements of the node type `type_name` can be linked to, and the attribute
+    /// that names one in a link: its `linkable.nameProperty`, else the type's label attribute.
+    pub fn linkable(&self, type_name: &str) -> Option<String> {
+        let declared = self.nearest(type_name, "linkable")?;
+        json::get(declared, "nameProperty")
+            .and_then(Json::as_str)
+            .map(str::to_owned)
+            .or_else(|| self.types.get(type_name)?.label_attribute.clone())
+            .or_else(|| Some(String::new()))
+    }
+
+    /// *(DISL 0.12, section 4.12)* For a node type that stands for a linked element, the attribute that holds its
+    /// link and the target attributes it `shows`.
+    pub fn linked(&self, type_name: &str) -> Option<(String, Vec<String>)> {
+        let declared = self.nearest(type_name, "linked")?;
+        let attribute = json::get(declared, "attribute")?.as_str()?.to_owned();
+        let shows = json::get(declared, "shows")
+            .and_then(Json::as_array)
+            .map(|shows| {
+                shows
+                    .iter()
+                    .filter_map(|s| json::get(s, "attribute")?.as_str().map(str::to_owned))
+                    .collect()
+            })
+            .unwrap_or_default();
+        Some((attribute, shows))
+    }
+
+    /// *(DISL 0.12, section 4.12)* The attributes of the type `type_name` that hold links, in declaration order.
+    pub fn link_attributes(&self, type_name: &str) -> Vec<String> {
+        self.type_of(type_name)
+            .map(|t| {
+                t.attributes
+                    .values()
+                    .filter(|a| a.type_name == "link")
+                    .map(|a| a.name.clone())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
 }
 
 /// One parameter of a user function (DISL section 3.4).

@@ -19,6 +19,8 @@ adp-disl = { path = "../adp-disl" }
 adp-documents = { path = "../adp-documents" }
 adp-fbl = { path = "../adp-fbl" }
 adp-history = { path = "../adp-history" }
+# Links between documents, resolved in the workspace (FBL section 17, etalii.adp spec 089).
+adp-links = { path = "../adp-links" }
 serde_json = { version = "1", features = ["preserve_order"] }
 
 [dev-dependencies]
