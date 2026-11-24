@@ -368,6 +368,60 @@ impl Family {
         Ok(())
     }
 
+    /// *(FBL 0.23)* Writes `key: value` into the root mapping of a body no rule reads the root of, as the document id
+    /// is (FBL section 17.2): its value replaced where the key is present, else a new line after the root's first key
+    /// when that holds a scalar, as a schema marker such as `timeline: 1` does, and before the first key otherwise.
+    pub(crate) fn yaml_write_root_key(&self, plan: &mut Plan<'_>, key: &str, value: &Value) -> Planning {
+        let Some(root) = self.tree_root() else {
+            return refuse("The file has no root to write to.");
+        };
+        let mapping = self.entries[root].tree().value;
+        if self.tree_value(mapping).kind != ValueKind::Mapping || self.tree_value(mapping).entries.is_empty() {
+            return refuse(format!(
+                "The {} file has no mapping to write '{key}' in.",
+                self.binding.name
+            ));
+        }
+        if self.tree_value(mapping).style == ValueStyle::FlowMapping {
+            return refuse(format!(
+                "'{key}' would go inside a flow mapping, whose only writable span is the whole collection."
+            ));
+        }
+        if let Some(member) = self.member(mapping, key) {
+            let span = self.value_of(member).span;
+            let written = self.scalar(
+                value,
+                Some(self.entries[member].tree().value),
+                None,
+                self.entries[member].indent,
+            );
+            if written != self.text.text_of(span) {
+                plan.add_span(Operation::ReplaceValue, span, written);
+            }
+            return Ok(());
+        }
+        let first = self.tree_value(mapping).entries[0];
+        let offset = if self.value_of(first).kind == ValueKind::Scalar {
+            self.line_end_after(first)
+        } else {
+            let e = &self.entries[first];
+            e.line_span.map(|l| l.start).unwrap_or(e.own.start)
+        };
+        let indent = self.entries[first].indent;
+        let line = format!(
+            "{}{key}: {}",
+            self.indentation(indent),
+            self.scalar(value, None, None, indent)
+        );
+        plan.add(
+            Operation::InsertKey,
+            offset,
+            offset,
+            self.yaml_new_line(offset, &[line]),
+        );
+        Ok(())
+    }
+
     /// A key the entry lacks goes at its place in the rule's key order: after the nearest present key before it,
     /// else before the nearest after it.
     fn insert_key(&self, plan: &mut Plan<'_>, mapping: ValueId, key: &str, change: &SlotChange<'_>) {

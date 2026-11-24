@@ -150,6 +150,25 @@ fn load_binding(file: &Path, reference: &str) -> Result<FblBinding, String> {
         .ok_or_else(|| format!("{} has no binding '{}'.", file.display(), name.unwrap_or_default()))
 }
 
+/// Binding `reference`'s name (`file.fbl#name`) of the FBL document `bytes`, a module's own.
+fn binding_of(bytes: &[u8], reference: &str) -> Result<FblBinding, String> {
+    let (problems, document) = documents::load(bytes);
+    let Some(document) = document else {
+        return Err(format!(
+            "The module's binding does not load: {}",
+            problems.iter().map(ToString::to_string).collect::<Vec<_>>().join("; ")
+        ));
+    };
+    let name = reference.rsplit_once('#').map(|(_, name)| name);
+    let binding = match name {
+        Some(name) => document.binding(name),
+        None => document.bindings.first().map(|(_, binding)| binding),
+    };
+    binding
+        .cloned()
+        .ok_or_else(|| format!("The module's binding has no binding '{}'.", name.unwrap_or_default()))
+}
+
 /// The diagram tool types of the catalogue, each loaded the first time a document of it is opened.
 pub struct DiagramTools {
     catalogue: Catalogue,
@@ -192,9 +211,13 @@ impl DiagramTools {
                         Some(module) => module.plugin_functions(),
                         None => (self.plugins)(origin),
                     };
-                    DiagramTool::load(tool_type, &plugins).map(|mut tool| {
+                    DiagramTool::load(tool_type, &plugins).and_then(|mut tool| {
+                        if let Some(bytes) = module.as_ref().and_then(|m| m.binding()) {
+                            let reference = tool_type.bindings.first().cloned().unwrap_or_default();
+                            tool.binding = Rc::new(binding_of(bytes, &reference)?);
+                        }
                         tool.module = module;
-                        Rc::new(tool)
+                        Ok(Rc::new(tool))
                     })
                 }
             };

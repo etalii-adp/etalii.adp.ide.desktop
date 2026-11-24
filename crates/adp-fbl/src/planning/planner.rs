@@ -199,7 +199,13 @@ fn plan_set_document_id(plan: &mut Plan<'_>, new_id: &str) -> Planning {
     if new_id.is_empty() {
         return refuse("A document id is not empty.");
     }
-    let index = root_element(reading)?;
+    let Ok(index) = root_element(reading) else {
+        // A document id no rule need bind (section 17.2): written into the root itself.
+        return match slot {
+            DocumentIdSlot::Key(key) => reading.family.write_root_key(plan, &key, &Value::from(new_id)),
+            DocumentIdSlot::Attribute(_) => root_element(reading).map(|_| ()),
+        };
+    };
     let element = reading.element(index);
     let binding = AttributeBinding::of_slot(match slot {
         DocumentIdSlot::Key(key) => Slot {

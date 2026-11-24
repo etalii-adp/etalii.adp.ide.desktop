@@ -462,6 +462,15 @@ impl Family {
         }
     }
 
+    /// *(FBL 0.23)* Writes `key` into the body's root when no rule reads the root (section 17.2); refused for a family
+    /// that cannot.
+    pub fn write_root_key(&self, plan: &mut Plan<'_>, key: &str, value: &Value) -> Planning {
+        match &self.kind {
+            FamilyKind::Yaml(_) => self.yaml_write_root_key(plan, key, value),
+            _ => refuse("No rule of this file's binding reads its root."),
+        }
+    }
+
     pub fn insert(&self, plan: &mut Plan<'_>, request: &InsertRequest) -> Planning {
         match &self.kind {
             FamilyKind::Yaml(_) => self.yaml_insert(plan, request),

@@ -10,7 +10,7 @@ use std::path::Path;
 use adp_cel::{Map, Value};
 use adp_disl::{DislChange, DislElement, DislSpecification};
 use adp_fbl::ModelChange;
-use adp_links::{HeldLink, IndexedDocument, IndexedElement, Resolution, Workspace, codes};
+use adp_links::{HeldLink, IndexedDocument, IndexedElement, Link, Resolution, Workspace, codes};
 
 use crate::document::{DiagramChange, DiagramDocument, text_of};
 use crate::problems::{DiagramProblem, DiagramProblemLocation, DiagramProblemSeverity};
@@ -199,6 +199,13 @@ pub fn bind_linked(document: &DiagramDocument, index: Option<&Workspace>) {
             Resolution::Resolved(resolved) => Some(resolved),
             Resolution::Finding(_) => None,
         });
+        // Its label is the target's current name, else the name its link caches (DISL section 4.12).
+        let name = resolved
+            .as_ref()
+            .and_then(|r| r.refreshed.cached_name().map(str::to_owned))
+            .or_else(|| Link::parse(&link).and_then(|l| l.cached_name().map(str::to_owned)));
+        let property = metamodel.linkable(&element.type_name());
+        element.set_linked_name(property.zip(name));
         element.set_linked(resolved.map(|resolved| {
             let mut values = Map::default();
             for shown in &shows {

@@ -5,12 +5,11 @@
 
 use std::path::PathBuf;
 
-use adp_cel::{Map, Value};
 use adp_context::{Action, ActionGroup, Prompt, PromptOption};
-use adp_disl::{DislChange, DislElement, IdSource};
+use adp_disl::{DislElement, IdSource};
 use adp_links::{Link, Resolution, Workspace};
 
-use crate::document::{DiagramChange, DiagramDocument, text_of};
+use crate::document::{DiagramDocument, text_of};
 use crate::session::{ActionOutcome, ActionTarget, DiagramSession};
 use crate::workspace::DiagramWorkspace;
 
@@ -23,24 +22,12 @@ pub const OPEN_LINKED: &str = "links.open";
 /// What separates the path of a backlink's document from the element that holds it, in the answer that picks it.
 const SEPARATOR: char = '\u{1f}';
 
-/// The lookup an operation's action list opens (DISL section 9.4): the type it creates, and where.
-struct Lookup {
-    create: String,
-    as_child: bool,
-}
-
-/// The `lookup` action of the operation `operation` of `document`'s specification, when it has one.
-fn lookup_of(document: &DiagramDocument, operation: &str) -> Option<Lookup> {
-    let actions = document.tool().definition.specification().root()["behavior"]["operations"][operation]["actions"]
-        .as_array()?
-        .clone();
-    actions.iter().find_map(|action| {
-        let lookup = action.get("lookup")?;
-        Some(Lookup {
-            create: lookup.get("create")?.as_str()?.to_owned(),
-            as_child: lookup.get("as").and_then(|a| a.as_str()) != Some("sibling"),
-        })
-    })
+/// Whether the operation `operation` of `document`'s specification opens the host's lookup (DISL section 9.4): one of
+/// its actions is a `lookup`.
+fn opens_lookup(document: &DiagramDocument, operation: &str) -> bool {
+    document.tool().definition.specification().root()["behavior"]["operations"][operation]["actions"]
+        .as_array()
+        .is_some_and(|actions| actions.iter().any(|action| action.get("lookup").is_some()))
 }
 
 /// The element a backlink's holder names: a diagram's element by its id, a designer's row by the part before `/`.
@@ -169,9 +156,26 @@ impl DiagramSession {
         target: &ActionTarget,
         action_id: &str,
     ) -> Option<ActionOutcome> {
-        let ActionTarget::Element(id) = target else { return None };
         let document = self.document(workspace.documents()).ok()?;
         let index = document.link_index()?;
+        if action_id != OPEN_LINKED && action_id != LINKED_FROM {
+            let entry = self.entry(document, target, action_id)?;
+            if !opens_lookup(document, entry.operation.as_deref()?) {
+                return None;
+            }
+            if !entry.available {
+                return Some(ActionOutcome::Refused(entry.unavailable_reason));
+            }
+            return Some(ActionOutcome::Prompt(Prompt::Choice {
+                title: entry.label.trim_end_matches(['\u{2026}', '.']).trim_end().to_owned(),
+                icon: entry.icon.clone(),
+                confirm_label: "Add".into(),
+                options: lookup_options(index),
+                empty_message: "No document of the workspace has elements to link to.".into(),
+                name_field: None,
+            }));
+        }
+        let ActionTarget::Element(id) = target else { return None };
         let element = document.element(id)?;
         match action_id {
             OPEN_LINKED => {
@@ -217,21 +221,7 @@ impl DiagramSession {
                     name_field: None,
                 }))
             }
-            _ => {
-                let entry = self.entry(document, target, action_id)?;
-                lookup_of(document, entry.operation.as_deref()?)?;
-                if !entry.available {
-                    return Some(ActionOutcome::Refused(entry.unavailable_reason));
-                }
-                Some(ActionOutcome::Prompt(Prompt::Choice {
-                    title: entry.label.trim_end_matches(['\u{2026}', '.']).trim_end().to_owned(),
-                    icon: entry.icon.clone(),
-                    confirm_label: "Add".into(),
-                    options: lookup_options(index),
-                    empty_message: "No document of the workspace has elements to link to.".into(),
-                    name_field: None,
-                }))
-            }
+            _ => None,
         }
     }
 
@@ -245,8 +235,8 @@ impl DiagramSession {
         value: &str,
         ids: Option<&dyn IdSource>,
     ) -> Option<ActionOutcome> {
-        let ActionTarget::Element(id) = target else { return None };
         if action_id == LINKED_FROM {
+            let ActionTarget::Element(_) = target else { return None };
             let (path, holder) = value.split_once(SEPARATOR)?;
             return Some(ActionOutcome::Open {
                 path: PathBuf::from(path),
@@ -256,56 +246,24 @@ impl DiagramSession {
         let document = self.document(workspace.documents()).ok()?;
         document.link_index()?;
         let entry = self.entry(document, target, action_id)?;
-        let lookup = lookup_of(document, entry.operation.as_deref()?)?;
-        let element = document.element(id)?;
-        let parent = if lookup.as_child {
-            Some(element.id())
-        } else {
-            element.parent().map(|p| p.id())
-        };
-        let Some((attribute, _)) = document
-            .tool()
-            .definition
-            .specification()
-            .metamodel()
-            .linked(&lookup.create)
-        else {
-            return Some(ActionOutcome::Refused(format!(
-                "'{}' does not stand for a linked element.",
-                lookup.create
-            )));
-        };
+        let operation = entry.operation.clone()?;
+        if !opens_lookup(document, &operation) {
+            return None;
+        }
         if Link::parse(value).is_none() {
             return Some(ActionOutcome::Refused(format!("'{value}' is not a link.")));
         }
         let minted = adp_disl::behavior::ids::of(document.tool().definition.specification());
-        let next = match (ids, &minted) {
-            (Some(ids), _) => ids.next(&lookup.create),
-            (None, Ok(minted)) => minted.next(&lookup.create),
-            (None, Err(refusal)) => Err(refusal.clone()),
+        let ids: &dyn IdSource = match (ids, &minted) {
+            (Some(ids), _) => ids,
+            (None, Ok(minted)) => minted,
+            (None, Err(refusal)) => return Some(ActionOutcome::Refused(refusal.clone())),
         };
-        let new_id = match next {
-            Ok(id) => id,
-            Err(refusal) => return Some(ActionOutcome::Refused(refusal)),
-        };
-        let mut attributes = Map::default();
-        attributes.insert(attribute, Value::String(value.to_owned()));
-        let change = DiagramChange::Disl(DislChange::Create {
-            type_name: lookup.create.clone(),
-            id: new_id,
-            attributes,
-            parent_id: parent,
-            at: Value::Null,
-            index: None,
-            slot: None,
-        });
-        let label = entry.label.trim_end_matches(['\u{2026}', '.']).trim_end().to_owned();
-        Some(match document.plan(&label, &[change]) {
-            Ok(edit) => match workspace.execute(edit) {
+        Some(
+            match self.run_operation(workspace, target, &entry, &operation, None, ids, Some(value.to_owned())) {
                 Ok(()) => ActionOutcome::Done,
                 Err(refusal) => ActionOutcome::Refused(refusal),
             },
-            Err(refusal) => ActionOutcome::Refused(refusal),
-        })
+        )
     }
 }

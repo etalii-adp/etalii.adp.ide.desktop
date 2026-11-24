@@ -116,6 +116,13 @@ pub trait DiagramModule {
         Vec::new()
     }
 
+    /// The FBL document the host reads and writes the tool type's bodies with in place of the one its specification
+    /// names, when that one cannot say what the host needs yet; its binding of the name the specification names is
+    /// used. None by default: the specification's binding.
+    fn binding(&self) -> Option<&'static [u8]> {
+        None
+    }
+
     /// The persistence plugin with id `plugin_id` (FBL section 11), when the module provides it.
     fn persistence(&self, plugin_id: &str) -> Option<Rc<dyn PersistencePlugin>> {
         let _ = plugin_id;
