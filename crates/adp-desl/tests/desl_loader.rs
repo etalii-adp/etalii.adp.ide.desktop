@@ -39,7 +39,7 @@ fn minimal_with(edit: impl FnOnce(&mut serde_json::Value)) -> String {
 #[test]
 fn every_vendored_specification_loads() {
     let all = specifications();
-    assert_eq!(4, all.len(), "{all:?}");
+    assert_eq!(6, all.len(), "{all:?}");
     for path in all {
         let result = DeslLoader::load_file(&path);
         assert_eq!(

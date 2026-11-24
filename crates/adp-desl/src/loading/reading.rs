@@ -319,6 +319,13 @@ pub(crate) fn surface(
             hierarchy(surface, metamodel, diagnostics);
             Some(DeslSurface::Hierarchy(surface.clone()))
         }
+        Some("sections") => {
+            diagnostics.push(DeslDiagnostic::warning(
+                "/surface/kind",
+                "The surface's kind is 'sections' (DESL 0.4, §7.8), which this runtime does not lay out yet; it is kept as written.",
+            ));
+            Some(DeslSurface::Sections(surface.clone()))
+        }
         other => {
             diagnostics.push(DeslDiagnostic::error(
                 "/surface/kind",

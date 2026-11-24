@@ -59,6 +59,9 @@ fn group(code: &str) -> usize {
 /// The problems of `document`, evaluated from the session's `options`, grouped and located as the tool reports them.
 pub fn judge(document: &DiagramDocument, mut options: DislConstraintOptions) -> Vec<DiagramProblem> {
     options.written_id = Some(Rc::new(written_id));
+    // The tool names a later holder of an id by that id, at the element, rather than at its line as a description's
+    // persistence.writtenId says (DISL 0.10): its findings are grouped and placed below.
+    options.ephemeral_at_line = false;
     let mut findings: Vec<_> = constraints::evaluate(
         document.tool().definition.specification(),
         &document.model().diagram,

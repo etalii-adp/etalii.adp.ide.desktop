@@ -230,6 +230,8 @@ pub enum DeslSurface {
     /// A `hierarchy` surface (DESL section 7.7). Its roles are checked when it loads; the standalone host has no
     /// designer of this kind, so its layout is not interpreted here, and it is kept as written.
     Hierarchy(Json),
+    /// A `sections` surface (DESL 0.4, section 7.8), kept as written: this host lays out no page of sections yet.
+    Sections(Json),
 }
 
 /// A specification that loaded without errors.
@@ -277,7 +279,7 @@ impl DeslSpecification {
     pub fn table(&self) -> Option<&DeslTable> {
         match &self.surface {
             DeslSurface::Table(table) => Some(table),
-            DeslSurface::Hierarchy(_) => None,
+            DeslSurface::Hierarchy(_) | DeslSurface::Sections(_) => None,
         }
     }
 
