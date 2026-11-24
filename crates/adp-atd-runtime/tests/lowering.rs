@@ -102,9 +102,11 @@ fn the_mind_maps_description_is_its_dis_but_for_what_it_states_more_completely()
         "+ /behavior/operations/addSibling/actions/0/create/after",
         // One type in a list, as the description writes it.
         "~ /constraints/rules/2/scope",
-        // The form's sections by name.
-        "+ /forms/nodeProperties/items/3/id",
+        // One type in a list, as the description writes it: a linked node's supertype (spec 089).
+        "~ /metamodel/types/LinkedNode/extends",
+        // The form's sections by name, after the linked element's field.
         "+ /forms/nodeProperties/items/4/id",
+        "+ /forms/nodeProperties/items/5/id",
         // The functions are the script's: `siblingName` in full rather than the module's stub.
         "- /functions",
         // The layout is the capability, with its arguments.
@@ -116,6 +118,9 @@ fn the_mind_maps_description_is_its_dis_but_for_what_it_states_more_completely()
         "- /notation/nodes/Node/size/autoSize",
         "+ /notation/nodes/Node/size/height",
         "+ /notation/nodes/Node/size/width",
+        "- /notation/nodes/LinkedNode/size/autoSize",
+        "+ /notation/nodes/LinkedNode/size/height",
+        "+ /notation/nodes/LinkedNode/size/width",
         "+ /notation/textMetric",
         // The DISL version the lowering states, 0.9 since it carries `groupBy` (etalii.adp spec 075); the file states 0.3.
         "~ /disl",

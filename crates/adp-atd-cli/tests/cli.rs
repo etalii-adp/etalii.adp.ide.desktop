@@ -238,7 +238,7 @@ fn validate_reports_each_difference_at_its_construct() {
         .find(|d| d["step"] == 3)
         .unwrap();
     assert_eq!(reparent["part"], "refused");
-    assert_eq!(reparent["at"]["line"], 269);
+    assert_eq!(reparent["at"]["line"], 291);
 
     let (code, _, err) = atd(&["validate", "--case", "no-such-case", &mindmap]);
     assert_eq!(code, 2, "{err}");
