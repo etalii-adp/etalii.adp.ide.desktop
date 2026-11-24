@@ -134,7 +134,7 @@ const DATA = /*FLOW_PAGE_DATA*/;
 const nodes = DATA.v.map(([id, label, x, y]) => ({ id, label, x, y, level: 0.5, bias: 0, target: 0.5, z: 0,
   exo: false, value: 0.5, arrivals: 0, thr: 0, backlog: 0, heat: 0, lines: [], w: 190, h: 60 }));
 const byId = Object.fromEntries(nodes.map((n, i) => [n.id, i]));
-const links = DATA.l.map(([f, t, s, d, note, w]) => ({ f: byId[f], t: byId[t], sign: s, delayed: !!d, note, w,
+const links = DATA.l.map(([f, t, s, d, note, w, flip]) => ({ f: byId[f], t: byId[t], sign: s, delayed: !!d, note, w, flip: !!flip,
   parts: [], acc: Math.random(), heat: 0, geo: null }));
 nodes.forEach((n, i) => { n.inc = links.filter(l => l.t === i); n.out = links.filter(l => l.f === i); n.exo = n.inc.length === 0; });
 const loops = DATA.o.map(([id, name, ids]) => {
@@ -249,7 +249,7 @@ function bez(a, c, b, t) { const u = 1 - t; return [u * u * a[0] + 2 * u * t * c
 function linkGeo(l) {
   const A = nodes[l.f], B = nodes[l.t], a = [A.x, A.y], b = [B.x, B.y];
   const dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy) || 1;
-  const c = [(a[0] + b[0]) / 2 - dy / len * len * 0.12, (a[1] + b[1]) / 2 + dx / len * len * 0.12];
+  const bow = (l.flip ? -1 : 1) * 0.12, c = [(a[0] + b[0]) / 2 + dy / len * len * bow, (a[1] + b[1]) / 2 - dx / len * len * bow]; // to the left of travel, or the right when flipped, as the diagram bows it
   let t0 = 0, t1 = 1;
   for (let k = 0; k <= 200; k++) { const p = bez(a, c, b, k / 200); if (!inside(A, p[0], p[1])) { t0 = k / 200; break; } }
   for (let k = 200; k >= 0; k--) { const p = bez(a, c, b, k / 200); if (!inside(B, p[0], p[1], 9)) { t1 = k / 200; break; } }

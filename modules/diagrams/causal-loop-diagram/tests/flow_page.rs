@@ -73,7 +73,7 @@ fn the_template_is_the_reference_page_apart_from_fr_035s_places() {
     for hunk in patch["hunks"].as_array().unwrap() {
         let place = hunk["place"].as_str().unwrap();
         assert!(
-            ["a", "b", "c", "d", "e", "f", "g"].contains(&place),
+            ["a", "b", "c", "d", "e", "f", "g", "h"].contains(&place),
             "{place} is no place of FR-035"
         );
         let line = hunk["line"].as_u64().unwrap() as usize - 1;
@@ -220,6 +220,13 @@ fn the_defaults_stand_where_the_file_states_none() {
     assert_eq!(data["v"][0][5], 0);
     assert_eq!(data["l"][0][2], 1, "a link of unstated polarity counts as positive");
     assert_eq!(data["l"][0][5], 1, "a link without a weight starts at 1");
+}
+
+#[test]
+fn a_flipped_link_is_carried_so_the_page_bows_it_to_the_side_the_canvas_does() {
+    let data = data_of("causal-loop 1\r\nvariable a\r\nvariable b\r\nlink a -> b + flipped\r\nlink b -> a -\r\n");
+    assert_eq!(data["l"][0][6], 1, "a flipped link");
+    assert_eq!(data["l"][1][6], 0, "a link bowed as the diagram bows it unflipped");
 }
 
 #[test]

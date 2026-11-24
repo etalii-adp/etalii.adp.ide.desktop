@@ -45,7 +45,7 @@ const SMALL = pageOf("small", [
   'link source -> up + "a note"',
   "link source -> down -",
   "link source -> late + delayed",
-  "link up -> back + weight=2",
+  "link up -> back + flipped weight=2",
   "link back -> up -",
   "",
   'loop B1 "Check" up back',
@@ -118,6 +118,13 @@ const steps = (page, n) => page.evaluate(n => { running = false; for (let i = 0;
   check("a dot grows with its source's level", high.r > low.r, JSON.stringify([low, high]));
   const colours = await page.evaluate(() => [drawGraph.toString().includes("[61, 214, 198]"), drawGraph.toString().includes("[255, 111, 174]")]);
   check("positive dots are teal and negative ones pink", colours.every(Boolean));
+
+  // Each link bows to the side the canvas bows it: left of its direction of travel, right when flipped (FR-035 (h)).
+  const sides = await page.evaluate(() => links.map(l => {
+    const a = nodes[l.f], b = nodes[l.t], p = l.geo.pts[l.geo.pts.length >> 1];
+    return [l.flip, Math.sign((b.x - a.x) * (p[1] - (a.y + b.y) / 2) - (b.y - a.y) * (p[0] - (a.x + b.x) / 2))];
+  }));
+  check("each link bows to the canvas's side, a flipped one to the other", sides.some(([flip]) => flip) && sides.every(([flip, side]) => side === (flip ? 1 : -1)), JSON.stringify(sides));
 
   // The heatmap's four readings (FR-015).
   const seen = {};
