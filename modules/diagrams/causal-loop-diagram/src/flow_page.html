@@ -134,7 +134,7 @@ const DATA = /*FLOW_PAGE_DATA*/;
 const nodes = DATA.v.map(([id, label, x, y]) => ({ id, label, x, y, level: 0.5, bias: 0, target: 0.5, z: 0,
   exo: false, value: 0.5, arrivals: 0, thr: 0, backlog: 0, heat: 0, lines: [], w: 190, h: 60 }));
 const byId = Object.fromEntries(nodes.map((n, i) => [n.id, i]));
-const links = DATA.l.map(([f, t, s, d, note, w]) => ({ f: byId[f], t: byId[t], sign: s, delayed: !!d, note, w,
+const links = DATA.l.map(([f, t, s, d, note, w, flip]) => ({ f: byId[f], t: byId[t], sign: s, delayed: !!d, note, w, flip: !!flip,
   parts: [], acc: Math.random(), heat: 0, geo: null }));
 nodes.forEach((n, i) => { n.inc = links.filter(l => l.t === i); n.out = links.filter(l => l.f === i); n.exo = n.inc.length === 0; });
 const loops = DATA.o.map(([id, name, ids]) => {
@@ -226,6 +226,8 @@ function heatRGB(v) {
   return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f];
 }
 const rgb = (c, a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+const lum = c => c.map(v => (v /= 255) <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4).reduce((s, v, k) => s + v * [.2126, .7152, .0722][k], 0), DARK = [26, 18, 5], LIGHT = [230, 237, 243];
+const inkOn = c => (lum(c) + .05) / (lum(DARK) + .05) > (lum(LIGHT) + .05) / (lum(c) + .05) ? "#1a1205" : "#e6edf3"; // the caption that contrasts most with a fill
 const css = getComputedStyle(document.documentElement);
 const COL = k => css.getPropertyValue(k).trim();
 const esc = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -247,7 +249,7 @@ function bez(a, c, b, t) { const u = 1 - t; return [u * u * a[0] + 2 * u * t * c
 function linkGeo(l) {
   const A = nodes[l.f], B = nodes[l.t], a = [A.x, A.y], b = [B.x, B.y];
   const dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy) || 1;
-  const c = [(a[0] + b[0]) / 2 - dy / len * len * 0.12, (a[1] + b[1]) / 2 + dx / len * len * 0.12];
+  const bow = (l.flip ? -1 : 1) * 0.12, c = [(a[0] + b[0]) / 2 + dy / len * len * bow, (a[1] + b[1]) / 2 - dx / len * len * bow]; // to the left of travel, or the right when flipped, as the diagram bows it
   let t0 = 0, t1 = 1;
   for (let k = 0; k <= 200; k++) { const p = bez(a, c, b, k / 200); if (!inside(A, p[0], p[1])) { t0 = k / 200; break; } }
   for (let k = 200; k >= 0; k--) { const p = bez(a, c, b, k / 200); if (!inside(B, p[0], p[1], 9)) { t1 = k / 200; break; } }
@@ -343,12 +345,12 @@ function drawGraph() {
     g.shadowBlur = 0;
     g.lineWidth = sel === n ? 3.5 : 1.5; g.strokeStyle = sel === n ? COL("--accent") : n.exo ? COL("--exo") : rgb(hc.map(v => Math.min(255, v + 60)));
     g.setLineDash(n.exo ? [7, 5] : []); g.stroke(); g.setLineDash([]);
-    g.fillStyle = n.heat > 0.8 ? "#1a1205" : COL("--text"); g.font = FONT; g.textAlign = "center"; g.textBaseline = "top";
+    const ink = inkOn(hc.map((v, k) => v * 0.55 + [31, 42, 56][k] * 0.45)); g.fillStyle = ink; g.font = FONT; g.textAlign = "center"; g.textBaseline = "top";
     n.lines.forEach((t, k) => g.fillText(t, n.x, y + 11 + k * 25));
     // level bar
     const bw = n.w - 32, by = y + n.h - 18;
     rr(n.x - bw / 2, by, bw, 7, 3.5); g.fillStyle = "rgba(0,0,0,.45)"; g.fill();
-    rr(n.x - bw / 2, by, bw * n.level, 7, 3.5); g.fillStyle = n.heat > 0.8 ? "#1a1205" : "#e6edf3"; g.fill();
+    rr(n.x - bw / 2, by, bw * n.level, 7, 3.5); g.fillStyle = ink; g.fill();
     if (!n.exo) { const tx = n.x - bw / 2 + bw * n.target; g.fillStyle = COL("--accent"); g.fillRect(tx - 1.5, by - 3, 3, 12); }
     if (n.bias) { g.font = "700 12px system-ui, sans-serif"; g.textAlign = "right"; g.textBaseline = "top";
       g.fillStyle = n.bias > 0 ? COL("--pos") : COL("--neg"); g.fillText((n.bias > 0 ? "▲" : "▼") + Math.abs(n.bias).toFixed(1), x + n.w - 6, y - 16); }

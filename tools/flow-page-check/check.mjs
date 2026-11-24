@@ -45,7 +45,7 @@ const SMALL = pageOf("small", [
   'link source -> up + "a note"',
   "link source -> down -",
   "link source -> late + delayed",
-  "link up -> back + weight=2",
+  "link up -> back + flipped weight=2",
   "link back -> up -",
   "",
   'loop B1 "Check" up back',
@@ -118,6 +118,13 @@ const steps = (page, n) => page.evaluate(n => { running = false; for (let i = 0;
   check("a dot grows with its source's level", high.r > low.r, JSON.stringify([low, high]));
   const colours = await page.evaluate(() => [drawGraph.toString().includes("[61, 214, 198]"), drawGraph.toString().includes("[255, 111, 174]")]);
   check("positive dots are teal and negative ones pink", colours.every(Boolean));
+
+  // Each link bows to the side the canvas bows it: left of its direction of travel, right when flipped (FR-035 (h)).
+  const sides = await page.evaluate(() => links.map(l => {
+    const a = nodes[l.f], b = nodes[l.t], p = l.geo.pts[l.geo.pts.length >> 1];
+    return [l.flip, Math.sign((b.x - a.x) * (p[1] - (a.y + b.y) / 2) - (b.y - a.y) * (p[0] - (a.x + b.x) / 2))];
+  }));
+  check("each link bows to the canvas's side, a flipped one to the other", sides.some(([flip]) => flip) && sides.every(([flip, side]) => side === (flip ? 1 : -1)), JSON.stringify(sides));
 
   // The heatmap's four readings (FR-015).
   const seen = {};
@@ -208,6 +215,35 @@ const steps = (page, n) => page.evaluate(n => { running = false; for (let i = 0;
   const frame = await page.evaluate(() => new Promise(done => { const times = []; let last = performance.now(); const tick = now => { times.push(now - last); last = now; times.length < 90 ? requestAnimationFrame(tick) : done(times.slice(30).reduce((a, b) => a + b, 0) / 60); }; requestAnimationFrame(tick); }));
   console.log(`     200 variables and 600 links: ${frame.toFixed(1)} ms a frame`);
   check(`the large page keeps ${frameLimit} ms a frame`, frame <= frameLimit && errors.length === 0, `${frame.toFixed(1)} ms ${errors.join()}`);
+  await page.context().close();
+}
+{
+  // A variable's caption stays readable at every heat (etalii.adp spec 074, FR-035 (g)): the prototype switched to dark
+  // ink at a fixed heat of 0.8, which left dark captions on mid-brown fills just above it. The page is drawn at each
+  // heat, the ink of each caption is read from the canvas calls, and its contrast with the variable's fill is measured.
+  const { page } = await open(SMALL);
+  const worst = await page.evaluate(() => {
+    running = false;
+    const lum = c => c.map(v => (v /= 255) <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4).reduce((s, v, k) => s + v * [.2126, .7152, .0722][k], 0);
+    const hex = t => [1, 3, 5].map(i => parseInt(t.slice(i, i + 2), 16));
+    const captions = new Set(nodes.flatMap(n => n.lines)), inks = [], fillText = g.fillText;
+    g.fillText = function (text, ...rest) { if (captions.has(text)) inks.push(this.fillStyle); return fillText.call(this, text, ...rest); };
+    let lowest = { contrast: Infinity };
+    for (let k = 0; k <= 100; k += 1) {
+      const heat = k / 100;
+      nodes.forEach(n => { n.heat = heat; });
+      inks.length = 0;
+      drawGraph();
+      const fill = heatRGB(heat).map((v, i) => v * 0.55 + [31, 42, 56][i] * 0.45);
+      for (const ink of inks) {
+        const [a, b] = [lum(fill), lum(hex(ink))].sort((x, y) => y - x), contrast = (a + .05) / (b + .05);
+        if (contrast < lowest.contrast) lowest = { contrast, heat, ink };
+      }
+    }
+    g.fillText = fillText;
+    return lowest;
+  });
+  check("every caption contrasts at least 3.9:1 with its variable", worst.contrast >= 3.9, JSON.stringify(worst));
   await page.context().close();
 }
 {
