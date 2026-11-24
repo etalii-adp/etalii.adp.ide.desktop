@@ -211,6 +211,35 @@ const steps = (page, n) => page.evaluate(n => { running = false; for (let i = 0;
   await page.context().close();
 }
 {
+  // A variable's caption stays readable at every heat (etalii.adp spec 074, FR-035 (g)): the prototype switched to dark
+  // ink at a fixed heat of 0.8, which left dark captions on mid-brown fills just above it. The page is drawn at each
+  // heat, the ink of each caption is read from the canvas calls, and its contrast with the variable's fill is measured.
+  const { page } = await open(SMALL);
+  const worst = await page.evaluate(() => {
+    running = false;
+    const lum = c => c.map(v => (v /= 255) <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4).reduce((s, v, k) => s + v * [.2126, .7152, .0722][k], 0);
+    const hex = t => [1, 3, 5].map(i => parseInt(t.slice(i, i + 2), 16));
+    const captions = new Set(nodes.flatMap(n => n.lines)), inks = [], fillText = g.fillText;
+    g.fillText = function (text, ...rest) { if (captions.has(text)) inks.push(this.fillStyle); return fillText.call(this, text, ...rest); };
+    let lowest = { contrast: Infinity };
+    for (let k = 0; k <= 100; k += 1) {
+      const heat = k / 100;
+      nodes.forEach(n => { n.heat = heat; });
+      inks.length = 0;
+      drawGraph();
+      const fill = heatRGB(heat).map((v, i) => v * 0.55 + [31, 42, 56][i] * 0.45);
+      for (const ink of inks) {
+        const [a, b] = [lum(fill), lum(hex(ink))].sort((x, y) => y - x), contrast = (a + .05) / (b + .05);
+        if (contrast < lowest.contrast) lowest = { contrast, heat, ink };
+      }
+    }
+    g.fillText = fillText;
+    return lowest;
+  });
+  check("every caption contrasts at least 3.9:1 with its variable", worst.contrast >= 3.9, JSON.stringify(worst));
+  await page.context().close();
+}
+{
   const { page } = await open(SMALL, { width: 375, height: 812 });
   check("nothing scrolls sideways at a phone's width", await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), String(await page.evaluate(() => document.documentElement.scrollWidth)));
   await page.context().close();

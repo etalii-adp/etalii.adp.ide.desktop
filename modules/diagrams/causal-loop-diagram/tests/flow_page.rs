@@ -73,7 +73,7 @@ fn the_template_is_the_reference_page_apart_from_fr_035s_places() {
     for hunk in patch["hunks"].as_array().unwrap() {
         let place = hunk["place"].as_str().unwrap();
         assert!(
-            ["a", "b", "c", "d", "e", "f"].contains(&place),
+            ["a", "b", "c", "d", "e", "f", "g"].contains(&place),
             "{place} is no place of FR-035"
         );
         let line = hunk["line"].as_u64().unwrap() as usize - 1;
