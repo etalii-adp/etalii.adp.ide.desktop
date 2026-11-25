@@ -132,6 +132,69 @@ pub struct Path {
 }
 
 impl Path {
+    /// Points every `spacing` along the path, from its start: its curves followed closely enough to draw by, an arc
+    /// by its chord.
+    pub fn points_every(&self, spacing: f64) -> Vec<Point> {
+        const STEPS: usize = 32;
+        let mut polyline: Vec<Point> = Vec::new();
+        let mut at = Point::new(0.0, 0.0);
+        for command in &self.commands {
+            match *command {
+                PathCommand::MoveTo(to) => {
+                    at = to;
+                    polyline.push(to);
+                }
+                PathCommand::LineTo(to) | PathCommand::ArcTo { to, .. } => {
+                    polyline.push(to);
+                    at = to;
+                }
+                PathCommand::QuadTo { control, to } => {
+                    for i in 1..=STEPS {
+                        let t = i as f64 / STEPS as f64;
+                        let u = 1.0 - t;
+                        polyline.push(Point::new(
+                            u * u * at.x + 2.0 * u * t * control.x + t * t * to.x,
+                            u * u * at.y + 2.0 * u * t * control.y + t * t * to.y,
+                        ));
+                    }
+                    at = to;
+                }
+                PathCommand::CubicTo { first, second, to } => {
+                    for i in 1..=STEPS {
+                        let t = i as f64 / STEPS as f64;
+                        let u = 1.0 - t;
+                        let (a, b, c, d) = (u * u * u, 3.0 * u * u * t, 3.0 * u * t * t, t * t * t);
+                        polyline.push(Point::new(
+                            a * at.x + b * first.x + c * second.x + d * to.x,
+                            a * at.y + b * first.y + c * second.y + d * to.y,
+                        ));
+                    }
+                    at = to;
+                }
+                PathCommand::Close => {}
+            }
+        }
+        let mut points = Vec::new();
+        if spacing <= 0.0 || polyline.len() < 2 {
+            return points;
+        }
+        let mut next = spacing / 2.0;
+        let mut walked = 0.0;
+        for pair in polyline.windows(2) {
+            let length = pair[0].distance(pair[1]);
+            while length > 0.0 && next <= walked + length {
+                let t = (next - walked) / length;
+                points.push(Point::new(
+                    pair[0].x + t * (pair[1].x - pair[0].x),
+                    pair[0].y + t * (pair[1].y - pair[0].y),
+                ));
+                next += spacing;
+            }
+            walked += length;
+        }
+        points
+    }
+
     pub fn new() -> Self {
         Path::default()
     }
@@ -528,5 +591,26 @@ mod tests {
         assert!(!a.intersects(&Rect::new(11.0, 0.0, 1.0, 1.0)));
         assert_eq!(Rect::new(0.0, 0.0, 15.0, 10.0), a.union(&b));
         assert!(a.contains(Point::new(10.0, 10.0)));
+    }
+}
+
+#[cfg(test)]
+mod points_every_tests {
+    use super::*;
+
+    #[test]
+    fn points_lie_every_spacing_along_the_path_from_half_a_spacing() {
+        let path = Path::new().move_to(Point::new(0.0, 0.0)).line_to(Point::new(40.0, 0.0));
+        let points = path.points_every(10.0);
+        assert_eq!(
+            vec![5.0, 15.0, 25.0, 35.0],
+            points.iter().map(|p| p.x).collect::<Vec<_>>()
+        );
+        let curve = Path::new().move_to(Point::new(0.0, 0.0)).cubic_to(
+            Point::new(10.0, 0.0),
+            Point::new(20.0, 0.0),
+            Point::new(30.0, 0.0),
+        );
+        assert_eq!(3, curve.points_every(10.0).len());
     }
 }

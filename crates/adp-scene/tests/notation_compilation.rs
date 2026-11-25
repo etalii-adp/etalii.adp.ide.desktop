@@ -308,7 +308,7 @@ fn an_edges_label_its_starting_anchors_and_its_tools_release_on_empty_canvas_are
     let next = &compiled(&text(&span_spec())).relation_types[0];
     assert_eq!(Route::BuiltIn(BuiltInRoute::CubicBezier), next.route);
     assert_eq!(MarkerKind::None, next.end_marker);
-    let label = next.label.as_ref().unwrap();
+    let label = next.labels.first().unwrap();
     assert_eq!(
         (RouteLabelPlacement::Midpoint, Some(-6.0), true),
         (label.placement, label.offset, label.editable)
@@ -340,7 +340,7 @@ fn an_edges_label_its_starting_anchors_and_its_tools_release_on_empty_canvas_are
         "/notation/edges/Next/labels",
         json!([{ "id": "l", "text": { "attribute": "label" }, "at": "end", "side": "below", "distance": 4 }]),
     );
-    let label = compiled(&text(&at_end)).relation_types[0].label.clone().unwrap();
+    let label = compiled(&text(&at_end)).relation_types[0].labels[0].clone();
     assert_eq!(
         (RouteLabelPlacement::Target, Some(4.0), false),
         (label.placement, label.offset, label.editable)
@@ -862,4 +862,35 @@ fn a_variant_with_an_id_is_the_same_curve_bowed_otherwise() {
         json!([{ "id": "variant", "when": "self.flipped", "style": "dashed", "line": { "routing": "curved", "curvature": -0.2 } }]),
     );
     assert!(refusal(&text(&restyled)).contains("the same curve bowed otherwise"));
+}
+
+/// A line carries every label the notation declares along it, each drawn while its `visible` holds; dots repeated at a
+/// spacing ride a line of any routing; and a connect tool may stand outside every group of the toolbox, as ATD lowers
+/// one (the supply chain's flow).
+#[test]
+fn a_line_carries_its_labels_its_repeated_dots_and_an_ungrouped_tool() {
+    let band = with(
+        with(
+            span_spec(),
+            "/notation/edges/Next/labels",
+            json!([
+                { "id": "product", "text": { "attribute": "label" }, "at": "middle", "side": "above", "distance": 15 },
+                { "id": "volume", "text": { "attribute": "label" }, "at": "middle", "side": "below", "distance": 4, "visible": { "cel": "self.label != ''" } }
+            ]),
+        ),
+        "/notation/edges/Next/midMarkers",
+        json!([{ "marker": { "type": "dot", "params": { "fill": "#123456" } }, "repeat": { "spacing": 14 } }]),
+    );
+    let band = with(band, "/notation/edges/Next/line/routing", json!("bezier"));
+    let band = with(band, "/notation/edges/Next/connect", json!({ "tool": "flow" }));
+    let band = with(band, "/toolbox/groups", json!([{ "id": "flow", "creates": "Next" }]));
+    let compiled = compiled(&text(&band));
+    let relation = &compiled.relation_types[0];
+    assert_eq!(2, relation.labels.len());
+    assert_eq!(Some("self.label != ''".to_owned()), relation.labels[1].when);
+    assert_eq!(1, relation.dots.len());
+    assert_eq!(
+        (14.0, json!("#123456")),
+        (relation.dots[0].spacing, relation.dots[0].fill.clone())
+    );
 }

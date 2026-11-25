@@ -1077,7 +1077,7 @@ impl Compiler<'_> {
             end_marker: library_marker_of(target_marker).map_err(CompileError)?,
             style,
             corner_radius: num_of(&line, "cornerRadius"),
-            label: self.edge_label(name, edge)?,
+            labels: self.edge_labels(name, edge)?,
             stub: self.stub(name, edge)?,
             selectable: edge.get("selectable") != Some(&Json::Bool(false)),
             movable_ends: ends
@@ -1095,6 +1095,13 @@ impl Compiler<'_> {
             empty_release: self.creates_on_empty_release(name, edge)?,
             source_anchoring: end_anchoring(ends[0]),
             target_anchoring: end_anchoring(ends[1]),
+            dots: edge
+                .get("midMarkers")
+                .and_then(Json::as_array)
+                .into_iter()
+                .flatten()
+                .filter_map(repeated_dot)
+                .collect(),
         })
     }
 
@@ -1188,11 +1195,15 @@ impl Compiler<'_> {
         routing: &Json,
     ) -> Compiled<Option<BowedArcDeclaration>> {
         let location = format!("edge \"{name}\"");
-        let mid_markers = edge
+        // Dots repeated at a spacing ride a line of any routing; they are drawn on their own (`repeated_dots`).
+        let mid_markers: Vec<Json> = edge
             .get("midMarkers")
             .and_then(Json::as_array)
             .cloned()
-            .unwrap_or_default();
+            .unwrap_or_default()
+            .into_iter()
+            .filter(|marker| repeated_dot(marker).is_none())
+            .collect();
         let marks: Vec<Json> = edge
             .get("labels")
             .and_then(Json::as_array)
@@ -1338,7 +1349,7 @@ impl Compiler<'_> {
     }
 
     /// The edge's label along its route: at its start, middle or end, above, on or below the line.
-    fn edge_label(&self, name: &str, edge: &Json) -> Compiled<Option<RouteLabel>> {
+    fn edge_labels(&self, name: &str, edge: &Json) -> Compiled<Vec<RouteLabel>> {
         let labels: Vec<&Json> = edge
             .get("labels")
             .and_then(Json::as_array)
@@ -1349,16 +1360,12 @@ impl Compiler<'_> {
                     .collect()
             })
             .unwrap_or_default();
+        labels.into_iter().map(|label| self.edge_label(name, label)).collect()
+    }
+
+    /// One label along a line: at its start, middle or end, above, on or below it.
+    fn edge_label(&self, name: &str, label: &Json) -> Compiled<RouteLabel> {
         let location = format!("edge \"{name}\" label");
-        if labels.len() > 1 {
-            return fail(format!(
-                "{location}s: the library draws one label along a line; the specification declares {}.",
-                labels.len()
-            ));
-        }
-        let Some(label) = labels.first() else {
-            return Ok(None);
-        };
         let id = str_of(label, "id").unwrap_or("");
         let text = self.binding(
             label.get("text").unwrap_or(&Json::Null),
@@ -1391,12 +1398,13 @@ impl Compiler<'_> {
                 label.get("editable").and_then(Json::as_str),
                 Some("inline" | "multiline")
             );
-        Ok(Some(RouteLabel {
+        Ok(RouteLabel {
             text,
             placement,
             offset: (offset != 0.0).then_some(offset),
             editable,
-        }))
+            when: visibility(label.get("visible")),
+        })
     }
 
     /// How a relation without a target is drawn (DISL section 6.10 *Stubs*); `auto`, which leaves the side to the
@@ -1491,7 +1499,11 @@ impl Compiler<'_> {
             .and_then(Json::as_array)
             .into_iter()
             .flatten()
-            .flat_map(|g| g.get("tools").and_then(Json::as_array).into_iter().flatten())
+            // A tool outside any group stands among the groups itself, as ATD lowers one (ATD §8.6).
+            .flat_map(|g| match g.get("tools").and_then(Json::as_array) {
+                Some(tools) => tools.iter().collect::<Vec<_>>(),
+                None => vec![g],
+            })
             .collect();
         let tool = match edge.get("connect").and_then(|c| str_of(c, "tool")) {
             Some(named) => match tools
@@ -1543,4 +1555,20 @@ pub fn built_in_route(route: &Route) -> Option<BuiltInRoute> {
         Route::BuiltIn(route) => Some(*route),
         _ => None,
     }
+}
+
+/// A `midMarkers` entry that is a dot repeated at a spacing along the line, of any routing.
+fn repeated_dot(marker: &Json) -> Option<crate::definition::RepeatedDots> {
+    let declared = marker.get("marker")?;
+    let kind = declared.as_str().or_else(|| str_of(declared, "type"))?;
+    let spacing = marker.get("repeat").and_then(|r| num_of(r, "spacing"))?;
+    (kind == "dot" && spacing > 0.0).then(|| crate::definition::RepeatedDots {
+        spacing,
+        fill: declared
+            .get("params")
+            .and_then(|p| p.get("fill"))
+            .cloned()
+            .unwrap_or(Json::Null),
+        when: visibility(marker.get("visible")),
+    })
 }
