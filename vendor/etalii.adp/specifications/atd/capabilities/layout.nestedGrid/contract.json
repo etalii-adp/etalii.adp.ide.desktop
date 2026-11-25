@@ -3,7 +3,7 @@
   "name": "layout.nestedGrid",
   "version": "1.0.0",
   "extensionPoint": "layout",
-  "doc": "A containment laid out as nested grids. Each container lays out its own nodes first and then its child containers, in `order`, in rows of `columns` cells; a row is as tall as its tallest member, and a cell as wide as its widest member's column. A child container is one cell the size of its own grid, plus `padding` on every side and `labelBand` above its contents for its label, and never smaller than its own size in the input. A node that holds others is a container, and so is one whose `container` argument holds, which holds nothing: its grid is then `emptyGrid` in size. The roots are laid out the same way from `origin`. A pinned container moves as a frame, the contents laid out inside it following it; a pinned node stays at its pin. Positions are the top left corners of the nodes and of the containers, in the canvas's domain units. Its fixtures are recorded from the SPARQL module's scope grid (spec 035, T080, T081, T132).",
+  "doc": "A containment laid out as nested grids. Each container lays out its own nodes first and then its child containers, in the order of the input, in rows of `columns` cells; a row is as tall as its tallest member, and a cell as wide as its widest member's column. A child container is one cell the size of its own grid, plus `padding` on every side and `labelBand` above its contents for its label, and never smaller than its own size in the input. A node that holds others is a container, and so is one whose `container` argument holds, which holds nothing: its grid is then `emptyGrid` in size. The roots are laid out the same way from `origin`. A pinned container moves as a frame, the contents laid out inside it following it; a pinned node stays at its pin. Positions are the top left corners of the nodes and of the containers, in the canvas's domain units, and the result gives each container its size (`sizes`), at which it is drawn. Its fixtures are recorded from the SPARQL module's scope grid (spec 035, T080, T081, T132).",
   "input": {
     "$ref": "../../atd.schema.json#/$defs/LayoutInput"
   },
@@ -13,9 +13,9 @@
       "default": 3,
       "doc": "The cells of a row."
     },
-    "order": {
+    "sequence": {
       "type": "query",
-      "doc": "The key a container orders its members by, ascending; absent, the order of the input."
+      "doc": "The order the nodes are given in, a number for each node: the host sorts the input by it before the layout runs, keeping the order of the model between equal ones. Absent, the model's order."
     },
     "columnGap": {
       "type": "number",
