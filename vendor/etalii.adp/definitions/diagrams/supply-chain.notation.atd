@@ -254,6 +254,7 @@ notation {
       wrap: none
     }
     label (nameOf(self)) as name {
+      editText: @name
       position: { anchor: [0, 0], offset: [14, 46], align: start }
       style: nodeName
       editable: inline
@@ -301,6 +302,7 @@ notation {
     ]
     doubleClick: editLabel
     label (nameOf(self)) as name {
+      editText: @name
       position: { anchor: [0, 0], offset: [16, 26], align: start }
       style: groupTitle
       editable: inline
@@ -754,7 +756,9 @@ layout {
   /// supply-chain.md, section 'Layout'.
   algorithm chain capability layout.bandedLayers {
     minLayer: (self.isA('Stage') ? stageRank(self) : null)
-    band: (self.isA('Stage') && has(self.group) ? self.group.id : null)
+    /// A card is in its group's band; a group is its own band's frame, drawn around its members, or where it states
+    /// while it has none.
+    band: (self.isA('Stage') && has(self.group) ? self.group.id : (self.isA('Group') ? self.id : null))
     layerGap: 128
     rowGap: 28
     bandTitle: 40

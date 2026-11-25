@@ -3,7 +3,7 @@
   "name": "layout.bandedLayers",
   "version": "1.0.0",
   "extensionPoint": "layout",
-  "doc": "A layered layout, left to right, whose layers are at least a node's `minLayer` and at least one past every node that flows into it, after every cycle is broken at the edge that closes it in a depth-first walk in the order of the input. An edge forward over more than one layer takes a slot in every layer it crosses, which is ordered and placed as a node is and draws nothing, and is routed through the middle of its slots. Nodes are kept in bands, one per value of `band` and one for the nodes without one, each first where its first member is in the input; within a layer the bands are ordered by barycentre over `passes` passes, ties by the order of the input, and dropped in that order onto a per-layer skyline. Positions are the top left corners of the nodes, routes the slots' centres, in the canvas's domain units. Its fixtures are recorded with the cases of the descriptions that require it (spec 035, T080, T081).",
+  "doc": "A layered layout, left to right, whose layers are at least a node's `minLayer` and at least one past every node that flows into it, after every cycle is broken at the edge that closes it in a depth-first walk in the order of the input. An edge forward over more than one layer takes a slot in every layer it crosses, which is ordered and placed as a node is and draws nothing, and is routed through the middle of its slots. Nodes are kept in bands, one per value of `band` and one for the nodes without one, each first where its first member is in the input; within a layer the bands are ordered by barycentre over `passes` passes, ties by the order of the input, and dropped in that order onto a per-layer skyline. A layer is as wide as the widest node and `layerGap`, a row as tall as the tallest node and `rowGap`. A pinned node stays at its pin. A node whose id is a band, its own `band` included, is that band's frame, not one of the nodes laid out: it is placed and sized around the band's members as they are drawn, `bandTitle` above them and `bandBottom` beside and below them, or, while the band has no member, placed at its pin, at its own size, and not at all without one. Positions are the top left corners of the nodes and the frames, sizes the frames', and routes the slots' centres for an edge whose ends are both where the layout put them, in the canvas's domain units. Its fixtures are recorded from the supply chain module's layout (spec 035, T080, T081, T132).",
   "input": {
     "$ref": "../../atd.schema.json#/$defs/LayoutInput"
   },
@@ -14,7 +14,7 @@
     },
     "band": {
       "type": "query",
-      "doc": "The band a node belongs to, by its id; null for the band of the nodes outside every band."
+      "doc": "The band a node belongs to, by its id; null for the band of the nodes outside every band. A frame names its own id, so that it is one while its band has no member."
     },
     "layerGap": {
       "type": "number",

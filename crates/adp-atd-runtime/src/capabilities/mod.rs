@@ -4,6 +4,7 @@
 //! one this host does not provide is absent, and the gestures that need it are refused.
 
 pub mod banded_grid;
+pub mod banded_layers;
 pub mod bands;
 pub mod depth_columns;
 pub mod forward_bezier;
@@ -28,6 +29,9 @@ use adp_fbl::plugins::PersistencePlugin;
 use adp_scene::scene::{RouteEnds, RoutePlugins};
 use adp_scene::{Path, Point};
 use serde_json::{Map, Value as Json, json};
+
+/// Routes by edge id, each its points in order.
+pub type Routes = Vec<(String, Vec<(f64, f64)>)>;
 
 /// A capability at the `layout` extension point: nodes with their sizes and pins (`$defs/LayoutInput`) to positions
 /// (`$defs/LayoutResult`).
@@ -62,8 +66,14 @@ pub trait LayoutCapability {
         Ok(Vec::new())
     }
 
+    /// The route the capability gives each edge it routes, by id (`$defs/LayoutResult`'s `routes`): none by default.
+    fn routes(&self, input: &Json, args: &Json) -> Result<Routes, String> {
+        let _ = (input, args);
+        Ok(Vec::new())
+    }
+
     /// `$defs/LayoutResult` for `input` and the capability's `args`, the defaults filling what `args` leaves out: the
-    /// corners rounded to 0.01, as the contract states, and the sizes it gives where it gives any.
+    /// corners rounded to 0.01, as the contract states, and the sizes and routes it gives where it gives any.
     fn layout(&self, input: &Json, args: &Json) -> Result<Json, String> {
         let positions: Map<String, Json> = self
             .place(input, args)?
@@ -83,10 +93,27 @@ pub trait LayoutCapability {
                 (id, json!({"width": round(width), "height": round(height)}))
             })
             .collect();
-        if sizes.is_empty() {
-            return Ok(json!({ "positions": positions }));
+        let routes: Map<String, Json> = self
+            .routes(input, args)?
+            .into_iter()
+            .map(|(id, points)| {
+                let round = two_sided_tree::round2;
+                let points: Vec<Json> = points
+                    .into_iter()
+                    .map(|(x, y)| json!({"x": round(x), "y": round(y)}))
+                    .collect();
+                (id, Json::Array(points))
+            })
+            .collect();
+        let mut result = Map::new();
+        result.insert("positions".into(), Json::Object(positions));
+        if !sizes.is_empty() {
+            result.insert("sizes".into(), Json::Object(sizes));
         }
-        Ok(json!({ "positions": positions, "sizes": sizes }))
+        if !routes.is_empty() {
+            result.insert("routes".into(), Json::Object(routes));
+        }
+        Ok(Json::Object(result))
     }
 }
 
@@ -350,6 +377,9 @@ impl Capabilities {
             .layouts
             .insert("layout.layeredColumns", Rc::new(layered_columns::LayeredColumns));
         capabilities.layouts.insert("layout.bands", Rc::new(bands::Bands));
+        capabilities
+            .layouts
+            .insert("layout.bandedLayers", Rc::new(banded_layers::BandedLayers));
         capabilities
             .layouts
             .insert("layout.bandedGrid", Rc::new(banded_grid::BandedGrid));

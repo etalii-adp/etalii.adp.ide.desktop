@@ -3,7 +3,7 @@
   "disl": "0.12",
   "language": {
     "id": "net.etalii.adp.generic.timeline",
-    "version": "1.2.4",
+    "version": "1.2.6",
     "origin": "generic/timeline",
     "label": "Timeline diagram",
     "doc": {
@@ -555,7 +555,8 @@
           { "attribute": "begin", "widget": "text",
             "validate": [
               { "rule": "readableTime(value)", "message": { "cel": "'\\'' + value + '\\' is not a time this timeline can read.'" }, "timing": "commit" },
-              { "rule": "value.contains('T') == self.end.contains('T')", "message": "This element uses the other time form; begin and end must both be dates, or both carry a time.", "timing": "commit" }
+              { "rule": "value.contains('T') == self.end.contains('T')", "message": "This element uses the other time form; begin and end must both be dates, or both carry a time.", "timing": "commit" },
+              { "rule": "!has(self.end) || !readableTime(self.end) || compareTimes(value, self.end) <= 0", "message": "An element cannot end before it begins.", "timing": "commit" }
             ] },
           { "attribute": "end", "widget": "text",
             "validate": [
@@ -782,9 +783,10 @@
         "actions": [
           { "let": { "start": "dateAfter(self.isA('Period') && readableTime(self.end) ? self.end : (readableTime(self.begin) ? self.begin : today()), 6)" } },
           { "create": { "type": "'Period'", "attributes": { "label": "'New element'", "begin": "start", "end": "dateAfter(start, 14)", "row": "self.row" } }, "as": "next" },
-          { "connect": { "type": "'Connection'", "source": "self", "target": "next" } }
+          { "connect": { "type": "'Connection'", "source": "self", "target": "next" } },
+          { "select": "next" }
         ],
-        "doc": "The next thing, a little later on the same row: six days after this one ends (or begins, for a moment, or after today when neither reads), two weeks long, and related from the one it grew from, in one step."
+        "doc": "The next thing, a little later on the same row: six days after this one ends (or begins, for a moment, or after today when neither reads), two weeks long, and related from the one it grew from, in one step. The new element is selected, so a second Tab adds after it rather than on top of it (#856)."
       },
       "addBelow": {
         "label": "Add element below",
@@ -794,9 +796,10 @@
         "actions": [
           { "let": { "start": "dateAfter(readableTime(self.begin) ? self.begin : today(), 0)" } },
           { "create": { "type": "'Period'", "attributes": { "label": "'New element'", "begin": "start", "end": "dateAfter(start, 14)", "row": "self.row + 1" } }, "as": "next" },
-          { "connect": { "type": "'Connection'", "source": "self", "target": "next" } }
+          { "connect": { "type": "'Connection'", "source": "self", "target": "next" } },
+          { "select": "next" }
         ],
-        "doc": "A parallel track: the same begin as a date, one row down, two weeks long, and related from the one it grew from, in one step."
+        "doc": "A parallel track: the same begin as a date, one row down, two weeks long, and related from the one it grew from, in one step. The new element is selected, so a second Enter adds below it rather than on top of it (#856)."
       },
       "arrange": {
         "label": "Arrange diagram",

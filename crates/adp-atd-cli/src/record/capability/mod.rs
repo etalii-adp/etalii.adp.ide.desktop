@@ -84,6 +84,7 @@ pub fn record(name: &str, cases: &Path) -> Result<Vec<PathBuf>, String> {
         "layout.rankedColumns" => ranked_columns(cases),
         "reader.sparql" => sparql(cases),
         "layout.nestedGrid" => nested_grid(cases),
+        "layout.bandedLayers" => banded_layers(cases),
         "render.markdown" => markdown(cases, "render.markdown", render_markdown),
         "reader.turtle" => super::w3c::turtle(cases),
         "render.descriptionLogic" => super::w3c::description_logic(cases),
@@ -547,6 +548,107 @@ fn nested_grid(cases: &Path) -> Result<Vec<PathBuf>, String> {
             "input": { "nodes": nodes, "edges": [] },
             "args": { "columns": 3, "columnGap": 60, "rowGap": 48, "padding": 36, "labelBand": 30, "origin": [40, 90] },
             "output": if sizes.is_empty() { json!({ "positions": positions }) } else { json!({ "positions": positions, "sizes": sizes }) },
+        });
+        let file = cases.join(format!("{short}.json"));
+        write_json(&file, &fixture)?;
+        written.push(file);
+    }
+    Ok(written)
+}
+
+/// `layout.bandedLayers` from the supply chain module's layout (`modules/diagrams/supply-chain/src/layout.rs`), on the
+/// document of every supply chain parity script: the drawable nodes, each with its stage's column as `minLayer` and
+/// its group as `band`, pinned where the document places it; the groups, each its band's frame, pinned where it states
+/// a place; the flows as edges; and every node's top-left, every drawn frame's place and size and every lane's route.
+fn banded_layers(cases: &Path) -> Result<Vec<PathBuf>, String> {
+    use adp_diagram_supply_chain::layout::SupplyChainLayout;
+    use adp_diagram_supply_chain::model::{geometry, stages};
+    use adp_diagram_supply_chain::{lines::LineDocument, parser};
+
+    fs::create_dir_all(cases).map_err(|e| format!("{}: {e}", cases.display()))?;
+    let mut written = Vec::new();
+    for name in adp_parity::script_names()
+        .into_iter()
+        .filter(|n| n.starts_with("etalii/supply-chain/"))
+    {
+        let case = adp_parity::Case::load(&name)?;
+        let text = reader_input(&case)?["body"].as_str().unwrap_or_default().to_owned();
+        let model = parser::parse(&LineDocument::parse(&text));
+        let layout = SupplyChainLayout::of(&model);
+        let group_ids: std::collections::HashSet<&str> = layout.groups.iter().map(|g| g.id.as_str()).collect();
+        let mut nodes = Vec::new();
+        for node in &layout.nodes {
+            let mut entry = json!({
+                "id": node.id, "width": geometry::NODE_WIDTH, "height": geometry::NODE_HEIGHT,
+                "attributes": { "minLayer": stages::rank_of(&node.node_type).to_string() },
+            });
+            if group_ids.contains(node.group.as_str()) {
+                entry["attributes"]["band"] = json!(node.group);
+            }
+            if let (Some(x), Some(y)) = (node.x, node.y) {
+                entry["pinned"] = json!({ "x": round2(x), "y": round2(y) });
+            }
+            nodes.push(entry);
+        }
+        for group in &layout.groups {
+            // A frame names its own band, so that it is one while the band has no member.
+            let mut entry = json!({
+                "id": group.id, "width": geometry::EMPTY_GROUP_WIDTH, "height": geometry::EMPTY_GROUP_HEIGHT,
+                "attributes": { "band": group.id },
+            });
+            if let (Some(x), Some(y)) = (group.x, group.y) {
+                entry["pinned"] = json!({ "x": round2(x), "y": round2(y) });
+            }
+            nodes.push(entry);
+        }
+        let edges: Vec<Json> = layout
+            .flows
+            .iter()
+            .map(|flow| json!({ "id": flow.id, "source": flow.from, "target": flow.to }))
+            .collect();
+        let mut positions = Map::new();
+        for (id, frame) in &layout.node_boxes {
+            positions.insert(id.clone(), json!({ "x": round2(frame.x), "y": round2(frame.y) }));
+        }
+        let mut sizes = Map::new();
+        for (id, frame) in &layout.group_boxes {
+            positions.insert(id.clone(), json!({ "x": round2(frame.x), "y": round2(frame.y) }));
+            let members = layout.nodes.iter().any(|n| &n.group == id);
+            if members {
+                sizes.insert(
+                    id.clone(),
+                    json!({ "width": round2(frame.width), "height": round2(frame.height) }),
+                );
+            }
+        }
+        let routes: Map<String, Json> = layout
+            .lanes
+            .iter()
+            .map(|(id, points)| {
+                let points: Vec<Json> = points
+                    .iter()
+                    .map(|(x, y)| json!({ "x": round2(*x), "y": round2(*y) }))
+                    .collect();
+                (id.clone(), Json::Array(points))
+            })
+            .collect();
+        let mut output = Map::new();
+        output.insert("positions".into(), Json::Object(positions));
+        if !sizes.is_empty() {
+            output.insert("sizes".into(), Json::Object(sizes));
+        }
+        if !routes.is_empty() {
+            output.insert("routes".into(), Json::Object(routes));
+        }
+        let short = name.rsplit('/').next().unwrap_or(&name);
+        let fixture = json!({
+            "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+            "doc": format!(
+                "Recorded by `atd record --capability layout.bandedLayers` from modules/diagrams/supply-chain/src/layout.rs of etalii.adp.ide.desktop, on the document parity/scripts/{name}.json opens; never edited by hand."
+            ),
+            "input": { "nodes": nodes, "edges": edges },
+            "args": { "layerGap": 128, "rowGap": 28, "bandTitle": 40, "bandBottom": 20, "bandGap": 32, "passes": 8, "lanes": true },
+            "output": output,
         });
         let file = cases.join(format!("{short}.json"));
         write_json(&file, &fixture)?;
