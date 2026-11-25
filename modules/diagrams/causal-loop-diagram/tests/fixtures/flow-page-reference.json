@@ -104,7 +104,13 @@
    "place": "g"
   },
   {
-   "line": 365,
+   "line": 359,
+   "count": 2,
+   "original": [],
+   "place": "i"
+  },
+  {
+   "line": 367,
    "count": 2,
    "original": [
     "const series = [[\"selfDirection\", \"#58a6ff\"], [\"emotionSuppression\", \"#ff6fae\"], [\"meaning\", \"#3dd6c6\"], [\"exhaustion\", \"#f0883e\"],",
@@ -114,7 +120,7 @@
    "place": "c"
   },
   {
-   "line": 367,
+   "line": 369,
    "count": 1,
    "original": [
     "document.getElementById(\"chartLegend\").innerHTML = series.map(s => `<span><i style=\"background:${s.c}\"></i>${nodes[s.i].label}</span>`).join(\"\")"
@@ -122,7 +128,7 @@
    "place": "d"
   },
   {
-   "line": 400,
+   "line": 402,
    "count": 1,
    "original": [
     "  nodes.filter(n => n.exo).forEach(n => slider(box, n.label, 0, 1, 0.01, n.value, pct, v => { n.value = v; }));"
@@ -130,7 +136,7 @@
    "place": "d"
   },
   {
-   "line": 404,
+   "line": 406,
    "count": 1,
    "original": [
     "  const el = $(id), o = $(id + \"O\"); o.textContent = fmt(+el.value);"
@@ -138,7 +144,7 @@
    "place": "f"
   },
   {
-   "line": 419,
+   "line": 421,
    "count": 3,
    "original": [
     "$(\"heatHint\").textContent = HINTS.backlog;"
@@ -146,7 +152,7 @@
    "place": "f"
   },
   {
-   "line": 429,
+   "line": 431,
    "count": 1,
    "original": [
     "    box.insertAdjacentHTML(\"beforeend\", `<div class=\"title\">${n.label}</div><div class=\"meta\">${n.exo ? \"External: nothing in the diagram moves it.\" :"
@@ -154,7 +160,7 @@
    "place": "d"
   },
   {
-   "line": 440,
+   "line": 442,
    "count": 1,
    "original": [
     "    box.insertAdjacentHTML(\"beforeend\", `<div class=\"title\">${A.label} → ${B.label}</div><div class=\"meta\">${l.sign > 0 ? \"Positive: moves the same way\" : \"Negative: moves the opposite way\"}${l.delayed ? \" &middot; delayed\" : \"\"}${l.note ? `<br>“${l.note}”` : \"\"}</div>`);"
@@ -162,7 +168,7 @@
    "place": "d"
   },
   {
-   "line": 450,
+   "line": 452,
    "count": 1,
    "original": [
     "  $(\"loops\").innerHTML = loops.map((lp, k) => `<div class=\"loop\" data-k=\"${k}\"><span class=\"tag ${lp.kind}\">${lp.id}</span><span class=\"name\">${lp.name}</span><span class=\"bar\"><b></b></span></div>`).join(\"\");"
@@ -170,7 +176,7 @@
    "place": "d"
   },
   {
-   "line": 495,
+   "line": 497,
    "count": 1,
    "original": [
     "  if (hover.lines) tip.innerHTML = `<b>${hover.label}</b><br>Level ${pct(hover.level)}${hover.exo ? \"\" : ` &rarr; heading for ${pct(hover.target)}`}<br><span class=\"muted\">In transit towards it: ${hover.backlog} &middot; arriving ${hover.thr.toFixed(1)}/s</span>`;"
@@ -178,7 +184,7 @@
    "place": "d"
   },
   {
-   "line": 496,
+   "line": 498,
    "count": 1,
    "original": [
     "  else tip.innerHTML = `<b>${nodes[hover.f].label} &rarr; ${nodes[hover.t].label}</b> <span style=\"color:${hover.sign > 0 ? COL(\"--pos\") : COL(\"--neg\")}\">${hover.sign > 0 ? \"+\" : \"−\"}</span>${hover.delayed ? \" &middot; delayed\" : \"\"}${hover.note ? `<br><i>“${hover.note}”</i>` : \"\"}<br><span class=\"muted\">${hover.parts.length} dots in transit</span>`;"
@@ -186,7 +192,7 @@
    "place": "d"
   },
   {
-   "line": 513,
+   "line": 515,
    "count": 1,
    "original": [
     "layoutNodes(); relayout(); applyScenario(\"Status quo\"); resetSim(); buildLoops(); onResize(); fit();"

@@ -249,7 +249,7 @@ function bez(a, c, b, t) { const u = 1 - t; return [u * u * a[0] + 2 * u * t * c
 function linkGeo(l) {
   const A = nodes[l.f], B = nodes[l.t], a = [A.x, A.y], b = [B.x, B.y];
   const dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy) || 1;
-  const bow = (l.flip ? -1 : 1) * 0.12, c = [(a[0] + b[0]) / 2 + dy / len * len * bow, (a[1] + b[1]) / 2 - dx / len * len * bow]; // to the left of travel, or the right when flipped, as the diagram bows it
+  const bow = (l.flip ? -1 : 1) * 0.2, c = [(a[0] + b[0]) / 2 + dy / len * len * bow, (a[1] + b[1]) / 2 - dx / len * len * bow]; // as deep as the diagram bows it, to the left of travel, or the right when flipped
   let t0 = 0, t1 = 1;
   for (let k = 0; k <= 200; k++) { const p = bez(a, c, b, k / 200); if (!inside(A, p[0], p[1])) { t0 = k / 200; break; } }
   for (let k = 200; k >= 0; k--) { const p = bez(a, c, b, k / 200); if (!inside(B, p[0], p[1], 9)) { t1 = k / 200; break; } }
@@ -356,6 +356,8 @@ function drawGraph() {
       g.fillStyle = n.bias > 0 ? COL("--pos") : COL("--neg"); g.fillText((n.bias > 0 ? "▲" : "▼") + Math.abs(n.bias).toFixed(1), x + n.w - 6, y - 16); }
     g.globalAlpha = 1;
   }
+  for (const lp2 of loops.length <= 60 ? loops : lp ? [lp] : []) { const cx = lp2.ns.reduce((a, i) => a + nodes[i].x, 0) / lp2.ns.length, cy = lp2.ns.reduce((a, i) => a + nodes[i].y, 0) / lp2.ns.length; g.globalAlpha = lp && lp2 !== lp ? 0.25 : 0.9; g.font = "600 15px system-ui, sans-serif"; g.textAlign = "center"; g.textBaseline = "top"; g.lineWidth = 4; g.strokeStyle = COL("--bg"); g.strokeText(lp2.name, cx, cy + 30); g.fillStyle = lp2.kind === "R" ? COL("--pos") : COL("--neg"); g.fillText(lp2.name, cx, cy + 30); }
+  g.globalAlpha = 1; // each loop's name under its badge, over the variables, as the diagram shows it; of many found cycles, the traced one's
 }
 function rr(x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
 

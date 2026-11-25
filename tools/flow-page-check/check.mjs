@@ -125,6 +125,22 @@ const steps = (page, n) => page.evaluate(n => { running = false; for (let i = 0;
     return [l.flip, Math.sign((b.x - a.x) * (p[1] - (a.y + b.y) / 2) - (b.y - a.y) * (p[0] - (a.x + b.x) / 2))];
   }));
   check("each link bows to the canvas's side, a flipped one to the other", sides.some(([flip]) => flip) && sides.every(([flip, side]) => side === (flip ? 1 : -1)), JSON.stringify(sides));
+  // As deep as the canvas bows it: a quadratic curve whose control point lies 0.2 of the chord from its middle reaches
+  // 0.1 of the chord at its apex (FR-035 (h)).
+  const depths = await page.evaluate(() => links.map(l => {
+    const a = nodes[l.f], b = nodes[l.t], len = Math.hypot(b.x - a.x, b.y - a.y);
+    return Math.max(...l.geo.pts.map(p => Math.abs((b.x - a.x) * (p[1] - a.y) - (b.y - a.y) * (p[0] - a.x)) / len)) / len;
+  }));
+  check("each link bows as deep as the canvas bows it", depths.every(d => Math.abs(d - 0.1) < 0.005), JSON.stringify(depths));
+  // Each loop's name is drawn under its badge, as the canvas shows it (FR-035 (i)).
+  const written = await page.evaluate(() => {
+    const texts = [], fillText = g.fillText;
+    g.fillText = function (text, ...rest) { texts.push(String(text)); return fillText.call(this, text, ...rest); };
+    drawGraph();
+    g.fillText = fillText;
+    return loops.map(lp => texts.includes(lp.name));
+  });
+  check("each loop's name is drawn on the canvas", written.length > 0 && written.every(Boolean), JSON.stringify(written));
 
   // The heatmap's four readings (FR-015).
   const seen = {};
