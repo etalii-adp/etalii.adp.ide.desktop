@@ -282,6 +282,16 @@ pub struct ArcBars {
     pub when: Option<Condition>,
 }
 
+/// Dots repeated along a line of any routing at a spacing (DISL section 6.5 `midMarkers` with `repeat`): the goods a
+/// supply chain's band carries.
+#[derive(Debug, Clone, PartialEq)]
+pub struct RepeatedDots {
+    pub spacing: f64,
+    /// The dot's fill, as the marker's `params.fill` states it.
+    pub fill: Json,
+    pub when: Option<Condition>,
+}
+
 /// Text beside the line at a fraction along it.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ArcMark {
@@ -307,6 +317,8 @@ pub struct RouteLabel {
     /// Below the line for a positive offset; the canvas draws a label 6 above the line where none is stated.
     pub offset: Option<f64>,
     pub editable: bool,
+    /// Drawn while this holds (DISL section 6.10 `visible`).
+    pub when: Option<Condition>,
 }
 
 /// Which anchors an end may attach to.
@@ -364,7 +376,8 @@ pub struct RelationType {
     /// The line's style: the edge's style with its `line.stroke` merged over it as `stroke`.
     pub style: Json,
     pub corner_radius: Option<f64>,
-    pub label: Option<RouteLabel>,
+    /// The labels along the line, in the order the notation declares them.
+    pub labels: Vec<RouteLabel>,
     pub stub: Option<StubDeclaration>,
     pub selectable: bool,
     pub movable_ends: bool,
@@ -373,6 +386,8 @@ pub struct RelationType {
     pub empty_release: bool,
     pub source_anchoring: EndAnchoring,
     pub target_anchoring: EndAnchoring,
+    /// Dots repeated along the line.
+    pub dots: Vec<RepeatedDots>,
 }
 
 /// A point on a side, for a [`SideFraction`]: `at` runs clockwise round the bounds.

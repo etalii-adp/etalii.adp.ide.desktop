@@ -2245,11 +2245,23 @@ fn label_id(document: &DiagramDocument, element: &DislElement, entry: &DerivedMe
         return label.clone();
     }
     let notation = document.tool().definition.specification().root().get("notation");
-    ["nodes", "edges"]
+    let labels: Vec<&serde_json::Value> = ["nodes", "edges"]
         .iter()
         .filter_map(|kind| notation?.get(kind)?.get(element.type_name())?.get("labels")?.as_array())
         .flatten()
-        .find_map(|label| label.get("id")?.as_str().map(str::to_owned))
+        .collect();
+    // The first label a person can edit, else the first: a title the notation keeps read-only is not what a rename
+    // edits (a supply chain card's stage above its name).
+    let editable = |label: &&&serde_json::Value| {
+        label
+            .get("editable")
+            .is_some_and(|editable| editable != &serde_json::Value::Bool(false))
+    };
+    labels
+        .iter()
+        .find(editable)
+        .or(labels.first())
+        .and_then(|label| label.get("id")?.as_str().map(str::to_owned))
         .unwrap_or_else(|| "label".to_owned())
 }
 

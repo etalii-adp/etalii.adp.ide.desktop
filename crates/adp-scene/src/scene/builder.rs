@@ -47,6 +47,8 @@ use crate::style::{Colour, Font, ResolvedStyle, Stroke, StyleResolver, Theme, me
 use crate::text::TextMetrics;
 
 /// The width and height an element has where nothing else says (`DEFAULT_WIDTH` and `DEFAULT_HEIGHT`).
+/// The width of a dot repeated along a line.
+const DOT_SIZE: f64 = 4.0;
 const DEFAULT_WIDTH: f64 = 120.0;
 const DEFAULT_HEIGHT: f64 = 40.0;
 
@@ -1275,6 +1277,7 @@ impl<'a> Builder<'a> {
             target: target.bounds,
         };
         let (path, from, to, arc) = self.route(&relation_type.route, relation_type, from, to, &ends, &vars);
+        let path_points = path.clone();
         let (mut stroke, resolved) = self.line_stroke(relation_type, &vars, None);
         if selected {
             stroke = highlighted(self.evaluator.theme(), Some(stroke));
@@ -1296,9 +1299,13 @@ impl<'a> Builder<'a> {
             tooltip: None,
         }));
 
-        if let Some(label) = &relation_type.label
-            && let Some(text) = label.text.element_text(self.evaluator, &vars).filter(|t| !t.is_empty())
-        {
+        for label in &relation_type.labels {
+            if !holds(self.evaluator, label.when.as_deref(), contexts::ELEMENT, &vars) {
+                continue;
+            }
+            let Some(text) = label.text.element_text(self.evaluator, &vars).filter(|t| !t.is_empty()) else {
+                continue;
+            };
             let at = match label.placement {
                 RouteLabelPlacement::Source => from,
                 RouteLabelPlacement::Target => to,
@@ -1314,6 +1321,29 @@ impl<'a> Builder<'a> {
                 wrap: None,
                 tooltip: None,
                 editable: label.editable,
+            }));
+        }
+
+        // Dots repeated along the line, the goods it carries (DISL section 6.5, `midMarkers` with `repeat`).
+        for dots in &relation_type.dots {
+            if !holds(self.evaluator, dots.when.as_deref(), contexts::ELEMENT, &vars) {
+                continue;
+            }
+            let fill = self.resolver(&vars).paint(&dots.fill);
+            let mut along = Path::new();
+            for at in path_points.points_every(dots.spacing) {
+                along
+                    .commands
+                    .extend(Path::ellipse(Rect::centred(at, DOT_SIZE, DOT_SIZE)).commands);
+            }
+            self.primitives.push(Primitive::Shape(ShapePrimitive {
+                owner: owner.clone(),
+                role: Role::Bars,
+                path: along,
+                fill,
+                stroke: None,
+                opacity: 1.0,
+                tooltip: None,
             }));
         }
 
