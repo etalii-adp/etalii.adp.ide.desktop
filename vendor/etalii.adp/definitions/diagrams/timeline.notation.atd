@@ -257,6 +257,11 @@ form period for Period {
           rule: (value.contains('T') == self.end.contains('T'))
           message: "This element uses the other time form; begin and end must both be dates, or both carry a time."
           timing: commit
+        },
+        {
+          rule: (!has(self.end) || !readableTime(self.end) || compareTimes(value, self.end) <= 0)
+          message: "An element cannot end before it begins."
+          timing: commit
         }
       ]
     }

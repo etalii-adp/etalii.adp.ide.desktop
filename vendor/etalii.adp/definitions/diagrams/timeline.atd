@@ -13,7 +13,7 @@ atd 0.1
 /// counting days are this description's own functions over the text a time is written with (`readTime` and those it
 /// calls), where the DISL specification needed the `net.etalii.adp.generic.timelineTimes` plugin; the wire ids are
 /// declared under `x-timeline`, and the rest is in timeline.md beside this file.
-diagram generic/timeline version "1.2.4" {
+diagram generic/timeline version "1.2.6" {
   label "Timeline diagram"
   id: "net.etalii.adp.generic.timeline"
   authors: [{ name: "Peter Vrenken" }]
@@ -780,23 +780,26 @@ diagram generic/timeline version "1.2.4" {
   }
 
   /// The next thing, a little later on the same row: six days after this one ends (or begins, for a moment, or after
-  /// today when neither reads), two weeks long, and related from the one it grew from, in one step.
+  /// today when neither reads), two weeks long, and related from the one it grew from, in one step. The new element is
+  /// selected, so a second Tab adds after it rather than on top of it (#856).
   operation addAfter "Add element after" for Element {
     icon: mdi-arrow-expand-right
     shortcut: Tab
     let start = dateAfter(self.isA('Period') && readableTime(self.end) ? self.end : (readableTime(self.begin) ? self.begin : today()), 6)
     create Period { label: 'New element', begin: start, end: dateAfter(start, 14), row: self.row } as next
     connect Connection from self to next
+    select next
   }
 
   /// A parallel track: the same begin as a date, one row down, two weeks long, and related from the one it grew from,
-  /// in one step.
+  /// in one step. The new element is selected, so a second Enter adds below it rather than on top of it (#856).
   operation addBelow "Add element below" for Element {
     icon: mdi-arrow-expand-down
     shortcut: Enter
     let start = dateAfter(readableTime(self.begin) ? self.begin : today(), 0)
     create Period { label: 'New element', begin: start, end: dateAfter(start, 14), row: self.row + 1 } as next
     connect Connection from self to next
+    select next
   }
 
   /// Puts every element on the row that keeps the diagram least cluttered, as one undoable step; only rows change,

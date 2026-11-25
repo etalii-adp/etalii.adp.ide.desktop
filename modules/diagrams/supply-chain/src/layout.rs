@@ -8,10 +8,9 @@
 //! coordinates, moves nobody else. A group's frame is the box around its members, so it follows them; a group with no
 //! members is drawn where its own `x` and `y` place it, one node's frame in size, and without them draws nothing.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
-use adp_layout::layering::{acyclic_edges, longest_path_with_floor};
-use adp_layout::{CyclePolicy, Rect};
+use adp_layout::Rect;
 use indexmap::IndexMap;
 
 use crate::model::{SupplyChainFlow, SupplyChainGroup, SupplyChainModel, SupplyChainNode, geometry, stages};
@@ -152,210 +151,44 @@ impl SupplyChainLayout {
 
 type Lanes = IndexMap<String, Vec<(f64, f64)>>;
 
-/// The id no document id can be: the band of the ungrouped nodes.
-const UNGROUPED: &str = "\u{0}ungrouped";
-
-fn order(a: f64, b: f64) -> std::cmp::Ordering {
-    a.partial_cmp(&b).unwrap_or(std::cmp::Ordering::Equal)
-}
-
-/// The mean of `values`, summed in order as `Enumerable.Average` sums them.
-fn average(values: impl Iterator<Item = f64>) -> f64 {
-    let (mut sum, mut count) = (0.0, 0usize);
-    for value in values {
-        sum += value;
-        count += 1;
-    }
-    sum / count as f64
-}
-
 /// The layered left-to-right layout: each node's top-left, with goods flowing to the right and every group kept
-/// together in a band of its own (`SupplyChainLayout.Arrange`).
-///
-/// A node's layer is never left of its stage's column, nor left of one past every node that supplies it over the
-/// flows with every cycle broken at the edge that closes it. A flow that skips layers is given a slot in every layer
-/// it crosses, in the band of the node it delivers to. Bands, the groups and one for the ungrouped nodes, and the
-/// nodes within a band, are sorted eight times by the mean position of what they are connected to, then dropped onto
-/// a per-layer skyline in that order.
+/// together in a band of its own (`SupplyChainLayout.Arrange`), as the capability `layout.bandedLayers` lays it out:
+/// a node's least layer is its stage's column, and a flow that skips layers is given a slot in every layer it crosses.
 fn arrange(
     nodes: &[SupplyChainNode],
     flows: &[SupplyChainFlow],
     group_of: &dyn Fn(&SupplyChainNode) -> Option<String>,
 ) -> (IndexMap<String, (f64, f64)>, Lanes) {
-    let mut result = IndexMap::new();
-    let mut lanes = IndexMap::new();
-    if nodes.is_empty() {
-        return (result, lanes);
-    }
-
-    let mut outgoing: HashMap<String, Vec<String>> = nodes.iter().map(|n| (n.id.clone(), Vec::new())).collect();
-    for flow in flows {
-        outgoing
-            .get_mut(&flow.from)
-            .expect("a drawable end")
-            .push(flow.to.clone());
-    }
-    let ids: Vec<&str> = nodes.iter().map(|n| n.id.as_str()).collect();
-    let forward = acyclic_edges(&ids, &outgoing);
-    let stage: HashMap<&str, i32> = nodes
+    use adp_atd_runtime::capabilities::banded_layers::{BandArguments, BandEdge, BandNode, arrange};
+    let placed: Vec<BandNode> = nodes
         .iter()
-        .map(|n| (n.id.as_str(), stages::rank_of(&n.node_type)))
+        .map(|node| BandNode {
+            id: node.id.clone(),
+            min_layer: stages::rank_of(&node.node_type),
+            band: group_of(node),
+        })
         .collect();
-    let edges: Vec<(String, String)> = nodes
+    let edges: Vec<BandEdge> = flows
         .iter()
-        .flat_map(|n| forward[&n.id].iter().map(|t| (n.id.clone(), t.clone())))
+        .map(|flow| BandEdge {
+            id: flow.id.clone(),
+            from: flow.from.clone(),
+            to: flow.to.clone(),
+        })
         .collect();
-    let mut layer: HashMap<String, i32> =
-        longest_path_with_floor(ids.iter().copied(), edges, CyclePolicy::Kahn, |id| stage[id]);
-
-    // Every slot a layer holds: the nodes, then one lane per layer a forward flow skips. A lane's id cannot be a
-    // document id: those never hold a control character.
-    let mut index: IndexMap<String, usize> = nodes.iter().enumerate().map(|(p, n)| (n.id.clone(), p)).collect();
-    let mut neighbours: HashMap<String, Vec<String>> = nodes.iter().map(|n| (n.id.clone(), Vec::new())).collect();
-    let mut lane_slots: IndexMap<String, Vec<String>> = IndexMap::new();
-    let mut lane_target: HashMap<String, String> = HashMap::new();
-    let join = |neighbours: &mut HashMap<String, Vec<String>>, a: &str, b: &str| {
-        neighbours.get_mut(a).expect("a slot").push(b.to_owned());
-        neighbours.get_mut(b).expect("a slot").push(a.to_owned());
+    let arguments = BandArguments {
+        layer_gap: LAYER_PITCH - geometry::NODE_WIDTH,
+        row_gap: ROW_PITCH - geometry::NODE_HEIGHT,
+        band_title: geometry::GROUP_HEADER,
+        band_bottom: geometry::GROUP_PADDING,
+        band_gap: BAND_GAP,
+        passes: 8,
+        lanes: true,
     };
-    for flow in flows {
-        let (from, to) = (layer[&flow.from], layer[&flow.to]);
-        if to - from <= 1 || !forward[&flow.from].contains(&flow.to) {
-            join(&mut neighbours, &flow.from, &flow.to);
-            continue;
-        }
-        let mut previous = flow.from.clone();
-        let mut slots = Vec::new();
-        for crossed in from + 1..to {
-            let slot = format!("\u{1}{}\u{1}{crossed}", flow.id);
-            let next = index.len();
-            index.insert(slot.clone(), next);
-            layer.insert(slot.clone(), crossed);
-            neighbours.insert(slot.clone(), Vec::new());
-            lane_target.insert(slot.clone(), flow.to.clone());
-            join(&mut neighbours, &previous, &slot);
-            slots.push(slot.clone());
-            previous = slot;
-        }
-        join(&mut neighbours, &previous, &flow.to);
-        lane_slots.insert(flow.id.clone(), slots);
-    }
-
-    // The bands, in the order of their first slot; a lane joins the band of the node its flow delivers to.
-    let by_id: HashMap<&str, &SupplyChainNode> = nodes.iter().map(|n| (n.id.as_str(), n)).collect();
-    let band_key = |id: &str| -> String {
-        let owner = lane_target.get(id).map_or(id, String::as_str);
-        group_of(by_id[owner]).unwrap_or_else(|| UNGROUPED.to_owned())
-    };
-    let mut grouped_bands: IndexMap<String, Vec<String>> = IndexMap::new();
-    for id in index.keys() {
-        grouped_bands.entry(band_key(id)).or_default().push(id.clone());
-    }
-    let bands: Vec<Vec<String>> = grouped_bands.into_values().collect();
-
-    // A position to sort by, refined each pass, from document order.
-    let mut rank: HashMap<String, f64> = index.iter().map(|(id, at)| (id.clone(), *at as f64)).collect();
-    let barycentre = |rank: &HashMap<String, f64>, id: &str| -> f64 {
-        let around = &neighbours[id];
-        if around.is_empty() {
-            rank[id]
-        } else {
-            average(around.iter().map(|other| rank[other]))
-        }
-    };
-
-    let mut band_order: Vec<usize> = (0..bands.len()).collect();
-    let mut rows: HashMap<(usize, i32), Vec<String>> = HashMap::new();
-    for _ in 0..8 {
-        let score: HashMap<usize, f64> = band_order
-            .iter()
-            .map(|band| (*band, average(bands[*band].iter().map(|id| barycentre(&rank, id)))))
-            .collect();
-        let first_index = |band: usize| bands[band].iter().map(|id| index[id]).min().unwrap_or(0);
-        band_order.sort_by(|a, b| order(score[a], score[b]).then(first_index(*a).cmp(&first_index(*b))));
-
-        rows.clear();
-        for band in &band_order {
-            let mut by_layer: IndexMap<i32, Vec<String>> = IndexMap::new();
-            for id in &bands[*band] {
-                by_layer.entry(layer[id]).or_default().push(id.clone());
-            }
-            for (l, mut members) in by_layer {
-                members.sort_by(|a, b| order(barycentre(&rank, a), barycentre(&rank, b)).then(index[a].cmp(&index[b])));
-                rows.insert((*band, l), members);
-            }
-        }
-
-        // The global rank: bands in order, then the row within the band.
-        let mut offset = 0.0;
-        for band in &band_order {
-            let mut height = 0;
-            for ((row_band, _), members) in &rows {
-                if row_band != band {
-                    continue;
-                }
-                for (row, member) in members.iter().enumerate() {
-                    rank.insert(member.clone(), offset + row as f64);
-                }
-                height = height.max(members.len());
-            }
-            offset += height as f64 + 1.0;
-        }
-    }
-
-    // Drop the bands onto a per-layer skyline, in order.
-    let mut placed: HashMap<String, (f64, f64)> = HashMap::new();
-    let layers = layer.values().copied().max().unwrap_or(0) + 1;
-    let mut skyline = vec![0.0; layers as usize];
-    for band in &band_order {
-        let spanned: Vec<i32> = bands[*band].iter().map(|id| layer[id]).collect();
-        let (first, last) = (
-            *spanned.iter().min().expect("a band has a member"),
-            *spanned.iter().max().expect("a band has a member"),
-        );
-        let grouped = band_key(&bands[*band][0]) != UNGROUPED;
-        let header = if grouped { geometry::GROUP_HEADER } else { 0.0 };
-        let footer = if grouped { geometry::GROUP_PADDING } else { 0.0 };
-
-        let mut top: f64 = 0.0;
-        for l in first..=last {
-            top = top.max(skyline[l as usize]);
-        }
-        let mut tallest = 0;
-        for l in first..=last {
-            let Some(members) = rows.get(&(*band, l)) else {
-                continue;
-            };
-            tallest = tallest.max(members.len());
-            for (row, member) in members.iter().enumerate() {
-                placed.insert(
-                    member.clone(),
-                    (f64::from(l) * LAYER_PITCH, top + header + row as f64 * ROW_PITCH),
-                );
-            }
-        }
-        let bottom =
-            top + header + tallest as f64 * ROW_PITCH - (ROW_PITCH - geometry::NODE_HEIGHT) + footer + BAND_GAP;
-        for l in first..=last {
-            skyline[l as usize] = bottom;
-        }
-    }
-
-    for node in nodes {
-        result.insert(node.id.clone(), placed[&node.id]);
-    }
-    // A lane is drawn through its slot's middle, where a card in that slot would have its centre.
-    for (flow_id, slots) in lane_slots {
-        lanes.insert(
-            flow_id,
-            slots
-                .iter()
-                .map(|slot| {
-                    let (x, y) = placed[slot];
-                    (x + geometry::NODE_WIDTH / 2.0, y + geometry::NODE_HEIGHT / 2.0)
-                })
-                .collect(),
-        );
-    }
-    (result, lanes)
+    arrange(
+        &placed,
+        &edges,
+        (geometry::NODE_WIDTH, geometry::NODE_HEIGHT),
+        &arguments,
+    )
 }

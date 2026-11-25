@@ -215,8 +215,8 @@ Actions reach the ribbon, the right-click menu and the keyboard through one path
 | Moment | Give it an end… | | Asks for the end, prefilled with the begin as written (titled "Give it an end", field "End", button "Set"); refuses an unreadable time and an end before the begin as typed. |
 | Period | Remove its end | | Removes the `end` key; the period becomes a moment. |
 | Element | Remove | Delete | Removes the element and every relation attached to it. With no relations it happens at once; otherwise it asks first, naming the count ("Removing this element also removes the 1 relation attached to it." / "…the N relations…"), as a danger confirmation titled "Remove" with the button "Remove" (R2.5). The specification's `deletion.Element.confirm` counts the relations with a threshold of 1, a relation from the element to itself counted once. |
-| Element | Add element after | Tab | A new element 6 days after this one's end (or begin, for a moment; or today when neither reads), 14 days long, same row, related from this one. |
-| Element | Add element below | Enter | A new element with this one's begin as a date (or today), one row down, 14 days long, related from this one. |
+| Element | Add element after | Tab | A new element 6 days after this one's end (or begin, for a moment; or today when neither reads), 14 days long, same row, related from this one, and selected, so pressing Tab again goes on along the row (#856; since 1.2.6, which the standalone host runs from its next re-bundle). |
+| Element | Add element below | Enter | A new element with this one's begin as a date (or today), one row down, 14 days long, related from this one, and selected, so pressing Enter again goes on down. |
 | Relation | Relabel… | F2 | Asks for the label; an empty label removes the key. |
 | Relation | Remove relation | Delete | |
 | Empty canvas | Add element here, Add moment here | | Placed at the clicked time and row. From a menu without a position, asks for the begin (prefilled with today, dialog titled "Add element" or "Add moment", field "Begin", button "Add") and uses the row of the element the gesture anchored on, or row 0. |

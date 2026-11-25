@@ -930,8 +930,10 @@ impl DiagramModule for RuntimeModule {
         Self::fitted(specification, element)
             .filter(|_| fits_content)
             .or_else(|| {
-                let stated =
-                    bound.get("width").is_some() || bound.get("height").is_some() || bound.get("fixed").is_some();
+                // A default size is stated too: a supply chain's empty group is drawn at it, where the layout placed it.
+                let stated = ["width", "height", "fixed", "default"]
+                    .iter()
+                    .any(|key| bound.get(*key).is_some());
                 (sized && stated).then(|| Self::stated_size(element))
             })
     }
@@ -1399,7 +1401,16 @@ impl DiagramModule for RuntimeModule {
                 "id": placed_id(element.id()), "width": width, "height": height,
                 "parent": holder.map(|p| placed_id(p.id())), "order": order, "attributes": attributes,
             });
-            if !boundary && let Some((x, y)) = authored.get(&element.id()) {
+            // A node is pinned where the registration places it, else where its own attributes do (DISL section 6.4,
+            // `placement.x` and `placement.y` bound to attributes): a supply chain card the body places.
+            let stored = element.attributes();
+            let placed_by_attributes = document.placement_attributes(&element).and_then(|(x, y)| {
+                Some((
+                    stored.get(x.as_str())?.as_number()?,
+                    stored.get(y.as_str())?.as_number()?,
+                ))
+            });
+            if !boundary && let Some((x, y)) = placed_by_attributes.or_else(|| authored.get(&element.id()).copied()) {
                 node["pinned"] = json!({ "x": x, "y": y });
             }
             nodes.push(node);
