@@ -633,6 +633,9 @@ pub struct InsertSettings {
     pub container: Option<String>,
     pub create: Option<CreateContainer>,
     pub keys: Vec<String>,
+    /// *(FBL 0.24)* yaml: a key a set adds to an existing entry goes right after the entry's first key (`newKeys:
+    /// after-first`), rather than at its place in `keys` (FBL section 6.2).
+    pub new_keys_after_first: bool,
     pub emit: Option<String>,
     pub skeleton: Option<String>,
     pub when: Option<String>,
