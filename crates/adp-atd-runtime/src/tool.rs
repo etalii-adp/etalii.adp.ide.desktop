@@ -210,6 +210,9 @@ fn lacking(required: &Json, reason: &str) -> Finding {
 }
 
 /// The arguments of a layout that say what the host gives the capability, rather than being passed on to it.
+/// Sizes by node id: a width and a height.
+type Sizes = HashMap<String, (f64, f64)>;
+
 const PLACED_BY_HOST: [&str; 3] = ["boundary", "edges", "sequence"];
 
 /// The layout a description names by a capability (ATD §8.8): the capability and its arguments.
@@ -452,7 +455,7 @@ pub struct RuntimeModule {
     /// from them (DISL section 10.4, "little movement").
     forced: RefCell<HashMap<PathBuf, (u64, adp_layout::Placements)>>,
     /// The sizes the layout capability last gave the nodes it resizes, by document and then by node id.
-    resized: RefCell<HashMap<PathBuf, HashMap<String, (f64, f64)>>>,
+    resized: RefCell<HashMap<PathBuf, Sizes>>,
     /// Whether a drop from the toolbox pins the new node (DISL section 10.4, "a drag pins"): `respect: pinned` with a
     /// `trigger` other than `manual`.
     drop_pins: bool,
