@@ -1,32 +1,26 @@
 # The Marvel universe
 
-A large timeline: 920 events of the Marvel universe on one time axis, from 79 AD to 2077, with 32 relations. Open `marvel-universe.adp`; nothing needs configuring first. For a first look, open [`../marvel-universe-overview/`](../marvel-universe-overview/) instead: 51 key events that read on one screen.
+A large timeline: 428 events of the Marvel Cinematic Universe's story, from the Eternals defending ancient India to the Fantastic Four's ship arriving, in story order, with 479 connections. Open `marvel-universe.adp`; nothing needs configuring first. For a first look, open [`../marvel-universe-overview/`](../marvel-universe-overview/) instead: the 47 key events on one screen.
 
 ## What it shows
 
-The rows fall in three bands, top to bottom. A timeline's rows carry no names, so the bands are stated here and in the comment at the top of `marvel-universe.tml`.
+Only what happens inside the story world, across every saga and era: origins, the Infinity Stones, the Snap and its undoing, the Multiverse. No release dates, castings or studio news.
 
-| Rows | Band | What an element is |
-| --- | --- | --- |
-| 0 to 425 | In-universe | Something that happens in the Marvel Cinematic Universe, at the date the films and series give it (the main timeline, Earth-616) |
-| 428 to 605 | On screen | A Marvel film, series, special or cartoon reaching the screen, and the studio's milestones |
-| 608 to 918 | In print | A Marvel comic published (cover dates), a character's debut, a crossover event, and the publisher's milestones |
+- **Each box is as long as its label needs.** The label's width was measured at the canvas's 12-unit text in the widest of the fonts a host may draw it with, plus room for the box's ends, so no label is cut short.
+- **Time runs left to right, but the dates mean nothing.** The ruler's years are only a scale.
+- **As many connections as possible run left to right**, from the right end of one box to the left end of the next: 401 of the 479. The whole timeline is about six boxes wide, so a longer chain has to start again further left, and those 78 connections run backwards. The places were found by a search that keeps the count of left-to-right connections as high as it can.
+- **Rows only stack boxes.** A box goes on the row of an event it follows from where there is room, so a chain tends to stay on one line, and the story reads roughly from top to bottom.
+- **A connection leads from an event to one that follows from it**: a cause, or the next step of the same character's story.
 
-A period is an element with an end: a war, a captivity, a crossover's run, a series from its first to its last episode, a phase of the films. The relations labelled `adapted` lead from a comic to the screen work that adapted it, and the two labelled `shows` from a film to an event it shows; the others link events of one story.
-
-**Read it by zooming in and scrolling down.** A timeline fits its whole span into one screen width when it opens, and a label grows with the zoom, so a label always covers the same stretch of time: here about forty years. No two labels on a row overlap, which leaves room for one or two events on a row, and the rows step down through time like a staircase. Fitted to the view, the drawing is a thin diagonal line; zoomed in at its top left, it reads as a list in time order.
+**Read it by zooming in at the top left and scrolling down.** Fitted to the view, the drawing is a tall column of 114 rows.
 
 ## How it was made
 
-The events were gathered for this repository in November 2026, by six researchers working in parallel, one per era or medium: the in-universe story before 2010, from 2010 to 2018 and from 2018 on, the comics before 1980 and from 1980 on, and the screen. The labels are written in our own words; no text, image or logo is taken from any source. Names, titles and dates are facts.
+The events were gathered for this repository in November 2026 by researchers working in parallel, one per era, then shortened, ordered and linked, and checked as a whole for duplicates, order and links. The labels are written in our own words; no text, image or logo is taken from any source. Names are facts.
 
-**The dates were written from the researchers' knowledge and were not checked one by one against a source.** Treat a date as a good approximation, not a reference. Two rules shape them:
-
-- **An event dated only to a year or a month is spread across that year or month in story order.** Its day places it on the axis and is not a date. Most in-universe events are dated to a year, as the films rarely give more.
-- **In-universe dates follow the official order of the films**, which places Iron Man in 2010 and the return of the vanished in 2023, not the films' release years.
+**The order and links were written from the researchers' knowledge and were not checked one by one against a source.** Time-travel visits sit where they happen in the travellers' story, during the Time Heist; the Time Variance Authority's events sit after Endgame.
 
 ## What it leaves out
 
-- Events before 1 AD, which a timeline cannot place: the Eternals' arrival, the Dark Elves' war, the first Black Panther and other ancient or undated history.
-- What happens outside time or in another universe: the Time Variance Authority's Citadel, the Fantastic Four's Earth-828, the universes of What If...? and the films made outside the Marvel Cinematic Universe, which appear only by their release.
-- Anything released after November 2026.
+- What happens in another universe: the universes of What If...? and of the films made outside the Marvel Cinematic Universe.
+- The comics, and anything released after November 2026.

@@ -95,7 +95,7 @@ fn the_marvel_universe_opens_without_a_finding() {
 fn the_marvel_universe_reads_every_element_and_relation() {
     let opened = open(FULL);
 
-    assert_eq!((920, 32), written(FULL));
+    assert_eq!((428, 479), written(FULL));
     assert_eq!(written(FULL), read(&opened, FULL));
 }
 
@@ -119,6 +119,6 @@ fn its_key_events_open_without_a_finding() {
 fn its_key_events_read_every_element_and_relation() {
     let opened = open(OVERVIEW);
 
-    assert_eq!((51, 8), written(OVERVIEW));
+    assert_eq!((47, 50), written(OVERVIEW));
     assert_eq!(written(OVERVIEW), read(&opened, OVERVIEW));
 }
