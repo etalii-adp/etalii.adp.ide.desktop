@@ -41,6 +41,8 @@ binding supply family yaml {
       container: "/groups"
       create: { at: end-of-document }
       keys: [id, name, description, x, y]
+      /// A key set later on an entry that lacks it goes right after its id, as the module writes it (FBL 0.24).
+      newKeys: after-first
     }
     remove {}
   }
@@ -86,6 +88,8 @@ binding supply family yaml {
       container: "/nodes"
       create: { at: end-of-document }
       keys: [id, type, name, description, group, quantity, unit, step, x, y]
+      /// A key set later on an entry that lacks it goes right after its id, as the module writes it (FBL 0.24).
+      newKeys: after-first
     }
     remove { cascade: [flow] }
   }
@@ -114,6 +118,8 @@ binding supply family yaml {
       container: "/flows"
       create: { at: end-of-document }
       keys: [id, from, to, product, description, volume, unit, step]
+      /// A key set later on an entry that lacks it goes right after its id, as the module writes it (FBL 0.24).
+      newKeys: after-first
     }
     remove {}
   }
