@@ -1,6 +1,6 @@
 """Vendor the standalone host's bindings that the vendored specifications name (etalii.adp spec 030, task T048).
 
-    python tools/vendor-standalone-bindings.py <path to an etalii.adp.ide.standalone clone> [<commit>]
+    python tools/vendor-standalone-bindings.py <path to an etalii.adp.ide.standalone clone> [<commit>] [--later <path>=<commit> ...]
 
 Several specifications under vendor/etalii.adp/definitions/ name their FBL binding by its address in the standalone
 host's repository (`https://raw.githubusercontent.com/etalii-adp/etalii.adp.ide.standalone/develop/<path>#<name>`),
@@ -13,6 +13,10 @@ A specification may also name its binding by a file name alone (`agent-behavior-
 beside it, which the etalii.adp repository does not have yet because the standalone host keeps it in its module's
 backend folder. Such a file is copied too, from the one place under `src/` the commit has a file of that name, and the
 catalogue finds it there by its name when the specification's own folder lacks it.
+
+A binding the host needs from a later standalone commit than the reference one is listed under `later` in
+provenance.json with that commit, and copied from it; `--later <path>=<commit>` adds or moves such an entry, and the
+entries already listed are kept.
 """
 
 import json
@@ -54,9 +58,20 @@ def local_paths(clone: pathlib.Path, commit: str, specifications: list[pathlib.P
 
 
 def main() -> None:
-    if len(sys.argv) not in (2, 3):
+    arguments = sys.argv[1:]
+    later: dict[str, str] = {}
+    if (VENDOR / "provenance.json").is_file():
+        later = json.loads((VENDOR / "provenance.json").read_text(encoding="utf-8")).get("later", {})
+    while "--later" in arguments:
+        at = arguments.index("--later")
+        if at + 1 >= len(arguments) or "=" not in arguments[at + 1]:
+            sys.exit(__doc__)
+        path, later_commit = arguments[at + 1].split("=", 1)
+        later[path] = later_commit
+        del arguments[at : at + 2]
+    if len(arguments) not in (1, 2):
         sys.exit(__doc__)
-    clone, commit = pathlib.Path(sys.argv[1]), sys.argv[2] if len(sys.argv) == 3 else REFERENCE
+    clone, commit = pathlib.Path(arguments[0]), arguments[1] if len(arguments) == 2 else REFERENCE
     specifications = sorted(DEFINITIONS.glob("*/*.dis")) + sorted(DEFINITIONS.glob("*/*.des"))
     paths = sorted(
         {
@@ -70,16 +85,25 @@ def main() -> None:
         shutil.rmtree(VENDOR)
     copied = []
     for path in paths:
-        shown = subprocess.run(["git", "-C", str(clone), "show", f"{commit}:{path}"], capture_output=True)
+        source = later.get(path, commit)
+        shown = subprocess.run(["git", "-C", str(clone), "show", f"{source}:{path}"], capture_output=True)
         if shown.returncode != 0:
-            print(f"Not at {commit[:7]}, skipped: {path}")
+            print(f"Not at {source[:7]}, skipped: {path}")
             continue
         target = VENDOR / path
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(shown.stdout)
         copied.append(path)
     (VENDOR / "provenance.json").write_text(
-        json.dumps({"repository": "etalii-adp/etalii.adp.ide.standalone", "commit": commit, "files": copied}, indent=2)
+        json.dumps(
+            {
+                "repository": "etalii-adp/etalii.adp.ide.standalone",
+                "commit": commit,
+                "files": copied,
+                **({"later": {path: later[path] for path in sorted(later) if path in copied}} if later else {}),
+            },
+            indent=2,
+        )
         + "\n",
         encoding="utf-8",
         newline="\n",
