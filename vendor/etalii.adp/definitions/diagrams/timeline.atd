@@ -13,7 +13,7 @@ atd 0.1
 /// counting days are this description's own functions over the text a time is written with (`readTime` and those it
 /// calls), where the DISL specification needed the `net.etalii.adp.generic.timelineTimes` plugin; the wire ids are
 /// declared under `x-timeline`, and the rest is in timeline.md beside this file.
-diagram generic/timeline version "1.2.0" {
+diagram generic/timeline version "1.2.4" {
   label "Timeline diagram"
   id: "net.etalii.adp.generic.timeline"
   authors: [{ name: "Peter Vrenken" }]
@@ -21,7 +21,7 @@ diagram generic/timeline version "1.2.0" {
   homepage: "https://github.com/etalii-adp/etalii.adp.ide.standalone/tree/develop/src/diagrams/timeline"
   icon: mdi-chart-timeline
   fileExtension: tml
-  requires: { conformance: standard, features: ["axis.time", "placement.bound", "snap.calendar", "edge.bezier", "persist.yaml"] }
+  requires: { conformance: standard, features: ["axis.time", "placement.bound", "snap.calendar", "edge.bezier", "label.editText"] }
   doc {
     rationale: "Distinct from a Gantt chart: placement is authored on both axes rather than computed, and connections are arbitrary rather than scheduling dependencies."
     tags: [timeline, roadmap, planning, periods, moments]
@@ -621,6 +621,11 @@ diagram generic/timeline version "1.2.0" {
       doc: "Ids are unique across elements and relations together. Every holder after the first is reported, at its line; the first keeps the id."
     }
 
+    builtin std.missingId {
+      enabled: false
+      doc: "Reported by missingId instead, which names an element by its label and reads `self.id` as the file writes it (persistence.writtenId)."
+    }
+
     builtin std.references {
       enabled: false
       doc: "Reported by danglingSource and danglingTarget instead, which leave an end written empty or not written at all unreported, as the tool does, and which read the id an end is written with."
@@ -836,6 +841,9 @@ diagram generic/timeline version "1.2.0" {
     }
     references: id
     view: { store: [] }
+    /// Findings name an element, and `self.id` reads it, by the id the file writes it with, which the binding reads
+    /// into the host attribute `storedId` (DISL 0.10, 11.5.4).
+    writtenId: storedId
     collaboration: { mode: none }
     typeMap: {
       Period: {

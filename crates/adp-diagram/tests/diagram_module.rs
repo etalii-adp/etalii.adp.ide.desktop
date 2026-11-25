@@ -270,7 +270,10 @@ fn a_computed_label_is_renamed_through_the_attribute_the_module_names() {
     let refused = generic.answer(&element("aaa"), "timeline.rename", "Renamed");
     let renamed = probed.answer(&element("aaa"), "timeline.rename", "Renamed");
 
-    assert_eq!(ActionOutcome::Refused("'label' cannot be edited here.".into()), refused);
+    // The timeline description edits an element's label as its label attribute itself (etalii.adp spec 091), so the
+    // generic runtime renames it too; the module's hook names the same attribute.
+    assert_eq!(ActionOutcome::Done, refused);
+    assert_eq!(BODY.replace("label: Period", "label: Renamed"), generic.text());
     assert_eq!(ActionOutcome::Done, renamed);
     assert_eq!(BODY.replace("label: Period", "label: Renamed"), probed.text());
 }

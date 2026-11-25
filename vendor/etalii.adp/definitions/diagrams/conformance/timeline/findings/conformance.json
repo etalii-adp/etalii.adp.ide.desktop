@@ -146,6 +146,24 @@
     ],
     "findings": [
       {
+        "rule": "timeline.duplicate-id",
+        "severity": "warning",
+        "line": 42,
+        "message": "The id 'iso' is declared more than once, which makes every reference to it ambiguous."
+      },
+      {
+        "rule": "timeline.missing-id",
+        "severity": "warning",
+        "line": 46,
+        "message": "'Nameless' has no id, so nothing can select, connect or edit it."
+      },
+      {
+        "rule": "timeline.missing-id",
+        "severity": "warning",
+        "line": 56,
+        "message": "A relation has no id, so nothing can select, connect or edit it."
+      },
+      {
         "rule": "timeline.unreadable-time",
         "severity": "warning",
         "element": "wrong-weekday",
@@ -160,7 +178,7 @@
       {
         "rule": "timeline.unreadable-time",
         "severity": "warning",
-        "element": "moment@46",
+        "line": 46,
         "message": "'Nameless' begins at 'someday', which is not a time this timeline can read."
       },
       {
@@ -222,28 +240,28 @@
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e390321",
+      "recordedWith": "0a8b774",
       "source": "atd record (bytes)"
     },
     "reading": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e390321",
+      "recordedWith": "0a8b774",
       "source": "atd record (reading)"
     },
     "findings": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e390321",
+      "recordedWith": "0a8b774",
       "source": "atd record (findings)"
     },
     "drawing": {
       "host": "desktop",
       "repository": "etalii.adp.ide.desktop",
       "commit": "fe5feec",
-      "recordedWith": "e390321",
+      "recordedWith": "0a8b774",
       "source": "atd record (drawing)"
     }
   }

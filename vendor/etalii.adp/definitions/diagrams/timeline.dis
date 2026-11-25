@@ -3,7 +3,7 @@
   "disl": "0.12",
   "language": {
     "id": "net.etalii.adp.generic.timeline",
-    "version": "1.2.0",
+    "version": "1.2.4",
     "origin": "generic/timeline",
     "label": "Timeline diagram",
     "doc": {
@@ -23,7 +23,7 @@
     "fileExtension": "tml",
     "requires": {
       "conformance": "standard",
-      "features": ["axis.time", "placement.bound", "snap.calendar", "edge.bezier", "persist.yaml"]
+      "features": ["axis.time", "placement.bound", "snap.calendar", "edge.bezier", "label.editText"]
     }
   },
 
@@ -264,6 +264,14 @@
               "doc": "Dragging an edge of a date-only period lands on a day."
             }
           },
+          "byGesture": {
+            "drop": {
+              "x": {
+                "calendar": { "unit": "day", "align": "start" },
+                "doc": "Something dropped or added at a point begins at the start of the day under it, as the toolbox drop, Add element here and the relation released on empty canvas say (see timeline.md)."
+              }
+            }
+          },
           "targets": ["rule"],
           "bypassModifier": "none",
           "feedback": { "showGhost": false, "showValue": true },
@@ -313,6 +321,7 @@
           {
             "id": "label",
             "text": { "cel": "shownLabel(self)" },
+            "editText": { "attribute": "label" },
             "position": "center",
             "editable": "inline",
             "overflow": "ellipsis",
@@ -355,6 +364,7 @@
           {
             "id": "label",
             "text": { "cel": "shownLabel(self)" },
+            "editText": { "attribute": "label" },
             "position": "outside-right",
             "editable": "inline",
             "wrap": "none"
@@ -605,6 +615,7 @@
         "message": { "cel": "'The id \\'' + detail.id + '\\' is declared more than once, which makes every reference to it ambiguous.'" },
         "doc": "Ids are unique across elements and relations together. Every holder after the first is reported, at its line; the first keeps the id."
       },
+      "std.missingId": { "enabled": false, "doc": "Reported by missingId instead, which names an element by its label and reads `self.id` as the file writes it (persistence.writtenId)." },
       "std.references": {
         "enabled": false,
         "doc": "Reported by danglingSource and danglingTarget instead, which leave an end written empty or not written at all unreported, as the tool does, and which read the id an end is written with."
@@ -845,6 +856,7 @@
     "documentId": { "strategy": "nanoid", "alphabet": "base36", "length": 8, "doc": "The top-level key `id` beside `timeline: 1` (FBL 17.2, spec 089), written by the load-time step when a timeline has none." },
     "references": "id",
     "view": { "store": [] },
+    "writtenId": "storedId",
     "collaboration": { "mode": "none" },
     "typeMap": {
       "Period": {

@@ -31,6 +31,11 @@ coordinates {
       size: {
         x: { calendar: { unit: day, align: nearest }, doc: "Dragging an edge of a date-only period lands on a day." }
       }
+      byGesture: {
+        drop: {
+          x: { calendar: { unit: day, align: start }, doc: "Something dropped or added at a point begins at the start of the day under it, as the toolbox drop, Add element here and the relation released on empty canvas say (see timeline.md)." }
+        }
+      }
       targets: [rule]
       bypassModifier: none
       feedback: { showGhost: false, showValue: true }
@@ -78,7 +83,7 @@ notation {
 
   node Period {
     shape roundedRect
-    label (shownLabel(self)) as label { position: center, editable: inline, overflow: ellipsis, wrap: none, maxLines: 1 }
+    label (shownLabel(self)) as label { editText: @label, position: center, editable: inline, overflow: ellipsis, wrap: none, maxLines: 1 }
     /// The link mark of a linked element (DISL §4.12), with a broken mark when its link does not resolve (FBL §17.6).
     label (has(self.linked) ? "↪" : "↪⚠") as link { visible: (has(self.link)), position: outside-left, wrap: none }
     style: element
@@ -100,7 +105,7 @@ notation {
 
   node Moment {
     shape diamond
-    label (shownLabel(self)) as label { position: outside-right, editable: inline, wrap: none }
+    label (shownLabel(self)) as label { editText: @label, position: outside-right, editable: inline, wrap: none }
     /// The link mark of a linked element (DISL §4.12), with a broken mark when its link does not resolve (FBL §17.6).
     label (has(self.linked) ? "↪" : "↪⚠") as link { visible: (has(self.link)), position: outside-left, wrap: none }
     style: moment
