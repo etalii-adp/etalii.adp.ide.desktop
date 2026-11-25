@@ -7,8 +7,9 @@ A timeline of 47 key events of the Marvel Cinematic Universe's story, from Schmi
 Only what happens inside the story world: the origins, the Infinity Stones, the Snap and its undoing, and the Multiverse. No release dates, castings or studio news.
 
 - **Each box is as long as its label needs.** The label's width was measured at the canvas's 12-unit text in the widest of the fonts a host may draw it with, plus room for the box's ends.
-- **Time runs left to right, but the dates mean nothing.** A box starts after the events it follows from and never before the event listed before it.
-- **Boxes that belong together share a row, end to end**, and the story continues in a new block of rows below when a group no longer fits across.
+- **Time runs left to right, but the dates mean nothing.** The ruler's years are only a scale.
+- **As many connections as possible run left to right**, from the right end of one box to the left end of the next: 44 of the 50. A chain longer than the timeline is wide starts again further left, and those 6 connections run backwards.
+- **Rows only stack boxes**: a box goes on the row of an event it follows from where there is room.
 - **A connection leads from an event to one that follows from it.** Here it skips the full story's steps in between, to the nearest key event.
 
 ## How it was made

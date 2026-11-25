@@ -7,11 +7,12 @@ A large timeline: 428 events of the Marvel Cinematic Universe's story, from the 
 Only what happens inside the story world, across every saga and era: origins, the Infinity Stones, the Snap and its undoing, the Multiverse. No release dates, castings or studio news.
 
 - **Each box is as long as its label needs.** The label's width was measured at the canvas's 12-unit text in the widest of the fonts a host may draw it with, plus room for the box's ends, so no label is cut short.
-- **Time runs left to right, but the dates mean nothing.** A box starts after the events it follows from and never before the event listed before it; the ruler's years are only a scale.
-- **Boxes that belong together share a row, end to end.** When a group no longer fits across, the story continues in a new block of rows below, one empty row apart, so the timeline reads like lines of text, top to bottom.
-- **A connection leads from an event to one that follows from it**: a cause, or the next step of the same character's story. A connection that crosses to the next block runs back to the left.
+- **Time runs left to right, but the dates mean nothing.** The ruler's years are only a scale.
+- **As many connections as possible run left to right**, from the right end of one box to the left end of the next: 401 of the 479. The whole timeline is about six boxes wide, so a longer chain has to start again further left, and those 78 connections run backwards. The places were found by a search that keeps the count of left-to-right connections as high as it can.
+- **Rows only stack boxes.** A box goes on the row of an event it follows from where there is room, so a chain tends to stay on one line, and the story reads roughly from top to bottom.
+- **A connection leads from an event to one that follows from it**: a cause, or the next step of the same character's story.
 
-**Read it by zooming in at the top left and scrolling down.** Fitted to the view, the drawing is a tall column.
+**Read it by zooming in at the top left and scrolling down.** Fitted to the view, the drawing is a tall column of 114 rows.
 
 ## How it was made
 
