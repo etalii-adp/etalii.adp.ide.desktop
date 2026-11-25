@@ -210,6 +210,9 @@ fn lacking(required: &Json, reason: &str) -> Finding {
 }
 
 /// The arguments of a layout that say what the host gives the capability, rather than being passed on to it.
+/// Sizes by node id: a width and a height.
+type Sizes = HashMap<String, (f64, f64)>;
+
 const PLACED_BY_HOST: [&str; 3] = ["boundary", "edges", "sequence"];
 
 /// The layout a description names by a capability (ATD §8.8): the capability and its arguments.
@@ -451,6 +454,8 @@ pub struct RuntimeModule {
     /// The force layout's last placements, by document, with the reading they were made for: a live change starts
     /// from them (DISL section 10.4, "little movement").
     forced: RefCell<HashMap<PathBuf, (u64, adp_layout::Placements)>>,
+    /// The sizes the layout capability last gave the nodes it resizes, by document and then by node id.
+    resized: RefCell<HashMap<PathBuf, Sizes>>,
     /// Whether a drop from the toolbox pins the new node (DISL section 10.4, "a drag pins"): `respect: pinned` with a
     /// `trigger` other than `manual`.
     drop_pins: bool,
@@ -530,6 +535,7 @@ impl RuntimeModule {
                 })
             }),
             forced: RefCell::default(),
+            resized: RefCell::default(),
             drop_pins: specification.pointer("/layout/respect").and_then(Json::as_str) == Some("pinned")
                 && specification.pointer("/layout/trigger").and_then(Json::as_str) != Some("manual"),
         }
@@ -897,6 +903,15 @@ impl DiagramModule for RuntimeModule {
                 (x2.canvas(element) - placement.x.canvas(element)).abs(),
                 (y2.canvas(element) - placement.y.canvas(element)).abs(),
             ));
+        }
+        // A node its layout resized is drawn at the size the layout gave it.
+        if let Some(size) = self
+            .resized
+            .borrow()
+            .get(document.body_path())
+            .and_then(|sizes| sizes.get(&element.id()))
+        {
+            return Some(*size);
         }
         let specification = document.tool().definition.specification();
         // A node the force layout places is placed by its centre, at the size its notation gives it.
@@ -1409,9 +1424,23 @@ impl DiagramModule for RuntimeModule {
             })
             .collect();
         // The corners as the algorithm computes them, not rounded, so that the centres are where its module put them.
-        let placed = capability
-            .place(&json!({ "nodes": nodes, "edges": edges }), &Json::Object(args))
-            .ok()?;
+        let input = json!({ "nodes": nodes, "edges": edges });
+        let args = Json::Object(args);
+        let placed = capability.place(&input, &args).ok()?;
+        // A node the layout resizes (a container fitted to its contents) is drawn at that size, its centre in the middle
+        // of it.
+        let resized: HashMap<String, (f64, f64)> = capability
+            .sizes(&input, &args)
+            .unwrap_or_default()
+            .into_iter()
+            .map(|(id, width, height)| (id, (width, height)))
+            .collect();
+        for (id, size) in &resized {
+            sizes.insert(id.clone(), *size);
+        }
+        self.resized
+            .borrow_mut()
+            .insert(document.body_path().to_path_buf(), resized);
         // A capability that does not consult pins leaves a stored position to the host: the node is drawn there.
         let stored = if capability.consults_pins() {
             HashMap::new()

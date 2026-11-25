@@ -2,7 +2,7 @@
 //! nested grids, bottom up. Each container lays out its own nodes first and then its child containers, in rows of
 //! `columns` cells, a row as tall as its tallest member; a child container is one cell the size of its own grid, plus
 //! `padding` on every side and `labelBand` above its contents, and never smaller than its own size in the input. The
-//! roots are laid out the same way from `origin`. A node the input marks a container (its `container` attribute) is one
+//! roots are laid out the same way from `origin`, and each container is given its size. A node the input marks a container (its `container` attribute) is one
 //! even when it holds nothing, its empty grid then `emptyGrid` in size. A pinned container moves as a frame, its contents following it; a
 //! pinned node stays at its pin. Moved from the SPARQL module's scope grid (`modules/diagrams/sparql/src/layout.rs`),
 //! itself ported from the standalone host's `SparqlLayout.cs` at `8b6ccfc`.
@@ -163,6 +163,24 @@ impl<'a> Nesting<'a> {
 pub struct NestedGrid;
 
 impl LayoutCapability for NestedGrid {
+    /// Every container's size, its own grid's with padding and label band, in the order they are placed.
+    fn sizes(&self, input: &Json, args: &Json) -> Result<Vec<(String, f64, f64)>, String> {
+        let nodes = input["nodes"].as_array().ok_or("The input has no `nodes`.")?;
+        let arguments = Arguments::of(args);
+        let (x, y) = arguments.origin;
+        let nesting = Nesting::of(nodes, arguments);
+        let mut placed = Vec::new();
+        nesting.place(None, x, y, &mut placed);
+        Ok(placed
+            .iter()
+            .filter(|(i, ..)| nesting.is_container(*i))
+            .map(|(i, ..)| {
+                let (width, height) = nesting.size_of(*i);
+                (nesting.nodes[*i].id.to_owned(), width, height)
+            })
+            .collect())
+    }
+
     /// A node is drawn at the size it was placed with, its notation's fixed one.
     fn draws_its_sizes(&self) -> bool {
         true

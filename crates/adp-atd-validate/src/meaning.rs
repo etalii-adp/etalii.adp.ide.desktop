@@ -211,7 +211,23 @@ pub fn drawing_difference(expected: &Json, actual: &Json) -> Option<(String, Str
             })
         })
     };
-    first("elements", &|item| item["bounds"].clone()).or_else(|| {
+    // A badge the module paints beside another element, drawn at zero size, is compared by its presence alone (ATD
+    // §2.3): what it is attached to is the reading's to compare.
+    let badges: BTreeSet<String> = expected["elements"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter(|item| item["bounds"]["w"].as_f64() == Some(0.0) && item["bounds"]["h"].as_f64() == Some(0.0))
+        .filter_map(|item| item["id"].as_str().map(str::to_owned))
+        .collect();
+    let bounds = |item: &Json| {
+        if item["id"].as_str().is_some_and(|id| badges.contains(id)) {
+            Json::Bool(true)
+        } else {
+            item["bounds"].clone()
+        }
+    };
+    first("elements", &bounds).or_else(|| {
         first(
             "edges",
             &|item| serde_json::json!({"source": item["source"], "target": item["target"]}),
