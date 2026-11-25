@@ -11,7 +11,15 @@
    "place": "e"
   },
   {
-   "line": 79,
+   "line": 57,
+   "count": 3,
+   "original": [
+    ".loop:hover, .loop.on { background: var(--panel2); border-color: var(--line); }"
+   ],
+   "place": "j"
+  },
+  {
+   "line": 81,
    "count": 1,
    "original": [
     "    <h1>Why mental health at work stays out of sight</h1>"
@@ -19,7 +27,23 @@
    "place": "e"
   },
   {
-   "line": 131,
+   "line": 126,
+   "count": 1,
+   "original": [
+    "    <h2>Loops</h2>"
+   ],
+   "place": "j"
+  },
+  {
+   "line": 128,
+   "count": 1,
+   "original": [
+    "    <p class=\"hint\">Bar: loop gain, the product of each link's local sensitivity. Above 1 a reinforcing loop runs away; hover a loop to trace it.</p>"
+   ],
+   "place": "j"
+  },
+  {
+   "line": 133,
    "count": 1,
    "original": [
     "const DATA = {\"v\":[[\"selfDirection\",\"Experienced self-direction\",0,0],[\"emotionSuppression\",\"Emotion suppression (downplaying as coping)\",-350,450],[\"meaning\",\"Experienced meaning and perspective\",400,-150],[\"goalOrientation\",\"Goal orientation\",-400,150],[\"goalsAchieved\",\"Goals achieved\",-800,0],[\"satisfaction\",\"Satisfaction\",-800,300],[\"bigPicture\",\"Sight of the bigger picture\",0,-300],[\"sacrifice\",\"Willingness to sacrifice\",800,-150],[\"progress\",\"Progress\",800,100],[\"confidence\",\"Confidence\",400,200],[\"shortTermFunctioning\",\"Functioning in the short term\",-800,650],[\"copingConfirmation\",\"Confirmation of the coping strategy\",-350,800],[\"exhaustion\",\"Exhaustion\",0,700],[\"dropout\",\"Mental health dropout\",400,950],[\"toughNorm\",\"Norm: don't make a fuss\",800,450],[\"emotionExpression\",\"Expression of emotion\",400,500],[\"legalFrame\",\"Legal limits on discussing mental health\",1250,0],[\"insurerDependence\",\"Dependence on insurers and premiums\",350,-500],[\"ageing\",\"Ageing population\",-350,-450],[\"conversationalSafety\",\"Safety to talk\",1150,350],[\"openness\",\"Openness and vulnerability\",1550,300],[\"visibleComplaints\",\"Visible mental health complaints\",1700,600],[\"preventionUrgency\",\"Perceived need for prevention\",1450,800],[\"systemChange\",\"System change\",1150,650],[\"preventionInvestment\",\"Investment in prevention\",1000,1000],[\"premiumPressure\",\"Costs and premium pressure\",700,1200],[\"generationalLabels\",\"Limiting stories and labels of older generations\",2050,950],[\"youthSelfImage\",\"Self-image of young people\",1800,1200],[\"withdrawal\",\"Withdrawal and behaviour\",2200,1250],[\"vulnerability\",\"Showing vulnerability\",2050,450]],\"l\":[[\"emotionSuppression\",\"shortTermFunctioning\",1,0,\"relativeren als coping\"],[\"shortTermFunctioning\",\"copingConfirmation\",1,0,\"\"],[\"copingConfirmation\",\"emotionSuppression\",1,0,\"\"],[\"emotionSuppression\",\"exhaustion\",1,1,\"keeping up an untrue story is tiring\"],[\"exhaustion\",\"shortTermFunctioning\",-1,1,\"\"],[\"exhaustion\",\"dropout\",1,1,\"uitval\"],[\"meaning\",\"sacrifice\",1,0,\"a clear way out\"],[\"sacrifice\",\"progress\",1,0,\"\"],[\"progress\",\"confidence\",1,0,\"\"],[\"confidence\",\"selfDirection\",1,0,\"\"],[\"selfDirection\",\"meaning\",1,0,\"back to the perspective\"],[\"selfDirection\",\"goalOrientation\",1,0,\"the bridge to suppression\"],[\"goalOrientation\",\"emotionSuppression\",1,0,\"flight into goals\"],[\"goalOrientation\",\"goalsAchieved\",1,0,\"\"],[\"goalsAchieved\",\"satisfaction\",1,0,\"\"],[\"satisfaction\",\"goalOrientation\",1,0,\"\"],[\"goalOrientation\",\"bigPicture\",-1,0,\"eyes on the next target\"],[\"bigPicture\",\"meaning\",1,0,\"the bridge to the bigger picture\"],[\"toughNorm\",\"emotionExpression\",-1,0,\"niet aanstellen, niet zeiken\"],[\"toughNorm\",\"visibleComplaints\",-1,0,\"\"],[\"emotionSuppression\",\"emotionExpression\",-1,0,\"\"],[\"emotionExpression\",\"visibleComplaints\",1,0,\"\"],[\"legalFrame\",\"conversationalSafety\",-1,0,\"employers may not discuss complaints\"],[\"insurerDependence\",\"selfDirection\",-1,0,\"\"],[\"insurerDependence\",\"conversationalSafety\",-1,0,\"\"],[\"ageing\",\"selfDirection\",-1,0,\"\"],[\"conversationalSafety\",\"openness\",1,0,\"\"],[\"openness\",\"visibleComplaints\",1,0,\"\"],[\"visibleComplaints\",\"preventionUrgency\",1,0,\"\"],[\"preventionUrgency\",\"systemChange\",1,0,\"\"],[\"systemChange\",\"conversationalSafety\",1,1,\"\"],[\"preventionUrgency\",\"preventionInvestment\",1,0,\"\"],[\"preventionInvestment\",\"dropout\",-1,1,\"\"],[\"dropout\",\"premiumPressure\",1,0,\"\"],[\"premiumPressure\",\"preventionInvestment\",-1,0,\"no room left for prevention\"],[\"generationalLabels\",\"youthSelfImage\",-1,0,\"\"],[\"youthSelfImage\",\"withdrawal\",-1,0,\"\"],[\"withdrawal\",\"generationalLabels\",1,0,\"the label confirmed\"],[\"openness\",\"vulnerability\",1,0,\"\"],[\"vulnerability\",\"generationalLabels\",-1,0,\"kwetsbaarheid inzetten\"]],\"o\":[[\"R1\",\"Coping that confirms itself\",[\"emotionSuppression\",\"shortTermFunctioning\",\"copingConfirmation\"]],[\"B1\",\"An untrue story wears out\",[\"emotionSuppression\",\"exhaustion\",\"shortTermFunctioning\",\"copingConfirmation\"]],[\"R2\",\"Perspective carries the cost\",[\"meaning\",\"sacrifice\",\"progress\",\"confidence\",\"selfDirection\"]],[\"R3\",\"Goals feed goals\",[\"goalOrientation\",\"goalsAchieved\",\"satisfaction\"]],[\"B2\",\"Goals narrow the view\",[\"selfDirection\",\"goalOrientation\",\"bigPicture\",\"meaning\",\"sacrifice\",\"progress\",\"confidence\"]],[\"R4\",\"What is not seen does not change\",[\"conversationalSafety\",\"openness\",\"visibleComplaints\",\"preventionUrgency\",\"systemChange\"]],[\"R5\",\"Prevention pays for prevention\",[\"preventionInvestment\",\"dropout\",\"premiumPressure\"]],[\"R6\",\"Labels that confirm themselves\",[\"generationalLabels\",\"youthSelfImage\",\"withdrawal\"]]]};"
@@ -27,7 +51,7 @@
    "place": "a"
   },
   {
-   "line": 137,
+   "line": 139,
    "count": 1,
    "original": [
     "const links = DATA.l.map(([f, t, s, d, note]) => ({ f: byId[f], t: byId[t], sign: s, delayed: !!d, note, w: 1,"
@@ -35,7 +59,7 @@
    "place": "a"
   },
   {
-   "line": 146,
+   "line": 148,
    "count": 1,
    "original": [
     "const P = { speed: 1, gain: 3, delay: 5, tau: 1.2, density: 3, base: 1.4 };"
@@ -43,7 +67,7 @@
    "place": "f"
   },
   {
-   "line": 149,
+   "line": 151,
    "count": 1,
    "original": [
     "let head = 0, simT = 0, running = true, heatMode = \"backlog\";"
@@ -51,7 +75,7 @@
    "place": "f"
   },
   {
-   "line": 153,
+   "line": 155,
    "count": 3,
    "original": [
     "const SCENARIOS = {",
@@ -66,13 +90,13 @@
    "place": "b"
   },
   {
-   "line": 229,
+   "line": 231,
    "count": 2,
    "original": [],
    "place": "g"
   },
   {
-   "line": 232,
+   "line": 234,
    "count": 2,
    "original": [
     "const COL = k => css.getPropertyValue(k).trim();"
@@ -80,7 +104,7 @@
    "place": "d"
   },
   {
-   "line": 252,
+   "line": 254,
    "count": 1,
    "original": [
     "  const c = [(a[0] + b[0]) / 2 - dy / len * len * 0.12, (a[1] + b[1]) / 2 + dx / len * len * 0.12];"
@@ -88,7 +112,7 @@
    "place": "h"
   },
   {
-   "line": 348,
+   "line": 350,
    "count": 1,
    "original": [
     "    g.fillStyle = n.heat > 0.8 ? \"#1a1205\" : COL(\"--text\"); g.font = FONT; g.textAlign = \"center\"; g.textBaseline = \"top\";"
@@ -96,7 +120,7 @@
    "place": "g"
   },
   {
-   "line": 353,
+   "line": 355,
    "count": 1,
    "original": [
     "    rr(n.x - bw / 2, by, bw * n.level, 7, 3.5); g.fillStyle = n.heat > 0.8 ? \"#1a1205\" : \"#e6edf3\"; g.fill();"
@@ -104,13 +128,13 @@
    "place": "g"
   },
   {
-   "line": 359,
+   "line": 361,
    "count": 2,
    "original": [],
    "place": "i"
   },
   {
-   "line": 367,
+   "line": 369,
    "count": 2,
    "original": [
     "const series = [[\"selfDirection\", \"#58a6ff\"], [\"emotionSuppression\", \"#ff6fae\"], [\"meaning\", \"#3dd6c6\"], [\"exhaustion\", \"#f0883e\"],",
@@ -120,7 +144,7 @@
    "place": "c"
   },
   {
-   "line": 369,
+   "line": 371,
    "count": 1,
    "original": [
     "document.getElementById(\"chartLegend\").innerHTML = series.map(s => `<span><i style=\"background:${s.c}\"></i>${nodes[s.i].label}</span>`).join(\"\")"
@@ -128,7 +152,7 @@
    "place": "d"
   },
   {
-   "line": 402,
+   "line": 404,
    "count": 1,
    "original": [
     "  nodes.filter(n => n.exo).forEach(n => slider(box, n.label, 0, 1, 0.01, n.value, pct, v => { n.value = v; }));"
@@ -136,7 +160,7 @@
    "place": "d"
   },
   {
-   "line": 406,
+   "line": 408,
    "count": 1,
    "original": [
     "  const el = $(id), o = $(id + \"O\"); o.textContent = fmt(+el.value);"
@@ -144,7 +168,7 @@
    "place": "f"
   },
   {
-   "line": 421,
+   "line": 423,
    "count": 3,
    "original": [
     "$(\"heatHint\").textContent = HINTS.backlog;"
@@ -152,7 +176,7 @@
    "place": "f"
   },
   {
-   "line": 431,
+   "line": 433,
    "count": 1,
    "original": [
     "    box.insertAdjacentHTML(\"beforeend\", `<div class=\"title\">${n.label}</div><div class=\"meta\">${n.exo ? \"External: nothing in the diagram moves it.\" :"
@@ -160,7 +184,7 @@
    "place": "d"
   },
   {
-   "line": 442,
+   "line": 444,
    "count": 1,
    "original": [
     "    box.insertAdjacentHTML(\"beforeend\", `<div class=\"title\">${A.label} → ${B.label}</div><div class=\"meta\">${l.sign > 0 ? \"Positive: moves the same way\" : \"Negative: moves the opposite way\"}${l.delayed ? \" &middot; delayed\" : \"\"}${l.note ? `<br>“${l.note}”` : \"\"}</div>`);"
@@ -168,7 +192,7 @@
    "place": "d"
   },
   {
-   "line": 452,
+   "line": 454,
    "count": 1,
    "original": [
     "  $(\"loops\").innerHTML = loops.map((lp, k) => `<div class=\"loop\" data-k=\"${k}\"><span class=\"tag ${lp.kind}\">${lp.id}</span><span class=\"name\">${lp.name}</span><span class=\"bar\"><b></b></span></div>`).join(\"\");"
@@ -176,7 +200,21 @@
    "place": "d"
   },
   {
-   "line": 497,
+   "line": 459,
+   "count": 1,
+   "original": [
+    "    el.addEventListener(\"click\", () => { pinnedLoop = pinnedLoop === lp ? null : lp; for (const x of $(\"loops\").children) x.classList.toggle(\"on\", loops[+x.dataset.k] === pinnedLoop); });"
+   ],
+   "place": "j"
+  },
+  {
+   "line": 462,
+   "count": 7,
+   "original": [],
+   "place": "j"
+  },
+  {
+   "line": 506,
    "count": 1,
    "original": [
     "  if (hover.lines) tip.innerHTML = `<b>${hover.label}</b><br>Level ${pct(hover.level)}${hover.exo ? \"\" : ` &rarr; heading for ${pct(hover.target)}`}<br><span class=\"muted\">In transit towards it: ${hover.backlog} &middot; arriving ${hover.thr.toFixed(1)}/s</span>`;"
@@ -184,7 +222,7 @@
    "place": "d"
   },
   {
-   "line": 498,
+   "line": 507,
    "count": 1,
    "original": [
     "  else tip.innerHTML = `<b>${nodes[hover.f].label} &rarr; ${nodes[hover.t].label}</b> <span style=\"color:${hover.sign > 0 ? COL(\"--pos\") : COL(\"--neg\")}\">${hover.sign > 0 ? \"+\" : \"−\"}</span>${hover.delayed ? \" &middot; delayed\" : \"\"}${hover.note ? `<br><i>“${hover.note}”</i>` : \"\"}<br><span class=\"muted\">${hover.parts.length} dots in transit</span>`;"
@@ -192,7 +230,13 @@
    "place": "d"
   },
   {
-   "line": 515,
+   "line": 511,
+   "count": 1,
+   "original": [],
+   "place": "j"
+  },
+  {
+   "line": 525,
    "count": 1,
    "original": [
     "layoutNodes(); relayout(); applyScenario(\"Status quo\"); resetSim(); buildLoops(); onResize(); fit();"

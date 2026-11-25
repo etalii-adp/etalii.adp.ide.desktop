@@ -54,7 +54,9 @@ aside h2 { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; co
 #sel .btns { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
 .loop { display: grid; grid-template-columns: 30px 1fr 54px; gap: 8px; align-items: center; padding: 5px 6px;
   border-radius: 6px; cursor: pointer; border: 1px solid transparent; }
-.loop:hover, .loop.on { background: var(--panel2); border-color: var(--line); }
+.loop:hover { background: var(--panel2); border-color: var(--line); }
+.loop.on { background: var(--panel2); border-color: var(--accent); }
+#loopsClear { float: right; margin-top: -4px; padding: 1px 8px; font-size: 11px; letter-spacing: 0; text-transform: none; }
 .loop .tag { font-weight: 700; font-size: 12px; text-align: center; border-radius: 4px; padding: 1px 0; }
 .loop .tag.R { background: rgba(61,214,198,.15); color: var(--pos); }
 .loop .tag.B { background: rgba(255,111,174,.15); color: var(--neg); }
@@ -121,9 +123,9 @@ aside h2 { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; co
     <h2>Selection</h2>
     <div id="sel"><div class="meta">Click a variable or a link to change it. Drag a variable to move it, drag the background to pan, scroll to zoom.</div></div>
 
-    <h2>Loops</h2>
+    <h2>Loops <button id="loopsClear" title="Let go of the pinned loop (Esc)" hidden>Clear</button></h2>
     <div id="loops"></div>
-    <p class="hint">Bar: loop gain, the product of each link's local sensitivity. Above 1 a reinforcing loop runs away; hover a loop to trace it.</p>
+    <p class="hint">Bar: loop gain, the product of each link's local sensitivity. Above 1 a reinforcing loop runs away; hover a loop to trace it, click it to pin it, and click it again, press Esc or click the background to let it go.</p>
   </aside>
 </main>
 <script>
@@ -454,9 +456,16 @@ function buildLoops() {
     const lp = loops[+el.dataset.k];
     el.addEventListener("mouseenter", () => { hoverLoop = lp; });
     el.addEventListener("mouseleave", () => { hoverLoop = null; });
-    el.addEventListener("click", () => { pinnedLoop = pinnedLoop === lp ? null : lp; for (const x of $("loops").children) x.classList.toggle("on", loops[+x.dataset.k] === pinnedLoop); });
+    el.addEventListener("click", () => pinLoop(pinnedLoop === lp ? null : lp));
   }
 }
+function pinLoop(lp) { // the hovered row stops tracing too, so letting go shows at once
+  pinnedLoop = lp; hoverLoop = lp;
+  for (const x of $("loops").children) x.classList.toggle("on", loops[+x.dataset.k] === pinnedLoop);
+  $("loopsClear").hidden = !pinnedLoop;
+}
+$("loopsClear").addEventListener("click", () => pinLoop(null));
+document.addEventListener("keydown", e => { if (e.key === "Escape" && pinnedLoop) pinLoop(null); });
 function updateLoops() {
   const els = $("loops").children;
   loops.forEach((lp, k) => { const b = els[k].querySelector("b"); b.style.width = Math.min(100, lp.gain / 1.5 * 100) + "%";
@@ -499,6 +508,7 @@ gc.addEventListener("pointermove", e => {
 });
 gc.addEventListener("pointerup", () => {
   if (drag && !drag.moved) { selected = drag.hit || null; renderSel(); }
+  if (drag && !drag.moved && !drag.hit && pinnedLoop) pinLoop(null);
   drag = null; gc.classList.remove("dragging");
 });
 gc.addEventListener("pointerleave", () => { tip.style.display = "none"; });

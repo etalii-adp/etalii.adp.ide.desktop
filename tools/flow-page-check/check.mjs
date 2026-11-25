@@ -161,8 +161,37 @@ const steps = (page, n) => page.evaluate(n => { running = false; for (let i = 0;
   await page.mouse.move(5, 5);
   await page.click("#loops .loop");
   check("clicking pins it", await page.evaluate(() => pinnedLoop === loops[0]));
+  const rowLook = () => page.evaluate(() => getComputedStyle(document.querySelector("#loops .loop")).borderColor);
+  const pinnedLook = await rowLook();
+  check("pinning shows the Clear button", await page.isVisible("#loopsClear"));
   await page.click("#loops .loop");
   check("a second click lets it go", await page.evaluate(() => pinnedLoop === null));
+  // The pointer is still on the row: the loop must no longer be traced, nor its row look pinned (FR-035 (j)).
+  check("and it is no longer traced while the pointer stays on its row", await page.evaluate(() => activeLoop() === null && !document.querySelector("#loops .loop.on")));
+  check("and its row, still hovered, no longer looks pinned", (await rowLook()) !== pinnedLook, pinnedLook);
+  check("letting go hides the Clear button", !(await page.isVisible("#loopsClear")));
+  await page.click("#loops .loop");
+  await page.click("#loopsClear");
+  check("the Clear button lets a pinned loop go", await page.evaluate(() => pinnedLoop === null && activeLoop() === null));
+  await page.click("#loops .loop");
+  await page.keyboard.press("Escape");
+  check("Esc lets a pinned loop go", await page.evaluate(() => pinnedLoop === null));
+  await page.click("#loops .loop");
+  const empty = await page.evaluate(() => {
+    const r = gc.getBoundingClientRect();
+    for (let y = r.top + 5; y < r.bottom; y += 7) for (let x = r.left + 5; x < r.right; x += 7) {
+      const [wx, wy] = [(x - r.left - view.x) / view.s, (y - r.top - view.y) / view.s];
+      if (!pick(wx, wy)) return [x, y];
+    }
+    return null;
+  });
+  await page.mouse.click(empty[0], empty[1]);
+  check("a click on the background lets a pinned loop go", await page.evaluate(() => pinnedLoop === null));
+  await page.click("#loops .loop");
+  const onVariable = await page.evaluate(() => { const r = gc.getBoundingClientRect(), n = nodes[0]; return [r.left + view.x + n.x * view.s, r.top + view.y + n.y * view.s]; });
+  await page.mouse.click(onVariable[0], onVariable[1]);
+  check("a click on a variable keeps the pinned loop", await page.evaluate(() => pinnedLoop === loops[0] && selected === nodes[0]));
+  await page.evaluate(() => pinLoop(null));
 
   // Every control changes the state it names, and nothing leaves the page (FR-017, FR-019).
   for (const [id, key, value] of [["speed", "speed", 2], ["gain", "gain", 5], ["delay", "delay", 3], ["tau", "tau", 1], ["density", "density", 2]]) {
