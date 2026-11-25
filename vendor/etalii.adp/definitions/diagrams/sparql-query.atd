@@ -333,6 +333,11 @@ diagram w3c/sparql version "2.0.0" {
       attribute attachedTo: string {
         derived: (self.constraintKind == 'bind' ? 'var:' + self.definedVariable : (self.constraintKind == 'values' && self.referencedVariables.size() > 0 ? 'var:' + self.referencedVariables[0] : (self.scope.contains('/') ? 'region:' + self.scope : '')))
       }
+      /// The ids of what it is drawn beside: what it is attached to, else at the root every variable and term of the
+      /// where clause's own, above which a root `FILTER` floats.
+      attribute drawnBeside: string many {
+        derived: (self.attachedTo != '' ? [self.attachedTo] : diagram.nodes.filter(n, (n.isA('Variable') || n.isA('Term')) && n.parent == null).map(n, n.id))
+      }
     }
 
     /// One triple pattern: an edge from its subject to its object, labelled with the predicate or the property path as
@@ -519,6 +524,14 @@ diagram w3c/sparql version "2.0.0" {
   fn drawOrder(e: Element) -> list {
     // uses: ['diagram']
     return e.isA('Scope') ? [0, scopeRank(e.path)] : e.isA('Variable') ? [1, 0, e.firstScope, e.name] : e.isA('SubQuery') ? [1, 2, scopeRank(e.scope), e.ordinal] : e.isA('Term') ? [1, 1, e.firstMention] : e.isA('TriplePattern') ? [2, 0, e.positionIn(diagram.relationsOfType('TriplePattern'))] : e.isA('ProjectedJoin') ? [2, 1, e.positionIn(diagram.relationsOfType('ProjectedJoin'))] : [3, scopeRank(e.scope), e.positionIn(diagram.nodesOfType('Annotation').filter(a, a.scope == e.scope))]
+  }
+
+  /// `drawOrder` as one number, which the layout's `sequence` reads: the regions by `walkScopes()`; then the variables
+  /// by the scope of their first mention and then by name, by code point; the terms in the order they are first
+  /// mentioned; the subqueries scope by scope; anything else last.
+  fn layoutSequence(e: Element) -> int {
+    // uses: ['diagram']
+    return e.isA('Scope') ? scopeRank(e.path) : e.isA('Variable') ? 100000 + diagram.nodesOfType('Variable').map(v, v.firstScope + ' ' + v.name).sort().indexOf(e.firstScope + ' ' + e.name) : e.isA('SubQuery') ? 300000 + 1000 * scopeRank(e.scope) + e.ordinal : e.isA('Term') ? 200000 + e.firstMention : 900000
   }
 
   // ---------------------------------------------------------------- Constraints

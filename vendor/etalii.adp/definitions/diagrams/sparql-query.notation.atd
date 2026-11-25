@@ -236,6 +236,13 @@ notation {
     shape text
     style: hint
     size: { default: [120, 14], resizable: false }
+    placement: {
+      x: (self.drawnBeside.map(m, m.view.bounds.center()[0]).avg())
+      y: (self.drawnBeside.map(m, m.view.bounds.center()[1]).avg())
+      anchor: center
+      movable: false
+      doc: "A badge has no place of its own: it is drawn over what it is attached to, and moves with it; the module's offsets are its painting (ATD §2.3)."
+    }
     layer: foreground
     deletable: false
     copyable: false
@@ -529,6 +536,11 @@ layout {
     padding: 36
     labelBand: 30
     origin: [40, 90]
+    /// A scope is a region whether or not it holds a node: an empty group is still drawn as its frame.
+    container: (self.isA('Scope'))
+    /// The variables by the scope of their first mention and then by name, the terms in the order they are first
+    /// mentioned, then the subqueries scope by scope, as the tool places them (`drawOrder`).
+    sequence: (layoutSequence(self))
   }
   trigger: always
   respect: all
