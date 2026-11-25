@@ -745,6 +745,7 @@ fn read_insert(ins: &Json) -> InsertSettings {
         container: s(ins, "container"),
         create,
         keys: strings(ins, "keys"),
+        new_keys_after_first: s(ins, "newKeys").as_deref() == Some("after-first"),
         emit: s(ins, "emit"),
         skeleton: s(ins, "skeleton"),
         when: s(ins, "when"),

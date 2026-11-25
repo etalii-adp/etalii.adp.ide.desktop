@@ -437,7 +437,16 @@ impl Family {
                 }
             }
         }
-        let offset = if let Some(before) = before {
+        // FBL 0.24: with `newKeys: after-first`, on the line right after the entry's first key, whatever the key.
+        let after_first = change.binding.child.is_none()
+            && self
+                .rule(change.rule)
+                .insert
+                .as_ref()
+                .is_some_and(|i| i.new_keys_after_first);
+        let offset = if after_first {
+            self.line_end_after(entries[0])
+        } else if let Some(before) = before {
             self.line_end_after(before)
         } else if change.binding.create.as_ref().is_some_and(|c| c.at_end) {
             // FBL 0.4, section 5.2: with no key of the rule before it, the mapping's first key.

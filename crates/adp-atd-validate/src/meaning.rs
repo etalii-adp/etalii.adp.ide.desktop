@@ -99,6 +99,30 @@ fn comparable(
     names
 }
 
+/// Whether `stated`, as a case states a value of the enumeration attribute `name` of `type_name`, is the value the
+/// description read, `read`, by its label rather than its key (ATD §2.3, Peter's choice of 2026-11-25).
+fn same_enumeration_value(
+    specification: &DislSpecification,
+    type_name: &str,
+    name: &str,
+    stated: &str,
+    read: &str,
+) -> bool {
+    let metamodel = specification.metamodel();
+    let Some(attribute) = metamodel
+        .type_of(type_name)
+        .and_then(|t| t.attributes.get(name).cloned())
+    else {
+        return false;
+    };
+    metamodel.enums.get(&attribute.type_name).is_some_and(|enumeration| {
+        enumeration
+            .values
+            .iter()
+            .any(|value| value.key == read && value.label.as_deref() == Some(stated))
+    })
+}
+
 /// One attribute as a reading states it: the text, an absent one the empty text.
 fn text_of<'a>(attributes: &'a Json, name: &str) -> &'a str {
     attributes[name].as_str().unwrap_or_default()
@@ -139,7 +163,7 @@ pub fn reading_differences(specification: &DislSpecification, reading: &Reading)
                 text_of(&want["attributes"], &recorded),
                 text_of(&got["attributes"], &name),
             );
-            if w != g {
+            if w != g && !same_enumeration_value(specification, got["type"].as_str().unwrap_or_default(), &name, w, g) {
                 differences.push((
                     format!("{id} {name}: {w:?}"),
                     format!("{id} {name}: {g:?}"),
