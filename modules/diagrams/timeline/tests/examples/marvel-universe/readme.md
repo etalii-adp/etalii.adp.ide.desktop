@@ -1,6 +1,6 @@
 # The Marvel universe
 
-A large timeline: 428 events of the Marvel Cinematic Universe's story, from the Eternals defending ancient India to the Fantastic Four's ship arriving, in story order, with 479 connections. Open `marvel-universe.adp`; nothing needs configuring first. For a first look, open [`../marvel-universe-overview/`](../marvel-universe-overview/) instead: the 47 key events on one screen.
+A large timeline: 428 events of the Marvel Cinematic Universe's story, from the Eternals defending ancient India to the Fantastic Four's ship arriving, in story order, with 487 connections. Open `marvel-universe.adp`; nothing needs configuring first. For a first look, open [`../marvel-universe-overview/`](../marvel-universe-overview/) instead: the 47 key events on one screen.
 
 ## What it shows
 
@@ -8,11 +8,12 @@ Only what happens inside the story world, across every saga and era: origins, th
 
 - **Each box is as long as its label needs.** The label's width was measured at the canvas's 12-unit text in the widest of the fonts a host may draw it with, plus room for the box's ends, so no label is cut short.
 - **Time runs left to right, but the dates mean nothing.** The ruler's years are only a scale.
-- **As many connections as possible run left to right**, from the right end of one box to the left end of the next: 401 of the 479. The whole timeline is about six boxes wide, so a longer chain has to start again further left, and those 78 connections run backwards. The places were found by a search that keeps the count of left-to-right connections as high as it can.
-- **Rows only stack boxes.** A box goes on the row of an event it follows from where there is room, so a chain tends to stay on one line, and the story reads roughly from top to bottom.
+- **As few connections as possible cross.** The places were found by a search that first keeps lines from crossing and out of other boxes, then puts an event with a single connection right beside the event it connects to: before it when that event comes later, after it when it came earlier. 75 of the 91 such events sit there; the rest sit as close as the other events allow.
+- **As many connections as possible run left to right**, from the right end of one box to the left end of the next: 344 of the 487. The whole timeline is about six boxes wide, so a longer chain has to start again further down, and those 143 connections loop back.
+- **Every event has at least one connection, and rows only stack boxes.** Related events sit on neighbouring rows, so the story reads roughly from top to bottom.
 - **A connection leads from an event to one that follows from it**: a cause, or the next step of the same character's story.
 
-**Read it by zooming in at the top left and scrolling down.** Fitted to the view, the drawing is a tall column of 114 rows.
+**Read it by zooming in at the top left and scrolling down.** Fitted to the view, the drawing is a tall column of 122 rows.
 
 ## How it was made
 
