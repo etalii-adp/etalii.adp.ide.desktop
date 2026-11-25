@@ -528,6 +528,16 @@ fn nested_grid(cases: &Path) -> Result<Vec<PathBuf>, String> {
                 positions.insert(id.to_owned(), json!({ "x": round2(x), "y": round2(y) }));
             }
         }
+        let mut sizes = Map::new();
+        for node in &nodes {
+            let id = node["id"].as_str().unwrap_or_default();
+            if let Some(frame) = placed.region_bounds.get(id) {
+                sizes.insert(
+                    id.to_owned(),
+                    json!({ "width": round2(frame.width), "height": round2(frame.height) }),
+                );
+            }
+        }
         let short = name.rsplit('/').next().unwrap_or(&name);
         let fixture = json!({
             "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
@@ -536,7 +546,7 @@ fn nested_grid(cases: &Path) -> Result<Vec<PathBuf>, String> {
             ),
             "input": { "nodes": nodes, "edges": [] },
             "args": { "columns": 3, "columnGap": 60, "rowGap": 48, "padding": 36, "labelBand": 30, "origin": [40, 90] },
-            "output": { "positions": positions },
+            "output": if sizes.is_empty() { json!({ "positions": positions }) } else { json!({ "positions": positions, "sizes": sizes }) },
         });
         let file = cases.join(format!("{short}.json"));
         write_json(&file, &fixture)?;

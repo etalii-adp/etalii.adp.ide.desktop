@@ -273,6 +273,20 @@ fn a_drawings_type_shape_labels_style_chrome_and_order_are_the_modules_painting(
     assert_eq!(drawing_difference(&drawing(0.0, "b"), &painted), None);
 }
 
+/// A badge the module paints at zero size beside another element is compared by its presence alone (ATD §2.3, Peter's
+/// choice of 2026-11-25): anywhere, at any size, it is the same; left out, it differs.
+#[test]
+fn a_badge_drawn_at_zero_size_is_compared_by_presence() {
+    let mut badge = drawing(0.0, "b");
+    badge["elements"][0]["bounds"] = json!({"x": 270, "y": 88, "w": 0, "h": 0});
+    let mut placed = drawing(0.0, "b");
+    placed["elements"][0]["bounds"] = json!({"x": 300, "y": 120, "w": 120, "h": 14});
+    assert_eq!(drawing_difference(&badge, &placed), None);
+    let mut absent = drawing(0.0, "b");
+    absent["elements"] = json!([]);
+    assert_eq!(drawing_difference(&badge, &absent).expect("no badge").2, "a");
+}
+
 /// The mind map's case `example-1`, read only.
 fn read_only() -> Case {
     let dir = diagrams().join("conformance/mindmap/example-1");

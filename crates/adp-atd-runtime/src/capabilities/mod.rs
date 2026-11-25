@@ -56,8 +56,14 @@ pub trait LayoutCapability {
         true
     }
 
+    /// The size the capability gives each node it resizes, by id (`$defs/LayoutResult`'s `sizes`): none by default.
+    fn sizes(&self, input: &Json, args: &Json) -> Result<Vec<(String, f64, f64)>, String> {
+        let _ = (input, args);
+        Ok(Vec::new())
+    }
+
     /// `$defs/LayoutResult` for `input` and the capability's `args`, the defaults filling what `args` leaves out: the
-    /// corners rounded to 0.01, as the contract states.
+    /// corners rounded to 0.01, as the contract states, and the sizes it gives where it gives any.
     fn layout(&self, input: &Json, args: &Json) -> Result<Json, String> {
         let positions: Map<String, Json> = self
             .place(input, args)?
@@ -69,7 +75,18 @@ pub trait LayoutCapability {
                 )
             })
             .collect();
-        Ok(json!({ "positions": positions }))
+        let sizes: Map<String, Json> = self
+            .sizes(input, args)?
+            .into_iter()
+            .map(|(id, width, height)| {
+                let round = two_sided_tree::round2;
+                (id, json!({"width": round(width), "height": round(height)}))
+            })
+            .collect();
+        if sizes.is_empty() {
+            return Ok(json!({ "positions": positions }));
+        }
+        Ok(json!({ "positions": positions, "sizes": sizes }))
     }
 }
 
