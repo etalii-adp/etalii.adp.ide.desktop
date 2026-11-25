@@ -14,9 +14,7 @@
 //!   placement command sets them);
 //! - [`findings`]: the findings named by the ids the file writes, in the tool's order and at the tool's places;
 //! - no edit, whichever gesture or operation makes it, writes a node that depends on itself
-//!   (`ConnectDependencyGraphElementsCommandHandler.cs`: "A node cannot depend on itself.");
-//! - `dependency-graph.fbl` beside this crate: the standalone host's binding with links (etalii.adp spec 089), the
-//!   top-level `id` and the linked nodes, which the binding the specification names does not have yet.
+//!   (`ConnectDependencyGraphElementsCommandHandler.cs`: "A node cannot depend on itself.").
 
 pub mod ends;
 pub mod findings;
@@ -53,11 +51,6 @@ pub fn register(tools: DiagramTools) -> DiagramTools {
 impl DiagramModule for DependencyGraphModule {
     fn plugin_functions(&self) -> DislPluginFunctions {
         ends::plugin_functions()
-    }
-
-    /// The standalone host's `dependency-graph.fbl` with links (spec 089), which that binding does not have yet.
-    fn binding(&self) -> Option<&'static [u8]> {
-        Some(include_bytes!("../dependency-graph.fbl"))
     }
 
     fn position(&self, element: &DislElement) -> Option<(f64, f64)> {

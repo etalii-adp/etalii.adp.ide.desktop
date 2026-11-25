@@ -17,9 +17,7 @@
 //! - an element's computed label renamed through its `label` attribute, as the module's own rename wrote it;
 //! - giving a moment an end and removing a period's end written as the change of `end` alone: the binding tells a
 //!   period from a moment by its `end` key, so the operations' `retype` is that change and is not written apart;
-//! - no edit, whichever gesture, form or operation makes it, writes an element that ends before it begins;
-//! - `timeline.fbl` beside this crate: the standalone host's binding with links (etalii.adp spec 089), the top-level
-//!   `id` and the linked periods and moments, which the binding the specification names does not have yet.
+//! - no edit, whichever gesture, form or operation makes it, writes an element that ends before it begins.
 
 pub mod arrangement;
 pub mod instants;
@@ -54,11 +52,6 @@ pub fn module() -> Rc<dyn DiagramModule> {
 impl DiagramModule for TimelineModule {
     fn plugin_functions(&self) -> DislPluginFunctions {
         times::plugin_functions()
-    }
-
-    /// The standalone host's `timeline.fbl` with links (spec 089), which that binding does not have yet.
-    fn binding(&self) -> Option<&'static [u8]> {
-        Some(include_bytes!("../timeline.fbl"))
     }
 
     fn position(&self, element: &DislElement) -> Option<(f64, f64)> {
