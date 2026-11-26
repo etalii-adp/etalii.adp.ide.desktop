@@ -373,7 +373,23 @@ fn at_lines(replay: &Replay, expected: &Json, findings: Vec<Json>, from_module: 
             let Some(id) = finding["element"].as_str() else {
                 return finding;
             };
-            let Some(line) = document.fbl().elements.iter().find(|e| e.id == id).map(|e| e.line) else {
+            // An element the binding reads under an id of its own (a Sankey flow, whose id the description derives) is
+            // found by the model's id.
+            let line = document
+                .fbl()
+                .elements
+                .iter()
+                .find(|e| e.id == id)
+                .map(|e| e.line)
+                .or_else(|| {
+                    document
+                        .model()
+                        .diagram
+                        .element_by_id(id)
+                        .and_then(|e| e.line())
+                        .and_then(|l| usize::try_from(l).ok())
+                });
+            let Some(line) = line else {
                 return finding;
             };
             let mut at_line = finding.clone();
@@ -401,6 +417,18 @@ fn chrome_ids(specification: &Json) -> BTreeSet<String> {
         .filter_map(|(_, block)| block.get("elements")?.as_object())
         .flat_map(|elements| elements.values().filter_map(Json::as_str).map(str::to_owned))
         .collect()
+}
+
+/// Whether the description's wire-id block says the module's moves by a distance start at a node's centre (`x-<prefix>`
+/// with `moves: { from: centre }`, ATD §2.3): a Sankey module gives a node's place as its centre and reads the place a
+/// move gives as its top left.
+fn moves_from_centre(specification: &Json) -> bool {
+    specification
+        .as_object()
+        .into_iter()
+        .flatten()
+        .filter(|(key, _)| key.starts_with("x-"))
+        .any(|(_, block)| block["moves"]["from"] == "centre")
 }
 
 /// A case's list of elements without those that stand for chrome.
@@ -1210,9 +1238,18 @@ impl Replay {
                 }
                 None => place,
             };
+            // A module whose distance moves start at a node's centre, as its wire-id block says (`moves: { from:
+            // centre }`), took the drop that far from there (ATD §2.3).
+            let half = |size: &str| {
+                if moves_from_centre(self.tool.definition.specification().root()) {
+                    bounds[size].as_f64().unwrap_or(0.0) / 2.0
+                } else {
+                    0.0
+                }
+            };
             let (x, y) = (
-                corner("x", "w", element.x) + distance("dx"),
-                corner("y", "h", element.y) + distance("dy"),
+                corner("x", "w", element.x) + half("w") + distance("dx"),
+                corner("y", "h", element.y) + half("h") + distance("dy"),
             );
             return self.session.move_element_to(&mut self.workspace, id, x, y);
         }

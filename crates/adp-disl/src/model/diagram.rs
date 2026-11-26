@@ -167,6 +167,11 @@ impl DislDiagram {
         *self.0.layout_values.borrow_mut() = values;
     }
 
+    /// Every number the default layout gave the elements, by element and name.
+    pub fn layout_values(&self) -> HashMap<String, HashMap<String, f64>> {
+        self.0.layout_values.borrow().clone()
+    }
+
     /// The number the default layout gave element `id` under `name`, if it gave one.
     pub fn layout_value(&self, id: &str, name: &str) -> Option<f64> {
         self.0.layout_values.borrow().get(id)?.get(name).copied()

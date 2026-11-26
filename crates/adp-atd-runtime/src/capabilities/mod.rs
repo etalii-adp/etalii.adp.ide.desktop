@@ -6,6 +6,7 @@
 pub mod banded_grid;
 pub mod banded_layers;
 pub mod bands;
+pub mod crossing_order;
 pub mod depth_columns;
 pub mod flow_relaxation;
 pub mod forward_bezier;
@@ -417,6 +418,9 @@ impl Capabilities {
         capabilities
             .layouts
             .insert("layout.flowRelaxation", Rc::new(flow_relaxation::FlowRelaxation));
+        capabilities
+            .layouts
+            .insert("layout.crossingOrder", Rc::new(crossing_order::CrossingOrder));
         capabilities
             .layouts
             .insert("layout.nestedGrid", Rc::new(nested_grid::NestedGrid));
