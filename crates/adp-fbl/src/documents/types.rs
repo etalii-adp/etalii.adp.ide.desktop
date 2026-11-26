@@ -636,6 +636,9 @@ pub struct InsertSettings {
     /// *(FBL 0.24)* yaml: a key a set adds to an existing entry goes right after the entry's first key (`newKeys:
     /// after-first`), rather than at its place in `keys` (FBL section 6.2).
     pub new_keys_after_first: bool,
+    /// *(FBL 0.8)* yaml, json: the keys every new entry of the rule is written with and no attribute supplies, with
+    /// their scalars, in the order `constant` lists them (FBL section 6.2).
+    pub constant: Vec<(String, serde_json::Value)>,
     pub emit: Option<String>,
     pub skeleton: Option<String>,
     pub when: Option<String>,

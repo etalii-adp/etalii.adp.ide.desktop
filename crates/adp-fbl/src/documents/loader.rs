@@ -746,6 +746,11 @@ fn read_insert(ins: &Json) -> InsertSettings {
         create,
         keys: strings(ins, "keys"),
         new_keys_after_first: s(ins, "newKeys").as_deref() == Some("after-first"),
+        constant: ins
+            .get("constant")
+            .and_then(Json::as_object)
+            .map(|c| c.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
+            .unwrap_or_default(),
         emit: s(ins, "emit"),
         skeleton: s(ins, "skeleton"),
         when: s(ins, "when"),

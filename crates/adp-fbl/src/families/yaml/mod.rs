@@ -1086,9 +1086,26 @@ impl Family {
             }
             if let Some((value, binding)) = self.yaml_wire_value(plan, request, &key) {
                 members.push(NewMember::Value { key, value, binding });
+            } else if let Some((_, constant)) = insert.constant.iter().find(|(k, _)| *k == key) {
+                // FBL 0.8: a constant's key that `keys` names takes that place.
+                members.push(NewMember::Value {
+                    key,
+                    value: constant_value(constant),
+                    binding: None,
+                });
             }
         }
         members.extend(levels);
+        // Every other constant follows the entry's other keys, in the order `constant` lists them.
+        for (key, constant) in &insert.constant {
+            if !members.iter().any(|m| m.key() == key) {
+                members.push(NewMember::Value {
+                    key: key.clone(),
+                    value: constant_value(constant),
+                    binding: None,
+                });
+            }
+        }
         Ok(members)
     }
 
@@ -1339,3 +1356,16 @@ pub(crate) fn container_of(at: Option<&str>) -> String {
 #[cfg(test)]
 #[path = "flow_tests.rs"]
 mod tests;
+
+/// A constant of an insert (FBL 0.8) as the value a new key is written with: a string, a number, a bool or null.
+fn constant_value(constant: &serde_json::Value) -> Value {
+    match constant {
+        serde_json::Value::String(text) => Value::from(text.as_str()),
+        serde_json::Value::Bool(flag) => Value::Bool(*flag),
+        serde_json::Value::Number(number) => match number.as_i64() {
+            Some(whole) => Value::Int(whole),
+            None => Value::Double(number.as_f64().unwrap_or_default()),
+        },
+        _ => Value::Null,
+    }
+}
