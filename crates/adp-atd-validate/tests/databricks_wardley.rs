@@ -65,42 +65,17 @@ const QUIRKS: [(&str, &[&str]); 7] = [
             "4:refused",
         ],
     ),
-    // Three things together, a quirk of the module's by Peter's ruling (spec 067), and the case stays as recorded. The case's moves are in the module's units, the unit square, where the description's canvas
-    // and the case's own drawing are 1000 units a side, so the bytes differ from the first move on. A rename gives the
-    // module's links new ids where FBL 8.6 keeps them ("the ids stay", its fixture `wardley-rename-identity`), so step 15
-    // names a link the description knows by its old id. And the module draws a note and an accelerator at size 0, as
-    // their label alone, with no box.
+    // A rename gives the module's links new ids where FBL 8.6 keeps them ("the ids stay", its fixture
+    // `wardley-rename-identity`), a quirk of the module's by Peter's ruling (spec 067), and the case stays as recorded:
+    // from step 11 on the drawing names those links by ids the description does not have, step 15 sets a property of
+    // one of them, and the bytes differ from there. The case's moves are in canvas units and the module's zero-size
+    // notes and accelerators are compared by presence (ATD §2.3, Peter's choices of 2026-11-25), so steps 1 to 10 pass.
     (
         "wardley-map/strategy-vocabulary",
         &[
-            "read:drawing",
-            "1:bytes",
-            "1:drawing",
-            "2:bytes",
-            "2:drawing",
-            "3:bytes",
-            "3:drawing",
-            "4:bytes",
-            "4:drawing",
-            "5:bytes",
-            "5:drawing",
-            "6:bytes",
-            "6:drawing",
-            "7:bytes",
-            "7:drawing",
-            "8:bytes",
-            "8:drawing",
-            "9:bytes",
-            "9:drawing",
-            "10:bytes",
-            "10:drawing",
-            "11:bytes",
             "11:drawing",
-            "12:bytes",
             "12:drawing",
-            "13:bytes",
             "13:drawing",
-            "14:bytes",
             "14:drawing",
             "15:bytes",
             "15:drawing",

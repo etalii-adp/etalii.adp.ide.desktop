@@ -29,6 +29,17 @@ pub fn scene_of(
     adp_drawing::notation_scene(session, documents, elements)
 }
 
+/// The canvas units of one unit a tool type's module takes a gesture's place in: a Wardley map's module places in the
+/// map's 0..1 space, drawn on a square of [`crate::canvas::wardley_scene::SPACE`] canvas units; every other module in
+/// canvas units. A case states a place in canvas units, as its drawing does (ATD §2.3).
+pub fn gesture_scale(origin: &str) -> f64 {
+    if origin == "wardley/map" {
+        crate::canvas::wardley_scene::SPACE
+    } else {
+        1.0
+    }
+}
+
 /// The drawing of an open diagram: the scene [`scene_of`] takes, recorded.
 pub fn drawing_of(
     origin: &str,

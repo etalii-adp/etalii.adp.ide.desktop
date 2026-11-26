@@ -242,6 +242,8 @@ struct ScaledPlacement {
     opposite: Option<(ScaledAxis, ScaledAxis)>,
     /// The second point's axis of each of x and y where the placement states one (`x2`, `y2`).
     seconds: Vec<(bool, ScaledAxis)>,
+    /// Whether the point is the node's centre (`anchor: center`), rather than its top-left.
+    centred: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -419,6 +421,7 @@ fn scaled_placements(specification: &Json) -> HashMap<String, ScaledPlacement> {
                     .into_iter()
                     .filter_map(|(on_x, name)| Some((on_x, axis(placement, system, name)?)))
                     .collect(),
+                centred: placement["anchor"] == "center",
             };
             let scales = |axis: &ScaledAxis| axis.scale != 1.0 || axis.time.is_some() || axis.origin != 0.0;
             (scales(&scaled.x) || scales(&scaled.y)).then(|| (name.clone(), scaled))
@@ -904,6 +907,14 @@ impl DiagramModule for RuntimeModule {
                 (y2.canvas(element) - placement.y.canvas(element)).abs(),
             ));
         }
+        // A point that is the node's centre places the node around it, at its stated size (a Wardley map's component).
+        if self
+            .scaled
+            .get(&element.type_name())
+            .is_some_and(|placement| placement.centred)
+        {
+            return Some(Self::stated_size(element));
+        }
         // A node its layout resized is drawn at the size the layout gave it.
         if let Some(size) = self
             .resized
@@ -955,6 +966,13 @@ impl DiagramModule for RuntimeModule {
     /// What a gesture to a canvas point writes of a node on an axis with a `scale`: the values the point means.
     fn placement(&self, element: &DislElement, x: f64, y: f64) -> Option<Result<ModulePlacement, String>> {
         let placement = self.scaled.get(&element.type_name())?;
+        // A gesture places a node by its top-left; a node whose point is its centre is placed around it.
+        let (x, y) = if placement.centred {
+            let (width, height) = Self::stated_size(element);
+            (x + width / 2.0, y + height / 2.0)
+        } else {
+            (x, y)
+        };
         let specification = element.diagram().specification();
         let canvas = |axis: &ScaledAxis, value: &Value| axis.at(element, value.as_number().unwrap_or_default());
         let bounds =
