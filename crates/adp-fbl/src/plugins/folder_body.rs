@@ -156,9 +156,15 @@ impl FolderBody {
                             }
                         })
                         .collect();
+                    // FBL 0.26: with `body.listing`, the folder's listing as the held files give it.
+                    let listing = if binding.body.listing {
+                        routing::held_listing(binding, &names)
+                    } else {
+                        Vec::new()
+                    };
                     let result = plugin.read(&PluginReadRequest {
                         files: handed,
-                        supplementary_entries: Vec::new(),
+                        supplementary_entries: listing,
                     });
                     let findings = located(&result);
                     PluginReadResult { findings, ..result }

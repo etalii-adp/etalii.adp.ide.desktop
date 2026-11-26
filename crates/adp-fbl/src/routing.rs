@@ -328,6 +328,35 @@ pub fn listing(binding: &FblBinding, folder: &Path) -> Vec<String> {
     listed
 }
 
+/// *(FBL 0.26)* [`listing`] of a folder held in memory, its files by their relative, `/`-separated paths: every folder
+/// that holds one of them, with a trailing `/`, and every file the file rules do not select, `ignore` excluded, in
+/// ordinal order.
+pub fn held_listing(binding: &FblBinding, files: &[String]) -> Vec<String> {
+    let caseless = platform_ignores_case();
+    let selected: std::collections::HashSet<String> = held_files(binding, Path::new(""), files, None)
+        .into_iter()
+        .map(|f| f.relative_path)
+        .collect();
+    let mut listed: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    for file in files {
+        if binding.body.ignore.iter().any(|g| glob_matches(g, file, caseless)) {
+            continue;
+        }
+        let mut at = 0;
+        while let Some(slash) = file[at..].find('/') {
+            let folder = &file[..at + slash];
+            if !binding.body.ignore.iter().any(|g| glob_matches(g, folder, caseless)) {
+                listed.insert(format!("{folder}/"));
+            }
+            at += slash + 1;
+        }
+        if !selected.contains(file) {
+            listed.insert(file.clone());
+        }
+    }
+    listed.into_iter().collect()
+}
+
 /// [`folder_files`] of a folder held in memory, its files by their relative, `/`-separated paths; each file's full
 /// path is its relative one under `folder`.
 pub fn held_files(binding: &FblBinding, folder: &Path, files: &[String], ignore_case: Option<bool>) -> Vec<FolderFile> {
