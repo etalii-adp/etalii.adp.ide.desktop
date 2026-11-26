@@ -1390,6 +1390,7 @@ An agent writing a description is given `grammar/atd.flat.lark`, with which a mo
 - **0.1, amendment of 2026-11-25, badges a module paints** (spec 035, T132, by Peter's choice of 2026-11-25): in a drawing recorded from a module, §2.3 compares an element the case draws at zero size by its presence, not by its bounds; what it is attached to is compared in the reading. Every case that passed before still passes.
 - **0.1, amendment of 2026-11-25, an enumeration value by its label** (spec 035, T132, by Peter's choice of 2026-11-25): in a case recorded from a module, §2.3 counts a value of an enumeration attribute the same whether the case states its key or its label. Every case that passed before still passes.
 - **0.1, amendment of 2026-11-25, a move's units** (spec 035, T132, by Peter's choice of 2026-11-25): §2.3 states a move's place and distance in the canvas's units, as a drawing's, and a place as the element's drawn top-left corner, as every case recorded its places but the Wardley map's. The Wardley map's case, whose module moves in its map's 0..1 space, is recorded again with its moves in canvas units.
+- **0.1, amendment of 2026-11-26, a folder's listing** (spec 035, T132, by Peter's choice of 2026-11-26): ATD carries FBL 0.26's `body.listing`, and a reader capability's input (`$defs/ReaderInput`) carries a folder's `listing`, so that a folder reader that counts what a folder holds without reading it (the Ansible structure's) is a capability.
 
 
 ---
@@ -1466,7 +1467,7 @@ An agent writing a description is given `grammar/atd.flat.lark`, with which a mo
 | `LayoutResult` | The output of a `layout` capability: a position for every node it places, in the canvas's domain units, rounded to 0.01, optionally the size it gives a node it resizes, and optionally route points. |
 | `RoutingInput` | The input of a `routing` capability: each edge with the boxes of its two ends, and the boxes it must keep clear of, in the canvas's domain units. |
 | `RoutingResult` | The output of a `routing` capability: the route of every edge it routes, by edge id, as path commands from the edge's first point to its last. |
-| `ReaderInput` | The input of a `reader` capability: the body's bytes as text, and the edit to plan when one is asked (FBL §11.2). |
+| `ReaderInput` | The input of a `reader` capability: the body's bytes as text, the selected files' text and *(FBL 0.26)* a folder's listing, and the edit to plan when one is asked (FBL §10, §11.2). |
 | `ReaderResult` | The output of a `reader` capability: what FBL §11.2's read returns, or the splices of a planned edit. |
 | `RenderInput` | The input of a `render` capability: a value to render. |
 | `RenderResult` | The output of a `render` capability: text runs or a drawing. |
@@ -3543,6 +3544,7 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `fbl.schema.json#/$defs/Body/properties/recognise` | the setting `recognise` of `body` | §11.2 |
 | `fbl.schema.json#/$defs/Body/properties/files` | the setting `files` of `body` | §11.2 |
 | `fbl.schema.json#/$defs/Body/properties/ignore` | the setting `ignore` of `body` | §11.2 |
+| `fbl.schema.json#/$defs/Body/properties/listing` | the setting `listing` of `body` | §11.2 |
 | `fbl.schema.json#/$defs/Body/properties/settle` | the setting `settle` of `body` | §11.2 |
 | `fbl.schema.json#/$defs/Body/properties/stream` | *(FBL 0.22)* the setting `stream` of `body` | §11.2 |
 | `fbl.schema.json#/$defs/FileRule/properties/name` | the key `name` in a value of FileRule (a settings map, §6.4) | §6.4 |

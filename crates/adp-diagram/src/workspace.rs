@@ -441,7 +441,7 @@ impl DiagramWorkspace {
 }
 
 /// Every file under `root`, in path order, but those in a folder the links index skips.
-fn files_under(root: &Path) -> Vec<PathBuf> {
+pub(crate) fn files_under(root: &Path) -> Vec<PathBuf> {
     let mut found = Vec::new();
     let mut folders = vec![root.to_path_buf()];
     while let Some(folder) = folders.pop() {
@@ -470,7 +470,7 @@ fn file_name(path: &Path) -> String {
 }
 
 /// The path with `.` and `..` resolved without touching the file system.
-fn normalise(path: &Path) -> PathBuf {
+pub(crate) fn normalise(path: &Path) -> PathBuf {
     let absolute = std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf());
     let mut out = PathBuf::new();
     for component in absolute.components() {

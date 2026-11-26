@@ -13,6 +13,7 @@ use std::rc::Rc;
 
 use adp_desl::table::content::{ContentCell, ContentRow};
 
+use crate::diagrams::KnowledgeDiagram;
 use crate::model::{KnowledgeProperty, KnowledgeTable};
 
 /// What a relation to the file itself names as its target.
@@ -28,6 +29,9 @@ pub struct KnowledgeTarget {
     /// The finding the problem is: a link's (`link.*`, FBL section 17.6) for a target named by a link, empty for
     /// one named by its path, which is `knowledge.unresolved-target`.
     pub code: String,
+    /// The diagram the target is, when it is one rather than a knowledge file (etalii.adp spec 092, FR-025): its table
+    /// is then the diagram's named elements.
+    pub diagram: Option<Rc<KnowledgeDiagram>>,
 }
 
 /// What a relation property of a file points at, or none where relations are not resolved.

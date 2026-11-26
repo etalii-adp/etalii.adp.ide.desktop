@@ -4609,6 +4609,13 @@
             "type": "string"
           }
         },
+        "listing": {
+          "description": "A folder subject's listing, as FBL 0.26 section 10 hands it to a plugin with body.listing: every folder (with a trailing /) and every file the file rules do not select, by relative path, in ordinal order.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "edit": {
           "type": "object"
         }

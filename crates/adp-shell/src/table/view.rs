@@ -823,6 +823,9 @@ pub(super) struct Asked {
     cancel: bool,
     pick: Option<String>,
     create: bool,
+    /// The kind of element *Create* adds to a relation's target diagram, by its type (etalii.adp spec 092, FR-025);
+    /// none for an option made in a selection.
+    create_kind: Option<String>,
     add_row: Option<String>,
     /// A rename of a column ended in its header: `Some(None)` when dropped, else the column, the name and whether
     /// the field was left rather than Enter pressed.
@@ -1061,7 +1064,10 @@ fn apply(ui: &mut egui::Ui, tab: &mut TableTab, asked: Asked) {
         tab.pick(&id);
     }
     if asked.create {
-        tab.create_option();
+        match asked.create_kind {
+            Some(kind) => tab.create_element(&kind),
+            None => tab.create_option(),
+        }
     }
     if let Some((line, column)) = asked.edit {
         tab.start_edit(line, column, None);
@@ -1638,7 +1644,19 @@ fn editor(
             }
         }
     }
-    let creates = editing.editor != EditorKind::Rows;
+    // A relation to a diagram may add an element to it, of a kind the diagram offers (etalii.adp spec 092, FR-025).
+    let kinds = if editing.editor == EditorKind::Rows {
+        adp_designer_knowledge::diagrams::kinds_of(
+            column
+                .settings
+                .get(adp_designer_knowledge::mapper::CREATES)
+                .map(String::as_str)
+                .unwrap_or_default(),
+        )
+    } else {
+        Vec::new()
+    };
+    let creates = editing.editor != EditorKind::Rows || !kinds.is_empty();
     let reason = editing.reason.clone();
     let area = egui::Area::new(id)
         .order(egui::Order::Foreground)
@@ -1675,15 +1693,34 @@ fn editor(
                     }
                 });
                 let exact = items.iter().any(|(_, n, _)| n.to_lowercase() == search);
-                if creates
-                    && !search.is_empty()
+                if creates && !search.is_empty() && !exact {
+                    if kinds.is_empty() {
+                        if ui.button(format!("Create '{}'", editing.text.trim())).clicked() {
+                            asked.create = true;
+                        }
+                    } else {
+                        for kind in &kinds {
+                            let label = if kinds.len() == 1 {
+                                format!("Create '{}'", editing.text.trim())
+                            } else {
+                                format!("Create '{}' as {}", editing.text.trim(), kind.label)
+                            };
+                            if ui.button(label).clicked() {
+                                asked.create = true;
+                                asked.create_kind = Some(kind.type_name.clone());
+                            }
+                        }
+                    }
+                }
+                // Enter makes what the one button would; where a diagram offers several kinds, one is picked.
+                if field.lost_focus()
+                    && ui.input(|i| i.key_pressed(egui::Key::Enter))
+                    && creates
                     && !exact
-                    && ui.button(format!("Create '{}'", editing.text.trim())).clicked()
+                    && kinds.len() <= 1
                 {
                     asked.create = true;
-                }
-                if field.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) && creates && !exact {
-                    asked.create = true;
+                    asked.create_kind = kinds.first().map(|k| k.type_name.clone());
                 }
                 if !reason.is_empty() {
                     ui.colored_label(colours.danger, &reason);

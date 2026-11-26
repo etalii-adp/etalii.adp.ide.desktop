@@ -9,12 +9,14 @@
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::rc::Rc;
 
 use adp_cel::{Map, Value};
 use adp_desl::table::content::{ContentCell, ContentRow};
 use adp_fbl::{FblModel, ModelChange};
-use adp_links::{IndexedDocument, IndexedElement, Link, Resolution, Workspace};
+use adp_links::{HeldLink, IndexedDocument, IndexedElement, Link, Resolution, Workspace};
 
+use crate::diagrams::KnowledgeDiagram;
 use crate::model::{KnowledgeProperty, KnowledgeTable};
 use crate::project;
 use crate::relations::{self, KnowledgeTarget};
@@ -31,6 +33,9 @@ pub const BACKLINK_MARK: char = '~';
 pub struct KnowledgeFile {
     pub path: PathBuf,
     pub table: KnowledgeTable,
+    /// The diagram the file is, when it is one rather than a knowledge file (etalii.adp spec 092, FR-025): its table
+    /// is then the diagram's named elements.
+    pub diagram: Option<Rc<KnowledgeDiagram>>,
 }
 
 /// The knowledge files under `folder` that read as knowledge files.
@@ -42,6 +47,7 @@ pub fn read_files(folder: &Path, read: &dyn Fn(&Path) -> KnowledgeRead) -> Vec<K
             body.unreadable().is_empty().then(|| KnowledgeFile {
                 path: relations::full_path(&path),
                 table: body.table().clone(),
+                diagram: None,
             })
         })
         .collect()
@@ -54,9 +60,43 @@ pub fn index_file(path: &Path) -> Option<IndexedDocument> {
         return None;
     }
     let body = crate::store::read(path).body?;
-    body.unreadable()
-        .is_empty()
-        .then(|| indexed(&relations::full_path(path), body.table()))
+    body.unreadable().is_empty().then(|| {
+        let mut document = indexed(&relations::full_path(path), body.table());
+        document.links = held_links(body.table());
+        document
+    })
+}
+
+/// The links the relation cells of `table` hold, each by the row that holds it: what makes a row of this file a
+/// backlink of the element it relates to in another tool's document, a diagram's say (etalii.adp spec 092, FR-025).
+/// A cell holds the related rows' ids, read from links to them; a relation still named by a path holds none.
+pub fn held_links(table: &KnowledgeTable) -> Vec<HeldLink> {
+    let mut held = Vec::new();
+    for property in table
+        .columns
+        .iter()
+        .filter(|p| p.value_type == "relation" && !p.is_computed)
+    {
+        let Some(target) = Link::parse(&property.target_file) else {
+            continue;
+        };
+        for row in &table.rows {
+            let Some(cell) = row.cells.iter().find(|c| c.column_id == property.id && c.key == "rows") else {
+                continue;
+            };
+            for value in cell.values.iter().filter(|v| !v.is_empty()) {
+                let link = Link::to_element(
+                    target.document_id.clone(),
+                    target.document_name.clone(),
+                    value,
+                    None,
+                    None,
+                );
+                held.push(HeldLink::new(row.id.clone(), link.text()));
+            }
+        }
+    }
+    held
 }
 
 /// What a row's link names it by: the text of the title property, or nothing.
@@ -113,14 +153,16 @@ pub fn target_of_link(
 ) -> KnowledgeTarget {
     match workspace.resolve(target_file) {
         Resolution::Resolved(resolved) => {
+            let file = files.iter().find(|f| f.path == resolved.path);
             let table = if relations::same_path(&resolved.path, body_path) {
                 Some(own.clone())
             } else {
-                files.iter().find(|f| f.path == resolved.path).map(|f| f.table.clone())
+                file.map(|f| f.table.clone())
             };
             KnowledgeTarget {
                 path: resolved.path,
                 table,
+                diagram: file.and_then(|f| f.diagram.clone()),
                 ..KnowledgeTarget::default()
             }
         }
@@ -138,6 +180,7 @@ pub fn target_of_link(
                 table: None,
                 problem: finding.message,
                 code: finding.code.to_owned(),
+                diagram: None,
             }
         }
     }

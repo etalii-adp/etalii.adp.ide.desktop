@@ -14,14 +14,16 @@ part of etalii/sankey
 binding skv family yaml {
   label "Sankey diagram"
   claims { extensions: [".skv"], origins: ["etalii/sankey"] }
-  text { newline: crlf, indent: 2, sequenceIndent: indented, finalNewline: true, quote: double }
+  /// A changed value is written plain where it can be, whatever style it had, as the module writes it (FBL 0.25).
+  text { newline: crlf, indent: 2, sequenceIndent: indented, finalNewline: true, quote: double, keepStyle: false }
 
   element Document as document at "/" {
     when type(entry) == map
     attribute version from key "sankey" { read: text, readOnly: "The version is changed in the file itself." }
+    /// Stated right after the version, so that a thickness set on a file without one is written on the line after `sankey:`, as the module writes it.
+    attribute thickness from key "thickness" { read: text, number: { decimals: 2 } }
     attribute format from key "format" { read: text, readOnly: "The format is changed in the file itself." }
     attribute flowColor from key "flow-color" { read: text, readOnly: "The flow colour is changed in the file itself." }
-    attribute thickness from key "thickness" { read: text, number: { decimals: 2 } }
     attribute unknownKeys from value (entry.filter(k, !(k in ['sankey', 'format', 'flow-color', 'thickness', 'nodes', 'flows'])))
   }
 
@@ -42,6 +44,8 @@ binding skv family yaml {
       container: "/nodes"
       create: { at: end-of-document }
       keys: [id, name, color, note, format, column, description]
+      /// A key set later on an entry that lacks it goes right after its id, as the module writes it (FBL 0.24).
+      newKeys: after-first
     }
     remove { cascade: [flow] }
   }
@@ -68,6 +72,8 @@ binding skv family yaml {
       container: "/flows"
       create: { at: end-of-document }
       keys: [id, from, to, value, step, color, description]
+      /// A key set later on an entry that lacks it goes right after its id, as the module writes it (FBL 0.24).
+      newKeys: after-first
     }
     remove {}
   }

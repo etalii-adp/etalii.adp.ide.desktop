@@ -970,3 +970,71 @@ fn a_relation_is_drawn_as_text_not_as_a_link() {
         "the Knowledge designer opens no related row, so its title is not a link"
     );
 }
+
+// ---- a relation to a diagram (etalii.adp spec 092, FR-025) ----
+
+/// A timeline beside the cities, which a relation of theirs may point at.
+const ROADMAP: &str =
+    "timeline: 1\nid: r6d3w8ne\nelements:\n  - id: launch\n    label: Launch\n    begin: 2027-01-04\n    row: 0\n";
+
+#[test]
+fn a_relation_to_a_timeline_offers_its_elements_and_create_adds_a_period_to_it_in_one_undoable_step() {
+    let folder = tempfile::tempdir().unwrap();
+    let path = example("cities.yaml", folder.path());
+    let roadmap = folder.path().join("roadmap.tml");
+    std::fs::write(&roadmap, ROADMAP).unwrap();
+    let vendor = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../vendor");
+    let diagrams = std::rc::Rc::new(crate::project_diagrams::ProjectDiagrams::with_vendor(&vendor));
+    let mut tab = TableTab::open_with(&path, folder.path(), diagrams).expect("opens");
+    let ctx = context();
+    tab.show_view("v2");
+    let answer = tab.edit(
+        TableGesture::new("addRelation")
+            .values(["Milestones"])
+            .setting("target", "roadmap.tml"),
+    );
+    assert_eq!(answer, "");
+    tab.write_behind();
+    frame(&ctx, &mut tab, Vec::new());
+    let relation: adp_desl::table::model::TableColumn = tab
+        .visible_columns()
+        .into_iter()
+        .find(|c| c.name == "Milestones")
+        .expect("the relation is shown")
+        .clone();
+    let offered: Vec<&str> = relation.options.iter().map(|o| o.name.as_str()).collect();
+    assert_eq!(offered, ["Launch"]);
+    let cities_before = std::fs::read(&path).unwrap();
+
+    let (line, at) = (line_of(&tab, "r1"), column(&tab, &relation.id));
+    tab.start_edit(line, at, None);
+    assert!(tab.editing.as_ref().is_some_and(|e| e.editor == EditorKind::Rows));
+    tab.editing.as_mut().unwrap().text = "Retro".into();
+    tab.create_element("Period");
+    tab.write_behind();
+
+    let grown = std::fs::read_to_string(&roadmap).unwrap();
+    let id = grown
+        .strip_prefix(ROADMAP)
+        .and_then(|added| added.strip_prefix("  - id: "))
+        .and_then(|added| added.lines().next())
+        .unwrap_or_else(|| panic!("an element is added after the rest:\n{grown}"))
+        .to_owned();
+    assert_eq!(
+        grown,
+        format!(
+            "{ROADMAP}  - id: {id}\n    label: Retro\n    begin: {}\n    end: {}\n    row: 0\n",
+            adp_diagram_timeline::times::today(),
+            adp_diagram_timeline::times::days_from_today(7)
+        )
+    );
+    let cities = std::fs::read_to_string(&path).unwrap();
+    assert!(
+        cities.contains(&format!("$r6d3w8ne@roadmap.tml#{id}.label=Retro")),
+        "{cities}"
+    );
+
+    tab.undo().expect("one undo");
+    assert_eq!(std::fs::read_to_string(&roadmap).unwrap(), ROADMAP);
+    assert_eq!(std::fs::read(&path).unwrap(), cities_before);
+}

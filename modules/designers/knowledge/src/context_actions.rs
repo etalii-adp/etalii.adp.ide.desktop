@@ -10,6 +10,9 @@
 //!   edit made in the table. The standalone host runs it on the project's history; here [`commit`] gives the gesture,
 //!   which the shell sends through the table's session - one undoable step, over both files when it is two-way, shown
 //!   at once - and [`make`] carries it out on the files directly for a table no tab shows.
+//! - **A diagram may be the target too** (etalii.adp spec 092, FR-025), where the host knows of the workspace's
+//!   diagrams: the file dialog offers them after the tables, and a relation to one is one-way, so its last question,
+//!   whether the other table shows it, is not asked.
 
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
@@ -19,6 +22,7 @@ use adp_desl::table::model::TableGesture;
 
 use crate::command::{KnowledgeEditCommand, KnowledgeRestore};
 use crate::definition;
+use crate::diagrams::KnowledgeDiagrams;
 use crate::edits::{self, KnowledgeSurroundings};
 use crate::links;
 use crate::model::{KnowledgeProperty, KnowledgeTable};
@@ -111,8 +115,18 @@ pub fn accepts(path: &Path) -> bool {
     project::is_knowledge_file(path)
 }
 
-/// Runs the entry: the file dialog the table to relate to is chosen in, with this table pinned first.
-pub fn execute(root: &Path, path: &Path) -> Result<Prompt, String> {
+/// Whether the file at `path` is one of the diagrams `diagrams` knows of under `root`.
+fn is_diagram(diagrams: Option<&dyn KnowledgeDiagrams>, root: &Path, path: &Path) -> bool {
+    diagrams.is_some_and(|d| {
+        d.diagrams(root)
+            .iter()
+            .any(|diagram| relations::same_path(&diagram.path, path))
+    })
+}
+
+/// Runs the entry: the file dialog the table to relate to is chosen in, with this table pinned first, and the
+/// diagrams `diagrams` knows of after the tables.
+pub fn execute(root: &Path, path: &Path, diagrams: Option<&dyn KnowledgeDiagrams>) -> Result<Prompt, String> {
     let Some(body) = project::body_of(path) else {
         return Err(TABLE_GONE.into());
     };
@@ -132,6 +146,11 @@ pub fn execute(root: &Path, path: &Path) -> Result<Prompt, String> {
         .filter(|p| !relations::same_path(p, &body) && accepts(p))
         .collect();
     others.sort_by_key(|p| in_project(root, p).to_lowercase());
+    let mut shown: Vec<PathBuf> = diagrams
+        .map(|d| d.diagrams(root).into_iter().map(|diagram| diagram.path).collect())
+        .unwrap_or_default();
+    shown.sort_by_key(|p| in_project(root, p).to_lowercase());
+    others.extend(shown);
     Ok(Prompt::File {
         title: "Relate to".into(),
         icon: ICON.into(),
@@ -146,9 +165,14 @@ pub fn execute(root: &Path, path: &Path) -> Result<Prompt, String> {
     })
 }
 
-/// Checks an answer before it is committed: the table chosen is a knowledge file, and the name typed in the last
-/// step is a name.
-pub fn validate(root: &Path, action_id: &str, value: &str) -> Result<(), String> {
+/// Checks an answer before it is committed: the table chosen is a knowledge file or a diagram `diagrams` knows of,
+/// and the name typed in the last step is a name.
+pub fn validate(
+    root: &Path,
+    action_id: &str,
+    value: &str,
+    diagrams: Option<&dyn KnowledgeDiagrams>,
+) -> Result<(), String> {
     if action_id.starts_with(SIDE_STEP) {
         return if value.trim().is_empty() {
             Err(OTHER_SIDE_NEEDS_NAME.into())
@@ -156,7 +180,8 @@ pub fn validate(root: &Path, action_id: &str, value: &str) -> Result<(), String>
             Ok(())
         };
     }
-    if action_id != RELATE || accepts(&chosen(root, value)) {
+    let picked = chosen(root, value);
+    if action_id != RELATE || accepts(&picked) || is_diagram(diagrams, root, &picked) {
         Ok(())
     } else {
         Err(NOT_A_TABLE.into())
@@ -165,7 +190,14 @@ pub fn validate(root: &Path, action_id: &str, value: &str) -> Result<(), String>
 
 /// Commits one answer of the entry on the table at `path` (its data file or its registration): the next question,
 /// or the gesture that makes the relation once the last is answered.
-pub fn commit(root: &Path, path: &Path, action_id: &str, value: &str, text: &str) -> Commit {
+pub fn commit(
+    root: &Path,
+    path: &Path,
+    action_id: &str,
+    value: &str,
+    text: &str,
+    diagrams: Option<&dyn KnowledgeDiagrams>,
+) -> Commit {
     let Some(body_path) = project::body_of(path) else {
         return Commit::Failed(TABLE_GONE.into());
     };
@@ -191,7 +223,8 @@ pub fn commit(root: &Path, path: &Path, action_id: &str, value: &str, text: &str
     match parts[0] {
         // The table is chosen: how many rows may a cell hold?
         RELATE => {
-            if !accepts(&chosen(root, value)) {
+            let picked = chosen(root, value);
+            if !accepts(&picked) && !is_diagram(diagrams, root, &picked) {
                 return Commit::Failed(NOT_A_TABLE.into());
             }
             Commit::Asks {
@@ -204,6 +237,19 @@ pub fn commit(root: &Path, path: &Path, action_id: &str, value: &str, text: &str
                     name_field: None,
                 },
                 next_action_id: [LIMIT_STEP, value].join(&PART.to_string()),
+            }
+        }
+        // A relation to a diagram is one-way: it is made now.
+        LIMIT_STEP
+            if parts.len() == 2
+                && (value == ONE || value == MANY)
+                && is_diagram(diagrams, root, &chosen(root, parts[1])) =>
+        {
+            Commit::Make {
+                gesture: TableGesture::new("addRelation")
+                    .setting("target", relations::target_name(&body_path, &chosen(root, parts[1])))
+                    .setting("limit", if value == ONE { "one" } else { "none" }),
+                body_path,
             }
         }
         // And is it shown in the other table too, under which name?

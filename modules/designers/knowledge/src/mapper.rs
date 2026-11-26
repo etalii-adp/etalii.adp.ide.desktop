@@ -19,6 +19,13 @@ use crate::validator;
 /// The setting a column says under how many rows have one of its options: what deleting that option would clear.
 pub const USES_PREFIX: &str = "uses:";
 
+/// The setting of a relation whose target is a diagram, which is one-way (etalii.adp spec 092, FR-025).
+pub const DIAGRAM: &str = "diagram";
+
+/// The setting of a relation to a diagram that names the kinds of element its *Create* may add, each as its type and
+/// the word it is picked by: `Moment=moment,Period=period`. Absent for a diagram given no element by name.
+pub const CREATES: &str = "creates";
+
 /// Everything about the table but its rows, for the view a connection shows. `in_sight` is the rows the view has
 /// in sight, which the line under a column calculates over; none for every row of the table.
 #[allow(clippy::too_many_arguments)]
@@ -134,6 +141,19 @@ fn column_settings(
         && let Some(other) = related.and_then(|r| r.column(&property.counterpart))
     {
         settings.insert("otherSide".into(), other.name.clone());
+    }
+    // A relation to a diagram is one-way, and its *Create* adds an element of one of the kinds the diagram is given
+    // (etalii.adp spec 092, FR-025): each as its type and the word it is picked by, `Moment=moment,Period=period`.
+    if let Some(diagram) = target.as_ref().and_then(|t| t.diagram.as_ref()) {
+        settings.insert(DIAGRAM.into(), "true".into());
+        if !diagram.kinds.is_empty() {
+            let kinds: Vec<String> = diagram
+                .kinds
+                .iter()
+                .map(|k| format!("{}={}", k.type_name, k.label))
+                .collect();
+            settings.insert(CREATES.into(), kinds.join(","));
+        }
     }
     // What a relation offers to choose from is the rows of its target, by their titles.
     match target.as_ref().and_then(|t| t.table.as_ref()) {

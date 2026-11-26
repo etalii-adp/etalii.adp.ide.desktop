@@ -289,6 +289,18 @@ impl TableTab {
         Ok(TableTab::with_session(path, session))
     }
 
+    /// [`TableTab::open`], with the relations of the table able to point at the diagrams `diagrams` knows of
+    /// (etalii.adp spec 092, FR-025).
+    pub fn open_with(
+        path: &Path,
+        root: &Path,
+        diagrams: std::rc::Rc<dyn adp_designer_knowledge::diagrams::KnowledgeDiagrams>,
+    ) -> Result<TableTab, String> {
+        let body = project::body_of(path).ok_or_else(|| format!("{} is not a knowledge table.", path.display()))?;
+        let session = KnowledgeSession::open_for_editing_with(&body, root, diagrams);
+        Ok(TableTab::with_session(path, session))
+    }
+
     /// A tab over a session already opened.
     pub fn with_session(path: &Path, session: KnowledgeSession) -> TableTab {
         let baseline = session.baseline();
@@ -769,6 +781,47 @@ impl TableTab {
             open.text.clear();
         }
         if answer.is_empty() && !several {
+            self.editing = None;
+        }
+    }
+
+    /// Adds an element of the type `kind` names, named as the rows editor's text, to the diagram the relation being
+    /// edited points at, and relates it in the cell, as one step over both files (etalii.adp spec 092, FR-025).
+    pub fn create_element(&mut self, kind: &str) {
+        let Some(editing) = self.editing.clone() else {
+            return;
+        };
+        let name = editing.text.trim().to_owned();
+        if name.is_empty() || editing.editor != EditorKind::Rows {
+            return;
+        }
+        let one = self
+            .columns
+            .iter()
+            .find(|c| c.id == editing.column_id)
+            .is_some_and(|c| c.setting_of_limit() == "one");
+        let chosen: Vec<String> = if one {
+            Vec::new()
+        } else {
+            self.held
+                .get(&editing.line)
+                .and_then(|r| r.cell(&editing.column_id))
+                .map(|c| c.values.clone())
+                .unwrap_or_default()
+        };
+        let answer = self.edit(
+            TableGesture::new("setCell")
+                .row(&editing.row_id)
+                .column(&editing.column_id)
+                .values(chosen)
+                .setting(adp_designer_knowledge::diagrams::NEW_ELEMENT, name)
+                .setting(adp_designer_knowledge::diagrams::ELEMENT_KIND, kind),
+        );
+        if let Some(open) = &mut self.editing {
+            open.reason = answer.clone();
+            open.text.clear();
+        }
+        if answer.is_empty() && one {
             self.editing = None;
         }
     }

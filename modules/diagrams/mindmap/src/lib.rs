@@ -27,8 +27,8 @@ use std::rc::Rc;
 use adp_cel::{Map, Value};
 use adp_diagram::session::{ActionOutcome, ActionTarget, DiagramSession};
 use adp_diagram::workspace::DiagramWorkspace;
-use adp_diagram::{DiagramDocument, DiagramModule, DiagramTools};
-use adp_disl::{DislDiagram, DislElement, IdSource};
+use adp_diagram::{CreatedKind, DiagramDocument, DiagramModule, DiagramTools};
+use adp_disl::{DislChange, DislDiagram, DislElement, IdSource};
 use adp_fbl::plugins::PersistencePlugin;
 
 use crate::actions::MindmapActions;
@@ -72,6 +72,29 @@ pub fn register(tools: DiagramTools) -> DiagramTools {
 }
 
 impl DiagramModule for MindmapModule {
+    /// A knowledge relation's *Create* adds a node (etalii.adp spec 092, FR-025).
+    fn created_kinds(&self) -> Vec<CreatedKind> {
+        vec![CreatedKind::new(plugin::NODE_TYPE, "node")]
+    }
+
+    /// Named as typed, as the last child of the central topic (the standalone host's `MindmapOpening.ElementCreation`);
+    /// none for a map without one.
+    fn creation(&self, document: &DiagramDocument, kind: &str, id: &str, name: &str) -> Option<DislChange> {
+        if kind != plugin::NODE_TYPE {
+            return None;
+        }
+        let root = central_topic(&document.model().diagram)?;
+        Some(DislChange::Create {
+            type_name: kind.to_owned(),
+            id: id.to_owned(),
+            attributes: [("text", Value::String(name.to_owned()))].into_iter().collect(),
+            parent_id: Some(root.id()),
+            at: Value::Null,
+            index: None,
+            slot: Some("children".into()),
+        })
+    }
+
     fn persistence(&self, plugin_id: &str) -> Option<Rc<dyn PersistencePlugin>> {
         (plugin_id == PLUGIN_ID).then(|| Rc::new(MindmapFreeplanePlugin) as Rc<dyn PersistencePlugin>)
     }

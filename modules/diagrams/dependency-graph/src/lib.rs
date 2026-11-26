@@ -24,8 +24,8 @@ pub mod theme;
 
 use std::rc::Rc;
 
-use adp_cel::Map;
-use adp_diagram::{DiagramDocument, DiagramModule, DiagramProblem, DiagramTools, ModulePlacement};
+use adp_cel::{Map, Value};
+use adp_diagram::{CreatedKind, DiagramDocument, DiagramModule, DiagramProblem, DiagramTools, ModulePlacement};
 use adp_disl::{DislChange, DislConstraintOptions, DislDiagram, DislElement, DislPluginFunctions};
 
 /// What a dependency from a node to itself answers.
@@ -49,6 +49,43 @@ pub fn register(tools: DiagramTools) -> DiagramTools {
 }
 
 impl DiagramModule for DependencyGraphModule {
+    /// A knowledge relation's *Create* adds a node (etalii.adp spec 092, FR-025).
+    fn created_kinds(&self) -> Vec<CreatedKind> {
+        vec![CreatedKind::new("Node", "node")]
+    }
+
+    /// Named as typed, at the left on a row of its own below every node (the standalone host's
+    /// `DependencyGraphBody.ElementCreation`).
+    fn creation(&self, document: &DiagramDocument, kind: &str, id: &str, name: &str) -> Option<DislChange> {
+        if kind != "Node" {
+            return None;
+        }
+        let row = document
+            .model()
+            .diagram
+            .nodes()
+            .iter()
+            .map(placement::row_of)
+            .max()
+            .map_or(0, |last| last + 1);
+        let attributes: Map = [
+            ("label", Value::String(name.to_owned())),
+            ("x", Value::Int(0)),
+            ("row", Value::Int(row)),
+        ]
+        .into_iter()
+        .collect();
+        Some(DislChange::Create {
+            type_name: kind.to_owned(),
+            id: id.to_owned(),
+            attributes,
+            parent_id: None,
+            at: Value::Null,
+            index: None,
+            slot: None,
+        })
+    }
+
     fn plugin_functions(&self) -> DislPluginFunctions {
         ends::plugin_functions()
     }

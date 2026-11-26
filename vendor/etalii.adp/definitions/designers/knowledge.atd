@@ -3,7 +3,7 @@ atd 0.1
 /// The Knowledge designer: ADP's first designer, specified by the standalone specification `knowledge-designer` and by etalii.adp's spec 013.
 ///
 /// This description carries `knowledge.des` and the three bindings of `knowledge.fbl` (in knowledge.yaml.atd, knowledge.json.atd and knowledge.xml.atd). What it cannot state is the host's, as `knowledge.md` lists it.
-designer etalii/knowledge version "0.2.0" {
+designer etalii/knowledge version "0.3.0" {
   label "Knowledge"
   id: "net.etalii.adp.etalii.knowledge"
   authors: [{ name: "Peter Vrenken", url: "https://github.com/vrenken" }]
@@ -148,7 +148,7 @@ designer etalii/knowledge version "0.2.0" {
       /// Marks the one text property whose value names a row (Requirement 3.7).
       attribute title: bool default false
       /// A relation's target knowledge file, as a link without an element, `$<document-id>@<file name>` (FBL section 17.1, spec 089); a link to the file's own id is this file. Stored under the key `target`; the model calls it targetFile so that it never reads as the `target` of an action. A file made before links holds a path here, `.` for itself, which the conversion on load replaces (knowledge.md, section 9).
-      attribute targetFile: link { document: true, origins: ["etalii/knowledge"] }
+      attribute targetFile: link { document: true }
       /// How many rows a relation cell may hold.
       attribute limit: Limit default none
       /// The name of the column that shows this relation's backlinks in the target file, computed and never stored there (DESL 0.5, section 7.5.1; spec 089).

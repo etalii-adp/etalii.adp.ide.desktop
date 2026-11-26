@@ -67,11 +67,15 @@ const CONFIRM_PREFIX: &str = "confirm:";
 /// What an answer starts with when it is a choice to make and not a refusal: the things to choose from follow.
 const CHOOSE_PREFIX: &str = "choose:";
 
-/// The changes one edit makes to one other knowledge file: the other side of a two-way relation.
+/// The changes one edit makes to one other file: the other side of a two-way relation, or the element a relation's
+/// *Create* adds to a target diagram.
 #[derive(Debug, Clone)]
 pub struct KnowledgeOtherFile {
     pub body_path: PathBuf,
     pub changes: Vec<ModelChange>,
+    /// The file's new bytes, made by the tool the file is of, in place of `changes`: a diagram's body with an element
+    /// added through its own binding (etalii.adp spec 092, FR-025); none for a knowledge file, which `changes` change.
+    pub body: Option<Vec<u8>>,
 }
 
 /// What a gesture comes to: the changes to make to the file, in order, or why it is refused.
@@ -1198,6 +1202,7 @@ fn delete_column(
         others: vec![KnowledgeOtherFile {
             body_path: target.expect("a target with a table").path.clone(),
             changes: theirs,
+            body: None,
         }],
         ..KnowledgeEdit::default()
     }
@@ -1265,11 +1270,16 @@ fn add_relation(
             },
         ),
     ];
-    // A relation asked for as two-way without a name for its other side is called there after this table.
+    // A relation asked for as two-way without a name for its other side is called there after this table. One to a
+    // diagram is one-way: a diagram has no column to show its other side in, so a name given for it is dropped
+    // (etalii.adp spec 092, FR-025).
     let left = gesture.setting_of("side") == "left";
     let mut other_name = gesture.setting_of("counterpart").trim().to_owned();
     if other_name.is_empty() && flag(gesture, "twoWay") {
         other_name = other_side_name(table);
+    }
+    if target.diagram.is_some() {
+        other_name.clear();
     }
     if other_name.is_empty() {
         return KnowledgeEdit::of(place(table, view, &id, pairs, &gesture.target_id, left));
@@ -1320,6 +1330,7 @@ fn add_relation(
         others: vec![KnowledgeOtherFile {
             body_path: target.path.clone(),
             changes: vec![other],
+            body: None,
         }],
         ..KnowledgeEdit::default()
     }
@@ -1372,9 +1383,17 @@ fn set_other_side(
     let Some(property) = own_relation(table, &gesture.column_id) else {
         return refused(NOT_A_RELATION);
     };
-    // A relation named by a link is two-way by its backlinks: only its `backlinkName` changes.
+    // A relation named by a link is two-way by its backlinks: only its `backlinkName` changes. One to a diagram is
+    // one-way, since a diagram has no column to show the rows that link to it in (etalii.adp spec 092, FR-025).
     if links::is_link(&property.target_file) {
         let two_way = flag(gesture, "twoWay");
+        if two_way
+            && files
+                .and_then(|f| (f.target_of)(property))
+                .is_some_and(|t| t.diagram.is_some())
+        {
+            return refused(crate::diagrams::ONE_WAY_ONLY);
+        }
         if two_way != property.backlink_name.is_empty() {
             return KnowledgeEdit::nothing();
         }
@@ -1467,6 +1486,7 @@ fn set_other_side(
         others: vec![KnowledgeOtherFile {
             body_path: target.expect("a target").path.clone(),
             changes: vec![theirs],
+            body: None,
         }],
         ..KnowledgeEdit::default()
     }
