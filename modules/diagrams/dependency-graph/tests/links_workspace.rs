@@ -206,14 +206,14 @@ fn add_from_another_document_here_adds_a_linked_node_where_the_canvas_was_clicke
     let headings: Vec<&str> = options.iter().map(|o| o.label.as_str()).collect();
     assert_eq!(headings, ["other.dgr", "teams/services.dgr"]);
     let db = &options[0].children[0];
-    assert_eq!(db.id, "$o7h3r0ne@other.dgr#db.label=Orders database");
+    assert_eq!(db.id, "$o7h3r0ne@other.dgr#db=Orders database");
     assert!(matches!(
         project.reply(&canvas, "dependencies.add-linked", &db.id),
         ActionOutcome::Done
     ));
     let body = project.body();
     assert!(
-        body.contains("    row: 6\r\n  - id: n1\r\n    link: $o7h3r0ne@other.dgr#db.label=Orders database\r\n    x: 1500\r\n    row: 8\r\nrelations:\r\n"),
+        body.contains("    row: 6\r\n  - id: n1\r\n    link: $o7h3r0ne@other.dgr#db=Orders database\r\n    x: 1500\r\n    row: 8\r\nrelations:\r\n"),
         "{body}"
     );
     project.workspace.undo();

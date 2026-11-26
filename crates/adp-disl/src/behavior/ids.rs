@@ -40,48 +40,135 @@ pub fn fixed(ids: &[&str]) -> FixedIds {
     }
 }
 
-/// The uuid strategies a runtime can mint without the model, in an encoding.
+/// The strategies a runtime can mint without the model (section 11.5.1): `uuid-v4` and `uuid-v7` in an encoding, and
+/// `nanoid` of an alphabet and a length, each after the rule's `prefix`.
 pub struct Uuids {
-    v7: bool,
-    encoding: String,
+    strategy: Minted,
+    prefix: Prefix,
+}
+
+enum Minted {
+    Uuid { v7: bool, encoding: String },
+    Nanoid { alphabet: Vec<char>, length: usize },
+}
+
+/// A rule's `prefix`: one for every type, or one per type name.
+enum Prefix {
+    None,
+    All(String),
+    ByType(Vec<(String, String)>),
+}
+
+impl Prefix {
+    fn of(&self, type_name: &str) -> &str {
+        match self {
+            Prefix::None => "",
+            Prefix::All(prefix) => prefix,
+            Prefix::ByType(prefixes) => prefixes
+                .iter()
+                .find(|(t, _)| t == type_name)
+                .map_or("", |(_, prefix)| prefix.as_str()),
+        }
+    }
 }
 
 impl IdSource for Uuids {
-    fn next(&self, _type_name: &str) -> Result<String, String> {
-        let uuid = if self.v7 {
-            uuid::Uuid::now_v7()
-        } else {
-            uuid::Uuid::new_v4()
+    fn next(&self, type_name: &str) -> Result<String, String> {
+        let id = match &self.strategy {
+            Minted::Uuid { v7, encoding } => {
+                let uuid = if *v7 {
+                    uuid::Uuid::now_v7()
+                } else {
+                    uuid::Uuid::new_v4()
+                };
+                match encoding.as_str() {
+                    "base36" => base36(uuid.as_u128()),
+                    "base64url" => base64url(uuid.as_bytes()),
+                    _ => uuid.hyphenated().to_string(),
+                }
+            }
+            Minted::Nanoid { alphabet, length } => nanoid(alphabet, *length),
         };
-        Ok(match self.encoding.as_str() {
-            "base36" => base36(uuid.as_u128()),
-            "base64url" => base64url(uuid.as_bytes()),
-            _ => uuid.hyphenated().to_string(),
-        })
+        Ok(format!("{}{id}", self.prefix.of(type_name)))
     }
 }
 
+/// nanoid's own alphabet of 64 characters (DISL 0.12, section 11.5).
+const NANOID: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
+/// The alphabet `base36`: the digits and the lower-case letters.
+const BASE36: &str = "0123456789abcdefghijklmnopqrstuvwxyz";
+
+/// `length` characters of `alphabet`, each drawn uniformly from a cryptographically secure source (section 11.5): the
+/// random bytes of version 4 uuids, a byte that would favour the first characters of the alphabet drawn again.
+fn nanoid(alphabet: &[char], length: usize) -> String {
+    let usable = 256 - 256 % alphabet.len();
+    let mut id = String::with_capacity(length);
+    let mut drawn = 0;
+    while drawn < length {
+        let uuid = uuid::Uuid::new_v4();
+        // Bytes 6 and 8 hold the version and the variant; the others are random.
+        for (_, byte) in uuid.as_bytes().iter().enumerate().filter(|(i, _)| *i != 6 && *i != 8) {
+            if usize::from(*byte) < usable && drawn < length {
+                id.push(alphabet[usize::from(*byte) % alphabet.len()]);
+                drawn += 1;
+            }
+        }
+    }
+    id
+}
+
 /// The specification's own strategy (section 11.5.1), for the strategies a runtime can mint without the model:
-/// `uuid-v4` and `uuid-v7`, in `hex`, `base64url` or `base36`.
+/// `uuid-v4` and `uuid-v7`, in `hex`, `base64url` or `base36`, and `nanoid` of `nanoid`'s alphabet or `base36`, 21
+/// characters unless `length` says otherwise; each after the rule's `prefix`, for every type or per type.
 pub fn of(specification: &DislSpecification) -> Result<Uuids, String> {
     let ids = json::member(json::member(specification.root(), "persistence"), "ids");
     let strategy = json::string_of(ids, "strategy").unwrap_or("uuid-v7");
-    let encoding = json::string_of(ids, "encoding").unwrap_or("hex").to_owned();
-    match strategy {
-        "uuid-v4" => Ok(Uuids { v7: false, encoding }),
-        "uuid-v7" => Ok(Uuids { v7: true, encoding }),
-        _ => Err(format!(
-            "This runtime cannot mint ids of strategy '{strategy}' without the model; give the interpreter an id source."
-        )),
-    }
+    let prefix = match json::get(ids, "prefix") {
+        Some(serde_json::Value::String(prefix)) => Prefix::All(prefix.clone()),
+        Some(serde_json::Value::Object(prefixes)) => Prefix::ByType(
+            prefixes
+                .iter()
+                .filter_map(|(t, p)| p.as_str().map(|p| (t.clone(), p.to_owned())))
+                .collect(),
+        ),
+        _ => Prefix::None,
+    };
+    let strategy = match strategy {
+        "uuid-v4" | "uuid-v7" => Minted::Uuid {
+            v7: strategy == "uuid-v7",
+            encoding: json::string_of(ids, "encoding").unwrap_or("hex").to_owned(),
+        },
+        "nanoid" => Minted::Nanoid {
+            alphabet: match json::string_of(ids, "alphabet").unwrap_or("nanoid") {
+                "base36" => BASE36,
+                _ => NANOID,
+            }
+            .chars()
+            .collect(),
+            length: json::get(ids, "length")
+                .and_then(serde_json::Value::as_u64)
+                .and_then(|n| usize::try_from(n).ok())
+                .filter(|n| *n > 0)
+                .unwrap_or(21),
+        },
+        _ => {
+            return Err(format!(
+                "This runtime cannot mint ids of strategy '{strategy}' without the model; give the interpreter an id source."
+            ));
+        }
+    };
+    Ok(Uuids { strategy, prefix })
 }
 
 /// ShortGuids: version 4 GUIDs as 25 characters of base 36, the ids the standalone host's modules minted for what
 /// they created (`ShortGuid.NewShortGuid()`), for a module that mints its own.
 pub fn short_guids() -> Uuids {
     Uuids {
-        v7: false,
-        encoding: "base36".to_owned(),
+        strategy: Minted::Uuid {
+            v7: false,
+            encoding: "base36".to_owned(),
+        },
+        prefix: Prefix::None,
     }
 }
 

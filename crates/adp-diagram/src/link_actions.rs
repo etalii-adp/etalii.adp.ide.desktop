@@ -108,21 +108,17 @@ fn lookup_options(index: &Workspace) -> Vec<PromptOption> {
                 .elements
                 .iter()
                 .map(|element| {
-                    let (property, name) = match document.name_property.as_deref() {
-                        Some(property) => (
-                            Some(property.to_owned()),
-                            element.attribute(property).unwrap_or_default(),
-                        ),
-                        None => (
-                            None,
-                            element.attributes.first().map(|(_, v)| v.as_str()).unwrap_or_default(),
-                        ),
+                    let name = match document.name_property.as_deref() {
+                        Some(property) => element.attribute(property).unwrap_or_default(),
+                        None => element.attributes.first().map(|(_, v)| v.as_str()).unwrap_or_default(),
                     };
+                    // The element is named by its type's own name property, so the link leaves `name-prop` out
+                    // (FBL section 17.1), as the standalone host writes it: `$r6d3w8ne@roadmap.tml#launch=Launch`.
                     let link = Link::to_element(
                         id.clone(),
                         document.file_name(),
                         element.id.clone(),
-                        property,
+                        None,
                         Some(name.to_owned()),
                     );
                     PromptOption {

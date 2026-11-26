@@ -1398,3 +1398,6 @@ mod themes;
 mod recording;
 // A double-click as each notation's `doubleClick` and each module's canvas declares it (P-028), in a file of its own.
 mod double_click;
+
+// Add from another document on the canvas, against the standalone host's bytes (spec 092, T024).
+mod links;

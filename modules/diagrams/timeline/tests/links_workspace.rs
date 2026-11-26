@@ -241,14 +241,14 @@ fn add_from_another_document_here_adds_a_linked_moment_where_the_menu_was_opened
     let headings: Vec<&str> = options.iter().map(|o| o.label.as_str()).collect();
     assert_eq!(headings, ["other.tml", "plan/release.tml"]);
     let beta = &options[0].children[0];
-    assert_eq!(beta.id, "$o7h3r0ne@other.tml#beta.label=Beta release");
+    assert_eq!(beta.id, "$o7h3r0ne@other.tml#beta=Beta release");
     assert!(matches!(
         project.reply(&canvas, "timeline.add-linked", &beta.id),
         ActionOutcome::Done
     ));
     let body = project.body();
     assert!(
-        body.ends_with("  - id: n1\r\n    link: $o7h3r0ne@other.tml#beta.label=Beta release\r\n    begin: 2026-09-21\r\n    row: 6\r\nconnections:\r\n  - id: c1\r\n    from: discovery\r\n    to: l2\r\n"),
+        body.ends_with("  - id: n1\r\n    link: $o7h3r0ne@other.tml#beta=Beta release\r\n    begin: 2026-09-21\r\n    row: 6\r\nconnections:\r\n  - id: c1\r\n    from: discovery\r\n    to: l2\r\n"),
         "{body}"
     );
     // The stale links were refreshed in the same step.
