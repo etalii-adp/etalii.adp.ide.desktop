@@ -444,7 +444,19 @@ impl Compiler<'_> {
                     ));
                 };
                 let align = p.get("align").and_then(Json::as_str);
-                if let Some(edge) = edge {
+                // A line that runs away from the edge it is anchored at: it starts (or ends) its offset beyond it.
+                let beyond = match (edge, align) {
+                    (Some(TextAnchor::End), Some("start")) => Some((true, TextAnchor::Start)),
+                    (Some(TextAnchor::Start), Some("end")) => Some((false, TextAnchor::End)),
+                    _ => None,
+                };
+                if let Some((right, aligned)) = beyond {
+                    let (ox, oy) = pair_of(p.get("offset"));
+                    declaration.anchor_to = anchor_to;
+                    declaration.align = Some(aligned);
+                    declaration.beyond_edge = Some((right, ox.unwrap_or(0.0)));
+                    declaration.offset = Some(Point::new(0.0, oy.unwrap_or(0.0)));
+                } else if let Some(edge) = edge {
                     let wanted = if edge == TextAnchor::Start { "start" } else { "end" };
                     if align != Some(wanted) {
                         let side = if edge == TextAnchor::Start { "left" } else { "right" };
@@ -459,7 +471,7 @@ impl Compiler<'_> {
                 }
                 declaration.anchor_to = anchor_to;
                 let (ox, oy) = pair_of(p.get("offset"));
-                match edge {
+                match edge.filter(|_| beyond.is_none()) {
                     Some(edge) => {
                         declaration.align = Some(edge);
                         let inset = ox.unwrap_or(0.0);
@@ -574,6 +586,11 @@ impl Compiler<'_> {
             let found = pattern.captures(&expression)?;
             (found[2] == found[3] && &found[4] == index).then(|| found[1].to_owned())
         };
+        // A place the layout gives, through its own numbers (`layout.value`, ATD §8.8), is the host's to draw.
+        let from_layout = |value: Option<&Json>| cel(value).is_some_and(|c| c.contains("layout.value"));
+        if from_layout(x) || from_layout(y) {
+            return Ok(None);
+        }
         match (members(x, "0"), members(y, "1")) {
             (Some(across), Some(down)) if across == down => Ok(Some(across)),
             _ => fail(format!(

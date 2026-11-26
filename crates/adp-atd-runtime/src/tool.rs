@@ -651,6 +651,14 @@ impl RuntimeModule {
 
     /// A node's size, as it fits its content, else as its notation's `size` states it, else its `min`.
     fn size(specification: &DislSpecification, element: &DislElement) -> (f64, f64) {
+        let (width, height) = Self::exact_size(specification, element);
+        let round = crate::capabilities::two_sided_tree::round2;
+        (round(width), round(height))
+    }
+
+    /// [`Self::size`] as its expressions give it, unrounded: what a capability that measures by the drawn sizes
+    /// themselves is given (a Sankey bar's height, which its stacked bands must fill exactly).
+    fn exact_size(specification: &DislSpecification, element: &DislElement) -> (f64, f64) {
         if let Some(fitted) = Self::fitted(specification, element) {
             return fitted;
         }
@@ -668,9 +676,7 @@ impl RuntimeModule {
                 .and_then(|v| v.as_number())
                 .unwrap_or(fallback)
         };
-        // In the canvas's units, rounded to 0.01, as a capability's input is (ATD §2.4, its fixtures).
-        let round = crate::capabilities::two_sided_tree::round2;
-        (round(measure("width", min(0))), round(measure("height", min(1))))
+        (measure("width", min(0)), measure("height", min(1)))
     }
 }
 
@@ -1334,10 +1340,12 @@ impl DiagramModule for RuntimeModule {
         let shown_ids: std::collections::HashSet<String> = shown.iter().map(DislElement::id).collect();
         // A node its notation places by an expression (DISL section 6.4, a loop's badge at its variables' centroid) is
         // not the layout's to place.
+        // A node placed from the layout's own numbers (`layout.value`, ATD §8.8) is the layout's to place too.
         let computed = |element: &DislElement| {
             specification.root()["notation"]["nodes"][element.type_name()]["placement"]["x"]
                 .get("cel")
-                .is_some()
+                .and_then(Json::as_str)
+                .is_some_and(|cel| cel.contains("view.bounds"))
         };
         let mut placed: Vec<DislElement> = diagram
             .nodes()
@@ -1367,6 +1375,8 @@ impl DiagramModule for RuntimeModule {
             let boundary = boundaries.contains(&element.id());
             let (width, height) = if boundary {
                 (0.0, 0.0)
+            } else if capability.exact_sizes() {
+                Self::exact_size(specification, &element)
             } else if capability.draws_its_sizes() {
                 Self::stated_size(&element)
             } else {
@@ -1445,10 +1455,25 @@ impl DiagramModule for RuntimeModule {
             .map(|relation| {
                 // An end as the model holds it, not as it was read: under a prefix the two differ.
                 let end = |element: Option<DislElement>, read: Option<String>| element.map(|e| e.id()).or(read);
+                // What the layout's arguments read of the edge, each evaluated for it (a Sankey flow's `weight`).
+                let mut attributes = serde_json::Map::new();
+                for (key, value) in layout
+                    .arguments
+                    .iter()
+                    .filter(|(key, value)| !queries.contains(&key.as_str()) && value.get("cel").is_some())
+                    .filter(|(key, _)| !PLACED_BY_HOST.contains(&key.as_str()))
+                {
+                    if let Some(evaluated) = Self::evaluate(specification, &relation, value)
+                        && !evaluated.is_null()
+                    {
+                        attributes.insert(key.clone(), json!(evaluated.to_string()));
+                    }
+                }
                 json!({
                     "id": relation.id(),
                     "source": end(relation.source(), relation.source_id()),
                     "target": end(relation.target(), relation.target_id()),
+                    "attributes": attributes,
                 })
             })
             .collect();
@@ -1467,6 +1492,14 @@ impl DiagramModule for RuntimeModule {
         for (id, size) in &resized {
             sizes.insert(id.clone(), *size);
         }
+        // The numbers the layout gives its nodes and edges, which the notation reads as `layout.value(e, name)`.
+        let values: HashMap<String, HashMap<String, f64>> = capability
+            .values(&input, &args)
+            .unwrap_or_default()
+            .into_iter()
+            .map(|(id, named)| (id, named.into_iter().collect()))
+            .collect();
+        diagram.set_layout_values(values);
         self.resized
             .borrow_mut()
             .insert(document.body_path().to_path_buf(), resized);

@@ -188,12 +188,16 @@ fn a_label_anchored_at_an_edge_is_an_aligned_line_inset_by_the_offset_inward() {
 }
 
 #[test]
-fn a_label_at_an_edge_aligned_other_than_toward_it_or_anchored_elsewhere_is_refused() {
-    assert!(
-        refusal(&with_label(
-            json!({ "position": { "anchor": [1, 0], "align": "start" } })
-        ))
-        .contains("right edge aligned \"start\"")
+fn a_label_at_an_edge_aligned_with_no_align_or_anchored_elsewhere_is_refused() {
+    // Aligned away from its edge, a label runs from its offset beyond it (a Sankey bar's name beside the bar).
+    let beyond = &compiled(&with_label(
+        json!({ "position": { "anchor": [1, 0.5], "offset": [10, -5], "align": "start" } }),
+    ))
+    .element_types[0]
+        .labels[0];
+    assert_eq!(
+        (Some(TextAnchor::Start), Some((true, 10.0))),
+        (beyond.align, beyond.beyond_edge)
     );
     assert!(refusal(&with_label(json!({ "position": { "anchor": [1, 0] } }))).contains("right edge with no align"));
     assert!(refusal(&with_label(json!({ "position": { "anchor": [0.25, 0] } }))).contains("anchors at [0.25,0]"));

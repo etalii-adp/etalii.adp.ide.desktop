@@ -50,6 +50,8 @@ pub(crate) struct DiagramData {
     /// The views the reading found in the body, and `diagram.views` once computed from them.
     body_views: RefCell<Vec<FblBodyView>>,
     views: RefCell<Option<Views>>,
+    /// The numbers the default layout gave each element, by element id and then by name (ATD §8.8, `layout.value`).
+    layout_values: RefCell<HashMap<String, HashMap<String, f64>>>,
 }
 
 impl fmt::Debug for DiagramData {
@@ -134,6 +136,7 @@ impl DislDiagram {
             read_from: RefCell::new(None),
             body_views: RefCell::new(Vec::new()),
             views: RefCell::new(None),
+            layout_values: RefCell::new(HashMap::new()),
         }))
     }
 
@@ -157,6 +160,16 @@ impl DislDiagram {
     /// subject, which a host binds when a message names it; none, and no `file` member, when the host gives none.
     pub fn file(&self) -> Option<String> {
         self.0.file.borrow().clone()
+    }
+
+    /// Keeps the numbers the default layout gave the elements, which `layout.value(e, name)` reads (ATD §8.8).
+    pub fn set_layout_values(&self, values: HashMap<String, HashMap<String, f64>>) {
+        *self.0.layout_values.borrow_mut() = values;
+    }
+
+    /// The number the default layout gave element `id` under `name`, if it gave one.
+    pub fn layout_value(&self, id: &str, name: &str) -> Option<f64> {
+        self.0.layout_values.borrow().get(id)?.get(name).copied()
     }
 
     pub fn set_file(&self, file: Option<&str>) {

@@ -1,0 +1,401 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability layout.flowRelaxation` from modules/diagrams/sankey/src/layout.rs of etalii.adp.ide.desktop, on the document parity/scripts/etalii/sankey/brightwater-coffee.json opens; never edited by hand.",
+  "input": {
+    "nodes": [
+      {
+        "id": "cafes",
+        "width": 24.0,
+        "height": 294.40000000000003,
+        "attributes": {
+          "column": "0"
+        }
+      },
+      {
+        "id": "packaged",
+        "width": 24.0,
+        "height": 153.6,
+        "attributes": {
+          "column": "0"
+        }
+      },
+      {
+        "id": "wholesale",
+        "width": 24.0,
+        "height": 83.2,
+        "attributes": {
+          "column": "0"
+        }
+      },
+      {
+        "id": "licensing",
+        "width": 24.0,
+        "height": 28.8,
+        "attributes": {
+          "column": "0"
+        }
+      },
+      {
+        "id": "revenue",
+        "width": 24.0,
+        "height": 560.0,
+        "attributes": {
+          "column": "1"
+        }
+      },
+      {
+        "id": "gross-profit",
+        "width": 24.0,
+        "height": 257.6,
+        "attributes": {
+          "column": "2"
+        }
+      },
+      {
+        "id": "cost-of-revenue",
+        "width": 24.0,
+        "height": 302.40000000000003,
+        "attributes": {
+          "column": "2"
+        }
+      },
+      {
+        "id": "operating-profit",
+        "width": 24.0,
+        "height": 89.60000000000001,
+        "attributes": {
+          "column": "3"
+        }
+      },
+      {
+        "id": "operating-expenses",
+        "width": 24.0,
+        "height": 168.0,
+        "attributes": {
+          "column": "3"
+        }
+      },
+      {
+        "id": "net-profit",
+        "width": 24.0,
+        "height": 67.2,
+        "attributes": {
+          "column": "4"
+        }
+      },
+      {
+        "id": "tax",
+        "width": 24.0,
+        "height": 22.400000000000002,
+        "attributes": {
+          "column": "4"
+        }
+      },
+      {
+        "id": "marketing",
+        "width": 24.0,
+        "height": 67.2,
+        "attributes": {
+          "column": "4"
+        }
+      },
+      {
+        "id": "research",
+        "width": 24.0,
+        "height": 33.6,
+        "attributes": {
+          "column": "4"
+        }
+      },
+      {
+        "id": "general",
+        "width": 24.0,
+        "height": 67.2,
+        "attributes": {
+          "column": "4"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "cafes->revenue",
+        "source": "cafes",
+        "target": "revenue",
+        "attributes": {
+          "weight": "1840",
+          "thickness": "294.40000000000003"
+        }
+      },
+      {
+        "id": "packaged->revenue",
+        "source": "packaged",
+        "target": "revenue",
+        "attributes": {
+          "weight": "960",
+          "thickness": "153.6"
+        }
+      },
+      {
+        "id": "wholesale->revenue",
+        "source": "wholesale",
+        "target": "revenue",
+        "attributes": {
+          "weight": "520",
+          "thickness": "83.2"
+        }
+      },
+      {
+        "id": "licensing->revenue",
+        "source": "licensing",
+        "target": "revenue",
+        "attributes": {
+          "weight": "180",
+          "thickness": "28.8"
+        }
+      },
+      {
+        "id": "revenue->gross-profit",
+        "source": "revenue",
+        "target": "gross-profit",
+        "attributes": {
+          "weight": "1610",
+          "thickness": "257.6"
+        }
+      },
+      {
+        "id": "revenue->cost-of-revenue",
+        "source": "revenue",
+        "target": "cost-of-revenue",
+        "attributes": {
+          "weight": "1890",
+          "thickness": "302.40000000000003"
+        }
+      },
+      {
+        "id": "gross-profit->operating-profit",
+        "source": "gross-profit",
+        "target": "operating-profit",
+        "attributes": {
+          "weight": "560",
+          "thickness": "89.60000000000001"
+        }
+      },
+      {
+        "id": "gross-profit->operating-expenses",
+        "source": "gross-profit",
+        "target": "operating-expenses",
+        "attributes": {
+          "weight": "1050",
+          "thickness": "168"
+        }
+      },
+      {
+        "id": "operating-profit->net-profit",
+        "source": "operating-profit",
+        "target": "net-profit",
+        "attributes": {
+          "weight": "420",
+          "thickness": "67.2"
+        }
+      },
+      {
+        "id": "operating-profit->tax",
+        "source": "operating-profit",
+        "target": "tax",
+        "attributes": {
+          "weight": "140",
+          "thickness": "22.400000000000002"
+        }
+      },
+      {
+        "id": "operating-expenses->marketing",
+        "source": "operating-expenses",
+        "target": "marketing",
+        "attributes": {
+          "weight": "420",
+          "thickness": "67.2"
+        }
+      },
+      {
+        "id": "operating-expenses->research",
+        "source": "operating-expenses",
+        "target": "research",
+        "attributes": {
+          "weight": "210",
+          "thickness": "33.6"
+        }
+      },
+      {
+        "id": "operating-expenses->general",
+        "source": "operating-expenses",
+        "target": "general",
+        "attributes": {
+          "weight": "420",
+          "thickness": "67.2"
+        }
+      }
+    ]
+  },
+  "args": {
+    "columnGap": 320,
+    "nodeGap": 36,
+    "passes": 24,
+    "decay": 0.99
+  },
+  "output": {
+    "positions": {
+      "cafes": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "packaged": {
+        "x": 0.0,
+        "y": 330.4
+      },
+      "wholesale": {
+        "x": 0.0,
+        "y": 520.0
+      },
+      "licensing": {
+        "x": 0.0,
+        "y": 639.2
+      },
+      "revenue": {
+        "x": 320.0,
+        "y": 37.28
+      },
+      "gross-profit": {
+        "x": 640.0,
+        "y": 44.45
+      },
+      "cost-of-revenue": {
+        "x": 640.0,
+        "y": 338.05
+      },
+      "operating-profit": {
+        "x": 960.0,
+        "y": 46.11
+      },
+      "operating-expenses": {
+        "x": 960.0,
+        "y": 171.71
+      },
+      "net-profit": {
+        "x": 1280.0,
+        "y": 45.94
+      },
+      "tax": {
+        "x": 1280.0,
+        "y": 149.14
+      },
+      "marketing": {
+        "x": 1280.0,
+        "y": 207.54
+      },
+      "research": {
+        "x": 1280.0,
+        "y": 310.74
+      },
+      "general": {
+        "x": 1280.0,
+        "y": 380.34
+      }
+    },
+    "values": {
+      "cafes": {
+        "top": 0.0
+      },
+      "packaged": {
+        "top": 330.4
+      },
+      "wholesale": {
+        "top": 520.0
+      },
+      "licensing": {
+        "top": 639.2
+      },
+      "revenue": {
+        "top": 37.28
+      },
+      "gross-profit": {
+        "top": 44.45
+      },
+      "cost-of-revenue": {
+        "top": 338.05
+      },
+      "operating-profit": {
+        "top": 46.11
+      },
+      "operating-expenses": {
+        "top": 171.71
+      },
+      "net-profit": {
+        "top": 45.94
+      },
+      "tax": {
+        "top": 149.14
+      },
+      "marketing": {
+        "top": 207.54
+      },
+      "research": {
+        "top": 310.74
+      },
+      "general": {
+        "top": 380.34
+      },
+      "cafes->revenue": {
+        "sourceAt": 0.5,
+        "targetAt": 0.262857
+      },
+      "packaged->revenue": {
+        "sourceAt": 0.5,
+        "targetAt": 0.662857
+      },
+      "wholesale->revenue": {
+        "sourceAt": 0.5,
+        "targetAt": 0.874286
+      },
+      "licensing->revenue": {
+        "sourceAt": 0.5,
+        "targetAt": 0.974286
+      },
+      "revenue->gross-profit": {
+        "sourceAt": 0.23,
+        "targetAt": 0.5
+      },
+      "revenue->cost-of-revenue": {
+        "sourceAt": 0.73,
+        "targetAt": 0.5
+      },
+      "gross-profit->operating-profit": {
+        "sourceAt": 0.173913,
+        "targetAt": 0.5
+      },
+      "gross-profit->operating-expenses": {
+        "sourceAt": 0.673913,
+        "targetAt": 0.5
+      },
+      "operating-profit->net-profit": {
+        "sourceAt": 0.375,
+        "targetAt": 0.5
+      },
+      "operating-profit->tax": {
+        "sourceAt": 0.875,
+        "targetAt": 0.5
+      },
+      "operating-expenses->marketing": {
+        "sourceAt": 0.2,
+        "targetAt": 0.5
+      },
+      "operating-expenses->research": {
+        "sourceAt": 0.5,
+        "targetAt": 0.5
+      },
+      "operating-expenses->general": {
+        "sourceAt": 0.8,
+        "targetAt": 0.5
+      }
+    }
+  }
+}

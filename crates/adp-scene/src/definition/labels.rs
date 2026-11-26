@@ -69,6 +69,9 @@ pub struct LabelDeclaration {
     /// Sets the line's x: at the inset from the aligned edge.
     pub align: Option<TextAnchor>,
     pub inset_x: Option<f64>,
+    /// A line anchored at an edge it runs away from (DISL section 6.12: `anchor: [1, …]` with `align: start`): its x,
+    /// the right edge (`true`) or the left one, and the offset from it.
+    pub beyond_edge: Option<(bool, f64)>,
     pub editable: bool,
     /// Laid out as wrapped text inside the shape's text region.
     pub wrap: bool,
@@ -90,6 +93,7 @@ impl LabelDeclaration {
             anchor_to: AnchorTo::Centre,
             align: None,
             inset_x: None,
+            beyond_edge: None,
             editable: false,
             wrap: false,
             truncate: false,
@@ -213,6 +217,10 @@ fn placement_of(declaration: &LabelDeclaration, bounds: Rect) -> (f64, f64, Text
 /// Alignment sets x and an offset sets y (`baselineOf`).
 fn baseline_of(declaration: &LabelDeclaration, bounds: Rect) -> (f64, f64, TextAnchor) {
     let placed = placement_of(declaration, bounds);
+    if let (Some(align), Some((right, offset))) = (declaration.align, declaration.beyond_edge) {
+        let edge = if right { bounds.right() } else { bounds.x };
+        return (edge + offset, placed.1, align);
+    }
     match declaration.align {
         None => placed,
         Some(align) => (aligned_x(align, bounds, declaration.inset_x), placed.1, align),
