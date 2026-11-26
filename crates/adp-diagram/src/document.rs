@@ -486,10 +486,19 @@ impl DiagramDocument {
                     // what it names.
                     source: element.source().map(|s| s.id()).or_else(|| element.source_id()),
                     target: element.target().map(|t| t.id()).or_else(|| element.target_id()),
+                    // What is stored, and the value of every fixed attribute, which is never stored (DISL section 4.3).
                     attributes: element
                         .attributes()
                         .iter()
                         .map(|(k, v)| (k.clone(), text_of(v)))
+                        .chain(
+                            element
+                                .element_type()
+                                .attributes
+                                .values()
+                                .filter(|a| a.json.get("fixed").is_some())
+                                .map(|a| (a.name.clone(), text_of(&element.value_of(&a.name)))),
+                        )
                         .collect(),
                     id,
                 }

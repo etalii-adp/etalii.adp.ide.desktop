@@ -358,13 +358,27 @@ pub fn notation_scene(
     );
     let diagram = &document.model().diagram;
     let module = document.tool().module.as_deref();
+    // The sizes the attributes keep, in canvas units (DISL section 6.6, `size.width` and `size.height`).
+    let extents = document.extents();
     let positions: HashMap<String, Rect> = elements
         .iter()
         .filter(|e| e.kind == ElementKind::Node)
         .filter_map(|e| {
             let measured = module.and_then(|m| m.size_of(document, &diagram.element_by_id(&e.id)?));
             let Some((width, height)) = measured else {
-                let (width, height) = default_size(definition.element_type(&e.element_type)?);
+                let (mut width, mut height) = default_size(definition.element_type(&e.element_type)?);
+                let canvas = |length: &Option<adp_diagram::sizing::Length>| match length {
+                    Some(adp_diagram::sizing::Length::Canvas(units)) => Some(*units),
+                    _ => None,
+                };
+                // Not of a node the module places on its own axes, whose extent is in their units.
+                let placed_by_module = diagram
+                    .element_by_id(&e.id)
+                    .is_some_and(|element| module.is_some_and(|m| m.position(&element).is_some()));
+                if let Some(extent) = extents.get(&e.id).filter(|_| !placed_by_module) {
+                    width = canvas(&extent.width).unwrap_or(width);
+                    height = canvas(&extent.height).unwrap_or(height);
+                }
                 return Some((e.id.clone(), Rect::new(e.x, e.y, width, height)));
             };
             // A size the module measures goes with a position that is the node's centre.

@@ -485,6 +485,12 @@ impl DislElement {
         if attribute.is_derived() {
             return self.derived(&attribute, &diagram);
         }
+        // A fixed attribute always has its value, whatever is stored (section 4.3).
+        if let Some(fixed) = json::get(&attribute.json, "fixed")
+            && let Some(value) = values::from_json(fixed, &attribute, metamodel)
+        {
+            return value;
+        }
         let Some(value) = stored else {
             if let Some((named, linked_name)) = &self.0.state.borrow().linked_name
                 && named == name
