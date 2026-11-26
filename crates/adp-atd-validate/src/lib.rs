@@ -942,7 +942,22 @@ impl Replay {
         let relations = self
             .session
             .relation_types_between(self.workspace.documents(), source, None);
-        let named = relations.iter().find(|relation| *relation == name);
+        // A relation type by its name, else by the wire id the description's connect entry gives it (`connect:
+        // "fdg.connect.<relation>"`, ATD §2.3).
+        let ids = self.tool.definition.ids();
+        let wire = |relation: &String| {
+            let mut bindings = adp_cel::Map::default();
+            bindings.insert("relation".to_owned(), adp_cel::Value::from(relation.as_str()));
+            let id = ids.action_id(&[], "connect", None, &bindings);
+            // Without a wire id of its own a connect entry is named `connect`, which is the host's generic gesture.
+            id != "connect" && id == name
+        };
+        let named = relations
+            .iter()
+            .find(|relation| *relation == name)
+            .or_else(|| relations.iter().find(|relation| wire(relation)));
+        let name = named.cloned().unwrap_or_else(|| name.to_owned());
+        let name = name.as_str();
         if let Some(created) = created {
             let (x, y) = point_of(&created["at"])?;
             let relation = named
