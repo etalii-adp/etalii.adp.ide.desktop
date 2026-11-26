@@ -129,6 +129,15 @@ pub(crate) fn register(environment: &mut Environment, enums: Rc<IndexMap<String,
             }),
         );
     }
+    // ATD §8.8: the number the default layout gave an element under a name, null where it gave none.
+    environment.add_function(Function::global("layout.value", 2, |a| {
+        let element = crate::DislElement::from_value(&a[0]).ok_or("layout.value() takes an element.")?;
+        let name = text(&a[1])?;
+        Ok(element
+            .try_diagram()
+            .and_then(|diagram| diagram.layout_value(&element.id(), name))
+            .map_or(Value::Null, Value::Double))
+    }));
     environment.add_function(Function::global("formatNumber", 2, |a| {
         Ok(Value::String(number_format::format_number(
             number(&a[0])?,

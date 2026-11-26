@@ -85,6 +85,7 @@ pub fn record(name: &str, cases: &Path) -> Result<Vec<PathBuf>, String> {
         "reader.sparql" => sparql(cases),
         "layout.nestedGrid" => nested_grid(cases),
         "layout.bandedLayers" => banded_layers(cases),
+        "layout.flowRelaxation" => flow_relaxation(cases),
         "render.markdown" => markdown(cases, "render.markdown", render_markdown),
         "reader.turtle" => super::w3c::turtle(cases),
         "render.descriptionLogic" => super::w3c::description_logic(cases),
@@ -649,6 +650,80 @@ fn banded_layers(cases: &Path) -> Result<Vec<PathBuf>, String> {
             "input": { "nodes": nodes, "edges": edges },
             "args": { "layerGap": 128, "rowGap": 28, "bandTitle": 40, "bandBottom": 20, "bandGap": 32, "passes": 8, "lanes": true },
             "output": output,
+        });
+        let file = cases.join(format!("{short}.json"));
+        write_json(&file, &fixture)?;
+        written.push(file);
+    }
+    Ok(written)
+}
+
+/// `layout.flowRelaxation` from the Sankey module's layout (`modules/diagrams/sankey/src/layout.rs`), on the document of
+/// every Sankey parity script: the drawable nodes with their column, 24 wide and as tall as the module measures them;
+/// the drawable flows with their weight and the thickness the module stacks them at; and every node's top-left, and
+/// the values the contract names: each node's `top`, each edge's `sourceAt` and `targetAt`.
+fn flow_relaxation(cases: &Path) -> Result<Vec<PathBuf>, String> {
+    use adp_diagram_sankey::layout::SankeyLayout;
+    use adp_diagram_sankey::model::geometry;
+    use adp_diagram_sankey::{lines::LineDocument, parser};
+
+    fs::create_dir_all(cases).map_err(|e| format!("{}: {e}", cases.display()))?;
+    let mut written = Vec::new();
+    for name in adp_parity::script_names()
+        .into_iter()
+        .filter(|n| n.starts_with("etalii/sankey/"))
+    {
+        let case = adp_parity::Case::load(&name)?;
+        let text = reader_input(&case)?["body"].as_str().unwrap_or_default().to_owned();
+        let model = parser::parse(&LineDocument::parse(&text));
+        let layout = SankeyLayout::of(&model);
+        let height = |id: &str| geometry::MINIMUM_NODE_HEIGHT.max(layout.values[id] * layout.scale);
+        let nodes: Vec<Json> = layout
+            .nodes
+            .iter()
+            .map(|node| {
+                json!({
+                    "id": node.id, "width": geometry::NODE_WIDTH, "height": height(&node.id),
+                    "attributes": { "column": layout.columns[&node.id].to_string() },
+                })
+            })
+            .collect();
+        let edges: Vec<Json> = layout
+            .flows
+            .iter()
+            .map(|flow| {
+                json!({
+                    "id": flow.id(), "source": flow.from, "target": flow.to,
+                    "attributes": {
+                        "weight": adp_fbl::planning::dotnet_double(flow.amount()),
+                        "thickness": adp_fbl::planning::dotnet_double(flow.amount() * layout.scale),
+                    },
+                })
+            })
+            .collect();
+        let mut positions = Map::new();
+        let mut values = Map::new();
+        for node in &layout.nodes {
+            let bar = layout.boxes[&node.id];
+            positions.insert(node.id.clone(), json!({ "x": round2(bar.x), "y": round2(bar.y) }));
+            values.insert(node.id.clone(), json!({ "top": round2(bar.y) }));
+        }
+        for flow in &layout.flows {
+            let band = layout.bands[&flow.id()];
+            values.insert(
+                flow.id(),
+                json!({ "sourceAt": band.source_at, "targetAt": band.target_at }),
+            );
+        }
+        let short = name.rsplit('/').next().unwrap_or(&name);
+        let fixture = json!({
+            "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+            "doc": format!(
+                "Recorded by `atd record --capability layout.flowRelaxation` from modules/diagrams/sankey/src/layout.rs of etalii.adp.ide.desktop, on the document parity/scripts/{name}.json opens; never edited by hand."
+            ),
+            "input": { "nodes": nodes, "edges": edges },
+            "args": { "columnGap": 320, "nodeGap": 36, "passes": 24, "decay": 0.99 },
+            "output": { "positions": positions, "values": values },
         });
         let file = cases.join(format!("{short}.json"));
         write_json(&file, &fixture)?;

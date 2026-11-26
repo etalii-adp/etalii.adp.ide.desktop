@@ -7,6 +7,7 @@ pub mod banded_grid;
 pub mod banded_layers;
 pub mod bands;
 pub mod depth_columns;
+pub mod flow_relaxation;
 pub mod forward_bezier;
 pub mod grid;
 pub mod layered_columns;
@@ -29,6 +30,9 @@ use adp_fbl::plugins::PersistencePlugin;
 use adp_scene::scene::{RouteEnds, RoutePlugins};
 use adp_scene::{Path, Point};
 use serde_json::{Map, Value as Json, json};
+
+/// Named numbers by node or edge id, each its names and numbers.
+pub type Values = Vec<(String, Vec<(String, f64)>)>;
 
 /// Routes by edge id, each its points in order.
 pub type Routes = Vec<(String, Vec<(f64, f64)>)>;
@@ -54,6 +58,12 @@ pub trait LayoutCapability {
         false
     }
 
+    /// Whether the capability is given each node's size as its expressions compute it, unrounded, rather than rounded
+    /// to 0.01: a layout whose geometry is its data (`layout.flowRelaxation`).
+    fn exact_sizes(&self) -> bool {
+        false
+    }
+
     /// Whether the capability keeps a pinned node at its pin (the law `pinnedStay`): one that does not leaves a stored
     /// position to the host, which draws the node there.
     fn consults_pins(&self) -> bool {
@@ -68,6 +78,13 @@ pub trait LayoutCapability {
 
     /// The route the capability gives each edge it routes, by id (`$defs/LayoutResult`'s `routes`): none by default.
     fn routes(&self, input: &Json, args: &Json) -> Result<Routes, String> {
+        let _ = (input, args);
+        Ok(Vec::new())
+    }
+
+    /// The numbers the capability gives each node or edge it places, by id and then by name (`$defs/LayoutResult`'s
+    /// `values`, ATD §8.8): none by default.
+    fn values(&self, input: &Json, args: &Json) -> Result<Values, String> {
         let _ = (input, args);
         Ok(Vec::new())
     }
@@ -112,6 +129,19 @@ pub trait LayoutCapability {
         }
         if !routes.is_empty() {
             result.insert("routes".into(), Json::Object(routes));
+        }
+        let values: Map<String, Json> = self
+            .values(input, args)?
+            .into_iter()
+            .map(|(id, named)| {
+                (
+                    id,
+                    Json::Object(named.into_iter().map(|(k, v)| (k, json!(v))).collect()),
+                )
+            })
+            .collect();
+        if !values.is_empty() {
+            result.insert("values".into(), Json::Object(values));
         }
         Ok(Json::Object(result))
     }
@@ -384,6 +414,9 @@ impl Capabilities {
             .layouts
             .insert("layout.bandedGrid", Rc::new(banded_grid::BandedGrid));
         capabilities.layouts.insert("layout.grid", Rc::new(grid::Grid));
+        capabilities
+            .layouts
+            .insert("layout.flowRelaxation", Rc::new(flow_relaxation::FlowRelaxation));
         capabilities
             .layouts
             .insert("layout.nestedGrid", Rc::new(nested_grid::NestedGrid));
