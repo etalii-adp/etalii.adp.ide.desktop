@@ -1421,3 +1421,38 @@ fn a_folder_held_in_memory_without_its_plugin_says_the_plugin_is_missing() {
     assert!(model.elements.is_empty());
     assert_eq!(model.findings[0].code, codes::PLUGIN_MISSING);
 }
+
+/// FBL 0.26: a folder held in memory hands a plugin that asks for it, with `body.listing`, every folder that holds a
+/// file and every file the file rules do not select, without bytes, in ordinal order.
+#[test]
+fn a_folder_held_in_memory_hands_its_listing_with_body_listing() {
+    let binding = loaded(
+        &format!(
+            r#"{{ "fbl": "0.1", "bindings": {{ "notes": {{
+  "claims": {{ "names": ["index.txt"] }},
+  "body": {{
+    "kind": "folder",
+    "recognise": {{ "all": ["index.txt"] }},
+    "files": [ {{ "name": "pages", "glob": "pages/*.txt", "family": "lines" }} ],
+    "ignore": [".git/**"],
+    "listing": true
+  }},
+  "reader": {{ "plugin": "{FOLDER_PLUGIN_ID}", "version": "^0.1.0" }}
+}} }} }}"#
+        ),
+        "notes",
+    );
+    let plugin = Rc::new(RecordingFolderPlugin::new(FOLDER_PLUGIN_ID));
+    let files = held_folder(&[
+        ("index.txt", "index"),
+        ("pages/a.txt", "a"),
+        ("pages/deep/b.bin", "b"),
+        (".git/HEAD", "never"),
+    ]);
+    let reader: Rc<dyn PersistencePlugin> = plugin.clone();
+    FolderBody::read_held(&binding, Some(reader), &FblOptions::default(), &files);
+    assert_eq!(
+        plugin.reads.borrow()[0].supplementary_entries,
+        ["index.txt", "pages/", "pages/deep/", "pages/deep/b.bin"]
+    );
+}

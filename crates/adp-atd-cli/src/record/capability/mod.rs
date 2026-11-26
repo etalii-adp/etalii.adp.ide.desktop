@@ -81,11 +81,13 @@ pub fn record(name: &str, cases: &Path) -> Result<Vec<PathBuf>, String> {
         "routing.forwardBezier" => forward_bezier::record(cases),
         "reader.markdown" => markdown(cases, "reader.markdown", reader_markdown),
         "reader.helmChart" => helm_chart(cases),
+        "reader.ansibleProject" => ansible_project(cases),
         "layout.rankedColumns" => ranked_columns(cases),
         "reader.sparql" => sparql(cases),
         "layout.nestedGrid" => nested_grid(cases),
         "layout.bandedLayers" => banded_layers(cases),
         "layout.flowRelaxation" => flow_relaxation(cases),
+        "layout.crossingOrder" => crossing_order(cases),
         "render.markdown" => markdown(cases, "render.markdown", render_markdown),
         "reader.turtle" => super::w3c::turtle(cases),
         "render.descriptionLogic" => super::w3c::description_logic(cases),
@@ -724,6 +726,130 @@ fn flow_relaxation(cases: &Path) -> Result<Vec<PathBuf>, String> {
             "input": { "nodes": nodes, "edges": edges },
             "args": { "columnGap": 320, "nodeGap": 36, "passes": 24, "decay": 0.99 },
             "output": { "positions": positions, "values": values },
+        });
+        let file = cases.join(format!("{short}.json"));
+        write_json(&file, &fixture)?;
+        written.push(file);
+    }
+    Ok(written)
+}
+
+/// `layout.crossingOrder` from the Sankey module's arrangement (`modules/diagrams/sankey/src/arrangement.rs`), on the
+/// document of every Sankey parity script: the drawable nodes in the document's order with their column and the height
+/// the module measures them at, the drawable flows with their weight, and the order Arrange diagram gives each column:
+/// each node's place in it, from the origin, 320 apart and 36 between nodes, and its `rank`.
+fn crossing_order(cases: &Path) -> Result<Vec<PathBuf>, String> {
+    use adp_diagram_sankey::arrangement;
+    use adp_diagram_sankey::layout::SankeyLayout;
+    use adp_diagram_sankey::model::geometry;
+    use adp_diagram_sankey::{lines::LineDocument, parser};
+
+    fs::create_dir_all(cases).map_err(|e| format!("{}: {e}", cases.display()))?;
+    let mut written = Vec::new();
+    for name in adp_parity::script_names()
+        .into_iter()
+        .filter(|n| n.starts_with("etalii/sankey/"))
+    {
+        let case = adp_parity::Case::load(&name)?;
+        let text = reader_input(&case)?["body"].as_str().unwrap_or_default().to_owned();
+        let model = parser::parse(&LineDocument::parse(&text));
+        let layout = SankeyLayout::of(&model);
+        let height = |id: &str| geometry::MINIMUM_NODE_HEIGHT.max(layout.values[id] * layout.scale);
+        let nodes: Vec<Json> = layout
+            .nodes
+            .iter()
+            .map(|node| {
+                json!({
+                    "id": node.id, "width": geometry::NODE_WIDTH, "height": height(&node.id),
+                    "attributes": { "column": layout.columns[&node.id].to_string() },
+                })
+            })
+            .collect();
+        let edges: Vec<Json> = layout
+            .flows
+            .iter()
+            .map(|flow| {
+                json!({
+                    "id": flow.id(), "source": flow.from, "target": flow.to,
+                    "attributes": { "weight": adp_fbl::planning::dotnet_double(flow.amount()) },
+                })
+            })
+            .collect();
+        let order = arrangement::document_order_of(&model);
+        let columns = layout.column_order.len();
+        let mut positions = Map::new();
+        let mut values = Map::new();
+        for column in 0..columns {
+            let mut y = 0.0;
+            for (rank, id) in order.iter().filter(|id| layout.columns[*id] == column).enumerate() {
+                positions.insert(
+                    id.clone(),
+                    json!({ "x": round2(column as f64 * 320.0), "y": round2(y) }),
+                );
+                values.insert(id.clone(), json!({ "rank": rank as f64 }));
+                y += height(id) + 36.0;
+            }
+        }
+        let short = name.rsplit('/').next().unwrap_or(&name);
+        let fixture = json!({
+            "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+            "doc": format!(
+                "Recorded by `atd record --capability layout.crossingOrder` from modules/diagrams/sankey/src/arrangement.rs of etalii.adp.ide.desktop, on the document parity/scripts/{name}.json opens; never edited by hand."
+            ),
+            "input": { "nodes": nodes, "edges": edges },
+            "args": { "sweeps": 24, "columnGap": 320, "nodeGap": 36 },
+            "output": { "positions": positions, "values": values },
+        });
+        let file = cases.join(format!("{short}.json"));
+        write_json(&file, &fixture)?;
+        written.push(file);
+    }
+    Ok(written)
+}
+
+/// `reader.ansibleProject` from the Ansible structure module's folder reader (`modules/diagrams/ansible-structure/src/
+/// plugin.rs`), on the project folder of every Ansible parity script: the registration as the body, the files the
+/// binding's file rules select as `files`, and every other folder and file of the folder as its `listing` (FBL 0.26).
+fn ansible_project(cases: &Path) -> Result<Vec<PathBuf>, String> {
+    use adp_diagram_ansible_structure::definition::AnsibleDefinition;
+    use adp_diagram_ansible_structure::plugin::AnsibleFolderPlugin;
+
+    let binding = AnsibleDefinition::get().binding;
+    fs::create_dir_all(cases).map_err(|e| format!("{}: {e}", cases.display()))?;
+    let fixtures = adp_parity::repository_root().join("parity/fixtures");
+    let mut written = Vec::new();
+    for name in adp_parity::script_names()
+        .into_iter()
+        .filter(|n| n.starts_with("ansible/structure/"))
+    {
+        let case = adp_parity::Case::load(&name)?;
+        let registration = fixtures.join(&case.script.fixture);
+        let folder = registration
+            .parent()
+            .ok_or("The project's registration is in no folder.")?;
+        let mut files = Map::new();
+        let selected = adp_fbl::routing::folder_files(&binding, folder, Some(false));
+        for file in &selected {
+            let text = fs::read_to_string(&file.full_path).map_err(|e| format!("{}: {e}", file.full_path.display()))?;
+            files.insert(file.relative_path.clone(), json!(text));
+        }
+        let registration_name = registration.file_name().map(|n| n.to_string_lossy().into_owned());
+        let listing: Vec<String> = adp_fbl::routing::listing(&binding, folder)
+            .into_iter()
+            .filter(|entry| !files.contains_key(entry) && Some(entry) != registration_name.as_ref())
+            .collect();
+        let body = fs::read_to_string(&registration).map_err(|e| format!("{}: {e}", registration.display()))?;
+        let input = json!({"body": body, "files": files, "listing": listing});
+        let output = adp_atd_runtime::capabilities::reader_result(&AnsibleFolderPlugin::handed(), &input)?;
+        let short = name.rsplit('/').next().unwrap_or(&name);
+        let fixture = json!({
+            "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+            "doc": format!(
+                "Recorded by `atd record --capability reader.ansibleProject` from modules/diagrams/ansible-structure/src/plugin.rs of etalii.adp.ide.desktop, on the project folder parity/scripts/{name}.json opens: the registration as the body, the files the binding's file rules select as `files`, every other folder and file as the `listing`; never edited by hand."
+            ),
+            "input": input,
+            "args": {},
+            "output": output,
         });
         let file = cases.join(format!("{short}.json"));
         write_json(&file, &fixture)?;

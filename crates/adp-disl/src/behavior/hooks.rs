@@ -7,7 +7,7 @@
 //! The host has made the change on the working diagram already and hands in the snapshot it took before; the hooks'
 //! own changes are made on it as they run. A hook's change can run further hooks, each at most once per element in
 //! the transaction, and no more than `behavior.maxHookDepth` (100) runs in all; past that the transaction is
-//! refused. Only `change` and `connect` events, and only `after` hooks, are run here.
+//! refused. Only `change`, `connect` and `move` events, and only `after` hooks, are run here.
 
 use std::collections::{HashMap, HashSet};
 
@@ -54,6 +54,44 @@ pub fn after_connect(
     Ok(run(specification, relation, None, "connect", &[], ids, env, source))
 }
 
+/// The hooks' changes after `node` was moved from `from` to `to`, each its top-left corner in the diagram's units (an
+/// `on: move` event): `event.oldValue` and `event.newValue` are those places as `{x, y}`. A move hook runs also for a
+/// node whose place the layout computes, where the move writes nothing else: a Sankey node dragged up its column takes
+/// its place among the entries.
+pub fn after_move(
+    specification: &DislSpecification,
+    node: &DislElement,
+    from: (f64, f64),
+    to: (f64, f64),
+    ids: &dyn IdSource,
+    env: Option<&DislEnv>,
+    source: &str,
+) -> DislTransaction {
+    let place = |(x, y): (f64, f64)| {
+        let mut place = Map::default();
+        place.insert("x", Value::Double(x));
+        place.insert("y", Value::Double(y));
+        Value::map(place)
+    };
+    let diagram = node.diagram();
+    let mut hooks = Hooks {
+        specification,
+        runner: ActionRunner::new(specification, &diagram, ids, contexts::HOOK),
+        ran: HashSet::new(),
+        budget: max_depth(specification),
+        env,
+        source,
+        moved: Some((place(from), place(to))),
+    };
+    hooks.ran_for(node, None, "move", &[]);
+    hooks.runner.transaction()
+}
+
+/// Whether the description has an `after` hook on `move` for `node`'s type.
+pub fn has_move_hooks(specification: &DislSpecification, node: &DislElement) -> bool {
+    !hooks(specification, node, "move", &[]).is_empty()
+}
+
 #[allow(clippy::too_many_arguments)]
 fn run(
     specification: &DislSpecification,
@@ -73,6 +111,7 @@ fn run(
         budget: max_depth(specification),
         env,
         source,
+        moved: None,
     };
     hooks.ran_for(element, old, kind, attributes);
     hooks.runner.transaction()
@@ -85,6 +124,8 @@ struct Hooks<'a> {
     budget: i64,
     env: Option<&'a DislEnv>,
     source: &'a str,
+    /// For a move, the node's place before and after it.
+    moved: Option<(Value, Value)>,
 }
 
 impl Hooks<'_> {
@@ -114,7 +155,14 @@ impl Hooks<'_> {
             variables.insert("old".into(), before.map(DislElement::to_value).unwrap_or(Value::Null));
             variables.insert(
                 "event".into(),
-                Value::map(event(element, before, happened, changed, self.source)),
+                Value::map({
+                    let mut event = event(element, before, happened, changed, self.source);
+                    if let (Some((from, to)), "move") = (&self.moved, happened) {
+                        event.insert("oldValue", from.clone());
+                        event.insert("newValue", to.clone());
+                    }
+                    event
+                }),
             );
             if let Some(when) = json::get(hook, "when")
                 && !evaluation::holds(

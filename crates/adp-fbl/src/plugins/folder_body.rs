@@ -156,9 +156,15 @@ impl FolderBody {
                             }
                         })
                         .collect();
+                    // FBL 0.26: with `body.listing`, the folder's listing as the held files give it.
+                    let listing = if binding.body.listing {
+                        routing::held_listing(binding, &names)
+                    } else {
+                        Vec::new()
+                    };
                     let result = plugin.read(&PluginReadRequest {
                         files: handed,
-                        supplementary_entries: Vec::new(),
+                        supplementary_entries: listing,
                     });
                     let findings = located(&result);
                     PluginReadResult { findings, ..result }
@@ -441,6 +447,19 @@ impl FolderBody {
             .as_ref()
             .map(|of| of(&self.folder))
             .unwrap_or_default();
+        // FBL 0.26: with `body.listing`, every folder and every file the file rules do not select, without bytes.
+        if self.binding.body.listing {
+            let selected: std::collections::HashSet<String> = files
+                .iter()
+                .map(|f| f.relative_path.clone())
+                .chain(unopened.iter().cloned())
+                .collect();
+            for entry in routing::listing(&self.binding, &self.folder) {
+                if !selected.contains(&entry) && !entries.contains(&entry) {
+                    entries.push(entry);
+                }
+            }
+        }
         entries.sort();
         let request = PluginReadRequest {
             files,
