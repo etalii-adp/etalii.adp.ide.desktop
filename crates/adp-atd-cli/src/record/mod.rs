@@ -336,18 +336,47 @@ fn record_case(case: &Case, folder: &Path, description: &str) -> Result<(), Stri
             if let Some(element) = movement["refs"].as_array().and_then(|r| r.first()) {
                 to.insert("element".into(), element.clone());
             }
+            // A place and a distance are in canvas units, as a drawing's (ATD §2.3): the module's own units scaled.
+            let scale = adp_shell::recording::gesture_scale(&origin);
+            let canvas = |value: &Json| match value.as_f64() {
+                Some(number) if scale != 1.0 => json!((number * scale * 100.0).round() / 100.0),
+                _ => value.clone(),
+            };
             // A move into a parent goes before the child at `index` there, or last when it is -1 (ATD §2.3).
             for key in ["parent", "index", "x", "y", "dx", "dy"] {
                 if let Some(value) = movement.get(key)
                     && (key != "index" || movement.get("parent").is_some())
                 {
-                    to.insert(key.into(), value.clone());
+                    let value = if matches!(key, "x" | "y" | "dx" | "dy") {
+                        canvas(value)
+                    } else {
+                        value.clone()
+                    };
+                    to.insert(key.into(), value);
                 }
             }
-            // A move to a place: the parity script's `to`, a step's own `x` and `y` in the case (ATD §2.3).
-            for key in ["x", "y"] {
+            // A move to a place: the parity script's `to`, a step's own `x` and `y` in the case (ATD §2.3), the top-left
+            // of the element as drawn. A module of its own units places an element by its centre (a Wardley map's
+            // component), which is half the element's drawn size past that corner.
+            let drawn = seen[index].drawing.as_ref().ok().and_then(|drawing| {
+                let id = movement["refs"].as_array()?.first()?;
+                drawing["elements"]
+                    .as_array()?
+                    .iter()
+                    .find(|e| &e["id"] == id)
+                    .map(|e| e["bounds"].clone())
+            });
+            for (key, size) in [("x", "w"), ("y", "h")] {
                 if let Some(value) = movement["to"].get(key) {
-                    to.insert(key.into(), value.clone());
+                    let half = match (&drawn, scale != 1.0) {
+                        (Some(bounds), true) => bounds[size].as_f64().unwrap_or(0.0) / 2.0,
+                        _ => 0.0,
+                    };
+                    let value = match canvas(value).as_f64() {
+                        Some(number) if half != 0.0 => json!(((number - half) * 100.0).round() / 100.0),
+                        _ => canvas(value),
+                    };
+                    to.insert(key.into(), value);
                 }
             }
             gesture.insert("move".into(), Json::Object(to));
