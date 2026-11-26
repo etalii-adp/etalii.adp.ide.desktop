@@ -604,15 +604,13 @@ diagram etalii/sankey version "0.2.0" {
 
   /// Adds a node named "New node" (numbered from 2 when a node's label already says so) in the column nearest the
   /// point, with no colour. When that is not the first column, the column is written, because a node with no flows
-  /// would otherwise fall to the first. Where among the entries it is written, directly before the first node of that
-  /// column whose middle is below the point, is not something DISL states (sankey.md, gap 9).
+  /// would otherwise fall to the first. Its entry is written directly before the first node of that column whose
+  /// middle is below the point, or after the last entry when there is none, with its name and column in one go.
   operation addNodeHere "Add node here" for diagram {
     icon: "mdi-plus"
     let column = int(math.greatest(0.0, math.round((double(position.x) - 12.0) / 320.0)))
-    create Node { name: uniqueName('New node') } at position as added
-    if column > 0 {
-      set added.column = column + 1
-    }
+    let below = drawnNodes().filter(n, sankeyColumn(n) == column && layout.value(n, 'top') + barHeight(n) / 2.0 > double(position.y))
+    create Node { name: uniqueName('New node'), column: (column > 0 ? column + 1 : null) } before (below.size() > 0 ? below[0] : null) at position
   }
 
   /// A new flow carries on whatever its source has not yet passed on, or 1 when nothing is left over. It is written

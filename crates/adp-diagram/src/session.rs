@@ -26,7 +26,6 @@ use adp_cel::{Map, Value};
 use adp_context::{ActionGroup, Prompt, PropertyRow};
 use adp_disl::behavior::{deletion, hooks, operations, write};
 use adp_disl::derivation::{constraints, form_commit, gestures};
-use adp_disl::model::builder;
 use adp_disl::{
     DerivedMenuEntry, DislChange, DislConstraintOptions, DislElement, DislEnv, DislInvocation, DislMenuTarget,
     DislReaderFinding, DislTransaction, HostAction, IdSource,
@@ -479,6 +478,28 @@ impl DiagramSession {
             if (old_x, old_y) == (*x, *y) && positions.contains_key(id) {
                 continue;
             }
+            // A description's `on: move` hooks run on the node moved, in the same edit (DISL section 9.2), also where
+            // the layout computes its place and the move writes nothing else.
+            if document.tool().module.as_ref().is_some_and(|m| m.runs_change_rules())
+                && adp_disl::behavior::hooks::has_move_hooks(specification, &element)
+            {
+                let working = document.working();
+                if let Some(moved) = working.element_by_id(id) {
+                    let hooked = adp_disl::behavior::hooks::after_move(
+                        specification,
+                        &moved,
+                        (old_x, old_y),
+                        (*x, *y),
+                        &StandInIds::default(),
+                        Some(&self.env),
+                        "user",
+                    );
+                    if let Some(refusal) = hooked.refusal {
+                        return Err(refusal);
+                    }
+                    changes.extend(hooked.changes.into_iter().map(DiagramChange::Disl));
+                }
+            }
             if let Some(placed) = document
                 .tool()
                 .module
@@ -508,7 +529,7 @@ impl DiagramSession {
                 };
                 // A description's change rules run on what a move sets, as on a property.
                 if document.tool().module.as_ref().is_some_and(|m| m.runs_change_rules()) {
-                    let working = builder::from(document.fbl(), specification).diagram;
+                    let working = document.working();
                     let hooked = adp_disl::behavior::hooks::after_sets(
                         specification,
                         &working,
@@ -990,7 +1011,7 @@ impl DiagramSession {
         let document = self.document(workspace.documents())?;
         let specification = document.tool().definition.specification();
         let name = tool_name(document, tool_id).unwrap_or_else(|| tool_id.to_owned());
-        let working = builder::from(document.fbl(), specification).diagram;
+        let working = document.working();
         // A parent placement reads `view.bounds` (DISL section 9.1, 11.6), the module's to give.
         if let Some(module) = &document.tool().module {
             for node in working.nodes() {
@@ -1061,7 +1082,7 @@ impl DiagramSession {
         let specification = definition.specification();
         // The form commit runs on a copy of the reading: it assigns as it goes, and the reading is shared by every
         // document that holds the same bytes.
-        let working = builder::from(document.fbl(), specification).diagram;
+        let working = document.working();
         let mut changes = Vec::new();
         for id in element_ids {
             if let Some(written) = document
@@ -1158,7 +1179,7 @@ impl DiagramSession {
         let definition = &document.tool().definition;
         let specification = definition.specification();
         let row = definition.row_key(property_id);
-        let working = builder::from(document.fbl(), specification).diagram;
+        let working = document.working();
         if definition
             .diagram_rows(&working, &self.env)
             .iter()
@@ -1402,7 +1423,7 @@ impl DiagramSession {
             }
             (_, _) if entry.operation.is_some() => {
                 let operation = entry.operation.clone().unwrap_or_default();
-                let working = builder::from(document.fbl(), specification).diagram;
+                let working = document.working();
                 let element = match target {
                     ActionTarget::Element(id) => working.element_by_id(id),
                     _ => None,
@@ -1676,7 +1697,7 @@ impl DiagramSession {
             (Some(entry), _) if entry.operation.is_some() => {
                 let operation = entry.operation.clone().unwrap_or_default();
                 let specification = document.tool().definition.specification();
-                let working = builder::from(document.fbl(), specification).diagram;
+                let working = document.working();
                 let element = match target {
                     ActionTarget::Element(id) => working.element_by_id(id),
                     _ => None,
@@ -1824,7 +1845,7 @@ impl DiagramSession {
             return Err(refusal);
         }
         let transaction = if relation.derived().is_some() {
-            let working = builder::from(document.fbl(), specification).diagram;
+            let working = document.working();
             let (Some(from), Some(to)) = (working.element_by_id(source), working.element_by_id(target)) else {
                 return Err(GONE.to_owned());
             };
@@ -1843,7 +1864,7 @@ impl DiagramSession {
             };
             // A description's `on: connect` hooks run on the relation drawn, in the same edit (DISL section 9.2).
             if document.tool().module.as_ref().is_some_and(|m| m.runs_change_rules()) {
-                let working = builder::from(document.fbl(), specification).diagram;
+                let working = document.working();
                 if let (Some(source), Some(target)) = (working.element_by_id(source), working.element_by_id(target)) {
                     let relation =
                         working.add_relation(relation_type, &id, Some(&source), Some(&target), Map::default())?;
@@ -1877,7 +1898,7 @@ impl DiagramSession {
         }
         let document = self.document(workspace.documents())?;
         let specification = document.tool().definition.specification();
-        let working = builder::from(document.fbl(), specification).diagram;
+        let working = document.working();
         let existing = working.element_by_id(source).ok_or_else(|| GONE.to_owned())?;
         let transaction = operations::connect_to_new(
             specification,
@@ -2007,7 +2028,7 @@ impl DiagramSession {
     ) -> Result<(), String> {
         let document = self.document(workspace.documents())?;
         let specification = document.tool().definition.specification();
-        let working = builder::from(document.fbl(), specification).diagram;
+        let working = document.working();
         // `self.view` reads this viewer's view state (DISL section 12.2), the module's to give.
         if let Some(module) = &document.tool().module {
             for node in working.nodes() {

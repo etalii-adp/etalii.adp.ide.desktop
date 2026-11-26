@@ -89,7 +89,7 @@ The requirements' draft of the binding has fifteen file rules. Eight of them mar
 
 Each is named for the gap it stands in for, and goes when its gap is closed (standalone design, *What remains in the module, and why*):
 
-- **`AnsibleFolderListing`** (gaps 1 and 2): that a folder exists, whether a file is there, the folders under one, how many files a folder holds without their bytes, and the bytes of a file that is a link, which FBL 10.2 never selects and the tool reads (B11, Q2).
+- **`AnsibleFolderListing`** (gaps 1 and 2): that a folder exists, whether a file is there, the folders under one, how many files a folder holds without their bytes, and the bytes of a file that is a link, which FBL 10.2 never selects and the tool reads (B11, Q2). Under ATD the reader learns all but the linked file's bytes from the folder's listing, which the binding's `body.listing` hands it (FBL 0.26).
 - **`AnsibleFindings`** (gaps 6 and 8): composes the sentence of `ansible.unreadable-yaml` as "'&lt;file>' is not readable YAML: &lt;reason>"; puts the findings in today's order; and passes on a `std.unparseable` only when it names a file of the folder, so that a folder FBL 10.3 would make an unreadable body opens empty with no finding (B5, Q2).
 - **`AnsibleInventoryRows`** (gap 7): the rows `ansible.group.<name>` and `ansible.vars.<name>` of an inventory.
 - **The reveal handler in `client/AnsibleCanvas.tsx`** (gap 9): double-click, Enter and Space.

@@ -6,9 +6,9 @@ part of ansible/structure
 // never the content says a folder is an Ansible project. The file rules select the files the plugin parses: playbooks
 // at the root and under playbooks/, a role's task files and its meta/main, and the inventory files. The plugin passes
 // over a selected file it does not read, such as a note under inventories/. What the plugin also needs and no file
-// rule can say, that a folder exists and how many files a folder holds, is not here: the plugin learns it from the
-// folder itself (ansible-structure.md, gaps 1 and 2). No rule names a family, so the plugin parses every file, and an
-// inventory that is not YAML is read as INI.
+// rule can say, that a folder exists and how many files a folder holds, it learns from the folder's listing, which
+// `listing` hands it without the files' bytes (FBL 0.26; ansible-structure.md, gaps 1 and 2). No rule names a family,
+// so the plugin parses every file, and an inventory that is not YAML is read as INI.
 
 binding ansible family capability reader.ansibleProject {
   label "Ansible project folder"
@@ -32,6 +32,7 @@ binding ansible family capability reader.ansibleProject {
     ]
     ignore: [".git/**"]
     settle: 400
+    listing: true
   }
   /// Every line of the layout block ends with CRLF once a drag writes it, as the standalone tool wrote it on every
   /// platform (FBL 0.21).

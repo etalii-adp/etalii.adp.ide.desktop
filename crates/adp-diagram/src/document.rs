@@ -29,7 +29,7 @@ use std::rc::Rc;
 use adp_cel::Value;
 use adp_disl::behavior::write;
 use adp_disl::model::{builder, natural_ids};
-use adp_disl::{DislChange, DislElement, DislModel};
+use adp_disl::{DislChange, DislDiagram, DislElement, DislModel};
 use adp_documents::SelfWriteGuard;
 use adp_fbl::history::{DRIFT_UNDO, apply_in_order, inverse};
 use adp_fbl::model::{SourceLocation, codes};
@@ -235,6 +235,14 @@ impl DiagramDocument {
     /// The DISL model of the body as it is now.
     pub fn model(&self) -> &DislModel {
         &self.reading.model
+    }
+
+    /// A diagram of the body as it is now for a gesture to change, reading the numbers its last layout gave the
+    /// elements as `layout.value(e, name)` does in the drawing (ATD section 8.8).
+    pub fn working(&self) -> DislDiagram {
+        let working = builder::from(self.fbl(), self.tool.definition.specification()).diagram;
+        working.set_layout_values(self.reading.model.diagram.layout_values());
+        working
     }
 
     /// The binding's reading of the body as it is now.
@@ -550,7 +558,7 @@ impl DiagramDocument {
             Body::Declared(open) => Some(&**open),
             _ => None,
         };
-        let changes = self.removals_bottom_up(changes, opened);
+        let changes = sets_into_adds(self.removals_bottom_up(changes, opened));
         // An element created in this edit whose id is computed (DISL section 11.5) is read back under the id the binding
         // gives it, which an add under it in the same edit names as its parent.
         let mut made: HashMap<String, String> = HashMap::new();
@@ -600,6 +608,12 @@ impl DiagramDocument {
                 {
                     *parent = read.clone();
                 }
+                // A set on an element created or connected earlier in this edit names it as the binding reads it back.
+                if let ModelChange::Set { id, .. } = &mut model_change
+                    && let Some(read) = made.get(id.as_str())
+                {
+                    *id = read.clone();
+                }
                 // An entry the binding names by its place (an id it does not store) is named by the place it has now:
                 // an earlier change of this edit may have moved it.
                 if !steps.is_empty() {
@@ -615,7 +629,10 @@ impl DiagramDocument {
                     *slot = None;
                 }
                 let created = match (change, &model_change) {
-                    (DiagramChange::Disl(DislChange::Create { id, .. }), ModelChange::Add { .. }) => Some(id.clone()),
+                    (
+                        DiagramChange::Disl(DislChange::Create { id, .. } | DislChange::Connect { id, .. }),
+                        ModelChange::Add { .. },
+                    ) => Some(id.clone()),
                     _ => None,
                 };
                 let known: Option<std::collections::HashSet<String>> = created
@@ -1068,6 +1085,36 @@ fn places(model: &FblModel) -> HashMap<String, Vec<(String, usize)>> {
 
 /// `change` with each id of an entry `before` names by its place (an id the binding does not store) as `now` names
 /// the entry at that place.
+/// `changes` with every set of an element created or connected earlier in the same edit folded into that create or
+/// connect, so that the entry is written once with all its keys, as a module writes a new entry, rather than written
+/// and then given the keys the set adds wherever the binding puts a key an entry lacks.
+fn sets_into_adds(changes: Vec<DiagramChange>) -> Vec<DiagramChange> {
+    let mut folded: Vec<DiagramChange> = Vec::with_capacity(changes.len());
+    for change in changes {
+        if let DiagramChange::Disl(DislChange::Set {
+            element_id, attributes, ..
+        }) = &change
+            && let Some(DiagramChange::Disl(
+                DislChange::Create { attributes: added, .. } | DislChange::Connect { attributes: added, .. },
+            )) = folded.iter_mut().find(|c| {
+                matches!(c, DiagramChange::Disl(DislChange::Create { id, .. } | DislChange::Connect { id, .. })
+                    if id == element_id)
+            })
+        {
+            for (name, value) in attributes.iter() {
+                if value.is_null() {
+                    added.remove(name);
+                } else {
+                    added.insert(name.clone(), value.clone());
+                }
+            }
+            continue;
+        }
+        folded.push(change);
+    }
+    folded
+}
+
 fn placed_now(before: &FblModel, now: &FblModel, change: ModelChange) -> ModelChange {
     let unstored: std::collections::HashSet<&str> = before
         .elements

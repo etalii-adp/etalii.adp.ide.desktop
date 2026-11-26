@@ -758,6 +758,128 @@ impl RuntimeModule {
         positions
     }
 
+    /// A `layout` action whose capability orders the nodes rather than placing them (`layout.crossingOrder`, whose
+    /// values give each node its `rank` in its column): the order written as moves of the entries, each column's nodes
+    /// taking the places that column's nodes held, in their new order, so that a document listing its nodes column by
+    /// column, or interleaved, keeps its shape. None for a capability that gives no rank.
+    fn ordered(
+        &self,
+        specification: &DislSpecification,
+        capability: &str,
+        diagram: &adp_disl::DislDiagram,
+    ) -> Option<Result<Vec<adp_disl::DislChange>, String>> {
+        let layout = self.capabilities.layout(capability)?;
+        let wanted = format!("capability:{capability}");
+        let arguments = specification.root()["layout"]["algorithms"]
+            .as_object()?
+            .values()
+            .find(|a| a["algorithm"] == wanted.as_str())?["x-arguments"]
+            .as_object()
+            .cloned()
+            .unwrap_or_default();
+        let evaluated = |element: &DislElement| {
+            let mut attributes = serde_json::Map::new();
+            for (key, value) in arguments.iter().filter(|(_, value)| value.get("cel").is_some()) {
+                if let Some(evaluated) = Self::evaluate(specification, element, value)
+                    && !evaluated.is_null()
+                {
+                    attributes.insert(key.clone(), json!(evaluated.to_string()));
+                }
+            }
+            attributes
+        };
+        let args: serde_json::Map<String, Json> = arguments
+            .iter()
+            .filter(|(_, value)| value.get("cel").is_none())
+            .map(|(key, value)| (key.clone(), value.clone()))
+            .collect();
+        let roots: Vec<DislElement> = diagram.nodes().into_iter().filter(|n| n.parent().is_none()).collect();
+        let nodes: Vec<Json> = roots
+            .iter()
+            .map(|n| json!({ "id": n.id(), "attributes": evaluated(n) }))
+            .collect();
+        let edges: Vec<Json> = diagram
+            .relations()
+            .into_iter()
+            .filter(|r| !r.is_derived())
+            .filter_map(|r| {
+                Some(json!({
+                    "id": r.id(), "source": r.source()?.id(), "target": r.target()?.id(), "attributes": evaluated(&r),
+                }))
+            })
+            .collect();
+        let input = json!({ "nodes": nodes, "edges": edges });
+        let values = match layout.values(&input, &Json::Object(args)) {
+            Ok(values) => values,
+            Err(reason) => return Some(Err(reason)),
+        };
+        let rank: HashMap<String, f64> = values
+            .into_iter()
+            .filter_map(|(id, named)| Some((id, named.into_iter().find(|(name, _)| name == "rank")?.1)))
+            .collect();
+        if rank.is_empty() {
+            return None;
+        }
+        let column: HashMap<String, String> = nodes
+            .iter()
+            .filter_map(|n| {
+                Some((
+                    n["id"].as_str()?.to_owned(),
+                    n["attributes"]["column"].as_str()?.to_owned(),
+                ))
+            })
+            .collect();
+        // The ranked nodes in the document's order, and the order they are to take: each one's place goes to the next
+        // node of its column by rank.
+        let mut current: Vec<String> = roots
+            .iter()
+            .map(DislElement::id)
+            .filter(|id| rank.contains_key(id))
+            .collect();
+        let mut queues: HashMap<&str, Vec<&String>> = HashMap::new();
+        for id in &current {
+            queues.entry(column[id].as_str()).or_default().push(id);
+        }
+        for queue in queues.values_mut() {
+            queue.sort_by(|a, b| rank[*a].total_cmp(&rank[*b]));
+            queue.reverse();
+        }
+        let target: Vec<String> = current
+            .iter()
+            .map(|id| {
+                queues
+                    .get_mut(column[id].as_str())
+                    .and_then(Vec::pop)
+                    .cloned()
+                    .unwrap_or_default()
+            })
+            .collect();
+        // Each move puts a node directly before the one that holds its place now, among every node at the top of the
+        // document, as the moves before it left them.
+        let mut siblings: Vec<String> = roots.iter().map(DislElement::id).collect();
+        let mut changes = Vec::new();
+        for (index, id) in target.iter().enumerate() {
+            if current[index] == *id {
+                continue;
+            }
+            let anchor = current[index].clone();
+            let at = siblings.iter().position(|s| *s == anchor)?;
+            changes.push(adp_disl::DislChange::Reparent {
+                element_id: id.clone(),
+                parent_id: None,
+                index: at as i64,
+            });
+            let from = siblings.iter().position(|s| s == id)?;
+            let moved = siblings.remove(from);
+            let at = siblings.iter().position(|s| *s == anchor)?;
+            siblings.insert(at, moved);
+            let from = current.iter().position(|s| s == id)?;
+            let moved = current.remove(from);
+            current.insert(index, moved);
+        }
+        Some(Ok(changes))
+    }
+
     /// DISL's standard `rows` (DISL §10.2), run by the shared row packing the hype cycle graph's module arranged with
     /// (`adp-layout`'s `row_packing`, etalii.adp spec 076, T045): each element of a type `extent` names, across from its
     /// `from` to its `to` and as many rows tall as `rows` says, evaluated with `x`, `x2`, `width` and `height` of where
@@ -1146,6 +1268,11 @@ impl DiagramModule for RuntimeModule {
     ) -> Option<Result<Vec<adp_disl::DislChange>, String>> {
         if plugin == "rows" {
             return self.rows(specification, diagram);
+        }
+        if let Some(capability) = plugin.strip_prefix("capability:")
+            && let Some(ordered) = self.ordered(specification, capability, diagram)
+        {
+            return Some(ordered);
         }
         let (_, reason) = self.missing.iter().find(|(name, _)| name == plugin)?;
         Some(Err(reason.clone()))
