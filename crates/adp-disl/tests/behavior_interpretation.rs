@@ -298,6 +298,43 @@ fn a_base36_id_is_25_lowercase_characters() {
     assert!(id.chars().all(|c| c.is_ascii_digit() || c.is_ascii_lowercase()));
 }
 
+/// A `nanoid` id (DISL 0.12, section 11.5): `length` characters of its `alphabet`, after the rule's `prefix`.
+#[test]
+fn a_nanoid_id_has_its_length_of_its_alphabet_after_its_prefix() {
+    let base36 = |id: &str| id.chars().all(|c| c.is_ascii_digit() || c.is_ascii_lowercase());
+    let of = |ids: &str| {
+        let specification = loaded(&with(&format!(r#""persistence": {{ "ids": {ids} }}"#)));
+        let source = ids::of(&specification).expect("a nanoid is minted without the model");
+        let first = adp_disl::IdSource::next(&source, "Thing").unwrap();
+        let second = adp_disl::IdSource::next(&source, "Thing").unwrap();
+        assert_ne!(first, second);
+        first
+    };
+
+    let plain = of(r#"{ "strategy": "nanoid", "alphabet": "base36", "length": 8 }"#);
+    assert_eq!(8, plain.len(), "{plain}");
+    assert!(base36(&plain), "{plain}");
+
+    let prefixed = of(r#"{ "strategy": "nanoid", "prefix": "ID_", "alphabet": "base36", "length": 8 }"#);
+    let rest = prefixed.strip_prefix("ID_").unwrap_or_else(|| panic!("{prefixed}"));
+    assert_eq!(8, rest.len(), "{prefixed}");
+    assert!(base36(rest), "{prefixed}");
+
+    let by_type = of(
+        r#"{ "strategy": "nanoid", "prefix": { "Thing": "t_", "Other": "o_" }, "alphabet": "base36", "length": 4 }"#,
+    );
+    assert!(by_type.starts_with("t_") && by_type.len() == 6, "{by_type}");
+
+    let defaults = of(r#"{ "strategy": "nanoid" }"#);
+    assert_eq!(21, defaults.len(), "{defaults}");
+    assert!(
+        defaults
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-'),
+        "{defaults}"
+    );
+}
+
 /// A bundled definition's `create` with an `at` hands the host the point it was asked at, placement being the host's.
 #[test]
 fn the_hype_cycle_graphs_add_trend_here_hands_back_the_clicked_point() {

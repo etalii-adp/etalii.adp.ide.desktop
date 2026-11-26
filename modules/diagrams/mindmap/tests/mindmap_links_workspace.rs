@@ -299,7 +299,7 @@ fn add_from_another_document_lists_the_workspaces_linkable_nodes_and_adds_the_pi
         .iter()
         .find(|o| o.label == "Renamed target")
         .expect("the other map's node");
-    assert_eq!(target.id, "$o7h3r0ne@other.mm#ID_o2.text=Renamed target");
+    assert_eq!(target.id, "$o7h3r0ne@other.mm#ID_o2=Renamed target");
     assert!(matches!(
         project.reply("ID_1", "mindmap.add-linked", &target.id),
         ActionOutcome::Done

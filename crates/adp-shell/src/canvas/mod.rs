@@ -1624,10 +1624,18 @@ impl DiagramTab {
             self.delete_selection(workspace, action_id, true);
             return;
         }
-        match self
-            .session
-            .answer(workspace, &pending.target, &pending.action_id, value)
-        {
+        // What the answer creates takes the canvas's ids, as what the action would have created had it asked nothing:
+        // the lookup's linked element (spec 092, T024). A module's own view answers with its own.
+        let outcome = if self.session.module_view().is_some() {
+            self.session
+                .answer(workspace, &pending.target, &pending.action_id, value)
+        } else {
+            self.ensure_ids(workspace.documents());
+            let ids = self.ids.as_deref().expect("made");
+            self.session
+                .answer_with_ids(workspace, &pending.target, &pending.action_id, value, ids)
+        };
+        match outcome {
             ActionOutcome::Done => {
                 // What a lookup added is selected, as an add from the menu selects what it added.
                 self.succeeded();
