@@ -1,0 +1,458 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.ansibleProject` from modules/diagrams/ansible-structure/src/plugin.rs of etalii.adp.ide.desktop, on the project folder parity/scripts/ansible/structure/infrastructure.json opens: the registration as the body, the files the binding's file rules select as `files`, every other folder and file as the `listing`; never edited by hand.",
+  "input": {
+    "body": "ansible/structure\n",
+    "files": {
+      "dbservers.yml": "---\n- name: Configure the database tier\n  hosts: db\n  become: true\n  roles:\n    - common\n    - role: postgres\n      when: postgres_enabled | default(true)\n",
+      "inventories/production/hosts.yml": "---\nall:\n  children:\n    web:\n      hosts:\n        web-01.prod.example.com:\n        web-02.prod.example.com:\n    db:\n      hosts:\n        db-01.prod.example.com:\n",
+      "inventories/staging/hosts.yml": "---\nall:\n  children:\n    web:\n      hosts:\n        web-01.staging.example.com:\n    db:\n      hosts:\n        db-01.staging.example.com:\n",
+      "roles/common/tasks/main.yml": "---\n- name: Set the timezone\n  ansible.builtin.timezone:\n    name: \"{{ common_timezone }}\"\n\n- name: Install the base packages\n  ansible.builtin.package:\n    name: \"{{ common_packages }}\"\n    state: present\n",
+      "roles/nginx/meta/main.yml": "---\ndependencies:\n  - role: common\n\ngalaxy_info:\n  author: platform team\n  description: nginx with optional TLS\n",
+      "roles/nginx/tasks/main.yml": "---\n- name: Install nginx\n  ansible.builtin.package:\n    name: nginx\n    state: present\n  notify: Restart nginx\n\n- name: Write the nginx configuration\n  ansible.builtin.template:\n    src: nginx.conf.j2\n    dest: /etc/nginx/nginx.conf\n    mode: \"0644\"\n  notify: Restart nginx\n\n- name: Configure TLS\n  ansible.builtin.include_tasks: tls.yml\n  when: nginx_tls_enabled | default(false)\n",
+      "roles/nginx/tasks/tls.yml": "---\n- name: Create the certificate directory\n  ansible.builtin.file:\n    path: /etc/nginx/tls\n    state: directory\n    mode: \"0700\"\n\n- name: Install the certificate\n  ansible.builtin.copy:\n    src: \"{{ nginx_tls_certificate }}\"\n    dest: /etc/nginx/tls/server.crt\n    mode: \"0644\"\n  notify: Restart nginx\n",
+      "roles/postgres/meta/main.yml": "---\ndependencies:\n  - role: common\n",
+      "roles/postgres/tasks/main.yml": "---\n- name: Install PostgreSQL\n  ansible.builtin.package:\n    name: postgresql\n    state: present\n",
+      "site.yml": "---\n# The entry playbook: nothing imports this one, so it is the graph's first rank.\n- import_playbook: webservers.yml\n\n- import_playbook: dbservers.yml\n",
+      "webservers.yml": "---\n- name: Configure the web tier\n  hosts: web\n  become: true\n  roles:\n    - common\n    - nginx\n"
+    },
+    "listing": [
+      "Makefile",
+      "ansible.cfg",
+      "collections/",
+      "collections/requirements.yml",
+      "docs/",
+      "docs/runbook.md",
+      "docs/topology.yml",
+      "inventories/",
+      "inventories/production/",
+      "inventories/production/group_vars/",
+      "inventories/production/group_vars/all.yml",
+      "inventories/production/group_vars/web.yml",
+      "inventories/production/host_vars/",
+      "inventories/production/host_vars/web-01.prod.example.com.yml",
+      "inventories/staging/",
+      "inventories/staging/group_vars/",
+      "inventories/staging/group_vars/all.yml",
+      "roles/",
+      "roles/common/",
+      "roles/common/defaults/",
+      "roles/common/defaults/main.yml",
+      "roles/common/tasks/",
+      "roles/nginx/",
+      "roles/nginx/handlers/",
+      "roles/nginx/handlers/main.yml",
+      "roles/nginx/meta/",
+      "roles/nginx/tasks/",
+      "roles/nginx/templates/",
+      "roles/nginx/templates/nginx.conf.j2",
+      "roles/postgres/",
+      "roles/postgres/meta/",
+      "roles/postgres/tasks/",
+      "scripts/",
+      "scripts/rotate-certs.sh"
+    ]
+  },
+  "args": {},
+  "output": {
+    "elements": [
+      {
+        "id": "playbook:dbservers.yml",
+        "type": "Playbook",
+        "parent": null,
+        "attributes": {
+          "name": "dbservers.yml",
+          "path": "dbservers.yml",
+          "annotations": [
+            "ansible.cfg",
+            "collections/requirements.yml"
+          ],
+          "plays": [
+            {
+              "ordinal": 0,
+              "name": "Configure the database tier",
+              "hosts": "db",
+              "line": 2
+            }
+          ],
+          "hosts": "db"
+        }
+      },
+      {
+        "id": "playbook:site.yml",
+        "type": "Playbook",
+        "parent": null,
+        "attributes": {
+          "name": "site.yml",
+          "path": "site.yml",
+          "annotations": [
+            "ansible.cfg",
+            "collections/requirements.yml"
+          ],
+          "plays": [],
+          "hosts": ""
+        }
+      },
+      {
+        "id": "playbook:webservers.yml",
+        "type": "Playbook",
+        "parent": null,
+        "attributes": {
+          "name": "webservers.yml",
+          "path": "webservers.yml",
+          "annotations": [
+            "ansible.cfg",
+            "collections/requirements.yml"
+          ],
+          "plays": [
+            {
+              "ordinal": 0,
+              "name": "Configure the web tier",
+              "hosts": "web",
+              "line": 2
+            }
+          ],
+          "hosts": "web"
+        }
+      },
+      {
+        "id": "role:common",
+        "type": "Role",
+        "parent": null,
+        "attributes": {
+          "name": "common",
+          "path": "roles/common",
+          "contents": {
+            "taskFiles": 1,
+            "handlers": 0,
+            "templates": 0,
+            "files": 0,
+            "defaults": 1,
+            "vars": 0,
+            "hasMeta": false,
+            "hasLibrary": false
+          }
+        }
+      },
+      {
+        "id": "role:nginx",
+        "type": "Role",
+        "parent": null,
+        "attributes": {
+          "name": "nginx",
+          "path": "roles/nginx",
+          "contents": {
+            "taskFiles": 2,
+            "handlers": 1,
+            "templates": 1,
+            "files": 0,
+            "defaults": 0,
+            "vars": 0,
+            "hasMeta": true,
+            "hasLibrary": false
+          }
+        }
+      },
+      {
+        "id": "role:postgres",
+        "type": "Role",
+        "parent": null,
+        "attributes": {
+          "name": "postgres",
+          "path": "roles/postgres",
+          "contents": {
+            "taskFiles": 1,
+            "handlers": 0,
+            "templates": 0,
+            "files": 0,
+            "defaults": 0,
+            "vars": 0,
+            "hasMeta": true,
+            "hasLibrary": false
+          }
+        }
+      },
+      {
+        "id": "inventory:inventories/production",
+        "type": "Inventory",
+        "parent": null,
+        "attributes": {
+          "name": "production",
+          "path": "inventories/production",
+          "groups": [
+            {
+              "name": "web",
+              "hostCount": 2
+            },
+            {
+              "name": "db",
+              "hostCount": 1
+            }
+          ],
+          "variableFolders": [
+            {
+              "name": "group_vars",
+              "path": "inventories/production/group_vars",
+              "fileCount": 2
+            },
+            {
+              "name": "host_vars",
+              "path": "inventories/production/host_vars",
+              "fileCount": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": "vars:inventories/production/group_vars",
+        "type": "VariableFolder",
+        "parent": null,
+        "attributes": {
+          "name": "group_vars",
+          "path": "inventories/production/group_vars",
+          "fileCount": 2
+        }
+      },
+      {
+        "id": "vars:inventories/production/host_vars",
+        "type": "VariableFolder",
+        "parent": null,
+        "attributes": {
+          "name": "host_vars",
+          "path": "inventories/production/host_vars",
+          "fileCount": 1
+        }
+      },
+      {
+        "id": "inventory:inventories/staging",
+        "type": "Inventory",
+        "parent": null,
+        "attributes": {
+          "name": "staging",
+          "path": "inventories/staging",
+          "groups": [
+            {
+              "name": "web",
+              "hostCount": 1
+            },
+            {
+              "name": "db",
+              "hostCount": 1
+            }
+          ],
+          "variableFolders": [
+            {
+              "name": "group_vars",
+              "path": "inventories/staging/group_vars",
+              "fileCount": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": "vars:inventories/staging/group_vars",
+        "type": "VariableFolder",
+        "parent": null,
+        "attributes": {
+          "name": "group_vars",
+          "path": "inventories/staging/group_vars",
+          "fileCount": 1
+        }
+      },
+      {
+        "id": "taskfile:roles/nginx/tasks/tls.yml",
+        "type": "TaskFile",
+        "parent": null,
+        "attributes": {
+          "name": "tls.yml",
+          "path": "roles/nginx/tasks/tls.yml"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:playbook:dbservers.yml|UsesRole|common",
+        "type": "UsesRole",
+        "source": "playbook:dbservers.yml",
+        "target": "role:common",
+        "attributes": {
+          "directive": "roles",
+          "targetAsWritten": "common",
+          "condition": "",
+          "declaredIn": "dbservers.yml",
+          "declaredAtLine": 6,
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:playbook:dbservers.yml|UsesRole|postgres",
+        "type": "UsesRole",
+        "source": "playbook:dbservers.yml",
+        "target": "role:postgres",
+        "attributes": {
+          "directive": "roles",
+          "targetAsWritten": "postgres",
+          "condition": "postgres_enabled | default(true)",
+          "declaredIn": "dbservers.yml",
+          "declaredAtLine": 7,
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:playbook:dbservers.yml|Targets|db|inventory:inventories/production",
+        "type": "Targets",
+        "source": "playbook:dbservers.yml",
+        "target": "inventory:inventories/production",
+        "attributes": {
+          "directive": "roles",
+          "targetAsWritten": "db",
+          "condition": "",
+          "declaredIn": "",
+          "declaredAtLine": 2,
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:playbook:dbservers.yml|Targets|db|inventory:inventories/staging",
+        "type": "Targets",
+        "source": "playbook:dbservers.yml",
+        "target": "inventory:inventories/staging",
+        "attributes": {
+          "directive": "roles",
+          "targetAsWritten": "db",
+          "condition": "",
+          "declaredIn": "",
+          "declaredAtLine": 2,
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:playbook:site.yml|ImportsPlaybook|webservers.yml",
+        "type": "ImportsPlaybook",
+        "source": "playbook:site.yml",
+        "target": "playbook:webservers.yml",
+        "attributes": {
+          "directive": "importPlaybook",
+          "targetAsWritten": "webservers.yml",
+          "condition": "",
+          "declaredIn": "site.yml",
+          "declaredAtLine": 3,
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:playbook:site.yml|ImportsPlaybook|dbservers.yml",
+        "type": "ImportsPlaybook",
+        "source": "playbook:site.yml",
+        "target": "playbook:dbservers.yml",
+        "attributes": {
+          "directive": "importPlaybook",
+          "targetAsWritten": "dbservers.yml",
+          "condition": "",
+          "declaredIn": "site.yml",
+          "declaredAtLine": 5,
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:playbook:webservers.yml|UsesRole|common",
+        "type": "UsesRole",
+        "source": "playbook:webservers.yml",
+        "target": "role:common",
+        "attributes": {
+          "directive": "roles",
+          "targetAsWritten": "common",
+          "condition": "",
+          "declaredIn": "webservers.yml",
+          "declaredAtLine": 6,
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:playbook:webservers.yml|UsesRole|nginx",
+        "type": "UsesRole",
+        "source": "playbook:webservers.yml",
+        "target": "role:nginx",
+        "attributes": {
+          "directive": "roles",
+          "targetAsWritten": "nginx",
+          "condition": "",
+          "declaredIn": "webservers.yml",
+          "declaredAtLine": 7,
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:playbook:webservers.yml|Targets|web|inventory:inventories/production",
+        "type": "Targets",
+        "source": "playbook:webservers.yml",
+        "target": "inventory:inventories/production",
+        "attributes": {
+          "directive": "roles",
+          "targetAsWritten": "web",
+          "condition": "",
+          "declaredIn": "",
+          "declaredAtLine": 2,
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:playbook:webservers.yml|Targets|web|inventory:inventories/staging",
+        "type": "Targets",
+        "source": "playbook:webservers.yml",
+        "target": "inventory:inventories/staging",
+        "attributes": {
+          "directive": "roles",
+          "targetAsWritten": "web",
+          "condition": "",
+          "declaredIn": "",
+          "declaredAtLine": 2,
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:role:nginx|DependsOn|common",
+        "type": "DependsOn",
+        "source": "role:nginx",
+        "target": "role:common",
+        "attributes": {
+          "directive": "dependencies",
+          "targetAsWritten": "common",
+          "condition": "",
+          "declaredIn": "roles/nginx/meta/main.yml",
+          "declaredAtLine": 3,
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:role:nginx|IncludesTasks|tls.yml",
+        "type": "IncludesTasks",
+        "source": "role:nginx",
+        "target": "taskfile:roles/nginx/tasks/tls.yml",
+        "attributes": {
+          "directive": "includeTasks",
+          "targetAsWritten": "tls.yml",
+          "condition": "nginx_tls_enabled | default(false)",
+          "declaredIn": "roles/nginx/tasks/main.yml",
+          "declaredAtLine": 16,
+          "resolution": "resolved"
+        }
+      },
+      {
+        "id": "edge:role:postgres|DependsOn|common",
+        "type": "DependsOn",
+        "source": "role:postgres",
+        "target": "role:common",
+        "attributes": {
+          "directive": "dependencies",
+          "targetAsWritten": "common",
+          "condition": "",
+          "declaredIn": "roles/postgres/meta/main.yml",
+          "declaredAtLine": 3,
+          "resolution": "resolved"
+        }
+      }
+    ],
+    "findings": []
+  }
+}

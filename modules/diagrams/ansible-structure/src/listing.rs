@@ -19,10 +19,20 @@ use adp_fbl::FblBinding;
 use adp_fbl::plugins::PluginFile;
 use adp_fbl::routing::{glob_matches, platform_ignores_case};
 
-/// A listing of one folder, which need not exist.
+/// A listing of one folder, which need not exist: read from the disk, or as a host handed it (FBL 0.26
+/// `body.listing`).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AnsibleFolderListing {
     root: PathBuf,
+    /// The folder as a host lists it, by relative `/`-separated paths: its folders and its files; none to look at the
+    /// disk.
+    listed: Option<Listed>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+struct Listed {
+    folders: std::collections::BTreeSet<String>,
+    files: std::collections::BTreeSet<String>,
 }
 
 impl AnsibleFolderListing {
@@ -30,6 +40,35 @@ impl AnsibleFolderListing {
     pub fn new(folder: &Path) -> Self {
         AnsibleFolderListing {
             root: std::path::absolute(folder).unwrap_or_else(|_| folder.to_path_buf()),
+            listed: None,
+        }
+    }
+
+    /// A listing of the folder a host lists (FBL 0.26): `entries`, a folder's path ending in `/`, and the paths of
+    /// the files it hands with their bytes. Every folder on the way to a file is there. It reads no link.
+    pub fn of(entries: &[String], files: &[&str]) -> Self {
+        let mut listed = Listed::default();
+        let paths = entries.iter().map(String::as_str).chain(files.iter().copied());
+        for path in paths.filter(|p| !p.is_empty()) {
+            let (folder, file) = match path.strip_suffix('/') {
+                Some(folder) => (folder, None),
+                None => (path.rsplit_once('/').map_or("", |(folder, _)| folder), Some(path)),
+            };
+            if let Some(file) = file {
+                listed.files.insert(file.to_owned());
+            }
+            let mut on_the_way = String::new();
+            for part in folder.split('/').filter(|p| !p.is_empty()) {
+                if !on_the_way.is_empty() {
+                    on_the_way.push('/');
+                }
+                on_the_way.push_str(part);
+                listed.folders.insert(on_the_way.clone());
+            }
+        }
+        AnsibleFolderListing {
+            root: PathBuf::new(),
+            listed: Some(listed),
         }
     }
 
@@ -40,17 +79,26 @@ impl AnsibleFolderListing {
 
     /// Whether the folder at `relative` (`/`-separated, empty for the root) is there.
     pub fn folder_exists(&self, relative: &str) -> bool {
-        self.full(relative).is_dir()
+        match &self.listed {
+            Some(listed) => relative.is_empty() || listed.folders.contains(relative),
+            None => self.full(relative).is_dir(),
+        }
     }
 
     /// Whether a file is at `relative`, a linked one included. Nothing is opened.
     pub fn file_exists(&self, relative: &str) -> bool {
-        self.full(relative).is_file()
+        match &self.listed {
+            Some(listed) => listed.files.contains(relative),
+            None => self.full(relative).is_file(),
+        }
     }
 
     /// The names of the folders directly in the folder at `relative`, in ordinal order, without those that are links;
     /// none when it is not there or cannot be listed.
     pub fn folders(&self, relative: &str) -> Vec<String> {
+        if let Some(listed) = &self.listed {
+            return listed.folders.iter().filter_map(|f| child_of(f, relative)).collect();
+        }
         let Ok(entries) = fs::read_dir(self.full(relative)) else {
             return Vec::new();
         };
@@ -66,6 +114,9 @@ impl AnsibleFolderListing {
     /// How many files the folder at `relative` holds directly, linked ones included, even one whose target is gone; 0
     /// when it is not there or cannot be listed.
     pub fn file_count(&self, relative: &str) -> usize {
+        if let Some(listed) = &self.listed {
+            return listed.files.iter().filter(|f| child_of(f, relative).is_some()).count();
+        }
         let Ok(entries) = fs::read_dir(self.full(relative)) else {
             return 0;
         };
@@ -77,7 +128,8 @@ impl AnsibleFolderListing {
     /// way is a link, with their bytes, in ordinal order of their relative paths. A link is followed where a rule
     /// names a folder and not where a rule's `*` stands for one.
     pub fn linked_files(&self, binding: &FblBinding) -> Vec<PluginFile> {
-        if !self.root.is_dir() {
+        // A host's listing leaves what lies behind a link out (FBL 0.26), so nothing is read past one.
+        if self.listed.is_some() || !self.root.is_dir() {
             return Vec::new();
         }
         let caseless = platform_ignores_case();
@@ -178,4 +230,14 @@ fn collect(
             out,
         );
     }
+}
+
+/// The name of `path` when it is directly in the folder `folder` (`/`-separated, empty for the root).
+fn child_of(path: &str, folder: &str) -> Option<String> {
+    let rest = if folder.is_empty() {
+        path
+    } else {
+        path.strip_prefix(folder)?.strip_prefix('/')?
+    };
+    (!rest.is_empty() && !rest.contains('/')).then(|| rest.to_owned())
 }

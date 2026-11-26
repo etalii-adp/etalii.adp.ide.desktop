@@ -14,7 +14,8 @@ part of etalii/sankey
 binding skv family yaml {
   label "Sankey diagram"
   claims { extensions: [".skv"], origins: ["etalii/sankey"] }
-  text { newline: crlf, indent: 2, sequenceIndent: indented, finalNewline: true, quote: double }
+  /// A changed value is written plain where it can be, whatever style it had, as the module writes it (FBL 0.25).
+  text { newline: crlf, indent: 2, sequenceIndent: indented, finalNewline: true, quote: double, keepStyle: false }
 
   element Document as document at "/" {
     when type(entry) == map

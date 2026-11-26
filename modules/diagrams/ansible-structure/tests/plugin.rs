@@ -289,3 +289,30 @@ fn a_file_that_cannot_be_read_is_counted_so_counting_reads_nothing() {
     }
     assert_eq!(AnsibleFolderListing::new(root).file_count("roles/web/templates"), 2);
 }
+
+/// *(FBL 0.26)* Handed the folder's listing, the plugin reads what it reads from the disk: the roles, their counted
+/// folders and their counted files, without looking at the folder.
+#[test]
+fn a_folder_handed_as_its_listing_reads_as_the_disk_does() {
+    for name in ["infrastructure", "ini-inventory", "unconventional", "broken"] {
+        let root = fixture(name);
+        if !root.is_dir() {
+            continue;
+        }
+        let files = selected(&root);
+        let from_disk = plugin(&root).read(&PluginReadRequest {
+            files: files.clone(),
+            supplementary_entries: Vec::new(),
+        });
+        let handed: std::collections::HashSet<String> = files.iter().map(|f| f.relative_path.clone()).collect();
+        let listing: Vec<String> = adp_fbl::routing::listing(&AnsibleDefinition::get().binding, &root)
+            .into_iter()
+            .filter(|entry| !handed.contains(entry))
+            .collect();
+        let listed = plugin(Path::new("/nowhere")).read(&PluginReadRequest {
+            files,
+            supplementary_entries: listing,
+        });
+        assert_eq!(lines(&from_disk), lines(&listed), "{name}");
+    }
+}

@@ -441,6 +441,19 @@ impl FolderBody {
             .as_ref()
             .map(|of| of(&self.folder))
             .unwrap_or_default();
+        // FBL 0.26: with `body.listing`, every folder and every file the file rules do not select, without bytes.
+        if self.binding.body.listing {
+            let selected: std::collections::HashSet<String> = files
+                .iter()
+                .map(|f| f.relative_path.clone())
+                .chain(unopened.iter().cloned())
+                .collect();
+            for entry in routing::listing(&self.binding, &self.folder) {
+                if !selected.contains(&entry) && !entries.contains(&entry) {
+                    entries.push(entry);
+                }
+            }
+        }
         entries.sort();
         let request = PluginReadRequest {
             files,

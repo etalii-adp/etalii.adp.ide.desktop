@@ -41,6 +41,7 @@ fn sidecar_binding() -> FblBinding {
             prefixes: None,
             ordinals: Vec::new(),
             order: None,
+            listing: false,
         },
         plugin: None,
         read_only: None,

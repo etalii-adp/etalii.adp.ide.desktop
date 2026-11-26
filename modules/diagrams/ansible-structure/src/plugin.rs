@@ -48,6 +48,15 @@ pub struct AnsibleFolderPlugin {
 }
 
 impl AnsibleFolderPlugin {
+    /// The plugin of no folder of its own, which reads a folder from the files and the listing it is handed (FBL 0.26):
+    /// the capability `reader.ansibleProject`.
+    pub fn handed() -> Self {
+        AnsibleFolderPlugin {
+            listing: AnsibleFolderListing::of(&[], &[]),
+            binding: crate::definition::AnsibleDefinition::get().binding,
+        }
+    }
+
     /// The plugin for the folder `listing` lists, reading through `binding`.
     pub fn new(listing: AnsibleFolderListing, binding: Rc<FblBinding>) -> Self {
         AnsibleFolderPlugin { listing, binding }
@@ -64,8 +73,15 @@ impl PersistencePlugin for AnsibleFolderPlugin {
         PLUGIN_ID
     }
 
+    /// The folder as the host lists it, where it hands a listing (FBL 0.26 `body.listing`), else as the disk holds it.
     fn read(&self, request: &PluginReadRequest) -> PluginReadResult {
-        result(&self.project(&request.files))
+        // A plugin with no folder of its own, as a capability is, learns the folder from what it is handed alone.
+        if request.supplementary_entries.is_empty() && !self.listing.root().as_os_str().is_empty() {
+            return result(&self.project(&request.files));
+        }
+        let handed: Vec<&str> = request.files.iter().map(|f| f.relative_path.as_str()).collect();
+        let listing = AnsibleFolderListing::of(&request.supplementary_entries, &handed);
+        result(&reader::read(&request.files, &listing, &self.binding))
     }
 
     fn plan(&self, _request: &PluginPlanRequest<'_>) -> PluginPlanResult {

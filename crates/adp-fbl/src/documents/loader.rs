@@ -620,6 +620,7 @@ fn read_body(json: &Json, pointer: &str, problems: &mut Vec<LoadProblem>) -> Bod
         prefixes: json.get("prefixes").map(read_prefixes),
         ordinals: json.get("ordinals").map(read_ordinals).unwrap_or_default(),
         order: s(json, "order"),
+        listing: json.get("listing").and_then(Json::as_bool).unwrap_or(false),
     }
 }
 
