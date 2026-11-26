@@ -184,6 +184,7 @@ dependencies = [
  "adp-diagram-timeline",
  "adp-disl",
  "adp-documents",
+ "adp-editor-checks",
  "adp-editor-json",
  "adp-editor-markdown",
  "adp-editor-xml",
@@ -224,6 +225,7 @@ dependencies = [
  "adp-atd-runtime",
  "adp-atd-syntax",
  "adp-atd-validate",
+ "adp-editor-checks",
  "base64",
  "js-sys",
  "lsp-server",
@@ -283,6 +285,7 @@ dependencies = [
  "adp-context",
  "adp-diagram",
  "adp-disl",
+ "adp-documents",
  "adp-drawing",
  "adp-fbl",
  "adp-history",
@@ -778,6 +781,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "adp-editor-checks"
+version = "1.0.0"
+dependencies = [
+ "adp-atd-check",
+ "adp-atd-runtime",
+ "adp-atd-validate",
+ "adp-editor-json",
+ "adp-editor-xml",
+ "adp-editor-yaml",
+]
+
+[[package]]
 name = "adp-editor-json"
 version = "1.0.0"
 dependencies = [
@@ -967,6 +982,7 @@ dependencies = [
  "adp-disl",
  "adp-documents",
  "adp-drawing",
+ "adp-editor-checks",
  "adp-editor-json",
  "adp-editor-markdown",
  "adp-editor-xml",

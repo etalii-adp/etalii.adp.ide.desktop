@@ -100,6 +100,19 @@ for (const [description, cases] of described) {
   const actual = answer.result.cases.map((c) => ({ name: c.name, passed: c.passed,
     differences: c.differences.map(wasm) }));
 
+  // The XML editor's checks rest on libxml2, which is not built for WebAssembly (etalii.adp spec 083, research R5):
+  // there every case reports its check sources missing, once, where `atd validate` runs them.
+  if (description.endsWith(join('editors', 'xml.atd'))) {
+    const missing = actual.every((c) => c.differences.length === 1 && c.differences[0].actual === 'missing from this host');
+    if (missing && actual.length === expected.length) {
+      console.log(`ok   ${description}: its check sources missing in WebAssembly, as listed (libxml2)`);
+    } else {
+      console.error(`${description}: atd/validate through WebAssembly should report only its missing check sources`);
+      failed++;
+    }
+    continue;
+  }
+
   const name = (c) => c.name;
   expected.sort((a, b) => name(a).localeCompare(name(b)));
   actual.sort((a, b) => name(a).localeCompare(name(b)));
