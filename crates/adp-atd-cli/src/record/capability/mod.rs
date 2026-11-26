@@ -81,6 +81,7 @@ pub fn record(name: &str, cases: &Path) -> Result<Vec<PathBuf>, String> {
         "routing.forwardBezier" => forward_bezier::record(cases),
         "reader.markdown" => markdown(cases, "reader.markdown", reader_markdown),
         "reader.helmChart" => helm_chart(cases),
+        "reader.ansibleProject" => ansible_project(cases),
         "layout.rankedColumns" => ranked_columns(cases),
         "reader.sparql" => sparql(cases),
         "layout.nestedGrid" => nested_grid(cases),
@@ -724,6 +725,57 @@ fn flow_relaxation(cases: &Path) -> Result<Vec<PathBuf>, String> {
             "input": { "nodes": nodes, "edges": edges },
             "args": { "columnGap": 320, "nodeGap": 36, "passes": 24, "decay": 0.99 },
             "output": { "positions": positions, "values": values },
+        });
+        let file = cases.join(format!("{short}.json"));
+        write_json(&file, &fixture)?;
+        written.push(file);
+    }
+    Ok(written)
+}
+
+/// `reader.ansibleProject` from the Ansible structure module's folder reader (`modules/diagrams/ansible-structure/src/
+/// plugin.rs`), on the project folder of every Ansible parity script: the registration as the body, the files the
+/// binding's file rules select as `files`, and every other folder and file of the folder as its `listing` (FBL 0.26).
+fn ansible_project(cases: &Path) -> Result<Vec<PathBuf>, String> {
+    use adp_diagram_ansible_structure::definition::AnsibleDefinition;
+    use adp_diagram_ansible_structure::plugin::AnsibleFolderPlugin;
+
+    let binding = AnsibleDefinition::get().binding;
+    fs::create_dir_all(cases).map_err(|e| format!("{}: {e}", cases.display()))?;
+    let fixtures = adp_parity::repository_root().join("parity/fixtures");
+    let mut written = Vec::new();
+    for name in adp_parity::script_names()
+        .into_iter()
+        .filter(|n| n.starts_with("ansible/structure/"))
+    {
+        let case = adp_parity::Case::load(&name)?;
+        let registration = fixtures.join(&case.script.fixture);
+        let folder = registration
+            .parent()
+            .ok_or("The project's registration is in no folder.")?;
+        let mut files = Map::new();
+        let selected = adp_fbl::routing::folder_files(&binding, folder, Some(false));
+        for file in &selected {
+            let text = fs::read_to_string(&file.full_path).map_err(|e| format!("{}: {e}", file.full_path.display()))?;
+            files.insert(file.relative_path.clone(), json!(text));
+        }
+        let registration_name = registration.file_name().map(|n| n.to_string_lossy().into_owned());
+        let listing: Vec<String> = adp_fbl::routing::listing(&binding, folder)
+            .into_iter()
+            .filter(|entry| !files.contains_key(entry) && Some(entry) != registration_name.as_ref())
+            .collect();
+        let body = fs::read_to_string(&registration).map_err(|e| format!("{}: {e}", registration.display()))?;
+        let input = json!({"body": body, "files": files, "listing": listing});
+        let output = adp_atd_runtime::capabilities::reader_result(&AnsibleFolderPlugin::handed(), &input)?;
+        let short = name.rsplit('/').next().unwrap_or(&name);
+        let fixture = json!({
+            "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+            "doc": format!(
+                "Recorded by `atd record --capability reader.ansibleProject` from modules/diagrams/ansible-structure/src/plugin.rs of etalii.adp.ide.desktop, on the project folder parity/scripts/{name}.json opens: the registration as the body, the files the binding's file rules select as `files`, every other folder and file as the `listing`; never edited by hand."
+            ),
+            "input": input,
+            "args": {},
+            "output": output,
         });
         let file = cases.join(format!("{short}.json"));
         write_json(&file, &fixture)?;

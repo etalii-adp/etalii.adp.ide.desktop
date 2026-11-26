@@ -130,6 +130,8 @@ pub struct BodySettings {
     pub ordinals: Vec<(String, OrdinalSettings)>,
     /// *(FBL 0.15)* grammar: `closed` reads a body's elements in the order their entries end (FBL section 4.9).
     pub order: Option<String>,
+    /// *(FBL 0.26)* A folder's plugin reader is handed the folder's listing (`listing`, FBL section 10).
+    pub listing: bool,
 }
 
 /// `body.prefixes` (FBL 0.15 section 4.9): the directives that declare a prefix or a base, and how a term is written.

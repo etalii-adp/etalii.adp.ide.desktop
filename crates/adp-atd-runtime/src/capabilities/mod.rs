@@ -597,9 +597,16 @@ pub fn reader_result(reader: &dyn PersistencePlugin, input: &Json) -> Result<Jso
             text.as_str().unwrap_or_default().as_bytes().to_vec(),
         ));
     }
+    // FBL 0.26: a folder's listing, the paths the plugin learns of without their bytes.
+    let listing: Vec<String> = input["listing"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter_map(|entry| entry.as_str().map(str::to_owned))
+        .collect();
     let read = reader.read(&PluginReadRequest {
         files,
-        supplementary_entries: Vec::new(),
+        supplementary_entries: listing,
     });
     let mut elements = Vec::new();
     let mut relations = Vec::new();

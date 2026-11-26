@@ -4,7 +4,7 @@
   "doc": "The Knowledge designer: ADP's first designer, specified by the standalone specification `knowledge-designer` and by etalii.adp's spec 013.",
   "language": {
     "id": "net.etalii.adp.etalii.knowledge",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "origin": "etalii/knowledge",
     "label": "Knowledge",
     "doc": {
@@ -98,8 +98,7 @@
           "targetFile": {
             "type": "link",
             "document": true,
-            "origins": ["etalii/knowledge"],
-            "doc": "A relation's target knowledge file, as a link without an element, `$<document-id>@<file name>` (FBL section 17.1, spec 089); a link to the file's own id is this file. Stored under the key `target`; the model calls it targetFile so that it never reads as the `target` of an action. A file made before links holds a path here, relative to the file, `.` for itself, which the conversion on load replaces (knowledge.md, section 5)."
+            "doc": "A relation's target document, as a link without an element: a knowledge file, or a document of any tool type whose definition declares a linkable element type, such as a timeline, a dependency graph or a mind map (spec 092, FR-025), `$<document-id>@<file name>` (FBL section 17.1, spec 089); a link to the file's own id is this file. Stored under the key `target`; the model calls it targetFile so that it never reads as the `target` of an action. A file made before links holds a path here, relative to the file, `.` for itself, which the conversion on load replaces (knowledge.md, section 5)."
           },
           "limit": { "type": "Limit", "default": "none", "doc": "How many rows a relation cell may hold." },
           "backlinkName": {
@@ -229,7 +228,7 @@
           "option": { "type": "Option", "doc": "An option of a multiple selection." },
           "row": {
             "type": "link",
-            "doc": "A row of the relation's target file, as a link, `$<document-id>@<file name>#<row id>.<title property's name>=<title>` (FBL section 17.1, spec 089). Not a reference: the target is another file, which the host resolves. A file made before links holds the row's id here, which the conversion on load replaces (knowledge.md, section 5)."
+            "doc": "A row of the relation's target file, as a link, `$<document-id>@<file name>#<row id>.<title property's name>=<title>` (FBL section 17.1, spec 089), or an element of a target diagram, `$<document-id>@<file name>#<element id>.<name property>=<name>` (spec 092, FR-025). Not a reference: the target is another file, which the host resolves. A file made before links holds the row's id here, which the conversion on load replaces (knowledge.md, section 5)."
           }
         },
         "doc": "One of several values: an option or a related row."

@@ -308,6 +308,26 @@ pub fn folder_files(binding: &FblBinding, folder: &Path, ignore_case: Option<boo
     select(binding, folder_entries(folder, false), caseless)
 }
 
+/// *(FBL 0.26)* A folder's listing (FBL section 10, `body.listing`): the relative, `/`-separated path of every folder
+/// under it, with a trailing `/`, and of every file, in ordinal order; what `ignore` matches and what lies behind a
+/// link left out. The selected files are left to the caller.
+pub fn listing(binding: &FblBinding, folder: &Path) -> Vec<String> {
+    let caseless = platform_ignores_case();
+    let mut listed: Vec<String> = folder_entries(folder, true)
+        .into_iter()
+        .filter(|(relative, _)| !binding.body.ignore.iter().any(|g| glob_matches(g, relative, caseless)))
+        .map(|(relative, full)| {
+            if full.is_dir() {
+                format!("{relative}/")
+            } else {
+                relative
+            }
+        })
+        .collect();
+    listed.sort();
+    listed
+}
+
 /// [`folder_files`] of a folder held in memory, its files by their relative, `/`-separated paths; each file's full
 /// path is its relative one under `folder`.
 pub fn held_files(binding: &FblBinding, folder: &Path, files: &[String], ignore_case: Option<bool>) -> Vec<FolderFile> {
