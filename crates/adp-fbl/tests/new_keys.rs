@@ -75,3 +75,24 @@ fn with_after_first_a_new_key_goes_right_after_the_entrys_first_key() {
         text(&body)
     );
 }
+
+/// *(FBL 0.25)* With `text.keepStyle: false`, a replaced value is written as a new value is: plain where it can be.
+#[test]
+fn without_keep_style_a_replaced_value_is_written_plain_where_it_can_be() {
+    let quoted = BODY.replace("    name: Mine\r\n", "    name: \"Old mine\"\r\n");
+    for (keep, written) in [(true, "\"New mine\""), (false, "New mine")] {
+        let path =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../vendor/etalii.adp/specifications/fbl/supply-chain.fbl");
+        let mut json: serde_json::Value = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+        json["bindings"]["supply"]["text"]["keepStyle"] = serde_json::json!(keep);
+        let (_, document) = documents::load(json.to_string().as_bytes());
+        let binding = document.unwrap().binding("supply").unwrap().clone();
+        let mut body = OpenBody::open(
+            quoted.clone().into_bytes(),
+            Rc::new(binding),
+            Rc::new(FblOptions::default()),
+        );
+        set(&mut body, "name", "New mine");
+        assert_eq!(quoted.replace("\"Old mine\"", written), text(&body), "keepStyle {keep}");
+    }
+}

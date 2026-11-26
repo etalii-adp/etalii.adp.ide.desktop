@@ -10,7 +10,7 @@ To generate one, write text the grammar below accepts, and keep to these rules, 
 - A loop lists its members in the order the arrows run, so there is a link from each member to the next and from the last back to the first. Its identifier is unique and claims a polarity: `R…` (reinforcing) when the cycle has an even number of `-` links, `B…` (balancing) when the number is odd. Claim every feedback loop you mean; a cycle no loop names is reported.
 - Quoted text holds no `"` and no line break. Write at most one `title` and one `flow`, and keep their values in the ranges the comments give.
 
-The grammar is LALR(1) and strict: it builds and parses with Lark's `parser="lalr"` and `strict=True`, and so with the EtAlii Lark packages (`@etalii/lark`, `EtAlii.Lark`, `etalii-lark`). It is a little stricter than the readers, which also take a bare word after a link, a second header and a file without one; never write those.
+The grammar is LALR(1) and strict: it builds and parses with Lark's `parser="lalr"` and `strict=True`, and so with the EtAlii Lark packages (`@etalii/lark`, `EtAlii.Lark`, `etalii-lark`). It is a little stricter than the readers, which also take a bare word after a link, a second header and a file without one; never write those. The same grammar is the file [`cld.lark`](cld.lark) beside this guide, for a tool that loads a grammar from a file or constrains generation with one; the copy below is kept identical to it by `python .github/scripts/cld-grammar-check.py`, which the Build workflow runs.
 
 ```lark
 // A .cld file: one statement per line, the header first.

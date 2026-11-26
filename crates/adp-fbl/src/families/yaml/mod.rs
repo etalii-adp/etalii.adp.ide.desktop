@@ -215,6 +215,8 @@ impl Family {
             value = kept;
         }
         let multiline = value.contains('\n') || value.contains('\r');
+        // FBL 0.25: with `text.keepStyle: false` a replaced value is written as a new one is.
+        let old = old.filter(|_| self.binding.text.keep_style);
         match old.map(|o| self.tree_value(o).style) {
             Some(ValueStyle::Plain) if scalars::is_plain_writable(&value, time_typed) => return value,
             Some(ValueStyle::Single) if !multiline => return scalars::single_quoted(&value),

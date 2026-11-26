@@ -3555,6 +3555,7 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `fbl.schema.json#/$defs/TextDefaults/properties/newline` | the setting `newline` of `text` (binding) | §11.2 |
 | `fbl.schema.json#/$defs/TextDefaults/properties/indent` | the setting `indent` of `text` (binding) | §11.2 |
 | `fbl.schema.json#/$defs/TextDefaults/properties/sequenceIndent` | the setting `sequenceIndent` of `text` (binding) | §11.2 |
+| `fbl.schema.json#/$defs/TextDefaults/properties/keepStyle` | the setting `keepStyle` of `text` (binding) | §11.2 |
 | `fbl.schema.json#/$defs/TextDefaults/properties/finalNewline` | the setting `finalNewline` of `text` (binding) | §11.2 |
 | `fbl.schema.json#/$defs/TextDefaults/properties/quote` | the setting `quote` of `text` (binding) | §11.2 |
 | `fbl.schema.json#/$defs/Header/properties/key` | the setting `key` of `header` | §11.2 |
@@ -3680,6 +3681,7 @@ Every property of DISL 0.6, DESL 0.2 and FBL 0.8, by the JSON pointer of its sch
 | `fbl.schema.json#/$defs/Insert/properties/container` | the setting `container` of `insert` | §11.5 |
 | `fbl.schema.json#/$defs/Insert/properties/create` | the setting `create` of `insert` | §11.5 |
 | `fbl.schema.json#/$defs/Insert/properties/keys` | the setting `keys` of `insert` | §11.5 |
+| `fbl.schema.json#/$defs/Insert/properties/newKeys` | the setting `newKeys` of `insert` | §11.5 |
 | `fbl.schema.json#/$defs/Insert/properties/emit` | the setting `emit` of `insert` | §11.5 |
 | `fbl.schema.json#/$defs/Insert/properties/constant` | the setting `constant` of `insert` | §11.5 |
 | `fbl.schema.json#/$defs/Insert/properties/skeleton` | the setting `skeleton` of `insert` | §11.5 |
