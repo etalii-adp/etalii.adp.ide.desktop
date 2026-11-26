@@ -704,6 +704,7 @@ fn read_text(json: &Json) -> TextDefaults {
         indent,
         sequence_flush: s(t, "sequenceIndent").as_deref() == Some("flush"),
         quote: s(t, "quote").unwrap_or_else(|| "double".into()),
+        keep_style: t.get("keepStyle").and_then(Json::as_bool).unwrap_or(true),
     }
 }
 

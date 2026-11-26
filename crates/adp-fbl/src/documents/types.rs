@@ -217,6 +217,9 @@ pub struct TextDefaults {
     pub indent: usize,
     pub sequence_flush: bool,
     pub quote: String,
+    /// *(FBL 0.25)* Whether a replaced value keeps its style (`text.keepStyle`, default true); false writes it as a new
+    /// value is written (FBL section 6.3).
+    pub keep_style: bool,
 }
 
 impl Default for TextDefaults {
@@ -226,6 +229,7 @@ impl Default for TextDefaults {
             indent: 2,
             sequence_flush: false,
             quote: "double".into(),
+            keep_style: true,
         }
     }
 }
