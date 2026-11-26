@@ -47,11 +47,17 @@ pub fn plugin_functions() -> DislPluginFunctions {
 
 /// Today's date in UTC, as `yyyy-MM-dd`.
 pub fn today() -> String {
+    days_from_today(0)
+}
+
+/// The date `days` after today in UTC, as `yyyy-MM-dd`: what a period added by name ends on (etalii.adp spec 092,
+/// FR-025; the standalone host's period of a week).
+pub fn days_from_today(days: i64) -> String {
     let seconds = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map(|d| d.as_secs() as i64)
         .unwrap_or_default();
-    scale::to_text(seconds * TICKS_PER_SECOND, Precision::Date)
+    scale::to_text(seconds * TICKS_PER_SECOND + days * TICKS_PER_DAY, Precision::Date)
 }
 
 /// The id a relation's `source` or `target` end is written with: the end as it was read, else the element it

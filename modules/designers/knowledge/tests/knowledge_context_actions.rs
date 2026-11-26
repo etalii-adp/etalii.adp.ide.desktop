@@ -45,7 +45,7 @@ fn answered(
     let mut action = RELATE.to_owned();
     let side = if two_way { TWO_WAY } else { ONE_WAY };
     for (value, text) in [(file, ""), (holds, ""), (side, name)] {
-        match context_actions::commit(root, entry, &action, value, text) {
+        match context_actions::commit(root, entry, &action, value, text, None) {
             Commit::Asks { next_action_id, .. } => action = next_action_id,
             Commit::Make { body_path, gesture } => return context_actions::make(&body_path, &gesture),
             Commit::Failed(reason) => return Err(reason),
@@ -88,7 +88,7 @@ fn the_table_to_relate_to_is_asked_for_in_the_file_dialog_which_takes_knowledge_
 
     let Ok(Prompt::File {
         title, pinned, files, ..
-    }) = context_actions::execute(root, &registration)
+    }) = context_actions::execute(root, &registration, None)
     else {
         panic!("a file dialog");
     };
@@ -106,8 +106,8 @@ fn the_table_to_relate_to_is_asked_for_in_the_file_dialog_which_takes_knowledge_
     assert!(!context_actions::accepts(&registration));
 
     // What is chosen is judged by the same rule, named as the dialog names it: by its path from the project's root.
-    assert!(context_actions::validate(root, RELATE, common::RELATED).is_ok());
-    assert!(context_actions::validate(root, RELATE, "notes.yaml").is_err());
+    assert!(context_actions::validate(root, RELATE, common::RELATED, None).is_ok());
+    assert!(context_actions::validate(root, RELATE, "notes.yaml", None).is_err());
 }
 
 #[test]
@@ -170,7 +170,7 @@ fn a_relation_is_asked_for_in_notions_order_the_table_how_many_rows_and_whether_
             options, name_field, ..
         },
         next_action_id: first,
-    } = context_actions::commit(root, &registration, RELATE, common::RELATED, "")
+    } = context_actions::commit(root, &registration, RELATE, common::RELATED, "", None)
     else {
         panic!("a choice");
     };
@@ -185,7 +185,7 @@ fn a_relation_is_asked_for_in_notions_order_the_table_how_many_rows_and_whether_
             options, name_field, ..
         },
         next_action_id: second,
-    } = context_actions::commit(root, &registration, &first, ONE, "")
+    } = context_actions::commit(root, &registration, &first, ONE, "", None)
     else {
         panic!("a choice");
     };
@@ -207,14 +207,15 @@ fn a_relation_is_asked_for_in_notions_order_the_table_how_many_rows_and_whether_
     assert_eq!(std::fs::read(&provinces).unwrap(), theirs);
 
     // What is typed there is judged as a name.
-    assert!(context_actions::validate(root, &second, "Seats").is_ok());
+    assert!(context_actions::validate(root, &second, "Seats", None).is_ok());
     assert_eq!(
-        context_actions::validate(root, &second, "  ").unwrap_err(),
+        context_actions::validate(root, &second, "  ", None).unwrap_err(),
         context_actions::OTHER_SIDE_NEEDS_NAME
     );
 
     // Both tables, under a name: made, with nothing more to ask.
-    let Commit::Make { body_path, gesture } = context_actions::commit(root, &registration, &second, TWO_WAY, " Seats ")
+    let Commit::Make { body_path, gesture } =
+        context_actions::commit(root, &registration, &second, TWO_WAY, " Seats ", None)
     else {
         panic!("made");
     };
@@ -228,7 +229,7 @@ fn a_relation_is_asked_for_in_notions_order_the_table_how_many_rows_and_whether_
 
     // An answer that is none of a step's is refused.
     assert!(matches!(
-        context_actions::commit(root, &registration, &first, "several", ""),
+        context_actions::commit(root, &registration, &first, "several", "", None),
         Commit::Failed(_)
     ));
 }
@@ -300,7 +301,7 @@ fn an_open_table_shows_a_relation_made_from_the_explorer_at_once() {
     // The last answer's gesture goes through the open table's session, as the shell sends it.
     let mut action = RELATE.to_owned();
     for (value, text) in [(common::RELATED, ""), (MANY, ""), (ONE_WAY, "")] {
-        match context_actions::commit(root, &registration, &action, value, text) {
+        match context_actions::commit(root, &registration, &action, value, text, None) {
             Commit::Asks { next_action_id, .. } => action = next_action_id,
             Commit::Make { gesture, .. } => assert_eq!(session.edit("relate", &gesture), ""),
             Commit::Failed(reason) => panic!("{reason}"),

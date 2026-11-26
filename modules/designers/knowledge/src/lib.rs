@@ -17,6 +17,7 @@ pub mod command;
 pub mod context_actions;
 pub mod definition;
 pub mod designer;
+pub mod diagrams;
 pub mod edits;
 pub mod links;
 pub mod mapper;

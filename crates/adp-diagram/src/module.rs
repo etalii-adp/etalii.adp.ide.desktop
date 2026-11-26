@@ -366,6 +366,35 @@ pub trait DiagramModule {
     fn problems(&self, _document: &DiagramDocument, _options: DislConstraintOptions) -> Option<Vec<DiagramProblem>> {
         None
     }
+
+    /// The kinds of element another tool may add to a document of this type by name alone, each as the type it
+    /// creates and the word a person picks it by (etalii.adp spec 092, FR-025: a knowledge relation's *Create*): none
+    /// by default, so a tool type that names no kind is given no element from elsewhere.
+    fn created_kinds(&self) -> Vec<CreatedKind> {
+        Vec::new()
+    }
+
+    /// The change that adds an element of the type `kind` names, under `id` and named `name`, where the tool places an
+    /// element added without a position; none for a kind [`DiagramModule::created_kinds`] does not name.
+    fn creation(&self, _document: &DiagramDocument, _kind: &str, _id: &str, _name: &str) -> Option<DislChange> {
+        None
+    }
+}
+
+/// A kind of element [`DiagramModule::created_kinds`] names: the type it creates and the word a person picks it by.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CreatedKind {
+    pub type_name: String,
+    pub label: String,
+}
+
+impl CreatedKind {
+    pub fn new(type_name: impl Into<String>, label: impl Into<String>) -> Self {
+        CreatedKind {
+            type_name: type_name.into(),
+            label: label.into(),
+        }
+    }
 }
 
 impl fmt::Debug for dyn DiagramModule {

@@ -59,9 +59,20 @@ impl KnowledgeEditCommand {
         let first = KnowledgeOtherFile {
             body_path: self.body_path.clone(),
             changes: self.changes.clone(),
+            body: None,
         };
         for file in std::iter::once(&first).chain(&self.others) {
             let name = name_of(&file.body_path);
+            // Another tool's file comes with its new bytes, made by that tool: it is written as it is given.
+            if let Some(after) = &file.body {
+                let before = std::fs::read(&file.body_path).map_err(|e| format!("{name} could not be changed: {e}"))?;
+                planned.push(KnowledgeFileState {
+                    body_path: file.body_path.clone(),
+                    before,
+                    after: after.clone(),
+                });
+                continue;
+            }
             let read = store::read(&file.body_path);
             let Some(body) = read.body else {
                 return Err(format!("{name} could not be changed. {}", read.refusal));

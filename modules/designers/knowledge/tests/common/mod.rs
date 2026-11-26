@@ -180,6 +180,16 @@ impl EditingTable {
         }
     }
 
+    /// Over a session opened elsewhere: one whose relations may point at diagrams, say.
+    pub fn with_session(path: PathBuf, session: KnowledgeSession) -> Self {
+        EditingTable {
+            path,
+            session,
+            given: Vec::new(),
+            next: 0,
+        }
+    }
+
     /// With the writing given: a test refuses a write exactly when it chooses.
     pub fn with_writer(path: PathBuf, write: adp_designer_knowledge::session::Writer) -> Self {
         let session = KnowledgeSession::with(

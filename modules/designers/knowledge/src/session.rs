@@ -32,6 +32,7 @@ use adp_fbl::{FblModel, ModelChange};
 use crate::body::{ANOTHER_VERSION, KnowledgeBody};
 use crate::command::{KnowledgeEditCommand, KnowledgeRestore};
 use crate::definition;
+use crate::diagrams::{self, KnowledgeDiagrams};
 use crate::edits::{self, KnowledgeOtherFile, KnowledgeSurroundings};
 use crate::links::{self, KnowledgeFile};
 use crate::mapper;
@@ -111,6 +112,9 @@ pub struct KnowledgeSession {
     changes: Vec<TableChange>,
     /// Where the ids of what an edit makes come from: a fresh ShortGuid each, unless a replay hands them out.
     new_id: Box<dyn FnMut() -> String>,
+    /// What the host knows of the workspace's diagrams, which a relation may point at (etalii.adp spec 092, FR-025);
+    /// none where relations point at knowledge files only.
+    diagrams: Option<Rc<dyn KnowledgeDiagrams>>,
 }
 
 impl KnowledgeSession {
@@ -134,8 +138,36 @@ impl KnowledgeSession {
         )
     }
 
+    /// A session whose edits are written to the file, which looks under `root` for the files that relate to it, and
+    /// whose relations may point at the diagrams `diagrams` knows of (etalii.adp spec 092, FR-025).
+    pub fn open_for_editing_with(
+        body_path: impl Into<PathBuf>,
+        root: impl Into<PathBuf>,
+        diagrams: Rc<dyn KnowledgeDiagrams>,
+    ) -> Self {
+        KnowledgeSession::with_diagrams(
+            body_path,
+            Box::new(|path: &Path| store::read(path)),
+            Some(Box::new(|command: &KnowledgeEditCommand| command.execute())),
+            root.into(),
+            Some(diagrams),
+        )
+    }
+
     /// A session with its reading and writing given: a test refuses a write exactly when it chooses.
     pub fn with(body_path: impl Into<PathBuf>, read: Reader, write: Option<Writer>, root_path: PathBuf) -> Self {
+        KnowledgeSession::with_diagrams(body_path, read, write, root_path, None)
+    }
+
+    /// [`KnowledgeSession::with`], with the diagrams its relations may point at known before the file is loaded, so
+    /// that the links to them resolve as it is loaded.
+    pub fn with_diagrams(
+        body_path: impl Into<PathBuf>,
+        read: Reader,
+        write: Option<Writer>,
+        root_path: PathBuf,
+        diagrams: Option<Rc<dyn KnowledgeDiagrams>>,
+    ) -> Self {
         let body_path = body_path.into();
         let extension = body_path
             .extension()
@@ -169,6 +201,7 @@ impl KnowledgeSession {
             undone: Vec::new(),
             changes: Vec::new(),
             new_id: Box::new(definition::new_id),
+            diagrams,
         };
         session.show(opened.body);
         // The view the file was left in, by name from here on: another connection leaving the file in another view
@@ -230,7 +263,16 @@ impl KnowledgeSession {
         if let Some(files) = self.files.borrow().as_ref() {
             return files.clone();
         }
-        let files = Rc::new(links::read_files(&self.folder(), &*self.read));
+        let folder = self.folder();
+        let mut read = links::read_files(&folder, &*self.read);
+        if let Some(diagrams) = &self.diagrams {
+            read.extend(diagrams.diagrams(&folder).into_iter().map(|diagram| KnowledgeFile {
+                path: relations::full_path(&diagram.path),
+                table: diagrams::table_of(&diagram),
+                diagram: Some(Rc::new(diagram)),
+            }));
+        }
+        let files = Rc::new(read);
         self.files.replace(Some(files.clone()));
         files
     }
@@ -385,6 +427,8 @@ impl KnowledgeSession {
             return Err(refusal);
         }
         self.undone.push(restore);
+        // A diagram the step wrote is read again: an element its *Create* added is gone.
+        self.files.replace(None);
         self.reload();
         Ok(())
     }
@@ -399,6 +443,7 @@ impl KnowledgeSession {
             return Err(refusal);
         }
         self.restores.push(restore);
+        self.files.replace(None);
         self.reload();
         Ok(())
     }
@@ -533,6 +578,16 @@ impl KnowledgeSession {
         if let Some(target) = self.targets.borrow().get(&key) {
             return target.clone();
         }
+        // A diagram chosen as a new relation's target is named by its path until the relation names it by a link.
+        let full = relations::full_path(&path);
+        if let Some(file) = self.files().iter().find(|f| f.diagram.is_some() && f.path == full) {
+            return Rc::new(KnowledgeTarget {
+                path: file.path.clone(),
+                table: Some(file.table.clone()),
+                diagram: file.diagram.clone(),
+                ..KnowledgeTarget::default()
+            });
+        }
         let read = (self.read)(&path);
         let target = Rc::new(match read.body {
             None => KnowledgeTarget {
@@ -555,6 +610,76 @@ impl KnowledgeSession {
         });
         self.targets.borrow_mut().insert(key, target.clone());
         target
+    }
+
+    /// The files a new relation can point at, as the answer to a relation asked for without one: this table, the
+    /// project's other knowledge files and, where the host knows of them, its diagrams (etalii.adp spec 092, FR-025).
+    fn targets(&self) -> Vec<(String, String)> {
+        let mut targets = project::targets(&self.root_path, &self.body_path);
+        if self.root_path.as_os_str().is_empty() {
+            return targets;
+        }
+        let mut diagrams: Vec<(String, String)> = self
+            .files()
+            .iter()
+            .filter(|f| f.diagram.is_some())
+            .map(|f| (relations::target_name(&self.body_path, &f.path), f.table.name.clone()))
+            .collect();
+        diagrams.sort_by_key(|(name, _)| name.to_lowercase());
+        targets.extend(diagrams);
+        targets
+    }
+
+    /// *Create* on a relation to a diagram (etalii.adp spec 092, FR-025): the element named in `gesture` added to the
+    /// diagram through its own tool, offered at once, and the `setCell` that relates it with the diagram's new body to
+    /// write in the same step; or why not.
+    fn create_element(&mut self, gesture: &TableGesture) -> Result<(TableGesture, KnowledgeOtherFile), String> {
+        let property = self
+            .shown
+            .column(&gesture.column_id)
+            .filter(|p| p.value_type == "relation" && !p.is_computed)
+            .ok_or(diagrams::NO_DIAGRAM)?;
+        let one = property.limit == "one";
+        let target = self.target_of(property).ok_or(diagrams::NO_DIAGRAM)?;
+        let diagram = target.diagram.clone().ok_or(diagrams::NO_DIAGRAM)?;
+        let host = self.diagrams.clone().ok_or(diagrams::NO_DIAGRAM)?;
+        let asked = gesture.setting_of(diagrams::ELEMENT_KIND);
+        let kind = match diagram.kinds.as_slice() {
+            [] => return Err(diagrams::NOTHING_TO_CREATE.into()),
+            [only] if asked.is_empty() => only.type_name.clone(),
+            kinds => kinds
+                .iter()
+                .find(|k| k.type_name == asked)
+                .map(|k| k.type_name.clone())
+                .ok_or(diagrams::PICK_A_KIND)?,
+        };
+        let name = gesture.setting_of(diagrams::NEW_ELEMENT).trim().to_owned();
+        let created = host.create(&target.path, &kind, &name)?;
+        // The new element is offered and its link written before the diagram is read again.
+        if let Some(files) = self.files.borrow_mut().as_mut() {
+            let mut grown: Vec<KnowledgeFile> = files.as_ref().clone();
+            if let Some(file) = grown.iter_mut().find(|f| f.path == target.path) {
+                file.table = diagrams::with_row(file.table.clone(), &created.id, &name);
+            }
+            *files = Rc::new(grown);
+        }
+        self.relate();
+        let mut relating = gesture.clone();
+        relating.settings.shift_remove(diagrams::NEW_ELEMENT);
+        relating.settings.shift_remove(diagrams::ELEMENT_KIND);
+        relating.values = if one {
+            vec![created.id.clone()]
+        } else {
+            gesture.values.iter().cloned().chain([created.id.clone()]).collect()
+        };
+        Ok((
+            relating,
+            KnowledgeOtherFile {
+                body_path: target.path.clone(),
+                changes: Vec::new(),
+                body: Some(created.body),
+            },
+        ))
     }
 
     /// What a related row is called, for the cells and the groups of a relation.
@@ -838,8 +963,23 @@ impl DesignerSession for KnowledgeSession {
         }
         // A relation asked for without the table it relates to is answered with the tables there are to choose from.
         if gesture.kind == "addRelation" && gesture.setting_of("target").trim().is_empty() {
-            return edits::choose_target(&project::targets(&self.root_path, &self.body_path));
+            return edits::choose_target(&self.targets());
         }
+        // *Create* on a relation to a diagram adds the element to the diagram first, and relates it in the same step.
+        let mut created = None;
+        let made;
+        let gesture = if gesture.kind == "setCell" && !gesture.setting_of(diagrams::NEW_ELEMENT).trim().is_empty() {
+            match self.create_element(gesture) {
+                Ok((relating, other)) => {
+                    created = Some(other);
+                    made = relating;
+                    &made
+                }
+                Err(reason) => return reason,
+            }
+        } else {
+            gesture
+        };
         // The id source is taken out while the closures below borrow the session, and put back after.
         let mut ids = std::mem::replace(&mut self.new_id, Box::new(definition::new_id));
         let edit = {
@@ -861,9 +1001,15 @@ impl DesignerSession for KnowledgeSession {
         };
         self.new_id = ids;
         if edit.is_refused() {
+            if created.is_some() {
+                // The element offered at once was never written: the diagram is read again as it is.
+                self.files.replace(None);
+                self.relate();
+            }
             return edit.refusal;
         }
         let mut edit = edit;
+        edit.others.extend(created);
         self.write_rows_as_links(&mut edit.changes);
         if edit.changes.is_empty() {
             // Nothing to write: the edit is settled as it is made.

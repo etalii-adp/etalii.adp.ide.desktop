@@ -31,7 +31,7 @@ pub mod times;
 use std::rc::Rc;
 
 use adp_cel::{Map, Value};
-use adp_diagram::{DiagramModule, Extent, Length, ModulePlacement, Resize, ResizedEdge};
+use adp_diagram::{CreatedKind, DiagramDocument, DiagramModule, Extent, Length, ModulePlacement, Resize, ResizedEdge};
 use adp_disl::{DislChange, DislDiagram, DislElement, DislPluginFunctions, DislSpecification};
 
 use crate::instants::Precision;
@@ -49,7 +49,44 @@ pub fn module() -> Rc<dyn DiagramModule> {
     Rc::new(TimelineModule)
 }
 
+/// How long a period added by name lasts, in days (the standalone host's `TimelineBody.ElementCreation`).
+pub const CREATED_PERIOD_DAYS: i64 = 7;
+
 impl DiagramModule for TimelineModule {
+    /// A knowledge relation's *Create* adds a moment or a period (etalii.adp spec 092, FR-025).
+    fn created_kinds(&self) -> Vec<CreatedKind> {
+        vec![
+            CreatedKind::new("Moment", "moment"),
+            CreatedKind::new("Period", "period"),
+        ]
+    }
+
+    /// Named as typed, beginning today on the first row as an add from a menu without a placement does; a period a
+    /// week long.
+    fn creation(&self, _document: &DiagramDocument, kind: &str, id: &str, name: &str) -> Option<DislChange> {
+        let mut attributes: Map = [
+            ("label", Value::String(name.to_owned())),
+            ("begin", Value::String(times::today())),
+            ("row", Value::Int(0)),
+        ]
+        .into_iter()
+        .collect();
+        match kind {
+            "Moment" => {}
+            "Period" => attributes.insert("end", Value::String(times::days_from_today(CREATED_PERIOD_DAYS))),
+            _ => return None,
+        }
+        Some(DislChange::Create {
+            type_name: kind.to_owned(),
+            id: id.to_owned(),
+            attributes,
+            parent_id: None,
+            at: Value::Null,
+            index: None,
+            slot: None,
+        })
+    }
+
     fn plugin_functions(&self) -> DislPluginFunctions {
         times::plugin_functions()
     }

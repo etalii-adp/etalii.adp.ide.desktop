@@ -20,6 +20,7 @@ mod icons;
 mod markdown;
 mod platform_open;
 mod problems;
+mod project_diagrams;
 mod properties;
 mod ribbon;
 /// The recording painter, for `atd record` (spec 035, T051).

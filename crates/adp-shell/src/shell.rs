@@ -373,7 +373,11 @@ impl Shell {
         }
         // A Knowledge designer document - a knowledge file or its registration - opens as its table.
         if crate::table::claims(path) {
-            match TableTab::open(path, root) {
+            match TableTab::open_with(
+                path,
+                root,
+                std::rc::Rc::new(crate::project_diagrams::ProjectDiagrams::new()),
+            ) {
                 Ok(tab) => {
                     self.notice = Some(format!("Opened {} as {}", tab.name(), adp_designer_knowledge::ORIGIN));
                     self.tabs.push(Tab::Table(Box::new(tab)));
@@ -868,7 +872,8 @@ impl Shell {
     /// Starts the explorer's entry that adds a relation to the knowledge file at `path` (the standalone host's
     /// `KnowledgeContextActionProvider`): its first question is the table to relate to.
     fn start_relate(&mut self, root: &Path, path: &Path) {
-        match adp_designer_knowledge::context_actions::execute(root, path) {
+        let diagrams = crate::project_diagrams::ProjectDiagrams::new();
+        match adp_designer_knowledge::context_actions::execute(root, path, Some(&diagrams)) {
             Ok(prompt) => {
                 self.pending = Some(Pending::Relate {
                     path: path.to_path_buf(),
@@ -899,12 +904,13 @@ impl Shell {
         else {
             return Ok(());
         };
+        let diagrams = crate::project_diagrams::ProjectDiagrams::new();
         let checked = if value == context_actions::TWO_WAY {
-            context_actions::validate(root, &action_id, &text)
+            context_actions::validate(root, &action_id, &text, Some(&diagrams))
         } else if value.is_empty() {
             Err("Choose one first.".to_owned())
         } else {
-            context_actions::validate(root, &action_id, &value)
+            context_actions::validate(root, &action_id, &value, Some(&diagrams))
         };
         if let Err(reason) = checked {
             let back = Pending::Relate {
@@ -917,7 +923,7 @@ impl Shell {
             };
             return Err((back, reason));
         }
-        match context_actions::commit(root, &path, &action_id, &value, &text) {
+        match context_actions::commit(root, &path, &action_id, &value, &text, Some(&diagrams)) {
             Commit::Asks {
                 prompt: next,
                 next_action_id,
