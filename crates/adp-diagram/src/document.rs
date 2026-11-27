@@ -1309,7 +1309,15 @@ impl Body {
             };
             return Body::Missing { bytes, finding };
         };
-        match PluginBody::open(bytes.clone(), tool.binding.clone(), Some(plugin), file_name) {
+        // The files a case holds beside the body are handed to the plugin with it: what its reader follows from the
+        // body (a solution's project files), which on disk it reads itself.
+        let beside = folder
+            .into_iter()
+            .flatten()
+            .filter(|(name, _)| name.as_str() != file_name)
+            .map(|(name, bytes)| adp_fbl::plugins::PluginFile::new(name.clone(), bytes.clone()))
+            .collect();
+        match PluginBody::open_beside(bytes.clone(), tool.binding.clone(), Some(plugin), file_name, beside) {
             Ok(body) => Body::Plugin(body),
             Err(reason) => Body::Missing {
                 bytes,

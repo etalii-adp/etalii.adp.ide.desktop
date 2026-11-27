@@ -22,6 +22,9 @@ pub struct PluginBody {
     binding: Rc<FblBinding>,
     plugin: Option<Rc<dyn PersistencePlugin>>,
     file_name: String,
+    /// The files handed to the plugin beside the body, by their paths relative to the body's folder: what a reader
+    /// follows from the body (a solution's project files), where the host holds them (ATD's reader input `files`).
+    beside: Vec<PluginFile>,
     last: PluginReadResult,
 }
 
@@ -55,10 +58,35 @@ impl PluginBody {
             binding,
             plugin,
             file_name: file_name.to_owned(),
+            beside: Vec::new(),
             last: PluginReadResult::default(),
         };
         body.reread();
         Ok(body)
+    }
+
+    /// [`PluginBody::open`] with the files `beside` handed to the plugin after the body, each by its path relative to
+    /// the body's folder.
+    pub fn open_beside(
+        bytes: Vec<u8>,
+        binding: Rc<FblBinding>,
+        plugin: Option<Rc<dyn PersistencePlugin>>,
+        file_name: &str,
+        beside: Vec<PluginFile>,
+    ) -> Result<PluginBody, String> {
+        let mut body = PluginBody::open(bytes, binding, plugin, file_name)?;
+        if !beside.is_empty() {
+            body.beside = beside;
+            body.reread();
+        }
+        Ok(body)
+    }
+
+    /// The body, then the files beside it.
+    fn handed(&self) -> Vec<PluginFile> {
+        let mut files = vec![PluginFile::new("", self.file.bytes().to_vec())];
+        files.extend(self.beside.iter().cloned());
+        files
     }
 
     pub fn bytes(&self) -> &[u8] {
@@ -103,7 +131,7 @@ impl PluginBody {
         if matches!(change, ModelChange::Save) {
             return PlanResult::Planned(PlannedEdit::default());
         }
-        let files = [PluginFile::new("", self.file.bytes().to_vec())];
+        let files = self.handed();
         let result = plugin.plan(&PluginPlanRequest {
             files: &files,
             last: &self.last,
@@ -194,7 +222,7 @@ impl PluginBody {
                 false,
             ),
             Some(plugin) => plugin.read(&PluginReadRequest {
-                files: vec![PluginFile::new("", self.file.bytes().to_vec())],
+                files: self.handed(),
                 supplementary_entries: Vec::new(),
             }),
         };

@@ -13,6 +13,7 @@ adp-context = { path = "../../../crates/adp-context" }
 adp-diagram = { path = "../../../crates/adp-diagram" }
 adp-disl = { path = "../../../crates/adp-disl" }
 adp-documents = { path = "../../../crates/adp-documents" }
+adp-fbl = { path = "../../../crates/adp-fbl" }
 adp-history = { path = "../../../crates/adp-history" }
 adp-layout = { path = "../../../crates/adp-layout" }
 # The active theme a tool's colours are chosen for (spec 030, FR-045).
@@ -21,10 +22,12 @@ adp-theme = { path = "../../../crates/adp-theme" }
 regex = "1"
 # Solutions, project files, `Directory.Packages.props` and `.nuspec` files are only read.
 roxmltree = "0.20"
+serde_json = "1"
+# The files a reader capability is handed are laid out as a folder for the readers, which read from disk.
+tempfile = "3"
 
 [dev-dependencies]
 adp-core = { path = "../../../crates/adp-core" }
-serde_json = "1"
 tempfile = "3"
 
 [lints]

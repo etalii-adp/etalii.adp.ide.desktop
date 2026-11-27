@@ -1,0 +1,74 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability analysis.msbuildImports` from modules/diagrams/dotnet-dependency-graph/src/plugin.rs of etalii.adp.ide.desktop, on the solution parity/scripts/dotnet/dependency-graph/pipeline-toolkit.json opens and the files of its folder; never edited by hand.",
+  "input": {
+    "elements": [
+      {
+        "path": "Directory.Packages.props",
+        "text": "<Project>\n  <PropertyGroup>\n    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>\n  </PropertyGroup>\n  <ItemGroup>\n    <PackageVersion Include=\"Serilog\" Version=\"4.4.0\" />\n    <PackageVersion Include=\"System.Text.Json\" Version=\"10.0.0\" />\n    <PackageVersion Include=\"xunit.v3\" Version=\"4.1.0\" />\n  </ItemGroup>\n</Project>\n"
+      },
+      {
+        "path": "src/Pipeline.Cli/Pipeline.Cli.csproj",
+        "text": "<Project Sdk=\"Microsoft.NET.Sdk\">\n  <PropertyGroup>\n    <OutputType>Exe</OutputType>\n    <TargetFramework>net10.0</TargetFramework>\n  </PropertyGroup>\n  <ItemGroup>\n    <ProjectReference Include=\"..\\Pipeline.Core\\Pipeline.Core.csproj\" />\n    <ProjectReference Include=\"..\\Pipeline.Storage\\Pipeline.Storage.csproj\" />\n  </ItemGroup>\n  <ItemGroup>\n    <PackageReference Include=\"Serilog\" />\n  </ItemGroup>\n</Project>\n"
+      },
+      {
+        "path": "src/Pipeline.Core/Pipeline.Core.csproj",
+        "text": "<Project Sdk=\"Microsoft.NET.Sdk\">\n  <PropertyGroup>\n    <TargetFramework>net10.0</TargetFramework>\n  </PropertyGroup>\n  <ItemGroup>\n    <PackageReference Include=\"Serilog\" />\n  </ItemGroup>\n</Project>\n"
+      },
+      {
+        "path": "src/Pipeline.Storage/Pipeline.Storage.csproj",
+        "text": "<Project Sdk=\"Microsoft.NET.Sdk\">\n  <PropertyGroup>\n    <TargetFrameworks>net10.0;netstandard2.0</TargetFrameworks>\n  </PropertyGroup>\n  <ItemGroup>\n    <ProjectReference Include=\"..\\Pipeline.Core\\Pipeline.Core.csproj\" />\n  </ItemGroup>\n  <ItemGroup>\n    <PackageReference Include=\"System.Text.Json\" />\n  </ItemGroup>\n</Project>\n"
+      },
+      {
+        "path": "tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj",
+        "text": "<Project Sdk=\"Microsoft.NET.Sdk\">\n  <PropertyGroup>\n    <TargetFramework>net10.0</TargetFramework>\n  </PropertyGroup>\n  <ItemGroup>\n    <ProjectReference Include=\"..\\..\\src\\Pipeline.Core\\Pipeline.Core.csproj\" />\n  </ItemGroup>\n  <ItemGroup>\n    <PackageReference Include=\"xunit.v3\" />\n    <PackageReference Include=\"Serilog\" Version=\"3.1.1\" />\n  </ItemGroup>\n</Project>\n"
+      }
+    ]
+  },
+  "args": {},
+  "output": {
+    "elements": [
+      {
+        "id": "src/Pipeline.Cli/Pipeline.Cli.csproj->Serilog",
+        "attributes": {
+          "path": "src/Pipeline.Cli/Pipeline.Cli.csproj",
+          "package": "Serilog",
+          "version": "4.4.0"
+        }
+      },
+      {
+        "id": "src/Pipeline.Core/Pipeline.Core.csproj->Serilog",
+        "attributes": {
+          "path": "src/Pipeline.Core/Pipeline.Core.csproj",
+          "package": "Serilog",
+          "version": "4.4.0"
+        }
+      },
+      {
+        "id": "src/Pipeline.Storage/Pipeline.Storage.csproj->System.Text.Json",
+        "attributes": {
+          "path": "src/Pipeline.Storage/Pipeline.Storage.csproj",
+          "package": "System.Text.Json",
+          "version": "10.0.0"
+        }
+      },
+      {
+        "id": "tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->xunit.v3",
+        "attributes": {
+          "path": "tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj",
+          "package": "xunit.v3",
+          "version": "4.1.0"
+        }
+      },
+      {
+        "id": "tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->Serilog",
+        "attributes": {
+          "path": "tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj",
+          "package": "Serilog",
+          "version": "3.1.1"
+        }
+      }
+    ],
+    "findings": []
+  }
+}
