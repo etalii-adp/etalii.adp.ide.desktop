@@ -236,7 +236,7 @@ diagram azure-devops/pipeline version "0.2.0" {
     /// an id (finding A8) have no edge between them, which would read as the stage waiting for itself.
     relation DefaultOrder extends Dependency from Stage to Stage {
       allowSelfLoops: true
-      derived: (cel.bind(st, diagram.nodesOfType('Stage'), lists.range(st.size()).filter(i, i > 0 && !has(st[i].dependsOn) && st[i - 1].id != st[i].id).map(i, {'source': st[i - 1], 'target': st[i], 'isImplicit': true})))
+      derived: (cel.bind(st, diagram.nodesOfType('Stage'), lists.range(st.size()).filter(i, i > 0 && !has(st[i].dependsOn) && st[i - 1].id != st[i].id).map(i, {'id': 'edge:' + st[i - 1].id + '->' + st[i].id, 'source': st[i - 1], 'target': st[i], 'isImplicit': true})))
     }
 
     enum PoolOrigin {
@@ -592,8 +592,7 @@ diagram azure-devops/pipeline version "0.2.0" {
     label (self.isDisabled ? 'Enable' : 'Disable')
     if self.isDisabled {
       unset enabled
-    }
-    if !self.isDisabled {
+    } else {
       set enabled = 'false'
     }
   }
@@ -706,7 +705,7 @@ diagram azure-devops/pipeline version "0.2.0" {
           expression: ('edge:' + (has(self.source) ? self.source.id : '?' + self.name) + '->' + self.target.id)
         }
       }
-      doc: "Ids are paths through the file, never written (finding A8): a stage is its name, or `stage-<n>` when it has none; a job `<stage>/<name>`, or `<stage>/job-<n>`; a step `<job>/step-<n>`; a template reference `template:template-<n>`, numbered across followed templates in reading order, and an `extends` `template:extends`; a dependency `edge:<from>-><to>`, with `?<name>` as the from of one that names nothing. The default order's edges take the derived relation's default id. Positional ids are ephemeral. Two stages of one name share an id, and the first is the one a gesture finds."
+      doc: "Ids are paths through the file, never written (finding A8): a stage is its name, or `stage-<n>` when it has none; a job `<stage>/<name>`, or `<stage>/job-<n>`; a step `<job>/step-<n>`; a template reference `template:template-<n>`, numbered across followed templates in reading order, and an `extends` `template:extends`; a dependency `edge:<from>-><to>`, with `?<name>` as the from of one that names nothing. The default order's edges are `edge:<from>-><to>` too, as the module names them. Positional ids are ephemeral. Two stages of one name share an id, and the first is the one a gesture finds."
     }
     view: {
       store: []

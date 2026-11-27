@@ -82,6 +82,7 @@ pub fn record(name: &str, cases: &Path) -> Result<Vec<PathBuf>, String> {
         "reader.markdown" => markdown(cases, "reader.markdown", reader_markdown),
         "reader.helmChart" => helm_chart(cases),
         "reader.ansibleProject" => ansible_project(cases),
+        "reader.azurePipelinesYaml" => azure_pipelines_yaml(cases),
         "layout.rankedColumns" => ranked_columns(cases),
         "reader.sparql" => sparql(cases),
         "layout.nestedGrid" => nested_grid(cases),
@@ -846,6 +847,38 @@ fn ansible_project(cases: &Path) -> Result<Vec<PathBuf>, String> {
             "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
             "doc": format!(
                 "Recorded by `atd record --capability reader.ansibleProject` from modules/diagrams/ansible-structure/src/plugin.rs of etalii.adp.ide.desktop, on the project folder parity/scripts/{name}.json opens: the registration as the body, the files the binding's file rules select as `files`, every other folder and file as the `listing`; never edited by hand."
+            ),
+            "input": input,
+            "args": {},
+            "output": output,
+        });
+        let file = cases.join(format!("{short}.json"));
+        write_json(&file, &fixture)?;
+        written.push(file);
+    }
+    Ok(written)
+}
+
+/// `reader.azurePipelinesYaml` from the Azure DevOps pipeline module's reader (`modules/diagrams/azure-devops-pipeline/
+/// src/plugin.rs`), on the pipeline every Azure DevOps pipeline parity script opens: the file as the body.
+fn azure_pipelines_yaml(cases: &Path) -> Result<Vec<PathBuf>, String> {
+    use adp_diagram_azure_devops_pipeline::plugin::PipelineYamlPlugin;
+
+    fs::create_dir_all(cases).map_err(|e| format!("{}: {e}", cases.display()))?;
+    let mut written = Vec::new();
+    for name in adp_parity::script_names()
+        .into_iter()
+        .filter(|n| n.starts_with("azure-devops/pipeline/"))
+    {
+        let case = adp_parity::Case::load(&name)?;
+        let input = reader_input(&case)?;
+        let input = json!({ "body": input["body"].clone() });
+        let output = adp_atd_runtime::capabilities::reader_result(&PipelineYamlPlugin, &input)?;
+        let short = name.rsplit('/').next().unwrap_or(&name);
+        let fixture = json!({
+            "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+            "doc": format!(
+                "Recorded by `atd record --capability reader.azurePipelinesYaml` from modules/diagrams/azure-devops-pipeline/src/plugin.rs of etalii.adp.ide.desktop, on the pipeline parity/scripts/{name}.json opens; never edited by hand."
             ),
             "input": input,
             "args": {},

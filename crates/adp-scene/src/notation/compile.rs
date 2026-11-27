@@ -981,7 +981,13 @@ impl Compiler<'_> {
         for badge in node.get("badges").and_then(Json::as_array).into_iter().flatten() {
             let id = str_of(badge, "id").unwrap_or("");
             let location = format!("node \"{name}\" badge \"{id}\"");
-            let position = str_of(badge, "position");
+            // A packed badge fills the node's badge layout from where it starts (DISL section 6.9, `badgeLayout`).
+            let packed = badge.get("pack").and_then(Json::as_bool) == Some(true);
+            let position = str_of(badge, "position").or_else(|| {
+                packed
+                    .then(|| node.get("badgeLayout").and_then(|l| str_of(l, "start")))
+                    .flatten()
+            });
             let right = position == Some("top-right");
             if !right && position != Some("top-left") {
                 return fail(format!(

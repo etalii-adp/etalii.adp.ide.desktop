@@ -389,9 +389,33 @@ pub fn notation_scene(
         })
         .collect();
     // The view draws what its viewpoint shows (DISL section 3.5).
-    let shown: Option<HashSet<String>> = session
+    let mut shown: Option<HashSet<String>> = session
         .uses_viewpoint(specification)
         .then(|| diagram.shown_in(session.viewpoint()).iter().map(|e| e.id()).collect());
+    // A collapsible container its view keeps collapsed draws none of what it holds (DISL section 6.7).
+    // The view as the element holds it, else as the module keeps it (a viewer state the description starts in).
+    let collapsed = |element: &adp_disl::DislElement| {
+        element
+            .view()
+            .or_else(|| {
+                module
+                    .filter(|m| m.draws_initial_views())
+                    .and_then(|m| m.view_of(document, element))
+            })
+            .is_some_and(|view| view.get("collapsed").and_then(|v| v.as_bool()) == Some(true))
+            && adp_scene::notation::compile::node_notation(specification, &element.type_name())["container"]["collapsible"]
+                == true
+    };
+    let hidden: HashSet<String> = diagram
+        .elements()
+        .iter()
+        .filter(|e| std::iter::successors(e.parent(), |p| p.parent()).any(|a| collapsed(&a)))
+        .map(|e| e.id())
+        .collect();
+    if !hidden.is_empty() {
+        let all = shown.unwrap_or_else(|| diagram.elements().iter().map(|e| e.id()).collect());
+        shown = Some(all.into_iter().filter(|id| !hidden.contains(id)).collect());
+    }
     let folding = Folding::default();
     let options = SceneOptions {
         selection: &[],

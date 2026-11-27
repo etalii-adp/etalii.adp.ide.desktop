@@ -678,6 +678,82 @@ fn derived_nodes(diagram: &DislDiagram, findings: &mut Vec<Finding>) {
     }
 }
 
+/// A relation type derived in the expression form (section 4.9): a list of maps, each with its `source` and `target`,
+/// an `id` or `<Type>:<source>-><target>` numbered from `#2` when repeated, and the values of the attributes it names.
+fn expression_derived(
+    diagram: &DislDiagram,
+    t: &std::rc::Rc<crate::loading::metamodel::DislType>,
+    pointer: &str,
+    findings: &mut Vec<Finding>,
+) {
+    let specification = diagram.specification();
+    let base: HashMap<String, Value> = [
+        ("diagram".to_owned(), diagram.to_value()),
+        ("env".to_owned(), viewpoint_env(&specification)),
+    ]
+    .into_iter()
+    .collect();
+    // Compiled where the walker compiled it, else here, in the `derive` context.
+    let evaluated = evaluate(&specification, pointer, &base).or_else(|_| {
+        let source = json::get(json::member(specification.root(), "metamodel"), "relations")
+            .and_then(|r| json::get(r, &t.name))
+            .and_then(|r| json::get(r, "derived"))
+            .and_then(|d| json::string_of(d, "cel"))
+            .ok_or_else(|| "no expression".to_owned())?;
+        specification
+            .environment(crate::expressions::contexts::DERIVE, &[])
+            .compile(source)
+            .map_err(|e| e.to_string())?
+            .evaluate(&base)
+    });
+    let Ok(Value::List(items)) = evaluated else {
+        findings.push(finding(
+            DERIVED_FAILED,
+            format!("The items of {} could not be computed, so there are none.", t.name),
+        ));
+        return;
+    };
+    let mut repeats: HashMap<String, usize> = HashMap::new();
+    for item in items.iter() {
+        let Value::Map(map) = item else { continue };
+        let (Some(from), Some(to)) = (
+            map.get("source").and_then(|s| allows(t.source.as_ref(), s)),
+            map.get("target").and_then(|s| allows(t.target.as_ref(), s)),
+        ) else {
+            continue;
+        };
+        let id = match map.get("id") {
+            Some(Value::String(id)) => id.clone(),
+            _ => {
+                let plain = format!("{}:{}->{}", t.name, from.id(), to.id());
+                let seen = repeats.entry(plain.clone()).or_insert(0);
+                *seen += 1;
+                if *seen == 1 { plain } else { format!("{plain}#{seen}") }
+            }
+        };
+        if diagram.element_by_id(&id).is_some() {
+            continue;
+        }
+        let mut attributes = Map::default();
+        for (name, value) in map.iter() {
+            if t.attributes.contains_key(name.as_str()) {
+                attributes.insert(name.clone(), value.clone());
+            }
+        }
+        let mut new = NewElement::new(&t.name, &id);
+        new.attributes = attributes;
+        new.source_id = Some(from.id());
+        new.target_id = Some(to.id());
+        new.source = Some(from);
+        new.target = Some(to);
+        new.is_derived = true;
+        new.id_is_stored = false;
+        if let Ok(made) = DislElement::make(diagram, &new, t.clone()) {
+            let _ = diagram.add_made(made);
+        }
+    }
+}
+
 /// The derived relation types (section 4.11.3), in the order of `metamodel.relations`.
 fn derived_relations(diagram: &DislDiagram, findings: &mut Vec<Finding>) {
     let specification = diagram.specification();
@@ -686,6 +762,10 @@ fn derived_relations(diagram: &DislDiagram, findings: &mut Vec<Finding>) {
             continue;
         };
         let pointer = json::pointer(&json::pointer("/metamodel/relations", &t.name), "derived");
+        if json::has(derived, "cel") && !json::has(derived, "from") {
+            expression_derived(diagram, t, &pointer, findings);
+            continue;
+        }
         let base: HashMap<String, Value> = [
             ("diagram".to_owned(), diagram.to_value()),
             ("env".to_owned(), viewpoint_env(&specification)),

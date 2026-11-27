@@ -222,6 +222,14 @@ struct CapabilityLayout {
     arguments: serde_json::Map<String, Json>,
 }
 
+/// DISL's standard `layered` layout, left to right (DISL §10.3): its gaps between the nodes of a layer and between
+/// layers.
+#[derive(Debug, Clone, Copy)]
+struct LayeredLayout {
+    node: f64,
+    layer: f64,
+}
+
 /// DISL's standard `tidyTree` (DISL §10.3), run by the capability `layout.tidyTree`'s code: its gaps, and the rows the
 /// tool keeps around it, which the contract says are the tool's and not the capability's.
 #[derive(Debug, Clone)]
@@ -454,6 +462,8 @@ pub struct RuntimeModule {
     filters: Option<crate::view_bind::FiltersBind>,
     /// DISL's `force` layout with `tiers` (DISL section 10.4): the rings from the centre outwards.
     force: Option<Vec<Vec<String>>>,
+    /// DISL's standard `layered` layout, left to right (DISL section 10.3).
+    layered: Option<LayeredLayout>,
     /// The force layout's last placements, by document, with the reading they were made for: a live change starts
     /// from them (DISL section 10.4, "little movement").
     forced: RefCell<HashMap<PathBuf, (u64, adp_layout::Placements)>>,
@@ -538,6 +548,13 @@ impl RuntimeModule {
                 })
             }),
             forced: RefCell::default(),
+            layered: specification.pointer("/layout").and_then(|layout| {
+                let algorithm = &layout["algorithms"][layout["default"].as_str()?];
+                (algorithm["algorithm"] == "layered" && algorithm["direction"] == "right").then(|| LayeredLayout {
+                    node: algorithm["spacing"]["node"].as_f64().unwrap_or(32.0),
+                    layer: algorithm["spacing"]["layer"].as_f64().unwrap_or(80.0),
+                })
+            }),
             resized: RefCell::default(),
             drop_pins: specification.pointer("/layout/respect").and_then(Json::as_str) == Some("pinned")
                 && specification.pointer("/layout/trigger").and_then(Json::as_str) != Some("manual"),
@@ -773,6 +790,148 @@ impl RuntimeModule {
             }
         }
         positions
+    }
+
+    /// Where every node stands by DISL's `layered` layout left to right, its centre: the nodes at the top of
+    /// the diagram, and inside an open container the nodes it holds by the algorithm `layout.containers` names for its
+    /// type, the container grown to them by its padding and header (DISL sections 6.7 and 10.3). A closed container
+    /// holds nothing drawn.
+    fn layered_positions(&self, layered: &LayeredLayout, document: &DiagramDocument) -> HashMap<String, (f64, f64)> {
+        let specification = document.tool().definition.specification();
+        let diagram = &document.model().diagram;
+        let roots: Vec<DislElement> = diagram.nodes().into_iter().filter(|n| n.parent().is_none()).collect();
+        let mut positions = HashMap::new();
+        let mut sizes = HashMap::new();
+        self.layer(
+            specification,
+            document,
+            &roots,
+            *layered,
+            (0.0, 0.0),
+            &mut positions,
+            &mut sizes,
+        );
+        self.resized
+            .borrow_mut()
+            .insert(document.body_path().to_path_buf(), sizes);
+        positions
+    }
+
+    /// `nodes` laid out in layers from `origin`, each at its size, an open container first laid out inside; returns the
+    /// extent they take.
+    #[allow(clippy::too_many_arguments)]
+    fn layer(
+        &self,
+        specification: &DislSpecification,
+        document: &DiagramDocument,
+        nodes: &[DislElement],
+        layered: LayeredLayout,
+        origin: (f64, f64),
+        positions: &mut HashMap<String, (f64, f64)>,
+        sizes: &mut Sizes,
+    ) -> (f64, f64) {
+        let index: HashMap<String, usize> = nodes.iter().enumerate().map(|(i, n)| (n.id(), i)).collect();
+        let mut edges: Vec<(usize, usize)> = Vec::new();
+        for relation in document.model().diagram.relations() {
+            let (Some(source), Some(target)) = (relation.source(), relation.target()) else {
+                continue;
+            };
+            if let (Some(&s), Some(&t)) = (index.get(&source.id()), index.get(&target.id()))
+                && s != t
+                && !edges.contains(&(s, t))
+            {
+                edges.push((s, t));
+            }
+        }
+        // The edges that close a cycle, found by a walk in the model's order, are left out.
+        fn visit(n: usize, edges: &[(usize, usize)], state: &mut [u8], kept: &mut Vec<(usize, usize)>) {
+            state[n] = 1;
+            for &(s, t) in edges.iter().filter(|(s, _)| *s == n) {
+                match state[t] {
+                    0 => {
+                        kept.push((s, t));
+                        visit(t, edges, state, kept);
+                    }
+                    2 => kept.push((s, t)),
+                    _ => {}
+                }
+            }
+            state[n] = 2;
+        }
+        let mut state = vec![0u8; nodes.len()];
+        let mut kept = Vec::new();
+        for n in 0..nodes.len() {
+            if state[n] == 0 {
+                visit(n, &edges, &mut state, &mut kept);
+            }
+        }
+        let mut layer = vec![0usize; nodes.len()];
+        for _ in 0..nodes.len() {
+            let mut changed = false;
+            for &(s, t) in &kept {
+                if layer[t] < layer[s] + 1 {
+                    layer[t] = layer[s] + 1;
+                    changed = true;
+                }
+            }
+            if !changed {
+                break;
+            }
+        }
+        // An open container's size: what it holds, laid out at its padding below its header, else its own size.
+        let size_of =
+            |node: &DislElement, positions: &mut HashMap<String, (f64, f64)>, sizes: &mut Sizes, at: (f64, f64)| {
+                let own = Self::size(specification, node);
+                let notation = adp_scene::notation::compile::node_notation(specification, &node.type_name());
+                let container = &notation["container"];
+                let open = !self
+                    .view_of(document, node)
+                    .and_then(|v| v.get("collapsed").and_then(Value::as_bool))
+                    .unwrap_or(false);
+                let children = node.children();
+                if container.is_null() || !open || children.is_empty() {
+                    sizes.insert(node.id(), own);
+                    return own;
+                }
+                let padding = container["padding"].as_f64().unwrap_or(0.0);
+                let header = container["header"]["size"].as_f64().unwrap_or(0.0);
+                let inner = specification.root()["layout"]["containers"][node.type_name().as_str()]
+                    .as_str()
+                    .and_then(|name| specification.root()["layout"]["algorithms"].get(name))
+                    .map_or(layered, |a| LayeredLayout {
+                        node: a["spacing"]["node"].as_f64().unwrap_or(layered.node),
+                        layer: a["spacing"]["layer"].as_f64().unwrap_or(layered.layer),
+                    });
+                let (w, h) = self.layer(
+                    specification,
+                    document,
+                    &children,
+                    inner,
+                    (at.0 + padding, at.1 + header + padding),
+                    positions,
+                    sizes,
+                );
+                let grown = ((w + 2.0 * padding).max(own.0), (h + header + 2.0 * padding).max(own.1));
+                sizes.insert(node.id(), grown);
+                grown
+            };
+        let layers = layer.iter().max().map_or(0, |l| l + 1);
+        let (mut x, mut bottom) = (origin.0, origin.1);
+        for l in 0..layers {
+            let members: Vec<usize> = (0..nodes.len()).filter(|i| layer[*i] == l).collect();
+            let mut widest: f64 = 0.0;
+            let mut y = origin.1;
+            for i in members {
+                let (width, height) = size_of(&nodes[i], positions, sizes, (x, y));
+                // Its centre, as every layout of this host gives it, drawn at the size laid out.
+                positions.insert(nodes[i].id(), (x + width / 2.0, y + height / 2.0));
+                widest = widest.max(width);
+                bottom = bottom.max(y + height);
+                y += height + layered.node;
+            }
+            x += widest + layered.layer;
+        }
+        ((x - layered.layer - origin.0).max(0.0), bottom - origin.1)
     }
 
     /// A `layout` action whose capability orders the nodes rather than placing them (`layout.crossingOrder`, whose
@@ -1302,6 +1461,10 @@ impl DiagramModule for RuntimeModule {
         (self.plugins)(plugin_id).or_else(|| self.capabilities.reader(plugin_id))
     }
 
+    fn draws_initial_views(&self) -> bool {
+        true
+    }
+
     /// A place kept in the body (DISL section 11.6): a move pins where it is dropped, and a node created at a point
     /// is pinned there when a drop pins (DISL section 10.4).
     fn kept_place(
@@ -1455,6 +1618,9 @@ impl DiagramModule for RuntimeModule {
         }
         if let Some(tiers) = &self.force {
             return Some(self.force_positions(tiers, document));
+        }
+        if let Some(layered) = &self.layered {
+            return Some(self.layered_positions(layered, document));
         }
         let layout = self.layout.as_ref()?;
         let capability = self.capabilities.layout(&layout.capability)?;
