@@ -93,7 +93,7 @@ Each is named for the gap it stands in for, and goes when its gap is closed (sta
 - **`AnsibleFindings`** (gaps 6 and 8): composes the sentence of `ansible.unreadable-yaml` as "'&lt;file>' is not readable YAML: &lt;reason>"; puts the findings in today's order; and passes on a `std.unparseable` only when it names a file of the folder, so that a folder FBL 10.3 would make an unreadable body opens empty with no finding (B5, Q2).
 - **`AnsibleInventoryRows`** (gap 7): the rows `ansible.group.<name>` and `ansible.vars.<name>` of an inventory.
 - **The reveal handler in `client/AnsibleCanvas.tsx`** (gap 9): double-click, Enter and Space.
-- **`AnsibleLayout`, `AnsibleMetrics`** (gap 10): the plugin's layout.
+- **`AnsibleLayout`, `AnsibleMetrics`** (gap 10): the plugin's layout. Under ATD the layout is `layout.rankedColumns`, and the node's width states `AnsibleMetrics`' measure: the name at 14 at the description's text metric, 12 a side, at least 72, while it is drawn at 13.
 
 ## What remains in the module, and why
 

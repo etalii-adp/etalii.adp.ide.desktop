@@ -580,7 +580,8 @@ impl RuntimeModule {
     /// The fixed size a node's notation states, else the size it is measured at.
     fn stated_size(element: &DislElement) -> (f64, f64) {
         let specification = element.diagram().specification();
-        let fixed = &specification.root()["notation"]["nodes"][element.type_name()]["size"]["fixed"];
+        let notation = adp_scene::notation::compile::node_notation(&specification, &element.type_name());
+        let fixed = &notation["size"]["fixed"];
         match (fixed[0].as_f64(), fixed[1].as_f64()) {
             (Some(width), Some(height)) => (width, height),
             _ => Self::size(&specification, element),
@@ -593,7 +594,7 @@ impl RuntimeModule {
     /// wrapped one as many as it takes at that width.
     fn fitted(specification: &DislSpecification, element: &DislElement) -> Option<(f64, f64)> {
         let root = specification.root();
-        let node = &root["notation"]["nodes"][element.type_name()];
+        let node = &adp_scene::notation::compile::node_notation(specification, &element.type_name());
         let size = &node["size"];
         // `fitWidth` fits the width alone, its height the stated one (DISL section 6.6).
         let fit_width = size["autoSize"] == "fitWidth";
@@ -601,13 +602,21 @@ impl RuntimeModule {
             return None;
         }
         let styles = &root["notation"]["styles"];
+        // A style named, or stated in place over the one it extends.
         let setting = |pick: &dyn Fn(&Json) -> Option<f64>| {
-            let mut name = node["style"].as_str();
-            while let Some(style) = name.map(|n| &styles[n]) {
-                if let Some(found) = pick(style) {
+            let mut style = match &node["style"] {
+                Json::String(name) => Some(&styles[name.as_str()]),
+                Json::Object(_) => Some(&node["style"]),
+                _ => None,
+            };
+            while let Some(found_style) = style.filter(|s| !s.is_null()) {
+                if let Some(found) = pick(found_style) {
                     return Some(found);
                 }
-                name = style["extends"].as_str().or_else(|| style["extends"][0].as_str());
+                style = found_style["extends"]
+                    .as_str()
+                    .or_else(|| found_style["extends"][0].as_str())
+                    .map(|n| &styles[n]);
             }
             None
         };
@@ -621,8 +630,15 @@ impl RuntimeModule {
         let mut widest: f64 = 0.0;
         let mut wrapped = Vec::new();
         let mut lines = 0.0;
-        for label in node["labels"].as_array().into_iter().flatten() {
-            let text = Self::evaluate(specification, element, &label["text"]).map_or(String::new(), |v| match v {
+        // A label drawn outside the node (`outside-top`, a frame's title) takes no room in it.
+        let inside = |label: &&Json| !label["position"].as_str().is_some_and(|p| p.starts_with("outside"));
+        for label in node["labels"].as_array().into_iter().flatten().filter(inside) {
+            // A label bound to an attribute (`label @name`) reads its value.
+            let value = match label["text"]["attribute"].as_str() {
+                Some(attribute) => Some(element.value_of(attribute)),
+                None => Self::evaluate(specification, element, &label["text"]),
+            };
+            let text = value.map_or(String::new(), |v| match v {
                 Value::String(text) => text,
                 other => other.to_string(),
             });
@@ -662,7 +678,8 @@ impl RuntimeModule {
         if let Some(fitted) = Self::fitted(specification, element) {
             return fitted;
         }
-        let size = &specification.root()["notation"]["nodes"][element.type_name()]["size"];
+        let notation = adp_scene::notation::compile::node_notation(specification, &element.type_name());
+        let size = &notation["size"];
         // The size a node is drawn at unless it says otherwise (`default`, DISL section 6.6), else its minimum.
         let min = |i: usize| {
             size["default"][i]
@@ -1058,7 +1075,8 @@ impl DiagramModule for RuntimeModule {
             return Some(Self::size(specification, element));
         }
         // A size bound to the element's values, or fixed (DISL section 6.6).
-        let bound = &specification.root()["notation"]["nodes"][element.type_name()]["size"];
+        let notation = adp_scene::notation::compile::node_notation(specification, &element.type_name());
+        let bound = &notation["size"];
         let sized = self
             .layout
             .as_ref()
@@ -1190,7 +1208,8 @@ impl DiagramModule for RuntimeModule {
         let specification = document.tool().definition.specification();
         let diagram = &document.model().diagram;
         let placed_by_notation = |element: &DislElement| {
-            let placement = &specification.root()["notation"]["nodes"][element.type_name()]["placement"];
+            let notation = adp_scene::notation::compile::node_notation(specification, &element.type_name());
+            let placement = &notation["placement"];
             placement["x"].get("cel").is_some() || placement["movable"] == false
         };
         let nodes: Vec<DislElement> = diagram.nodes().into_iter().filter(|n| !placed_by_notation(n)).collect();
@@ -1469,7 +1488,7 @@ impl DiagramModule for RuntimeModule {
         // not the layout's to place.
         // A node placed from the layout's own numbers (`layout.value`, ATD §8.8) is the layout's to place too.
         let computed = |element: &DislElement| {
-            specification.root()["notation"]["nodes"][element.type_name()]["placement"]["x"]
+            adp_scene::notation::compile::node_notation(specification, &element.type_name())["placement"]["x"]
                 .get("cel")
                 .and_then(Json::as_str)
                 .is_some_and(|cel| cel.contains("view.bounds"))

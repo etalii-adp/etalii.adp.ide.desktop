@@ -730,6 +730,17 @@ impl DiagramSession {
         if let Some(reason) = gestures::notation_refusal(specification, &element, "reparent", Some(&self.env)) {
             return Err(reason);
         }
+        // On a read-only diagram, a declared containment constraint says why the new parent is refused, before the
+        // binding's read-only sentence (DISL section 8.4): the Ansible structure module's own rule. Where the body is
+        // written, the built-in refusals the write meets come first.
+        if document.refusal().is_some()
+            && let Some(refusal) =
+                gestures::containment(specification, &element, parent.as_ref(), None, Some(&self.env))
+                    .into_iter()
+                    .next()
+        {
+            return Err(refusal.message);
+        }
         let refusals = gestures::placement(
             specification,
             &element,

@@ -106,6 +106,37 @@ fn place(
     placed
 }
 
+/// The nodes of `input` as the capability reads them: each one's size, rank (none in the band) and order key.
+fn ranked(input: &Json, args: &Json) -> Result<Vec<Ranked>, String> {
+    let nodes = input["nodes"].as_array().ok_or("The input has no `nodes`.")?;
+    let mut ranked = Vec::with_capacity(nodes.len());
+    for node in nodes {
+        let in_band = matches!(answer(node, args, "band")?, Some(Json::Bool(true)))
+            || matches!(answer(node, args, "band")?, Some(Json::String(ref t)) if t == "true");
+        let rank = if in_band {
+            None
+        } else {
+            answer(node, args, "rank")?.and_then(|value| match value {
+                Json::Number(number) => number.as_f64().map(|n| n as i64),
+                Json::String(text) => text.parse::<f64>().ok().map(|n| n as i64),
+                _ => None,
+            })
+        };
+        let order = answer(node, args, "order")?.map(|value| match value {
+            Json::String(text) => text.parse::<f64>().map_or(Json::String(text), |n| serde_json::json!(n)),
+            other => other,
+        });
+        ranked.push(Ranked {
+            id: node["id"].as_str().unwrap_or_default().to_owned(),
+            width: node["width"].as_f64().unwrap_or(0.0),
+            height: node["height"].as_f64().unwrap_or(0.0),
+            rank,
+            order,
+        });
+    }
+    Ok(ranked)
+}
+
 /// The capability over `$defs/LayoutInput`.
 pub struct RankedColumns;
 
@@ -116,31 +147,7 @@ impl LayoutCapability for RankedColumns {
 
     fn place(&self, input: &Json, args: &Json) -> Result<Vec<(String, f64, f64)>, String> {
         let nodes = input["nodes"].as_array().ok_or("The input has no `nodes`.")?;
-        let mut ranked = Vec::with_capacity(nodes.len());
-        for node in nodes {
-            let in_band = matches!(answer(node, args, "band")?, Some(Json::Bool(true)))
-                || matches!(answer(node, args, "band")?, Some(Json::String(ref t)) if t == "true");
-            let rank = if in_band {
-                None
-            } else {
-                answer(node, args, "rank")?.and_then(|value| match value {
-                    Json::Number(number) => number.as_f64().map(|n| n as i64),
-                    Json::String(text) => text.parse::<f64>().ok().map(|n| n as i64),
-                    _ => None,
-                })
-            };
-            let order = answer(node, args, "order")?.map(|value| match value {
-                Json::String(text) => text.parse::<f64>().map_or(Json::String(text), |n| serde_json::json!(n)),
-                other => other,
-            });
-            ranked.push(Ranked {
-                id: node["id"].as_str().unwrap_or_default().to_owned(),
-                width: node["width"].as_f64().unwrap_or(0.0),
-                height: node["height"].as_f64().unwrap_or(0.0),
-                rank,
-                order,
-            });
-        }
+        let ranked = ranked(input, args)?;
         let origin = args["origin"]
             .as_array()
             .map(|o| {
@@ -161,5 +168,63 @@ impl LayoutCapability for RankedColumns {
             args["bandPlacement"].as_str() == Some("after"),
         );
         Ok(pinned_over(placed, nodes))
+    }
+
+    /// With `uniformWidth`, every node of a column, or of a part of a wrapped one, is drawn as wide as its widest.
+    fn sizes(&self, input: &Json, args: &Json) -> Result<Vec<(String, f64, f64)>, String> {
+        if args["uniformWidth"] != true {
+            return Ok(Vec::new());
+        }
+        let ranked = ranked(input, args)?;
+        let mut columns: BTreeMap<i64, Vec<&Ranked>> = BTreeMap::new();
+        for node in ranked.iter().filter(|n| n.rank.is_some()) {
+            columns.entry(node.rank.unwrap_or_default()).or_default().push(node);
+        }
+        let chunk = args["wrapAfter"]
+            .as_u64()
+            .map(|w| w as usize)
+            .filter(|w| *w > 0)
+            .unwrap_or(usize::MAX);
+        let mut sized = Vec::new();
+        for (_, mut column) in columns {
+            column.sort_by(|a, b| order_of(&a.order, &b.order));
+            for part in column.chunks(chunk.min(column.len().max(1))) {
+                let widest = part.iter().map(|n| n.width).fold(0.0_f64, f64::max);
+                sized.extend(part.iter().map(|n| (n.id.clone(), widest, n.height)));
+            }
+        }
+        Ok(sized)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    fn input() -> Json {
+        json!({ "nodes": [
+            { "id": "a", "width": 80, "height": 32, "attributes": { "rank": "0" } },
+            { "id": "b", "width": 120, "height": 32, "attributes": { "rank": "0" } },
+            { "id": "c", "width": 72, "height": 32, "attributes": { "rank": "1" } }
+        ] })
+    }
+
+    #[test]
+    fn with_uniform_width_every_node_of_a_column_is_as_wide_as_its_widest() {
+        let sizes = RankedColumns.sizes(&input(), &json!({ "uniformWidth": true })).unwrap();
+        assert_eq!(
+            sizes,
+            [
+                ("a".to_owned(), 120.0, 32.0),
+                ("b".to_owned(), 120.0, 32.0),
+                ("c".to_owned(), 72.0, 32.0)
+            ]
+        );
+    }
+
+    #[test]
+    fn without_it_no_node_is_resized() {
+        assert!(RankedColumns.sizes(&input(), &json!({})).unwrap().is_empty());
     }
 }
