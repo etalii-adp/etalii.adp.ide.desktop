@@ -270,6 +270,37 @@ struct ScaledAxis {
     whole: bool,
     /// The values the axis runs between, where it runs from its maximum to its minimum (`reversed`): their sum.
     reversed: Option<f64>,
+    /// Whether the axis holds instants (`valueType: datetime` or `date`, DISL section 5.5): a value is drawn at the
+    /// seconds it is after the axis's origin, one canvas unit a second.
+    instants: bool,
+}
+
+/// The seconds since 1970-01-01T00:00:00Z of an instant as a time axis reads one (DISL section 5.5), at face value: the
+/// forms the core's instants read; none for any other text.
+fn seconds_of(text: &str) -> Option<f64> {
+    use adp_disl::expressions::instants;
+    instants::parse(text.trim().trim_matches(['"', '\''])).map(|ticks| ticks as f64 / instants::TICKS_PER_SECOND as f64)
+}
+
+/// The text of the instant `seconds` after the epoch, written as finely as `written` was: a date, at the start of its
+/// day, or a date and a time to the second, the second rounded half to even.
+fn instant_text(seconds: f64, written: &str) -> String {
+    use adp_disl::expressions::instants::{self, Precision, TICKS_PER_DAY, TICKS_PER_SECOND};
+    let ticks = seconds.round_ties_even() as i64 * TICKS_PER_SECOND;
+    let (year, month, day) = instants::civil_from_days(ticks.div_euclid(TICKS_PER_DAY));
+    let date = format!("{year:04}-{month:02}-{day:02}");
+    match Precision::of(written) {
+        Precision::Date => date,
+        Precision::DateTime => {
+            let seconds = ticks.rem_euclid(TICKS_PER_DAY) / TICKS_PER_SECOND;
+            format!(
+                "{date}T{:02}:{:02}:{:02}",
+                seconds / 3600,
+                seconds / 60 % 60,
+                seconds % 60
+            )
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -320,6 +351,17 @@ impl ScaledAxis {
     fn canvas(&self, element: &DislElement) -> f64 {
         // An absent value is drawn at canvas 0, as an attribute that is never set is no value of the axis.
         let set = element.attributes().get(&self.attribute).is_some_and(|v| !v.is_null());
+        if self.instants {
+            let value = element.value_of(&self.attribute);
+            let text = match &value {
+                Value::String(text) => text.clone(),
+                other => other.to_string(),
+            };
+            return match seconds_of(&text) {
+                Some(seconds) if set => seconds + self.offset - self.origin,
+                _ => 0.0,
+            };
+        }
         match element.value_of(&self.attribute).as_number() {
             Some(value) if set => self.at(element, value),
             _ => 0.0,
@@ -334,6 +376,14 @@ impl ScaledAxis {
     /// The value a canvas coordinate means along this axis for `element`'s diagram: the nearest whole one on a whole
     /// axis, and a month on a time axis.
     fn value(&self, element: &DislElement, canvas: f64) -> Value {
+        if self.instants {
+            // An instant, written as finely as the value it replaces.
+            let written = match element.value_of(&self.attribute) {
+                Value::String(text) => text,
+                other => other.to_string(),
+            };
+            return Value::String(instant_text(canvas - self.offset + self.origin, &written));
+        }
         if let Some(time) = &self.time {
             // A whole step of the unit from the origin, halves away from zero (the axis's calendar snapping).
             let months = time.size / self.units(element);
@@ -362,6 +412,7 @@ fn axis_of(specification: &Json, name: &str) -> Option<ScaledAxis> {
     Some(ScaledAxis {
         attribute: String::new(),
         origin: match &axis["origin"] {
+            Json::String(text) if is_instants(axis) => seconds_of(text).unwrap_or(0.0),
             Json::String(text) => adp_disl::expressions::year_month::parse(text).map_or(0.0, |m| m as f64),
             other => other.as_f64().unwrap_or(0.0),
         },
@@ -376,9 +427,15 @@ fn axis_of(specification: &Json, name: &str) -> Option<ScaledAxis> {
             size: scale["size"].as_f64().unwrap_or(1.0),
         }),
         scale: axis["scale"].as_f64().filter(|s| *s != 0.0).unwrap_or(1.0),
-        whole: false,
+        whole: axis["precision"].as_i64() == Some(0),
         reversed: None,
+        instants: is_instants(axis),
     })
+}
+
+/// Whether an axis holds instants (`valueType: datetime` or `date`).
+fn is_instants(axis: &Json) -> bool {
+    matches!(axis["valueType"].as_str(), Some("datetime" | "date"))
 }
 
 /// The placements of the description's node types that have an axis with a `scale` of its own; a placement on axes
@@ -399,6 +456,7 @@ fn scaled_placements(specification: &Json) -> HashMap<String, ScaledPlacement> {
             size: scale["size"].as_f64().unwrap_or(1.0),
         });
         let origin = match &axis["origin"] {
+            Json::String(text) if is_instants(axis) => seconds_of(text).unwrap_or(0.0),
             Json::String(text) => adp_disl::expressions::year_month::parse(text).map_or(0.0, |m| m as f64),
             other => other.as_f64().unwrap_or(0.0),
         };
@@ -411,6 +469,7 @@ fn scaled_placements(specification: &Json) -> HashMap<String, ScaledPlacement> {
             whole: axis["precision"].as_i64() == Some(0),
             reversed: (axis["reversed"] == true)
                 .then(|| axis["min"].as_f64().unwrap_or(0.0) + axis["max"].as_f64().unwrap_or(0.0)),
+            instants: is_instants(axis),
         })
     };
     let default = coordinates["default"].as_str().unwrap_or_default();
@@ -934,6 +993,49 @@ impl RuntimeModule {
         ((x - layered.layer - origin.0).max(0.0), bottom - origin.1)
     }
 
+    /// A `layout` action whose capability chooses each node's row (`layout.rowPacking`): the row written as the
+    /// attribute the node's placement keeps along y, for every node the capability places whose row changes. A node
+    /// the description gives no `left` is not one of them. None where no node is placed on an axis with an attribute.
+    fn rowed(
+        &self,
+        specification: &DislSpecification,
+        layout: &dyn crate::capabilities::LayoutCapability,
+        input: &Json,
+        args: &Json,
+        diagram: &adp_disl::DislDiagram,
+    ) -> Option<Result<Vec<adp_disl::DislChange>, String>> {
+        let mut input = input.clone();
+        // Each item is one row tall and in the order the model holds it.
+        if let Some(nodes) = input["nodes"].as_array_mut() {
+            nodes.retain(|n| n["attributes"].get("left").is_some());
+            for (order, node) in nodes.iter_mut().enumerate() {
+                node["height"] = json!(1);
+                node["order"] = json!(order);
+            }
+        }
+        let placed = match layout.place(&input, args) {
+            Ok(placed) => placed,
+            Err(reason) => return Some(Err(reason)),
+        };
+        let mut changes = Vec::new();
+        for (id, _, y) in placed {
+            let element = diagram.element_by_id(&id)?;
+            let along_y = &self.scaled.get(&element.type_name())?.y;
+            let row = Value::Int(y.round() as i64);
+            if element.value_of(&along_y.attribute).as_number() == row.as_number() {
+                continue;
+            }
+            let type_name = element.type_name();
+            let stored = adp_disl::behavior::write::stored_form(specification, &type_name, &along_y.attribute, &row);
+            changes.push(adp_disl::DislChange::Set {
+                element_id: id,
+                type_name,
+                attributes: [(along_y.attribute.clone(), stored)].into_iter().collect(),
+            });
+        }
+        Some(Ok(changes))
+    }
+
     /// A `layout` action whose capability orders the nodes rather than placing them (`layout.crossingOrder`, whose
     /// values give each node its `rank` in its column): the order written as moves of the entries, each column's nodes
     /// taking the places that column's nodes held, in their new order, so that a document listing its nodes column by
@@ -972,7 +1074,10 @@ impl RuntimeModule {
         let roots: Vec<DislElement> = diagram.nodes().into_iter().filter(|n| n.parent().is_none()).collect();
         let nodes: Vec<Json> = roots
             .iter()
-            .map(|n| json!({ "id": n.id(), "attributes": evaluated(n) }))
+            .map(|n| {
+                let (width, height) = Self::size(specification, n);
+                json!({ "id": n.id(), "width": width, "height": height, "attributes": evaluated(n) })
+            })
             .collect();
         let edges: Vec<Json> = diagram
             .relations()
@@ -985,7 +1090,7 @@ impl RuntimeModule {
             })
             .collect();
         let input = json!({ "nodes": nodes, "edges": edges });
-        let values = match layout.values(&input, &Json::Object(args)) {
+        let values = match layout.values(&input, &Json::Object(args.clone())) {
             Ok(values) => values,
             Err(reason) => return Some(Err(reason)),
         };
@@ -994,7 +1099,13 @@ impl RuntimeModule {
             .filter_map(|(id, named)| Some((id, named.into_iter().find(|(name, _)| name == "rank")?.1)))
             .collect();
         if rank.is_empty() {
-            return None;
+            return self.rowed(
+                specification,
+                layout.as_ref(),
+                &input,
+                &Json::Object(args.clone()),
+                diagram,
+            );
         }
         let column: HashMap<String, String> = nodes
             .iter()
@@ -1279,25 +1390,42 @@ impl DiagramModule for RuntimeModule {
             (x, y)
         };
         let specification = element.diagram().specification();
-        let canvas = |axis: &ScaledAxis, value: &Value| axis.at(element, value.as_number().unwrap_or_default());
-        let bounds =
-            |x: f64, y: f64| -> Map { [("x", Value::Double(x)), ("y", Value::Double(y))].into_iter().collect() };
+        // Where a value stands on the canvas: an instant at its seconds, any other value by the axis's scale.
+        let canvas = |axis: &ScaledAxis, value: &Value| match value {
+            Value::String(text) if axis.instants => seconds_of(text).map_or(0.0, |s| s + axis.offset - axis.origin),
+            other => axis.at(element, other.as_number().unwrap_or_default()),
+        };
         let (new_x, new_y) = (placement.x.value(element, x), placement.y.value(element, y));
         let mut values = vec![
             (placement.x.attribute.clone(), new_x.clone()),
             (placement.y.attribute.clone(), new_y.clone()),
         ];
-        // A node drawn between two points keeps its extent: its second point moves as far as its first.
-        {
-            for (on_x, second) in &placement.seconds {
-                let (first, moved) = if *on_x {
-                    (&placement.x, &new_x)
-                } else {
-                    (&placement.y, &new_y)
+        // A node drawn between two points keeps its extent: its second point moves as far as its first. Where its
+        // second point along x ends up is its bounds' `x2` (a period's end, which a constraint holds after its begin).
+        let mut x2 = (None, None);
+        for (on_x, second) in &placement.seconds {
+            let (first, moved) = if *on_x {
+                (&placement.x, &new_x)
+            } else {
+                (&placement.y, &new_y)
+            };
+            if second.attribute == first.attribute {
+                continue;
+            }
+            let was = second.canvas(element);
+            let mut now = was;
+            if second.instants {
+                let delta = canvas(first, moved) - first.canvas(element);
+                let written = match element.value_of(&second.attribute) {
+                    Value::String(text) => text,
+                    _ => String::new(),
                 };
-                if second.attribute == first.attribute {
-                    continue;
+                if let Some(end) = seconds_of(&written) {
+                    let value = Value::String(instant_text(end + delta, &written));
+                    now = canvas(second, &value);
+                    values.push((second.attribute.clone(), value));
                 }
+            } else {
                 let old = element.value_of(&first.attribute).as_number().unwrap_or_default();
                 let delta = moved.as_number().unwrap_or_default() - old;
                 if let Some(end) = element.value_of(&second.attribute).as_number() {
@@ -1306,14 +1434,27 @@ impl DiagramModule for RuntimeModule {
                     } else {
                         Value::Double(end + delta)
                     };
+                    now = canvas(second, &value);
                     values.push((second.attribute.clone(), value));
                 }
             }
+            if *on_x {
+                x2 = (Some(was), Some(now));
+            }
         }
-        let new_bounds = bounds(canvas(&placement.x, &new_x), canvas(&placement.y, &new_y));
+        let bounds = |x: f64, y: f64, x2: Option<f64>| -> Map {
+            let mut bounds: Map = [("x", Value::Double(x)), ("y", Value::Double(y))].into_iter().collect();
+            if let Some(x2) = x2 {
+                bounds.insert("x2", Value::Double(x2));
+            }
+            bounds
+        };
+        let new_bounds = bounds(canvas(&placement.x, &new_x), canvas(&placement.y, &new_y), x2.1);
         let type_name = element.type_name();
+        // A value the move leaves as it was written is not written again.
         let attributes: Map = values
             .into_iter()
+            .filter(|(name, value)| !matches!(value, Value::String(text) if element.value_of(name) == Value::String(text.clone())))
             .map(|(name, value)| {
                 let stored = adp_disl::behavior::write::stored_form(&specification, &type_name, &name, &value);
                 (name, stored)
@@ -1321,7 +1462,7 @@ impl DiagramModule for RuntimeModule {
             .collect();
         Some(Ok(ModulePlacement {
             attributes,
-            old_bounds: bounds(placement.x.canvas(element), placement.y.canvas(element)),
+            old_bounds: bounds(placement.x.canvas(element), placement.y.canvas(element), x2.0),
             new_bounds,
         }))
     }
@@ -1334,14 +1475,23 @@ impl DiagramModule for RuntimeModule {
     /// an operation run there, or a tool dropped there, reads as `position`.
     fn position_in(&self, diagram: &adp_disl::DislDiagram, x: f64, y: f64) -> Option<Map> {
         let (along_x, along_y) = self.system.as_ref()?;
-        let value = |axis: &ScaledAxis, canvas: f64| canvas / axis.units_in(diagram) + axis.origin;
+        // An instant on a time axis of instants, as a date; the nearest whole value on a whole axis that has no time
+        // unit of its own (a timeline's rows).
+        let value = |axis: &ScaledAxis, canvas: f64| {
+            if axis.instants {
+                return Value::String(instant_text(canvas + axis.origin, ""));
+            }
+            let value = canvas / axis.units_in(diagram) + axis.origin;
+            if axis.whole && axis.time.is_none() && along_x.instants {
+                Value::Int(value.round() as i64)
+            } else {
+                Value::Double(value)
+            }
+        };
         Some(
-            [
-                ("x", Value::Double(value(along_x, x))),
-                ("y", Value::Double(value(along_y, y))),
-            ]
-            .into_iter()
-            .collect(),
+            [("x", value(along_x, x)), ("y", value(along_y, y))]
+                .into_iter()
+                .collect(),
         )
     }
 

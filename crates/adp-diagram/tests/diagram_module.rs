@@ -188,16 +188,20 @@ fn an_answered_operation_runs_with_its_parameter_and_is_one_undo() {
 }
 
 #[test]
-fn a_retype_is_written_as_the_binding_writes_it_unless_the_module_leaves_it_out() {
+fn a_retype_is_written_as_the_binding_writes_it_and_a_module_may_leave_it_out() {
+    // A rule of the new type reads the same entry, so the binding keeps the entry and the end set beside the retype
+    // makes it a period (FBL section 6.4).
     let mut generic = open(None);
 
-    let refused = generic.answer(&element("bbb"), "timeline.give-end", "2026-03-01T09:00:00");
+    let made = generic.answer(&element("bbb"), "timeline.give-end", "2026-03-01T09:00:00");
 
+    assert_eq!(ActionOutcome::Done, made);
     assert_eq!(
-        ActionOutcome::Refused(
-            "This file's binding cannot change an element's type; only a persistence plugin can.".into()
+        BODY.replace(
+            "    begin: 2026-02-16T14:00:00\r\n",
+            "    begin: 2026-02-16T14:00:00\r\n    end: 2026-03-01T09:00:00\r\n"
         ),
-        refused
+        generic.text()
     );
     let mut probed = open(probe());
     assert_eq!(
