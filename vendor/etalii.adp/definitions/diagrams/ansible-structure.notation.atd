@@ -83,7 +83,7 @@ notation {
   node AnsibleNode {
     shape rect
     style: node
-    size: { default: [72, 32], min: [72, 32], autoSize: fitWidth, resizable: false }
+    size: { width: (math.round(max(72.0, textWidth(self.name, 14.0) + 24.0) * 100.0) / 100.0), height: 32, resizable: false }
     anchors: { mode: sides }
     deletable: false
     copyable: false
@@ -149,6 +149,7 @@ notation {
   /// Out of the source's right side, into the target's left side, curving horizontally through the corridor between
   /// columns.
   edge AnsibleRelation {
+    refusals: { move: ["That element is not something this diagram can move."] }
     line {
       stroke: { color: $color.text.muted, width: 1.5, dash: (self.dynamic ? [5.0, 4.0] : []) }
       routing: bezier

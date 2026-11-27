@@ -271,6 +271,7 @@ diagram ansible/structure version "0.2.1" {
         name: { type: string, default: "" }
         hostCount: { type: int, min: 0, default: 0, label: "Hosts" }
       }
+      display: (self.name + ' (' + string(self.hostCount) + ')')
     }
 
     /// One group_vars or host_vars folder an inventory reads, as its property rows show it.

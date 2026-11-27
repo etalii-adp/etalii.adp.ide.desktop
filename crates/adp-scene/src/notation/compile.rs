@@ -161,6 +161,29 @@ fn inherited(notation: &Map<String, Json>, specification: &DislSpecification, re
     result
 }
 
+/// The notation of node type `type_name` as it is drawn (DISL section 4.7): its own merged per key over its
+/// supertypes', or its nearest supertype's when it has none; null when no type of its chain has any.
+pub fn node_notation(specification: &DislSpecification, type_name: &str) -> Json {
+    let nodes = &specification.root()["notation"]["nodes"];
+    let chain = specification
+        .metamodel()
+        .types
+        .get(type_name)
+        .map(|t| t.linearisation.clone())
+        .unwrap_or_else(|| vec![type_name.to_owned()]);
+    chain
+        .iter()
+        .rev()
+        .filter_map(|n| nodes.get(n))
+        .fold(None::<Json>, |merged, own| {
+            Some(match merged {
+                None => own.clone(),
+                Some(merged) => merged_per_key(&merged, own),
+            })
+        })
+        .unwrap_or(Json::Null)
+}
+
 /// A DISL notation as a diagram definition. See this module's opening comment.
 pub fn compile_notation(specification: &DislSpecification) -> Result<DiagramDefinition, CompileError> {
     let root = specification.root();

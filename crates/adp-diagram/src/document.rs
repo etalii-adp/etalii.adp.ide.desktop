@@ -498,7 +498,7 @@ impl DiagramDocument {
                     attributes: element
                         .attributes()
                         .iter()
-                        .map(|(k, v)| (k.clone(), text_of(v)))
+                        .map(|(k, v)| (k.clone(), self.displayed(element, k, v)))
                         .chain(
                             element
                                 .element_type()
@@ -512,6 +512,42 @@ impl DiagramDocument {
                 }
             })
             .collect()
+    }
+
+    /// The text of `value`, attribute `attribute` of `element`: a value of a data type with a `display` as that
+    /// summarises it (DISL section 4.5, `value` and `self` bound to the struct), each item of a list so, else as
+    /// [`text_of`] writes it.
+    fn displayed(&self, element: &DislElement, attribute: &str, value: &Value) -> String {
+        let specification = self.tool.definition.specification();
+        let display = element
+            .element_type()
+            .attributes
+            .get(attribute)
+            .map(|a| &specification.root()["metamodel"]["dataTypes"][a.type_name.as_str()]["display"])
+            .filter(|d| !d.is_null());
+        let Some(source) =
+            display.and_then(|d| d.get("cel").and_then(serde_json::Value::as_str).or_else(|| d.as_str()))
+        else {
+            return text_of(value);
+        };
+        let Ok(program) = specification.environment("element", &["value"]).compile(source) else {
+            return text_of(value);
+        };
+        let one = |item: &Value| {
+            let variables = std::collections::HashMap::from([
+                ("self".to_owned(), item.clone()),
+                ("value".to_owned(), item.clone()),
+                ("diagram".to_owned(), element.diagram().to_value()),
+            ]);
+            program
+                .evaluate(&variables)
+                .map_or_else(|_| text_of(item), |v| text_of(&v))
+        };
+        match value {
+            Value::List(items) => items.iter().map(one).collect::<Vec<_>>().join(", "),
+            Value::Null => String::new(),
+            other => one(other),
+        }
     }
 
     /// Plans `changes` as one edit labelled `label`, each against the document as the ones before it left it; the

@@ -44,6 +44,29 @@ pub fn change(
     )
 }
 
+/// A containment gesture: `child` put under `parent` (null for the document's own elements) in `slot`, as a reparent
+/// or a drop into another proposes it (section 8.4), its declared `containment` constraints.
+pub fn containment(
+    specification: &DislSpecification,
+    child: &DislElement,
+    parent: Option<&DislElement>,
+    slot: Option<&str>,
+    env: Option<&DislEnv>,
+) -> Vec<DislFinding> {
+    refusals(
+        specification,
+        "containment",
+        child,
+        None,
+        evaluation::vars([
+            ("child", child.to_value()),
+            ("parent", parent.map(DislElement::to_value).unwrap_or(Value::Null)),
+            ("slot", slot.map(Value::from).unwrap_or(Value::Null)),
+        ]),
+        env,
+    )
+}
+
 /// A placement of `element`: a `gesture` (`move`, `resize`, `reparent`) from `old_bounds` to `new_bounds`, in domain
 /// values.
 pub fn placement(
