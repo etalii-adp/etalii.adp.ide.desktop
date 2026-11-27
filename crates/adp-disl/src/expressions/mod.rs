@@ -4,6 +4,7 @@
 
 pub(crate) mod color;
 pub mod contexts;
+pub mod instants;
 pub(crate) mod library;
 pub mod number_format;
 pub mod plugins;

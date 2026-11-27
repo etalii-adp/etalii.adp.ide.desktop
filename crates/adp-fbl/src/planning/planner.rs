@@ -68,6 +68,26 @@ pub(crate) fn plan(reading: &BodyReading, change: &ModelChange) -> PlanResult {
             type_name,
             attributes,
         } if reading.family.is_bullets() => plan_retype(&mut plan, id, type_name, attributes),
+        // FBL 0.27, section 6.4: where a rule of the new type reads the same entry, the rules telling the two types apart by what the entry
+        // holds (a timeline's period is an entry with an `end`), the retype is the change of what it holds: the entry
+        // stays, and the values the retype gives are set on it.
+        ModelChange::Retype {
+            id,
+            type_name,
+            attributes,
+        } if reading.find(id).is_some_and(|index| {
+            let entry = reading.element(index).entry();
+            reading.binding_rc().rules.iter().enumerate().any(|(r, rule)| {
+                rule.type_name == *type_name && reading.family.candidates(r).iter().any(|c| c.entry == entry)
+            })
+        }) =>
+        {
+            if attributes.is_empty() {
+                Ok(())
+            } else {
+                plan_set(&mut plan, id, attributes)
+            }
+        }
         ModelChange::Retype { .. } => {
             return PlanResult::Refused(
                 "This file's binding cannot change an element's type; only a persistence plugin can.".into(),

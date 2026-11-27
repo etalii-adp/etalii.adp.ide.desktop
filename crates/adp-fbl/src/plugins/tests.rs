@@ -442,13 +442,31 @@ fn a_plugin_body_hands_the_change_to_its_plugin_as_it_was_made() {
 }
 
 // The standalone host refuses all three changes on a declared binding; since FBL 0.2 (section 6.4) a declared
-// binding plans an add at an index and a move as a plugin does, and only the retype is still refused here.
+// binding plans an add at an index and a move as a plugin does, and a retype where a rule of the new type reads the
+// same entry: the entry stays and the values the retype gives are set on it. Any other retype is still refused.
 
 #[test]
-fn a_declared_binding_refuses_a_retype_and_writes_nothing() {
+fn a_declared_binding_retypes_an_entry_a_rule_of_the_new_type_reads_by_setting_what_the_retype_gives() {
     let mut body = timeline_body(TIMELINE);
 
     let result = body.change(&change_of("retype"));
+
+    assert!(matches!(result, PlanResult::Planned(_)), "{result:?}");
+    assert_eq!(
+        String::from_utf8(body.bytes().to_vec()).unwrap(),
+        TIMELINE.replace("    start:", "    end: 2026-02-01\n    start:")
+    );
+}
+
+#[test]
+fn a_declared_binding_refuses_a_retype_to_a_type_no_rule_reads_the_entry_as() {
+    let mut body = timeline_body(TIMELINE);
+
+    let result = body.change(&ModelChange::Retype {
+        id: "a".into(),
+        type_name: "Nothing".into(),
+        attributes: map(&[]),
+    });
 
     let PlanResult::Refused(reason) = result else {
         panic!("{result:?}");
