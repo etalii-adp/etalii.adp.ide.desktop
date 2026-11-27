@@ -620,6 +620,19 @@ diagram etalii/sankey version "0.2.0" {
     set quantity = remainder(self.source)
   }
 
+  /// Dragging a node up or down its column moves its entry directly before the first other node of its column whose
+  /// middle is below the dropped node's middle, or after the last one; where it already is, nothing is written.
+  hook reorderInColumn on move for Node {
+    let middle = double(event.newValue.y) + barHeight(self) / 2.0
+    let others = drawnNodes().filter(n, n.id != self.id && sankeyColumn(n) == sankeyColumn(self))
+    let below = others.filter(n, layout.value(n, 'top') + barHeight(n) / 2.0 > middle)
+    if below.size() > 0 {
+      reorder self before below[0]
+    } else if others.size() > 0 {
+      reorder self after others[others.size() - 1]
+    }
+  }
+
   behavior {
     doc: "Every change - add, remove, reorder, connect, rename, step, scale, set a property, arrange - is one undoable step that restores the document's whole text."
     deletion: {
@@ -702,6 +715,8 @@ diagram etalii/sankey version "0.2.0" {
 
   x-sankey: {
     doc: "Today's wire ids, which the standalone client (client/sankeyIds.ts) and backend share, mapped from this specification's names, as x-ghg does for the hype cycle graph. A tool is keyed by its id. An action is keyed by its entry's operation, else its kind. A property is keyed by its form item's row id: its id, else its attribute. The node's computed Value row and the flow's value row share one wire id."
+    /// The module gives a node's place as its centre and reads a move's place as its top left (ATD §2.3).
+    moves: { from: centre }
     tools: { node: { id: "sankey.toolbox.node", drop: "sankey.add" } }
     actions: {
       addNodeHere: "sankey.add"

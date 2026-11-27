@@ -3927,6 +3927,8 @@ An agent behavior model takes as parent the node above the drop point that can t
 
 Hook context variables: `self` (the element after the change), `old` (a snapshot before the change, or `null` for `create`), `event` (`{kind, attribute, oldValue, newValue, source}` where `source` is `"user"`, `"hook"`, `"operation"`, `"layout"`, `"import"`, `"remote"`).
 
+**A move.** *(DISL 0.12)* For `move`, `event.oldValue` and `event.newValue` are the node's place before and after the gesture, each `{x, y}`, the top-left corner in the diagram's units, and `attribute` is `null`. A `move` hook **MUST** run also for a node whose place the layout computes, where the move writes no view data: its actions are then all the move does. A Sankey node dragged up its column takes its place among the entries by such a hook, with a `reorder` (9.4) before the first node of its column below the drop.
+
 **Termination.** Actions of a hook MAY trigger further hooks. Runtimes MUST detect cycles: the same hook MUST NOT run twice for the same element within one transaction, and the total number of hook executions per transaction is bounded by `behavior.maxHookDepth` (default 100); exceeding it aborts the transaction.
 
 **Remote changes.** Hooks do not run for changes received from collaborators (`event.source == "remote"`); those changes were already processed on the originating client.
