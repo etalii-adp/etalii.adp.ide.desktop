@@ -1,0 +1,181 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.msbuildSolution` from modules/diagrams/dotnet-dependency-graph/src/plugin.rs of etalii.adp.ide.desktop, on the solution parity/scripts/dotnet/dependency-graph/pipeline-toolkit.json opens and the files of its folder; never edited by hand.",
+  "input": {
+    "body": "<Solution>\n  <Folder Name=\"/src/\">\n    <Project Path=\"src/Pipeline.Core/Pipeline.Core.csproj\" />\n    <Project Path=\"src/Pipeline.Storage/Pipeline.Storage.csproj\" />\n    <Project Path=\"src/Pipeline.Cli/Pipeline.Cli.csproj\" />\n  </Folder>\n  <Folder Name=\"/tests/\">\n    <Project Path=\"tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj\" />\n  </Folder>\n  <Folder Name=\"/_Globals/\">\n    <File Path=\"Directory.Packages.props\" />\n  </Folder>\n</Solution>\n",
+    "files": {
+      "Directory.Packages.props": "<Project>\n  <PropertyGroup>\n    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>\n  </PropertyGroup>\n  <ItemGroup>\n    <PackageVersion Include=\"Serilog\" Version=\"4.4.0\" />\n    <PackageVersion Include=\"System.Text.Json\" Version=\"10.0.0\" />\n    <PackageVersion Include=\"xunit.v3\" Version=\"4.1.0\" />\n  </ItemGroup>\n</Project>\n",
+      "src/Pipeline.Cli/Pipeline.Cli.csproj": "<Project Sdk=\"Microsoft.NET.Sdk\">\n  <PropertyGroup>\n    <OutputType>Exe</OutputType>\n    <TargetFramework>net10.0</TargetFramework>\n  </PropertyGroup>\n  <ItemGroup>\n    <ProjectReference Include=\"..\\Pipeline.Core\\Pipeline.Core.csproj\" />\n    <ProjectReference Include=\"..\\Pipeline.Storage\\Pipeline.Storage.csproj\" />\n  </ItemGroup>\n  <ItemGroup>\n    <PackageReference Include=\"Serilog\" />\n  </ItemGroup>\n</Project>\n",
+      "src/Pipeline.Core/Pipeline.Core.csproj": "<Project Sdk=\"Microsoft.NET.Sdk\">\n  <PropertyGroup>\n    <TargetFramework>net10.0</TargetFramework>\n  </PropertyGroup>\n  <ItemGroup>\n    <PackageReference Include=\"Serilog\" />\n  </ItemGroup>\n</Project>\n",
+      "src/Pipeline.Storage/Pipeline.Storage.csproj": "<Project Sdk=\"Microsoft.NET.Sdk\">\n  <PropertyGroup>\n    <TargetFrameworks>net10.0;netstandard2.0</TargetFrameworks>\n  </PropertyGroup>\n  <ItemGroup>\n    <ProjectReference Include=\"..\\Pipeline.Core\\Pipeline.Core.csproj\" />\n  </ItemGroup>\n  <ItemGroup>\n    <PackageReference Include=\"System.Text.Json\" />\n  </ItemGroup>\n</Project>\n",
+      "tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj": "<Project Sdk=\"Microsoft.NET.Sdk\">\n  <PropertyGroup>\n    <TargetFramework>net10.0</TargetFramework>\n  </PropertyGroup>\n  <ItemGroup>\n    <ProjectReference Include=\"..\\..\\src\\Pipeline.Core\\Pipeline.Core.csproj\" />\n  </ItemGroup>\n  <ItemGroup>\n    <PackageReference Include=\"xunit.v3\" />\n    <PackageReference Include=\"Serilog\" Version=\"3.1.1\" />\n  </ItemGroup>\n</Project>\n"
+    }
+  },
+  "args": {},
+  "output": {
+    "elements": [
+      {
+        "id": "src/Pipeline.Core/Pipeline.Core.csproj",
+        "type": "Project",
+        "parent": null,
+        "attributes": {
+          "name": "Pipeline.Core",
+          "path": "src/Pipeline.Core/Pipeline.Core.csproj",
+          "targetFrameworks": [
+            "net10.0"
+          ],
+          "dotNetVersion": "10.0"
+        }
+      },
+      {
+        "id": "src/Pipeline.Storage/Pipeline.Storage.csproj",
+        "type": "Project",
+        "parent": null,
+        "attributes": {
+          "name": "Pipeline.Storage",
+          "path": "src/Pipeline.Storage/Pipeline.Storage.csproj",
+          "targetFrameworks": [
+            "net10.0",
+            "netstandard2.0"
+          ],
+          "dotNetVersion": "10.0"
+        }
+      },
+      {
+        "id": "src/Pipeline.Cli/Pipeline.Cli.csproj",
+        "type": "Project",
+        "parent": null,
+        "attributes": {
+          "name": "Pipeline.Cli",
+          "path": "src/Pipeline.Cli/Pipeline.Cli.csproj",
+          "targetFrameworks": [
+            "net10.0"
+          ],
+          "dotNetVersion": "10.0"
+        }
+      },
+      {
+        "id": "tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj",
+        "type": "Project",
+        "parent": null,
+        "attributes": {
+          "name": "Pipeline.Core.Tests",
+          "path": "tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj",
+          "targetFrameworks": [
+            "net10.0"
+          ],
+          "dotNetVersion": "10.0"
+        }
+      },
+      {
+        "id": "Serilog",
+        "type": "Package",
+        "parent": null,
+        "attributes": {
+          "name": "Serilog",
+          "versions": [
+            "3.1.1",
+            "4.4.0"
+          ],
+          "hasVersionConflict": true,
+          "dependentProjectCount": 3,
+          "isAmbient": false
+        }
+      },
+      {
+        "id": "System.Text.Json",
+        "type": "Package",
+        "parent": null,
+        "attributes": {
+          "name": "System.Text.Json",
+          "versions": [
+            "10.0.0"
+          ],
+          "hasVersionConflict": false,
+          "dependentProjectCount": 1,
+          "isAmbient": false
+        }
+      },
+      {
+        "id": "xunit.v3",
+        "type": "Package",
+        "parent": null,
+        "attributes": {
+          "name": "xunit.v3",
+          "versions": [
+            "4.1.0"
+          ],
+          "hasVersionConflict": false,
+          "dependentProjectCount": 1,
+          "isAmbient": false
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "depends:project:src/Pipeline.Core/Pipeline.Core.csproj->package:Serilog",
+        "type": "PackageReference",
+        "source": "src/Pipeline.Core/Pipeline.Core.csproj",
+        "target": "Serilog",
+        "attributes": {}
+      },
+      {
+        "id": "depends:project:src/Pipeline.Storage/Pipeline.Storage.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj",
+        "type": "ProjectReference",
+        "source": "src/Pipeline.Storage/Pipeline.Storage.csproj",
+        "target": "src/Pipeline.Core/Pipeline.Core.csproj",
+        "attributes": {}
+      },
+      {
+        "id": "depends:project:src/Pipeline.Storage/Pipeline.Storage.csproj->package:System.Text.Json",
+        "type": "PackageReference",
+        "source": "src/Pipeline.Storage/Pipeline.Storage.csproj",
+        "target": "System.Text.Json",
+        "attributes": {}
+      },
+      {
+        "id": "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj",
+        "type": "ProjectReference",
+        "source": "src/Pipeline.Cli/Pipeline.Cli.csproj",
+        "target": "src/Pipeline.Core/Pipeline.Core.csproj",
+        "attributes": {}
+      },
+      {
+        "id": "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->project:src/Pipeline.Storage/Pipeline.Storage.csproj",
+        "type": "ProjectReference",
+        "source": "src/Pipeline.Cli/Pipeline.Cli.csproj",
+        "target": "src/Pipeline.Storage/Pipeline.Storage.csproj",
+        "attributes": {}
+      },
+      {
+        "id": "depends:project:src/Pipeline.Cli/Pipeline.Cli.csproj->package:Serilog",
+        "type": "PackageReference",
+        "source": "src/Pipeline.Cli/Pipeline.Cli.csproj",
+        "target": "Serilog",
+        "attributes": {}
+      },
+      {
+        "id": "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->project:src/Pipeline.Core/Pipeline.Core.csproj",
+        "type": "ProjectReference",
+        "source": "tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj",
+        "target": "src/Pipeline.Core/Pipeline.Core.csproj",
+        "attributes": {}
+      },
+      {
+        "id": "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->package:xunit.v3",
+        "type": "PackageReference",
+        "source": "tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj",
+        "target": "xunit.v3",
+        "attributes": {}
+      },
+      {
+        "id": "depends:project:tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj->package:Serilog",
+        "type": "PackageReference",
+        "source": "tests/Pipeline.Core.Tests/Pipeline.Core.Tests.csproj",
+        "target": "Serilog",
+        "attributes": {}
+      }
+    ],
+    "findings": []
+  }
+}

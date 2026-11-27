@@ -370,6 +370,12 @@ pub trait RenderCapability {
     fn render(&self, input: &Json, args: &Json) -> Result<Json, String>;
 }
 
+/// A capability at the `analysis` extension point (ATD §13.3): `$defs/AnalysisInput` to `$defs/AnalysisResult`, derived
+/// elements, relations and findings.
+pub trait AnalysisCapability {
+    fn analyse(&self, input: &Json, args: &Json) -> Result<Json, String>;
+}
+
 /// `arrange.selfOrganising`.
 struct SelfOrganising;
 
@@ -392,6 +398,7 @@ pub struct Capabilities {
     readers: BTreeMap<&'static str, Rc<dyn PersistencePlugin>>,
     arrangers: BTreeMap<&'static str, Rc<dyn ArrangeCapability>>,
     renderers: BTreeMap<&'static str, Rc<dyn RenderCapability>>,
+    analyses: BTreeMap<&'static str, Rc<dyn AnalysisCapability>>,
 }
 
 impl Capabilities {
@@ -477,6 +484,12 @@ impl Capabilities {
         self
     }
 
+    /// These capabilities with `analysis` as the analysis capability `name`.
+    pub fn with_analysis(mut self, name: &'static str, analysis: Rc<dyn AnalysisCapability>) -> Self {
+        self.analyses.insert(name, analysis);
+        self
+    }
+
     pub fn layout(&self, name: &str) -> Option<Rc<dyn LayoutCapability>> {
         self.layouts.get(name).cloned()
     }
@@ -504,7 +517,8 @@ impl Capabilities {
             || self.routings.contains_key(name)
             || self.readers.contains_key(name)
             || self.arrangers.contains_key(name)
-            || self.renderers.contains_key(name);
+            || self.renderers.contains_key(name)
+            || self.analyses.contains_key(name);
         provided.then_some(Version(1, 0, 0))
     }
 
@@ -529,6 +543,7 @@ impl Capabilities {
             .chain(self.readers.keys())
             .chain(self.arrangers.keys())
             .chain(self.renderers.keys())
+            .chain(self.analyses.keys())
             .copied()
             .collect();
         names.sort_unstable();
@@ -550,6 +565,9 @@ impl Capabilities {
         }
         if let Some(reader) = self.reader(name) {
             return reader_result(reader.as_ref(), &fixture["input"]);
+        }
+        if let Some(analysis) = self.analyses.get(name) {
+            return analysis.analyse(&fixture["input"], args);
         }
         match self.routing(name) {
             Some(routing) => routing.routing(&fixture["input"], args),

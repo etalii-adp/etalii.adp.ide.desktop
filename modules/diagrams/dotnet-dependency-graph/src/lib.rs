@@ -23,6 +23,7 @@ pub mod graph;
 pub mod layout;
 pub mod mapper;
 pub mod paths;
+pub mod plugin;
 pub mod project;
 pub mod registration_layout;
 pub mod solution;

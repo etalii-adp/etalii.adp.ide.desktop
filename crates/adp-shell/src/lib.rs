@@ -40,7 +40,8 @@ pub mod theme;
 /// registry's own, and those the modules contribute from code that stays with them: the RDF module's, and the Helm
 /// chart module's folder reader as `reader.helmChart`, the SPARQL module's query reader as `reader.sparql` and the Ansible
 /// module's folder reader, handed the folder's listing, as `reader.ansibleProject`, and the Azure DevOps pipeline module's
-/// reader and writer as `reader.azurePipelinesYaml` (T132).
+/// reader and writer as `reader.azurePipelinesYaml`, and the .NET dependency graph module's solution reader as
+/// `reader.msbuildSolution` with its `analysis.msbuildImports` (T132).
 pub fn capabilities() -> adp_atd_runtime::Capabilities {
     adp_diagram_rdf::capabilities::contribute(adp_atd_runtime::Capabilities::desktop())
         .with_reader(
@@ -59,6 +60,23 @@ pub fn capabilities() -> adp_atd_runtime::Capabilities {
             adp_diagram_azure_devops_pipeline::plugin::CAPABILITY,
             std::rc::Rc::new(adp_diagram_azure_devops_pipeline::plugin::PipelineYamlPlugin),
         )
+        .with_reader(
+            adp_diagram_dotnet_dependency_graph::plugin::READER,
+            std::rc::Rc::new(adp_diagram_dotnet_dependency_graph::plugin::SolutionPlugin),
+        )
+        .with_analysis(
+            adp_diagram_dotnet_dependency_graph::plugin::IMPORTS,
+            std::rc::Rc::new(MsbuildImports),
+        )
+}
+
+/// `analysis.msbuildImports`, the .NET dependency graph module's project reader.
+struct MsbuildImports;
+
+impl adp_atd_runtime::capabilities::AnalysisCapability for MsbuildImports {
+    fn analyse(&self, input: &serde_json::Value, _args: &serde_json::Value) -> Result<serde_json::Value, String> {
+        adp_diagram_dotnet_dependency_graph::plugin::imports(input)
+    }
 }
 
 /// A runtime host with every capability of the desktop host.

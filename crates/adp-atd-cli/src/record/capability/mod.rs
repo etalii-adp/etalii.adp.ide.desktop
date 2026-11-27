@@ -83,6 +83,8 @@ pub fn record(name: &str, cases: &Path) -> Result<Vec<PathBuf>, String> {
         "reader.helmChart" => helm_chart(cases),
         "reader.ansibleProject" => ansible_project(cases),
         "reader.azurePipelinesYaml" => azure_pipelines_yaml(cases),
+        "reader.msbuildSolution" => msbuild(cases, true),
+        "analysis.msbuildImports" => msbuild(cases, false),
         "layout.rankedColumns" => ranked_columns(cases),
         "reader.sparql" => sparql(cases),
         "layout.nestedGrid" => nested_grid(cases),
@@ -879,6 +881,67 @@ fn azure_pipelines_yaml(cases: &Path) -> Result<Vec<PathBuf>, String> {
             "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
             "doc": format!(
                 "Recorded by `atd record --capability reader.azurePipelinesYaml` from modules/diagrams/azure-devops-pipeline/src/plugin.rs of etalii.adp.ide.desktop, on the pipeline parity/scripts/{name}.json opens; never edited by hand."
+            ),
+            "input": input,
+            "args": {},
+            "output": output,
+        });
+        let file = cases.join(format!("{short}.json"));
+        write_json(&file, &fixture)?;
+        written.push(file);
+    }
+    Ok(written)
+}
+
+/// `reader.msbuildSolution` (`reader`) or `analysis.msbuildImports` from the .NET dependency graph module's readers
+/// (`modules/diagrams/dotnet-dependency-graph/src/plugin.rs`), on the solution every .NET dependency graph parity
+/// script opens: for the reader the solution as the body and every other file of its folder but the registration as
+/// `files`; for the analysis those files as the elements it reads.
+fn msbuild(cases: &Path, reader: bool) -> Result<Vec<PathBuf>, String> {
+    use adp_diagram_dotnet_dependency_graph::plugin::{SolutionPlugin, imports};
+
+    fs::create_dir_all(cases).map_err(|e| format!("{}: {e}", cases.display()))?;
+    let fixtures = adp_parity::repository_root().join("parity/fixtures");
+    let mut written = Vec::new();
+    for name in adp_parity::script_names()
+        .into_iter()
+        .filter(|n| n.starts_with("dotnet/dependency-graph/"))
+    {
+        let case = adp_parity::Case::load(&name)?;
+        let solution = fixtures.join(&case.script.fixture);
+        let folder = solution.parent().ok_or("The solution is in no folder.")?;
+        let registration = case.script.registration.as_ref().map(|r| fixtures.join(r));
+        let mut names = Vec::new();
+        super::collect_files(folder, folder, &mut names);
+        names.sort();
+        let mut files = Map::new();
+        for file in names {
+            let path = folder.join(&file);
+            if path == solution || Some(&path) == registration.as_ref() {
+                continue;
+            }
+            let text = fs::read_to_string(&path).map_err(|e| format!("{}: {e}", path.display()))?;
+            files.insert(file, json!(text));
+        }
+        let (capability, input, output) = if reader {
+            let body = fs::read_to_string(&solution).map_err(|e| format!("{}: {e}", solution.display()))?;
+            let input = json!({ "body": body, "files": files });
+            let output = adp_atd_runtime::capabilities::reader_result(&SolutionPlugin, &input)?;
+            ("reader.msbuildSolution", input, output)
+        } else {
+            let elements: Vec<Json> = files
+                .iter()
+                .map(|(path, text)| json!({ "path": path, "text": text }))
+                .collect();
+            let input = json!({ "elements": elements });
+            let output = imports(&input)?;
+            ("analysis.msbuildImports", input, output)
+        };
+        let short = name.rsplit('/').next().unwrap_or(&name);
+        let fixture = json!({
+            "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+            "doc": format!(
+                "Recorded by `atd record --capability {capability}` from modules/diagrams/dotnet-dependency-graph/src/plugin.rs of etalii.adp.ide.desktop, on the solution parity/scripts/{name}.json opens and the files of its folder; never edited by hand."
             ),
             "input": input,
             "args": {},

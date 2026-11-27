@@ -107,10 +107,11 @@ impl IdSource for StepIds {
 }
 
 /// Replays `case` through `runtime`, the tool of `description`, and every difference from what it states.
-/// The files of a folder subject's case, by their paths in the case: every input the case names (FBL section 10). None
-/// for a file body.
+/// The files of a folder subject's case, by their paths in the case: every input the case names (FBL section 10), and
+/// so the files a file body's reader capability is handed beside the body (ATD's reader input `files`: a solution's
+/// project files). None for a file body read by its declared rules.
 pub fn folder_of(runtime: &RuntimeTool, case: &Case) -> Option<BTreeMap<String, Vec<u8>>> {
-    if !runtime.tool.binding.body.is_folder {
+    if !runtime.tool.binding.body.is_folder && runtime.tool.binding.plugin.is_none() {
         return None;
     }
     Some(
