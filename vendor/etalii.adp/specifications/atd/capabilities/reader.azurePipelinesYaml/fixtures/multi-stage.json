@@ -1,0 +1,330 @@
+{
+  "$schema": "https://etalii.net/adp/atd/schema/0.1/atd.schema.json#/$defs/CapabilityFixture",
+  "doc": "Recorded by `atd record --capability reader.azurePipelinesYaml` from modules/diagrams/azure-devops-pipeline/src/plugin.rs of etalii.adp.ide.desktop, on the pipeline parity/scripts/azure-devops/pipeline/multi-stage.json opens; never edited by hand.",
+  "input": {
+    "body": "# A build/test/deploy pipeline with fan-out and fan-in, which is the shape the\n# dependency graph exists to make readable.\ntrigger:\n  branches:\n    include:\n      - main\n      - releases/*\n\npool:\n  vmImage: ubuntu-latest\n\nvariables:\n  buildConfiguration: Release\n\nstages:\n  - stage: Build\n    displayName: Build the solution\n    jobs:\n      - job: Compile\n        displayName: Compile\n        steps:\n          - checkout: self\n            fetchDepth: 1\n          - script: dotnet build --configuration $(buildConfiguration)\n            displayName: Build\n          - publish: $(Build.ArtifactStagingDirectory)\n            artifact: drop\n\n  - stage: Test\n    displayName: Test\n    dependsOn: Build\n    jobs:\n      # These two have no dependsOn, so they run in parallel - the job default,\n      # which is the opposite of the stage default.\n      - job: Unit\n        steps:\n          - script: dotnet test --filter Category=Unit\n            displayName: Unit tests\n      - job: Integration\n        timeoutInMinutes: 30\n        continueOnError: true\n        steps:\n          - script: dotnet test --filter Category=Integration\n            displayName: Integration tests\n\n  - stage: DeployStaging\n    dependsOn: Test\n    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))\n    jobs:\n      - deployment: Staging\n        environment: staging\n        strategy:\n          runOnce:\n            deploy:\n              steps:\n                - download: current\n                  artifact: drop\n                - script: ./deploy.sh staging\n                  displayName: Deploy\n\n  - stage: DeployProduction\n    dependsOn: Test\n    trigger: manual\n    jobs:\n      - deployment: Production\n        environment: production\n        strategy:\n          runOnce:\n            deploy:\n              steps:\n                - script: ./deploy.sh production\n                  displayName: Deploy\n\n  - stage: Notify\n    displayName: Notify the team\n    # Fan-in: waits for both deployments.\n    dependsOn:\n      - DeployStaging\n      - DeployProduction\n    condition: always()\n    jobs:\n      - job: Announce\n        steps:\n          - script: ./notify.sh\n            displayName: Announce\n"
+  },
+  "args": {},
+  "output": {
+    "elements": [
+      {
+        "id": "pipeline",
+        "type": "Pipeline",
+        "parent": null,
+        "attributes": {
+          "hasStagesBlock": true
+        }
+      },
+      {
+        "id": "Build",
+        "type": "Stage",
+        "parent": null,
+        "attributes": {
+          "name": "Build",
+          "displayName": "Build the solution",
+          "isImplicit": false,
+          "manualTrigger": false,
+          "ownPool": {
+            "vmImage": "ubuntu-latest"
+          }
+        }
+      },
+      {
+        "id": "Build/Compile",
+        "type": "Job",
+        "parent": "Build",
+        "attributes": {
+          "name": "Compile",
+          "displayName": "Compile",
+          "isImplicit": false,
+          "strategy": "none",
+          "multiplicity": 1,
+          "ownPool": {
+            "vmImage": "ubuntu-latest"
+          }
+        }
+      },
+      {
+        "id": "Build/Compile/step-0",
+        "type": "Step",
+        "parent": "Build/Compile",
+        "attributes": {
+          "stepKind": "checkout",
+          "identifier": "self"
+        }
+      },
+      {
+        "id": "Build/Compile/step-1",
+        "type": "Step",
+        "parent": "Build/Compile",
+        "attributes": {
+          "stepKind": "script",
+          "displayName": "Build",
+          "identifier": "dotnet build --configuration $(buildConfiguration)"
+        }
+      },
+      {
+        "id": "Build/Compile/step-2",
+        "type": "Step",
+        "parent": "Build/Compile",
+        "attributes": {
+          "stepKind": "publish",
+          "identifier": "$(Build.ArtifactStagingDirectory)"
+        }
+      },
+      {
+        "id": "Test",
+        "type": "Stage",
+        "parent": null,
+        "attributes": {
+          "name": "Test",
+          "displayName": "Test",
+          "isImplicit": false,
+          "manualTrigger": false,
+          "ownPool": {
+            "vmImage": "ubuntu-latest"
+          },
+          "dependsOn": [
+            "Build"
+          ]
+        }
+      },
+      {
+        "id": "Test/Unit",
+        "type": "Job",
+        "parent": "Test",
+        "attributes": {
+          "name": "Unit",
+          "isImplicit": false,
+          "strategy": "none",
+          "multiplicity": 1,
+          "ownPool": {
+            "vmImage": "ubuntu-latest"
+          }
+        }
+      },
+      {
+        "id": "Test/Unit/step-0",
+        "type": "Step",
+        "parent": "Test/Unit",
+        "attributes": {
+          "stepKind": "script",
+          "displayName": "Unit tests",
+          "identifier": "dotnet test --filter Category=Unit"
+        }
+      },
+      {
+        "id": "Test/Integration",
+        "type": "Job",
+        "parent": "Test",
+        "attributes": {
+          "name": "Integration",
+          "continueOnError": "true",
+          "timeoutInMinutes": "30",
+          "isImplicit": false,
+          "strategy": "none",
+          "multiplicity": 1,
+          "ownPool": {
+            "vmImage": "ubuntu-latest"
+          }
+        }
+      },
+      {
+        "id": "Test/Integration/step-0",
+        "type": "Step",
+        "parent": "Test/Integration",
+        "attributes": {
+          "stepKind": "script",
+          "displayName": "Integration tests",
+          "identifier": "dotnet test --filter Category=Integration"
+        }
+      },
+      {
+        "id": "DeployStaging",
+        "type": "Stage",
+        "parent": null,
+        "attributes": {
+          "name": "DeployStaging",
+          "condition": "and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))",
+          "isImplicit": false,
+          "manualTrigger": false,
+          "ownPool": {
+            "vmImage": "ubuntu-latest"
+          },
+          "dependsOn": [
+            "Test"
+          ]
+        }
+      },
+      {
+        "id": "DeployStaging/Staging",
+        "type": "DeploymentJob",
+        "parent": "DeployStaging",
+        "attributes": {
+          "name": "Staging",
+          "environment": "staging",
+          "isImplicit": false,
+          "strategy": "runOnce",
+          "multiplicity": 1,
+          "ownPool": {
+            "vmImage": "ubuntu-latest"
+          }
+        }
+      },
+      {
+        "id": "DeployStaging/Staging/step-0",
+        "type": "Step",
+        "parent": "DeployStaging/Staging",
+        "attributes": {
+          "stepKind": "download",
+          "identifier": "current",
+          "hook": "deploy"
+        }
+      },
+      {
+        "id": "DeployStaging/Staging/step-1",
+        "type": "Step",
+        "parent": "DeployStaging/Staging",
+        "attributes": {
+          "stepKind": "script",
+          "displayName": "Deploy",
+          "identifier": "./deploy.sh staging",
+          "hook": "deploy"
+        }
+      },
+      {
+        "id": "DeployProduction",
+        "type": "Stage",
+        "parent": null,
+        "attributes": {
+          "name": "DeployProduction",
+          "isImplicit": false,
+          "manualTrigger": true,
+          "ownPool": {
+            "vmImage": "ubuntu-latest"
+          },
+          "dependsOn": [
+            "Test"
+          ]
+        }
+      },
+      {
+        "id": "DeployProduction/Production",
+        "type": "DeploymentJob",
+        "parent": "DeployProduction",
+        "attributes": {
+          "name": "Production",
+          "environment": "production",
+          "isImplicit": false,
+          "strategy": "runOnce",
+          "multiplicity": 1,
+          "ownPool": {
+            "vmImage": "ubuntu-latest"
+          }
+        }
+      },
+      {
+        "id": "DeployProduction/Production/step-0",
+        "type": "Step",
+        "parent": "DeployProduction/Production",
+        "attributes": {
+          "stepKind": "script",
+          "displayName": "Deploy",
+          "identifier": "./deploy.sh production",
+          "hook": "deploy"
+        }
+      },
+      {
+        "id": "Notify",
+        "type": "Stage",
+        "parent": null,
+        "attributes": {
+          "name": "Notify",
+          "displayName": "Notify the team",
+          "condition": "always()",
+          "isImplicit": false,
+          "manualTrigger": false,
+          "ownPool": {
+            "vmImage": "ubuntu-latest"
+          },
+          "dependsOn": [
+            "DeployStaging",
+            "DeployProduction"
+          ]
+        }
+      },
+      {
+        "id": "Notify/Announce",
+        "type": "Job",
+        "parent": "Notify",
+        "attributes": {
+          "name": "Announce",
+          "isImplicit": false,
+          "strategy": "none",
+          "multiplicity": 1,
+          "ownPool": {
+            "vmImage": "ubuntu-latest"
+          }
+        }
+      },
+      {
+        "id": "Notify/Announce/step-0",
+        "type": "Step",
+        "parent": "Notify/Announce",
+        "attributes": {
+          "stepKind": "script",
+          "displayName": "Announce",
+          "identifier": "./notify.sh"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "id": "edge:Build->Test",
+        "type": "DependsOn",
+        "source": "Build",
+        "target": "Test",
+        "attributes": {
+          "name": "Build"
+        }
+      },
+      {
+        "id": "edge:Test->DeployStaging",
+        "type": "DependsOn",
+        "source": "Test",
+        "target": "DeployStaging",
+        "attributes": {
+          "name": "Test"
+        }
+      },
+      {
+        "id": "edge:Test->DeployProduction",
+        "type": "DependsOn",
+        "source": "Test",
+        "target": "DeployProduction",
+        "attributes": {
+          "name": "Test"
+        }
+      },
+      {
+        "id": "edge:DeployStaging->Notify",
+        "type": "DependsOn",
+        "source": "DeployStaging",
+        "target": "Notify",
+        "attributes": {
+          "name": "DeployStaging"
+        }
+      },
+      {
+        "id": "edge:DeployProduction->Notify",
+        "type": "DependsOn",
+        "source": "DeployProduction",
+        "target": "Notify",
+        "attributes": {
+          "name": "DeployProduction"
+        }
+      }
+    ],
+    "findings": []
+  }
+}

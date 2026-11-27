@@ -228,6 +228,29 @@ fn apply(
     }
 }
 
+/// `edit` made on `body`, read as `model`, by itself: what a persistence plugin plans, which holds no history (an edit
+/// that puts lines back is the history's own and is refused here).
+pub fn apply_to(body: &mut LineDocument, model: &PipelineModel, edit: &PipelineEdit) -> EditOutcome {
+    match edit {
+        PipelineEdit::Rename {
+            element_id,
+            display_name,
+        } => rename(body, model, element_id, display_name),
+        PipelineEdit::SetDependencies {
+            element_id,
+            depends_on,
+            declared,
+        } => set_dependencies(body, model, element_id, depends_on, *declared),
+        PipelineEdit::SetEnabled { element_id, enabled } => set_enabled(body, model, element_id, *enabled),
+        PipelineEdit::Add { kind, parent_id, name } => add(body, model, *kind, parent_id, name),
+        PipelineEdit::Remove { element_id } => remove(body, model, element_id),
+        PipelineEdit::MoveStep { step_id, to_index } => move_step(body, model, step_id, *to_index),
+        PipelineEdit::RestoreLines { .. } | PipelineEdit::RestoreDocument { .. } => {
+            EditOutcome::Refused("That is the history's to put back.".to_owned())
+        }
+    }
+}
+
 /// The location of `id`, or the refusal: it is gone, or it is written somewhere else (`PipelineEditHandler.Refuses`).
 fn editable<'a>(model: &'a PipelineModel, id: &str) -> Result<crate::model::Location<'a>, EditOutcome> {
     let Some(location) = edits::locate(model, id) else {

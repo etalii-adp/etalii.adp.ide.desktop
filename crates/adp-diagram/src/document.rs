@@ -678,10 +678,35 @@ impl DiagramDocument {
                 let planned = body.change(&model_change);
                 if let (Some(id), Some(known)) = (created, known)
                     && matches!(planned, PlanResult::Planned(_))
-                    && let Some(new) = body.model().elements.into_iter().find(|e| !known.contains(&e.id))
-                    && new.id != id
                 {
-                    made.insert(id, new.id);
+                    let elements = body.model().elements;
+                    // An add the binding met with an entry already there, which the entry before it wrote with it (a
+                    // pipeline's new stage holds its first job), names that entry: of its type, under its parent,
+                    // holding what the add holds.
+                    let met = || {
+                        let ModelChange::Add {
+                            type_name,
+                            attributes,
+                            parent_id,
+                            ..
+                        } = &model_change
+                        else {
+                            return None;
+                        };
+                        elements
+                            .iter()
+                            .find(|e| {
+                                e.type_name == *type_name
+                                    && e.parent_id == *parent_id
+                                    && attributes.iter().all(|(k, v)| e.attributes.get(k) == Some(v))
+                            })
+                            .cloned()
+                    };
+                    if let Some(new) = elements.iter().find(|e| !known.contains(&e.id)).cloned().or_else(met)
+                        && new.id != id
+                    {
+                        made.insert(id, new.id);
+                    }
                 }
                 match planned {
                     PlanResult::Planned(edit) if !edit.splices.is_empty() => steps.push(EditStep {

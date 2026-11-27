@@ -173,6 +173,7 @@ dependencies = [
  "adp-diagram",
  "adp-diagram-agent-behavior-modelling",
  "adp-diagram-ansible-structure",
+ "adp-diagram-azure-devops-pipeline",
  "adp-diagram-c4",
  "adp-diagram-causal-loop",
  "adp-diagram-helm-chart",
@@ -469,11 +470,13 @@ dependencies = [
 name = "adp-diagram-azure-devops-pipeline"
 version = "1.0.0"
 dependencies = [
+ "adp-cel",
  "adp-context",
  "adp-core",
  "adp-diagram",
  "adp-disl",
  "adp-documents",
+ "adp-fbl",
  "adp-history",
  "adp-layout",
  "adp-theme",

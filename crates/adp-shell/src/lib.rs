@@ -39,7 +39,8 @@ pub mod theme;
 /// The capabilities of the desktop host as the shell assembles them (etalii.adp spec 035, T125, research R14): the
 /// registry's own, and those the modules contribute from code that stays with them: the RDF module's, and the Helm
 /// chart module's folder reader as `reader.helmChart`, the SPARQL module's query reader as `reader.sparql` and the Ansible
-/// module's folder reader, handed the folder's listing, as `reader.ansibleProject` (T132).
+/// module's folder reader, handed the folder's listing, as `reader.ansibleProject`, and the Azure DevOps pipeline module's
+/// reader and writer as `reader.azurePipelinesYaml` (T132).
 pub fn capabilities() -> adp_atd_runtime::Capabilities {
     adp_diagram_rdf::capabilities::contribute(adp_atd_runtime::Capabilities::desktop())
         .with_reader(
@@ -53,6 +54,10 @@ pub fn capabilities() -> adp_atd_runtime::Capabilities {
         .with_reader(
             "reader.ansibleProject",
             std::rc::Rc::new(adp_diagram_ansible_structure::plugin::AnsibleFolderPlugin::handed()),
+        )
+        .with_reader(
+            adp_diagram_azure_devops_pipeline::plugin::CAPABILITY,
+            std::rc::Rc::new(adp_diagram_azure_devops_pipeline::plugin::PipelineYamlPlugin),
         )
 }
 

@@ -31,6 +31,7 @@ pub mod lines;
 pub mod mapper;
 pub mod model;
 pub mod parser;
+pub mod plugin;
 pub mod properties;
 pub mod rules;
 pub mod store;

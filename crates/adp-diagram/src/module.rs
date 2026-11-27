@@ -168,6 +168,13 @@ pub trait DiagramModule {
         None
     }
 
+    /// Whether a drawing reads [`DiagramModule::view_of`] for an element the view is not bound to, so that the state a
+    /// description starts every view in is drawn from the first (a pipeline's stages closed): a description's runtime
+    /// does; a hand-written module draws what it binds. False by default.
+    fn draws_initial_views(&self) -> bool {
+        false
+    }
+
     /// Whether the session runs the specification's change rules on a property it sets (DISL sections 8.4, 9.2): a
     /// description's runtime does, where a hand-written module does that work in [`DiagramModule::written`]. False by
     /// default, so a person's tool writes what it always has.

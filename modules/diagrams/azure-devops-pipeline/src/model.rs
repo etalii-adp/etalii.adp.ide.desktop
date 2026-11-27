@@ -533,6 +533,24 @@ impl<'a> Location<'a> {
         }
     }
 
+    /// The name a `dependsOn` writes for it: a stage's or a job's name; a step has none.
+    pub fn name(&self) -> &'a str {
+        match self.kind {
+            LocationKind::Stage => &self.stage.name,
+            LocationKind::Job => &self.job.expect("a job's location has its job").name,
+            LocationKind::Step => "",
+        }
+    }
+
+    /// What it waits for as its `dependsOn` writes it; a step waits for nothing.
+    pub fn depends_on(&self) -> &'a [String] {
+        match self.kind {
+            LocationKind::Stage => &self.stage.depends_on,
+            LocationKind::Job => &self.job.expect("a job's location has its job").depends_on,
+            LocationKind::Step => &[],
+        }
+    }
+
     pub fn display_name(&self) -> &'a str {
         match self.kind {
             LocationKind::Stage => &self.stage.display_name,
